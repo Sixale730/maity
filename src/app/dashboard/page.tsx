@@ -4,7 +4,7 @@ export const metadata = {
   title: 'Dashboard | Maity',
 };
 
-export default function Dashboard() {
+export default function Prueba() {
   return (
     <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
       <section className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">

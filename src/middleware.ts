@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getUser } from '@/lib/auth';
+import { getUserFromToken } from '@/lib/auth-edge';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
+  const user = await getUserFromToken(req.cookies.get('maity_token')?.value);
   const isProtected = req.nextUrl.pathname.startsWith('/dashboard');
 
-  if (isProtected && !getUser()) {
+  if (isProtected && !user) {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('next', req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
