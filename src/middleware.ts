@@ -1,21 +1,17 @@
-// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getUser } from '@/lib/auth';
+import { getUserFromToken } from '@/lib/auth-edge';
 
-export function middleware(req: NextRequest) {
-  const url = req.nextUrl;
-  const user = getUser();
-
-  const isProtected = url.pathname.startsWith('/dashboard');
+export async function middleware(req: NextRequest) {
+  const user = await getUserFromToken(req.cookies.get('maity_token')?.value);
+  const isProtected = req.nextUrl.pathname.startsWith('/dashboard');
 
   if (isProtected && !user) {
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    const loginUrl = new URL('/login', req.url);
+    loginUrl.searchParams.set('next', req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
   return NextResponse.next();
 }
 
-export const config = {
-  matcher: ['/dashboard/:path*'],
-};
+export const config = { matcher: ['/dashboard/:path*'] };

@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "airtable": "^0.12.2",
+    "bcrypt": "^6.0.0",
+    "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
     "next": "15.3.2",
@@ -18,6 +21,9 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/airtable": "^0.10.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
