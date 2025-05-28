@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
 
   // crea cookie de sesión (JWT o sesión firmada)
-  const res = NextResponse.json({ ok: true });
-  setAuthCookie(res, { id: user.id, role: user.role });
-  return res;
+  return setAuthCookie({ id: user.id, role: user.role });
+
 }
