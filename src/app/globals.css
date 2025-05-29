@@ -26,3 +26,25 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.section-title {
+  @apply text-xl font-semibold mb-4 text-gray-300;
+}
+
+.kpi-card {
+  @apply rounded-xl bg-gray-800 p-6 shadow-lg;
+}
+
+.card-title {
+  @apply text-sm font-medium text-gray-400;
+}
+
+.kpi-value {
+  @apply text-4xl font-extrabold text-gray-100;
+}
+
+.chart-placeholder {
+  @apply flex min-h-[250px] items-center justify-center rounded-lg border border-dashed border-gray-600 bg-gray-700 p-4;
+}
+      
