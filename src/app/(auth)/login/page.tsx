@@ -1,17 +1,16 @@
-// src/app/(auth)/login/page.tsx
 import LoginForm from '@/components/LoginForm';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
-  title: 'Iniciar sesión | Maity',
+  title: 'Iniciar Sesión | Maity',
 };
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-screen place-items-center bg-gray-50">
-      <section className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-md">
-        {/* <h1 className="mb-6 text-center text-2xl font-bold text-black">Inicia sesión</h1> */}
-        <LoginForm />
-      </section>
-    </main>
+    <main className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+  <LoginForm />
+</main>
+
   );
 }
