@@ -2,6 +2,13 @@
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './dashboard.css';
+import dynamic from 'next/dynamic';
+
+// ⬇️  Importaciones dinámicas de Recharts (solo en el cliente)
+const RatingBar     = dynamic(() => import('@/components/RatingBar'));
+const DeliveriesBar = dynamic(() => import('@/components/DeliveriesBar'));
+const Histogram     = dynamic(() => import('@/components/Histogram'));
+const LineActivity = dynamic(() => import('@/components/LineChart'));
 
 
 export const metadata: Metadata = {
@@ -105,14 +112,16 @@ export default function Dashboard() {
             <h3 className="card-title mb-4 text-center">
               Calificación promedio por tarea
             </h3>
-            <ChartPlaceholder label="Gráfico de Barras: Calificación Promedio por Tarea" />
+            {/* <ChartPlaceholder label="Gráfico de Barras: Calificación Promedio por Tarea" /> */}
+            <RatingBar/>
           </div>
 
           <div className="kpi-card">
             <h3 className="card-title mb-4 text-center">
               Participación por tarea (Nº Entregas)
             </h3>
-            <ChartPlaceholder label="Gráfico de Barras: Nº Entregas por Tarea" />
+            {/* <ChartPlaceholder label="Gráfico de Barras: Nº Entregas por Tarea" /> */}
+            <DeliveriesBar/>
           </div>
         </div>
       </section>
@@ -127,6 +136,7 @@ export default function Dashboard() {
               Distribución de calificaciones del grupo
             </h3>
             <ChartPlaceholder label="Histograma: Distribución de Calificaciones" />
+            {/* <Histogram/> */}
           </div>
 
           <div className="kpi-card">
@@ -146,7 +156,8 @@ export default function Dashboard() {
           <h3 className="card-title mb-4 text-center">
             Actividad del curso a lo largo del tiempo
           </h3>
-          <ChartPlaceholder label="Gráfico de Líneas: Tareas Entregadas por Semana/Día" />
+          {/* <ChartPlaceholder label="Gráfico de Líneas: Tareas Entregadas por Semana/Día" /> */}
+          <LineActivity/>
         </div>
       </section>
 
