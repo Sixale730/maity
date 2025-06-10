@@ -1,5 +1,6 @@
 'use client';
 
+import useSWR from 'swr';
 import {
   ResponsiveContainer,
   LineChart,
@@ -10,8 +11,8 @@ import {
   Tooltip,
 } from 'recharts';
 
-/* ---------- Datos de prueba (puedes sustituirlos cuando conectes el backend) ---------- */
-export const lineSample: { date: string; value: number }[] = [
+/* fallback local – se usa antes de que llegue el fetch */
+export const lineSample = [
   { date: 'Sem 1', value: 22 },
   { date: 'Sem 2', value: 35 },
   { date: 'Sem 3', value: 28 },
@@ -20,22 +21,42 @@ export const lineSample: { date: string; value: number }[] = [
   { date: 'Sem 6', value: 45 },
 ];
 
-/* ---------- Componente reutilizable ---------- */
+/* fetcher genérico */
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export default function LineActivity({
-  data = lineSample,         // usa el array anterior si no recibes props
-  color = '#4F46E5',         // indigo-600 por defecto
+  color = '#4F46E5', // indigo-600
 }: {
-  data?: typeof lineSample;
   color?: string;
 }) {
-  if (!data.length) return null;
+  const { data, isLoading, error } = useSWR<
+    { date: string; value: number }[]
+  >('/api/metrics/activity', fetcher, {
+    fallbackData: lineSample,
+  });
+
+  if (error) {
+    return (
+      <div className="chart-placeholder">
+        <span className="text-red-400 text-sm">Error al cargar datos</span>
+      </div>
+    );
+  }
+
+  if (isLoading && !data?.length) {
+    return (
+      <div className="chart-placeholder">
+        <span className="text-gray-500 text-sm">Cargando…</span>
+      </div>
+    );
+  }
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data} margin={{ top: 5, right: 20, left: 5, bottom: 5 }}>
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="date" fontSize={10} tickLine={false} axisLine={false} />
-        <YAxis fontSize={10} tickLine={false} allowDecimals={false} />
+        <YAxis allowDecimals={false} fontSize={10} tickLine={false} />
         <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
         <Line
           type="monotone"
