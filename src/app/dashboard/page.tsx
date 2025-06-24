@@ -7,12 +7,13 @@ import { getGradesArray, getDeliveries } from '@/lib/airtableCharts';
 
 
 
-// ⬇️  Importaciones dinámicas de Recharts (solo en el cliente)
+// Componentes de gráficos
 const RatingBar     = dynamic(() => import('@/components/RatingBar'));
 const DeliveriesBar = dynamic(() => import('@/components/DeliveriesBar'));
 const Histogram     = dynamic(() => import('@/components/Histogram'));
 const LineActivity = dynamic(() => import('@/components/LineChart'));
 
+// Otras variables
 const grades = await getGradesArray();
 const deliveriesRaw = await getDeliveries();
 const submissions = deliveriesRaw.map(d => d.entregas);
@@ -121,7 +122,7 @@ export default async function Dashboard() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="kpi-card">
-            <h3 className="card-title mb-4 text-center">
+            <h3 className="text-center text-base font-semibold text-white mb-4">
               Calificación promedio por tarea
             </h3>
             {/* <ChartPlaceholder label="Gráfico de Barras: Calificación Promedio por Tarea" /> */}
@@ -129,7 +130,7 @@ export default async function Dashboard() {
           </div>
 
           <div className="kpi-card">
-            <h3 className="card-title mb-4 text-center">
+            <h3 className="text-center text-base font-semibold text-white mb-4">
               Participación por tarea (Nº Entregas)
             </h3>
             {/* <ChartPlaceholder label="Gráfico de Barras: Nº Entregas por Tarea" /> */}
@@ -144,7 +145,7 @@ export default async function Dashboard() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="kpi-card">
-            <h3 className="card-title mb-4 text-center">
+            <h3 className="text-center text-base font-semibold text-white mb-4">
               Distribución de calificaciones del grupo
             </h3>
              <p className="text-xs text-center text-gray-400">
@@ -160,7 +161,7 @@ export default async function Dashboard() {
           </div>
 
           <div className="kpi-card">
-            <h3 className="card-title mb-4 text-center">
+            <h3 className="text-center text-base font-semibold text-white mb-4">
               Distribución del avance del grupo
             </h3>
             <p className="text-xs text-center text-gray-400">
@@ -180,7 +181,7 @@ export default async function Dashboard() {
         <h2 className="section-title">Tendencias de actividad</h2>
 
         <div className="kpi-card">
-          <h3 className="card-title mb-4 text-center">
+          <h3 className="text-center text-base font-semibold text-white mb-4">
             Actividad del curso a lo largo del tiempo
           </h3>
           {/* <ChartPlaceholder label="Gráfico de Líneas: Tareas Entregadas por Semana/Día" /> */}
