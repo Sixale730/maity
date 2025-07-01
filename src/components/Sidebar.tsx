@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, LayoutDashboardIcon, LogOutIcon } from 'lucide-react';
+import { HomeIcon, LayoutDashboardIcon, LogOutIcon, UsersIcon } from 'lucide-react';
 import clsx from 'clsx';
 
 const navItems = [
   { label: 'Inicio', href: '/', icon: <HomeIcon size={18} /> },
   { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboardIcon size={18} /> },
+  { label: 'Usuarios', href: '/usuarios', icon: <UsersIcon size={18} /> },
   { label: 'Cerrar sesión', href: '/logout', icon: <LogOutIcon size={18} /> },
 ];
 

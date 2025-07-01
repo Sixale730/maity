@@ -115,3 +115,66 @@ export async function getActivity() {
 
   return buckets;
 }
+
+// Usuarios
+export async function getUsersPerformance() {
+  const records = await base(process.env.AIRTABLE_TABLE_CALIF!)
+    .select({
+      fields: ['Nombre', 'Tarea', 'Calificación', 'Empresa (from Empresas)'],
+    })
+    .all();
+
+  const usersMap: Record<
+    string,
+    { empresa: string; calificaciones: number[]; displayName: string }
+  > = {};
+
+  records.forEach((r) => {
+    const rawNombre = r.get('Nombre')?.toString();
+    if (!rawNombre) return;
+
+    const normalizedNombre = rawNombre.trim().toLowerCase(); // clave única
+    const displayName = rawNombre.trim(); // conservar nombre con mayúsculas
+    const tarea = parseInt(r.get('Tarea')?.toString() || '');
+    const calificacion = parseFloat(r.get('Calificación')?.toString() || '');
+
+    if (!normalizedNombre || isNaN(tarea)) return;
+    const safeCalificacion = isNaN(calificacion) ? 0 : calificacion;
+
+    // Obtener empresa
+    let empresa = 'Sin Empresa';
+    const empresaRaw = r.get('Empresa (from Empresas)');
+    if (Array.isArray(empresaRaw) && empresaRaw.length > 0) {
+      empresa = empresaRaw[0]?.toString();
+    } else if (typeof empresaRaw === 'string') {
+      empresa = empresaRaw;
+    }
+
+    // Inicializar si no existe
+    if (!usersMap[normalizedNombre]) {
+      usersMap[normalizedNombre] = {
+        empresa,
+        displayName,
+        calificaciones: [],
+      };
+    }
+
+    // Rellenar hasta la tarea correspondiente con ceros si hace falta
+    const calArray = usersMap[normalizedNombre].calificaciones;
+    while (calArray.length < tarea) {
+      calArray.push(0);
+    }
+
+    calArray[tarea - 1] = safeCalificacion;
+  });
+
+  // Devolver como arreglo
+  return Object.values(usersMap).map(({ empresa, calificaciones, displayName }) => ({
+    nombre: displayName,
+    empresa,
+    calificaciones,
+  }));
+}
+
+
+
