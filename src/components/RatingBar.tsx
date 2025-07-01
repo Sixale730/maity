@@ -80,10 +80,21 @@ export default function RatingBar() {
               ticks={[0, 20, 40, 60, 80, 100]}
               stroke="#9CA3AF"
             />
-            <Tooltip
-              formatter={(value: number) => `${value.toFixed(2)}`}
-              labelFormatter={(label) => `Tarea #${label}`}
-            />
+        <Tooltip
+          labelFormatter={(label) => `Tarea #${label}`}
+          contentStyle={{
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            color: '#000',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+          labelStyle={{
+          color: '#000',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          }}
+        />
             <Bar dataKey="rating" fill="#6366f1" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

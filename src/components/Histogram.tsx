@@ -65,7 +65,20 @@ export default function Histogram({
           axisLine={false}
         />
         <YAxis allowDecimals={false} fontSize={10} tickLine={false} />
-        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            color: '#000',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+          labelStyle={{
+          color: '#000',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          }}
+        />
         <Bar dataKey="count" fill={color} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

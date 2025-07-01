@@ -57,7 +57,20 @@ export default function LineActivity({
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="date" fontSize={10} tickLine={false} axisLine={false} />
         <YAxis allowDecimals={false} fontSize={10} tickLine={false} />
-        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            color: '#000',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+          labelStyle={{
+          color: '#000',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          }}
+        />
         <Line
           type="monotone"
           dataKey="value"

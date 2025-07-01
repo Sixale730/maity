@@ -75,10 +75,21 @@ export default function DeliveriesBar() {
               }}
             />
             <YAxis stroke="#9CA3AF" />
-            <Tooltip
-              formatter={(value: number) => `${value}`}
-              labelFormatter={(label) => `Tarea #${label}`}
-            />
+                    <Tooltip
+                      labelFormatter={(label) => `Tarea #${label}`}
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        border: '1px solid #ccc',
+                        color: '#000',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                      }}
+                      labelStyle={{
+                      color: '#000',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      }}
+                    />
             <Bar dataKey="entregas" fill="#10b981" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
