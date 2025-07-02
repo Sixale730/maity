@@ -1,14 +1,14 @@
 // src/app/usuarios/page.tsx
+
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './usuario.css';
 import dynamic from 'next/dynamic';
-import {
-  getGradesArray,
-  getDeliveries,
-  getUsersPerformance,
-} from '@/lib/airtableCharts';
+import { getGradesArray, getDeliveries, getUsersPerformance } from '@/lib/airtableCharts';
+import { getUser } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 // Componentes de gráficos
 const RatingBar = dynamic(() => import('@/components/RatingBar'));
@@ -17,22 +17,9 @@ const Histogram = dynamic(() => import('@/components/Histogram'));
 const LineActivity = dynamic(() => import('@/components/LineChart'));
 const UsersChartList = dynamic(() => import('@/components/UsersChartList'));
 
-// Otras variables
-const grades = await getGradesArray();
-const deliveriesRaw = await getDeliveries();
-const usersData = await getUsersPerformance();
-
-const submissions = deliveriesRaw.map((d) => d.entregas);
-const totalEntregas = submissions.reduce((acc, val) => acc + val, 0);
-const avgScore = (
-  grades.reduce((a, b) => a + b, 0) / grades.length
-).toFixed(1);
-
 export const metadata: Metadata = {
   title: 'Usuarios | Maity',
 };
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 /* ——— Tarjeta KPI reutilizable ——— */
 function KpiCard({
@@ -72,6 +59,18 @@ function ChartPlaceholder({ label }: { label: string }) {
 }
 
 export default async function Usuarios() {
+  // Protección de ruta
+  const user = await getUser();
+  if (!user) redirect('/auth/login');
+
+  // Carga de datos después de validar usuario
+  const grades = await getGradesArray();
+  const deliveriesRaw = await getDeliveries();
+  const usersData = await getUsersPerformance();
+  const submissions = deliveriesRaw.map((d) => d.entregas);
+  const totalEntregas = submissions.reduce((acc, val) => acc + val, 0);
+  const avgScore = (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1);
+
   return (
     <main
       className={`${inter.variable} bg-gray-900 p-4 sm:p-6 md:p-8 text-gray-100`}
