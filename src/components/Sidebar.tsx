@@ -16,9 +16,8 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="bg-gray-800 text-gray-100 w-64 min-h-screen p-6">
+    <aside className="fixed top-0 left-0 h-screen w-64 bg-gray-800 text-gray-100 p-6 z-50">
       <h2 className="text-2xl font-bold mb-10">MAITY</h2>
-
       <nav className="space-y-4">
         {navItems.map(({ label, href, icon }) => (
           <Link

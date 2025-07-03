@@ -8,16 +8,15 @@ type UserPerformance = {
   calificaciones: number[];
 };
 
-export default function UsersChartList({ data }: { data: UserPerformance[] }) {
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState('Todas');
-
-  // Obtener lista única de empresas
-  const empresas = Array.from(new Set(data.map(u => u.empresa)));
-
-  // Filtrar por empresa si se selecciona una
-  const filtrados = empresaSeleccionada === 'Todas'
-    ? data
-    : data.filter(u => u.empresa === empresaSeleccionada);
+export default function UsersChartList({
+  data,
+  empresaSeleccionada,
+}: {
+  data: UserPerformance[];
+  empresaSeleccionada: string;
+}) {
+  const [ordenPromedio, setOrdenPromedio] = useState<'none' | 'asc' | 'desc'>('none');
+  const [ordenTareas, setOrdenTareas] = useState<'none' | 'asc' | 'desc'>('none');
 
   // Función para calcular el promedio en escala 0-100
   const calcularPromedio = (calificaciones: number[]) => {
@@ -27,21 +26,67 @@ export default function UsersChartList({ data }: { data: UserPerformance[] }) {
     return Math.round(promedioEstrellas * 20); // Convertir a escala de 0-100
   };
 
+  // Devuelve clases de Tailwind para el color del texto del promedio
+  const obtenerColorTextoPromedio = (promedio: number) => {
+    if (promedio >= 80) return 'text-green-400';
+    if (promedio >= 60) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  // Filtrar por empresa
+  let filtrados = empresaSeleccionada === 'Todas'
+    ? [...data]
+    : data.filter(u => u.empresa === empresaSeleccionada);
+
+  // Orden por promedio
+  if (ordenPromedio !== 'none') {
+    filtrados.sort((a, b) => {
+      const pa = calcularPromedio(a.calificaciones);
+      const pb = calcularPromedio(b.calificaciones);
+      return ordenPromedio === 'asc' ? pa - pb : pb - pa;
+    });
+  }
+
+  // Orden por número de tareas entregadas
+  if (ordenTareas !== 'none') {
+    filtrados.sort((a, b) => {
+      const ta = a.calificaciones.length;
+      const tb = b.calificaciones.length;
+      return ordenTareas === 'asc' ? ta - tb : tb - ta;
+    });
+  }
+
   return (
     <div className="space-y-6">
-      {/* Filtro por empresa */}
-      <div className="mb-4">
-        <label className="block text-sm mb-2">Empresa:</label>
-        <select
-          className="text-black p-2 rounded"
-          value={empresaSeleccionada}
-          onChange={(e) => setEmpresaSeleccionada(e.target.value)}
-        >
-          <option value="Todas">Todas</option>
-          {empresas.map((empresa) => (
-            <option key={empresa} value={empresa}>{empresa}</option>
-          ))}
-        </select>
+      {/* Filtros internos */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Orden por promedio */}
+        <div>
+          <label className="block text-sm mb-1">Ordenar por promedio:</label>
+          <select
+            className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1"
+            value={ordenPromedio}
+            onChange={(e) => setOrdenPromedio(e.target.value as any)}
+          >
+            <option value="none">Sin orden</option>
+            <option value="desc">Mayor a menor</option>
+            <option value="asc">Menor a mayor</option>
+          </select>
+        </div>
+
+        {/* Orden por tareas entregadas */}
+        <div>
+          <label className="block text-sm mb-1">Ordenar por entregas:</label>
+          <select
+            className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1"
+            value={ordenTareas}
+            onChange={(e) => setOrdenTareas(e.target.value as any)}
+          >
+            <option value="none">Sin orden</option>
+            <option value="desc">Más entregas primero</option>
+            <option value="asc">Menos entregas primero</option>
+          </select>
+        </div>
       </div>
 
       {/* Tarjetas por usuario */}
@@ -51,7 +96,16 @@ export default function UsersChartList({ data }: { data: UserPerformance[] }) {
           return (
             <div key={`${u.nombre}-${u.empresa}`} className="p-4 rounded bg-gray-800 min-h-[280px]">
               <h3 className="font-semibold mb-1 text-lg">{u.nombre}</h3>
-              <p className="text-sm text-gray-300 mb-3">Promedio: <strong>{promedio}</strong>/100</p>
+              <p className="text-sm text-gray-300 mb-3">
+                Promedio:{' '}
+                <strong className={obtenerColorTextoPromedio(promedio)}>
+                  {promedio}
+                </strong>
+                /100{' — '}
+                <span className="text-xs text-gray-400">
+                  {u.calificaciones.length} tareas
+                </span>
+              </p>
               <div className="w-full" style={{ height: 200 }}>
                 <RatingBarSimple data={u.calificaciones} color="#3B82F6" />
               </div>
