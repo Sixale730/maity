@@ -33,12 +33,13 @@ export function setAuthCookie(payload: TokenPayload) {
 
   const response = NextResponse.json({ ok: true });
 
-  response.cookies.set('maity_token', token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    // maxAge: 60 * 60 * 24 * 7,
-  });
+ response.cookies.set('maity_token', token, {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production', // <--- esta línea es clave
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // 7 días
+});
 
   return response;
 }
