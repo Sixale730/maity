@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* --- Variables tipográficas (Inter ya cargada en globals) --- */
+:root {
+  --color-bg-primary: #111827; /* gris oscuro */
+  --color-bg-card:     #1F2937; /* gris un poco más claro */
+  --color-border:      #4B5563; /* gris borde dashed */
+  --color-text-base:   #E5E7EB; /* texto claro */
+  --color-text-muted:  #9CA3AF;
+}
+
+/* ---------- Estructura general ---------- */
+.dashboard-wrapper {
+  @apply p-4 sm:p-6 md:p-8 bg-gray-900 text-gray-100 min-h-screen;
+}
+
+/* ---------- Títulos ---------- */
+.section-title {
+  @apply mb-4 text-xl font-semibold text-gray-300;
+}
+
+/* ---------- Tarjetas KPI ---------- */
+.kpi-card {
+  @apply rounded-xl bg-gray-800 p-6 shadow-lg flex flex-col gap-1;
+}
+.card-title {
+  @apply text-sm font-medium text-gray-400;
+}
+.kpi-value {
+  @apply text-4xl font-extrabold text-gray-100;
+}
+
+/* Variantes de hint */
+.kpi-hint-green {
+  @apply text-xs text-green-400;
+}
+.kpi-hint-red {
+  @apply text-xs text-red-400;
+}
+.kpi-hint-gray {
+  @apply text-xs text-gray-400;
+}
+
+/* ---------- Placeholder de gráficos ---------- */
+.chart-placeholder {
+  @apply flex min-h-[250px] items-center justify-center rounded-lg border border-dashed border-gray-600 bg-gray-700 p-4;
+}
+
+/* ---------- Footer ---------- */
+.dashboard-footer {
+  @apply mt-12 border-t border-gray-700 py-4 text-center text-sm text-gray-500;
+}
