@@ -4,7 +4,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <section className="flex-1 overflow-y-auto">{children}</section>
+      {/* Contenido desplazable, con margen a la izquierda para el sidebar */}
+      <section className="ml-64 flex-1 overflow-y-auto p-6">
+        {children}
+      </section>
     </div>
   );
 }

@@ -81,8 +81,19 @@ export default function RatingBar() {
               stroke="#9CA3AF"
             />
             <Tooltip
-              formatter={(value: number) => `${value.toFixed(2)}`}
               labelFormatter={(label) => `Tarea #${label}`}
+              contentStyle={{
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                color: '#000',
+                fontSize: '14px',
+                fontWeight: 'bold',
+              }}
+              labelStyle={{
+              color: '#000',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              }}
             />
             <Bar dataKey="rating" fill="#6366f1" radius={[4, 4, 0, 0]} />
           </BarChart>

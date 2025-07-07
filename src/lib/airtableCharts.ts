@@ -7,7 +7,6 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_PAT })
   const DAYS_PER_BUCKET = 5;
 
 
-
 /* ------- Calificación promedio x tarea ------- */
 export async function getRatings(empresaFilter?: string) {
   const recs = await base(process.env.AIRTABLE_TABLE_CALIF!)
@@ -25,7 +24,7 @@ export async function getRatings(empresaFilter?: string) {
 
     console.log({ tarea, calificacion, empresa });
 
-    // Ignora registros sin calificación
+  // Ignora registros sin calificación
     if (!tarea || isNaN(calificacion)) return;
     if (empresaFilter && empresa !== empresaFilter) return;
 
@@ -46,7 +45,6 @@ export async function getRatings(empresaFilter?: string) {
 )
   }));
 }
-
 
 
 /* ------- Entregas por tarea ------- */
@@ -75,7 +73,6 @@ export async function getDeliveries(empresaFilter?: string) {
 }
 
 
-
 /* ------- Histograma de calificaciones ------- */
 export async function getGradesArray() {
   const recs = await base(process.env.AIRTABLE_TABLE_GRADES!)
@@ -83,7 +80,6 @@ export async function getGradesArray() {
     .all();
   return recs.map(r => Number(r.get('score')));
 }
-
 
 
 /* ------- Entregas por semana (línea) ------- */
@@ -142,7 +138,7 @@ export async function getUsersPerformance() {
     const safeCalificacion = isNaN(calificacion) ? 0 : calificacion;
 
     // Obtener empresa
-    let empresa = 'Sin Empresa';
+    let empresa = 'Sin empresa';
     const empresaRaw = r.get('Empresa (from Empresas)');
     if (Array.isArray(empresaRaw) && empresaRaw.length > 0) {
       empresa = empresaRaw[0]?.toString();
