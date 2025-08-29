@@ -34,7 +34,7 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   return (
     <div className={`${sizeClasses[size]} ${minWidths.full} ${className} flex items-center justify-center`}>
       <img 
-        src="/lovable-uploads/48d136b9-162b-464d-8c62-b76137422d33.png" 
+        src="/lovable-uploads/168e7df1-73b1-476d-b64b-e007b8bb7e1e.png" 
         alt="Maity Logo Completo" 
         className="w-full h-full object-contain"
       />
