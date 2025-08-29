@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Users, Target, Calendar, Award, ArrowRight, Star, Quote } from "lucide-react";
+import MaityLogo from "@/components/MaityLogo";
 
 const LandingPage = () => {
   return (
@@ -11,12 +12,7 @@ const LandingPage = () => {
       <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-geist font-bold text-lg">M</span>
-              </div>
-              <span className="font-geist font-bold text-xl text-foreground">Maity</span>
-            </div>
+            <MaityLogo size="md" />
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="font-inter">Características</Button>
               <Button variant="ghost" className="font-inter">Casos de Éxito</Button>
@@ -241,12 +237,7 @@ const LandingPage = () => {
       <footer className="border-t border-border py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-geist font-bold text-lg">M</span>
-              </div>
-              <span className="font-geist font-bold text-xl text-foreground">Maity</span>
-            </div>
+            <MaityLogo size="md" />
             <p className="font-inter text-muted-foreground text-center md:text-right">
               © 2024 Maity. Transformando el futuro del aprendizaje en TI.
             </p>
