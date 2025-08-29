@@ -2,6 +2,8 @@ import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { 
   BarChart, 
   Bar, 
@@ -16,48 +18,50 @@ import {
   Cell
 } from "recharts";
 
-// Datos random para las gráficas
-const salesData = [
-  { month: "Ene", sales: 4000, users: 2400 },
-  { month: "Feb", sales: 3000, users: 1398 },
-  { month: "Mar", sales: 2000, users: 9800 },
-  { month: "Abr", sales: 2780, users: 3908 },
-  { month: "May", sales: 1890, users: 4800 },
-  { month: "Jun", sales: 2390, users: 3800 },
-];
-
-const trafficData = [
-  { day: "Lun", visits: 240 },
-  { day: "Mar", visits: 180 },
-  { day: "Mié", visits: 320 },
-  { day: "Jue", visits: 280 },
-  { day: "Vie", visits: 420 },
-  { day: "Sáb", visits: 180 },
-  { day: "Dom", visits: 150 },
-];
-
-const deviceData = [
-  { name: "Desktop", value: 45, color: "hsl(var(--primary))" },
-  { name: "Mobile", value: 35, color: "hsl(var(--accent))" },
-  { name: "Tablet", value: 20, color: "hsl(var(--muted-foreground))" },
-];
-
 const chartConfig = {
-  sales: {
-    label: "Ventas",
+  sessions: {
+    label: "Sesiones",
     color: "hsl(var(--primary))",
   },
-  users: {
-    label: "Usuarios",
+  completed: {
+    label: "Completadas",
     color: "hsl(var(--accent))",
   },
-  visits: {
-    label: "Visitas",
-    color: "hsl(var(--primary))",
+  mood: {
+    label: "Humor Promedio",
+    color: "hsl(var(--chart-3))",
   },
 };
 
 export function DashboardContent() {
+  const { monthlyData, dailyData, statusData, dashboardStats, loading } = useDashboardData();
+
+  if (loading) {
+    return (
+      <main className="flex-1 p-6 space-y-6">
+        <div className="flex items-center gap-4 border-b border-border pb-4">
+          <SidebarTrigger />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Cargando datos...</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-[150px]" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[100px]" />
+                <Skeleton className="h-3 w-[200px] mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="flex-1 p-6 space-y-6">
       {/* Header */}
@@ -66,7 +70,7 @@ export function DashboardContent() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">
-            Bienvenido a tu panel de control
+            Datos en tiempo real del sistema Maity
           </p>
         </div>
       </div>
@@ -75,52 +79,52 @@ export function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ventas Totales</CardTitle>
-            <span className="text-2xl">💰</span>
+            <CardTitle className="text-sm font-medium">Total Sesiones</CardTitle>
+            <span className="text-2xl">📊</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231</div>
+            <div className="text-2xl font-bold">{dashboardStats.totalSessions}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% desde el mes pasado
+              Sesiones de coaching registradas
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
-            <span className="text-2xl">👥</span>
+            <CardTitle className="text-sm font-medium">Sesiones Activas</CardTitle>
+            <span className="text-2xl">🟢</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350</div>
+            <div className="text-2xl font-bold">{dashboardStats.activeSessions}</div>
             <p className="text-xs text-muted-foreground">
-              +180 nuevos usuarios
+              Programadas o en progreso
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversiones</CardTitle>
-            <span className="text-2xl">📈</span>
+            <CardTitle className="text-sm font-medium">Tasa de Finalización</CardTitle>
+            <span className="text-2xl">✅</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12.5%</div>
+            <div className="text-2xl font-bold">{dashboardStats.completionRate}%</div>
             <p className="text-xs text-muted-foreground">
-              +2.1% desde la semana pasada
+              Sesiones completadas exitosamente
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos</CardTitle>
-            <span className="text-2xl">💎</span>
+            <CardTitle className="text-sm font-medium">Humor Promedio</CardTitle>
+            <span className="text-2xl">😊</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,234</div>
+            <div className="text-2xl font-bold">{dashboardStats.avgMood || 'N/A'}</div>
             <p className="text-xs text-muted-foreground">
-              +4.5% desde ayer
+              Puntuación promedio de humor
             </p>
           </CardContent>
         </Card>
@@ -128,36 +132,36 @@ export function DashboardContent() {
 
       {/* Charts Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Sales Chart */}
+        {/* Monthly Sessions Chart */}
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Ventas y Usuarios</CardTitle>
+            <CardTitle>Sesiones Mensuales</CardTitle>
             <CardDescription>
-              Comparación mensual de ventas y nuevos usuarios
+              Estadísticas de sesiones de coaching por mes
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData}>
+                <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="sales" fill="hsl(var(--primary))" />
-                  <Bar dataKey="users" fill="hsl(var(--accent))" />
+                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name="Sesiones" />
+                  <Bar dataKey="completed" fill="hsl(var(--accent))" name="Completadas" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Device Usage Pie Chart */}
+        {/* Session Status Pie Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Dispositivos</CardTitle>
+            <CardTitle>Estado de Sesiones</CardTitle>
             <CardDescription>
-              Uso por tipo de dispositivo
+              Distribución por estado de las sesiones
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,7 +169,7 @@ export function DashboardContent() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={deviceData}
+                    data={statusData}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -173,7 +177,7 @@ export function DashboardContent() {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {deviceData.map((entry, index) => (
+                    {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -184,28 +188,29 @@ export function DashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Traffic Line Chart */}
+        {/* Daily Sessions Line Chart */}
         <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Tráfico Semanal</CardTitle>
+            <CardTitle>Actividad Semanal</CardTitle>
             <CardDescription>
-              Visitas diarias de la última semana
+              Sesiones diarias de la última semana
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trafficData}>
+                <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Line 
                     type="monotone" 
-                    dataKey="visits" 
+                    dataKey="sessions" 
                     stroke="hsl(var(--primary))" 
                     strokeWidth={2}
                     dot={{ fill: "hsl(var(--primary))" }}
+                    name="Sesiones"
                   />
                 </LineChart>
               </ResponsiveContainer>
