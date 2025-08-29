@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +19,12 @@ const LandingPage = () => {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="font-inter">Características</Button>
               <Button variant="ghost" className="font-inter">Casos de Éxito</Button>
-              <Button variant="outline" className="font-inter">Iniciar Sesión</Button>
-              <Button className="font-inter">Empezar Gratis</Button>
+              <Button variant="outline" className="font-inter" asChild>
+                <Link to="/auth">Iniciar Sesión</Link>
+              </Button>
+              <Button className="font-inter" asChild>
+                <Link to="/auth">Empezar Gratis</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -41,9 +46,11 @@ const LandingPage = () => {
               de equipos en el sector de TI. Una experiencia retadora, emocionalmente inteligente y visionaria.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="font-inter text-lg px-8">
-                Comenzar tu Evolución
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" className="font-inter text-lg px-8" asChild>
+                <Link to="/auth">
+                  Comenzar tu Evolución
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
               <Button variant="outline" size="lg" className="font-inter text-lg px-8">
                 Ver Demo
@@ -222,9 +229,11 @@ const LandingPage = () => {
               Comienza tu prueba gratuita hoy y descubre el potencial de tu equipo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="font-inter text-lg px-8">
-                Iniciar Prueba Gratuita
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" className="font-inter text-lg px-8" asChild>
+                <Link to="/auth">
+                  Iniciar Prueba Gratuita
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="font-inter text-lg px-8">
                 Agendar Demo
