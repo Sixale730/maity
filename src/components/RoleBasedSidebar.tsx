@@ -10,7 +10,9 @@ import {
   Building,
   User,
   Target,
-  Calendar
+  Calendar,
+  FileText,
+  Trophy
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,25 +46,23 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "Reports", url: "/dashboard/reports", icon: PieChart },
       { title: "Trends", url: "/dashboard/trends", icon: TrendingUp },
       { title: "Planes", url: "/dashboard/planes", icon: Settings },
+      { title: "Documentos", url: "/dashboard/documentos", icon: FileText },
       { title: "Settings", url: "/dashboard/settings", icon: Settings },
     ];
   } else if (role === 'org_admin') {
     return [
       ...baseItems,
       { title: "Mi Equipo", url: "/dashboard/team", icon: Users },
-      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-      { title: "Reports", url: "/dashboard/reports", icon: PieChart },
-      { title: "Usuarios", url: "/dashboard/usuarios", icon: Users },
-      { title: "Planes", url: "/dashboard/planes", icon: Settings },
-      { title: "Settings", url: "/dashboard/settings", icon: Settings },
+      { title: "Planes", url: "/dashboard/planes", icon: Target },
+      { title: "Documentos", url: "/dashboard/documentos", icon: FileText },
+      { title: "Ajustes", url: "/dashboard/settings", icon: Settings },
     ];
   } else {
+    // 'user' role
     return [
       ...baseItems,
-      { title: "Mi Progreso", url: "/dashboard/progress", icon: TrendingUp },
-      { title: "Mis Objetivos", url: "/dashboard/goals", icon: Target },
-      { title: "Calendario", url: "/dashboard/calendar", icon: Calendar },
-      { title: "Perfil", url: "/dashboard/profile", icon: User },
+      { title: "Plan", url: "/dashboard/plan", icon: Target },
+      { title: "Logros", url: "/dashboard/logros", icon: Trophy },
     ];
   }
 };
