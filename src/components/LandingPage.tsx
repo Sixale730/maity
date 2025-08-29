@@ -14,7 +14,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <MaityLogo variant="symbol" size="lg" />
+              <MaityLogo variant="full" size="md" />
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="font-inter">Características</Button>
@@ -247,7 +247,7 @@ const LandingPage = () => {
       <footer className="border-t border-border py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <MaityLogo size="md" />
+            <MaityLogo variant="full" size="md" />
             <p className="font-inter text-muted-foreground text-center md:text-right">
               © 2024 <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" />. Transformando el futuro del aprendizaje en TI.
             </p>

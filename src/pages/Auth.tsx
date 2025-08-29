@@ -99,7 +99,7 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <MaityLogo variant="symbol" size="lg" />
+            <MaityLogo variant="full" size="lg" />
           </div>
           <CardTitle className="font-geist text-2xl">
             {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
