@@ -211,20 +211,20 @@ const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-12 lg:p-16 text-center">
-            <h2 className="font-geist font-bold text-3xl lg:text-4xl text-primary-foreground mb-4">
+          <div className="bg-gradient-to-r from-card to-muted rounded-2xl p-12 lg:p-16 text-center border border-border">
+            <h2 className="font-geist font-bold text-3xl lg:text-4xl text-foreground mb-4">
               ¿Listo para transformar tu equipo?
             </h2>
-            <p className="font-inter text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
+            <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Únete a cientos de líderes de TI que ya están viendo resultados reales. 
               Comienza tu prueba gratuita hoy y descubre el potencial de tu equipo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="font-inter text-lg px-8">
+              <Button size="lg" className="font-inter text-lg px-8">
                 Iniciar Prueba Gratuita
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button size="lg" variant="outline" className="font-inter text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Button size="lg" variant="outline" className="font-inter text-lg px-8">
                 Agendar Demo
               </Button>
             </div>
