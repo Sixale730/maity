@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Maity Dark Mode - Limited Color Palette */
+    /* Maity Dark Mode - Extended Color Palette */
     --background: 0 0% 0%;              /* #000000 */
     --foreground: 240 4% 91%;           /* #e7e7e9 */
 
@@ -18,7 +18,7 @@ All colors MUST be HSL.
     --popover: 0 0% 6%;                 /* #0F0F0F */
     --popover-foreground: 240 4% 91%;   /* #e7e7e9 */
 
-    --primary: 340 100% 50%;            /* #ff0050 */
+    --primary: 229 93% 65%;             /* #485df4 */
     --primary-foreground: 240 4% 91%;   /* #e7e7e9 */
 
     --secondary: 0 0% 6%;               /* #0F0F0F */
@@ -35,18 +35,18 @@ All colors MUST be HSL.
 
     --border: 0 0% 6%;                  /* #0F0F0F */
     --input: 0 0% 6%;                   /* #0F0F0F */
-    --ring: 340 100% 50%;               /* #ff0050 */
+    --ring: 229 93% 65%;                /* #485df4 */
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 0%;      /* #000000 */
     --sidebar-foreground: 240 4% 91%;   /* #e7e7e9 */
-    --sidebar-primary: 340 100% 50%;    /* #ff0050 */
+    --sidebar-primary: 229 93% 65%;     /* #485df4 */
     --sidebar-primary-foreground: 240 4% 91%; /* #e7e7e9 */
     --sidebar-accent: 0 0% 6%;          /* #0F0F0F */
     --sidebar-accent-foreground: 240 4% 91%; /* #e7e7e9 */
     --sidebar-border: 0 0% 6%;          /* #0F0F0F */
-    --sidebar-ring: 340 100% 50%;       /* #ff0050 */
+    --sidebar-ring: 229 93% 65%;        /* #485df4 */
   }
 }
 

@@ -14,16 +14,16 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   };
 
   const minWidths = {
-    full: "min-w-[151px]", // 40mm / 151px para isologotipo
-    symbol: "min-w-[37px]"  // 10mm / 37px para símbolo
+    full: "min-w-[151px]", // Para logo completo
+    symbol: "min-w-[37px]"  // Para isotipo
   };
 
   if (variant === "symbol") {
     return (
       <div className={`${sizeClasses[size]} ${minWidths.symbol} ${className} flex items-center justify-center`}>
         <img 
-          src="/lovable-uploads/551be33f-9355-4d82-93d4-b2be9001f8d1.png" 
-          alt="Maity Logo" 
+          src="/lovable-uploads/9386ff20-7e95-47d9-8f35-ac09c6e07482.png" 
+          alt="Maity Isotipo" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -33,8 +33,8 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   return (
     <div className={`${sizeClasses[size]} ${minWidths.full} ${className} flex items-center justify-center`}>
       <img 
-        src="/lovable-uploads/551be33f-9355-4d82-93d4-b2be9001f8d1.png" 
-        alt="Maity Logo" 
+        src="/lovable-uploads/48d136b9-162b-464d-8c62-b76137422d33.png" 
+        alt="Maity Logo Completo" 
         className="w-full h-full object-contain"
       />
     </div>
