@@ -33,20 +33,25 @@ All colors MUST be HSL.
     --destructive: 340 100% 50%;        /* #ff0050 */
     --destructive-foreground: 240 4% 91%; /* #e7e7e9 */
 
+    /* Red accent colors for Maity branding */
+    --red-primary: 340 100% 50%;        /* #ff0050 */
+    --red-muted: 340 100% 35%;          /* #b30038 */
+    --red-subtle: 340 100% 95%;         /* #ffe6f0 */
+
     --border: 0 0% 6%;                  /* #0F0F0F */
     --input: 0 0% 6%;                   /* #0F0F0F */
     --ring: 229 93% 65%;                /* #485df4 */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 0%;      /* #000000 */
+    --sidebar-background: 0 0% 3%;      /* #080808 */
     --sidebar-foreground: 240 4% 91%;   /* #e7e7e9 */
-    --sidebar-primary: 229 93% 65%;     /* #485df4 */
+    --sidebar-primary: 340 100% 50%;    /* #ff0050 - Red primary */
     --sidebar-primary-foreground: 240 4% 91%; /* #e7e7e9 */
-    --sidebar-accent: 0 0% 6%;          /* #0F0F0F */
+    --sidebar-accent: 0 0% 8%;          /* #141414 */
     --sidebar-accent-foreground: 240 4% 91%; /* #e7e7e9 */
-    --sidebar-border: 0 0% 6%;          /* #0F0F0F */
-    --sidebar-ring: 229 93% 65%;        /* #485df4 */
+    --sidebar-border: 340 100% 15%;     /* #330014 - Red border */
+    --sidebar-ring: 340 100% 50%;       /* #ff0050 */
   }
 }
 
