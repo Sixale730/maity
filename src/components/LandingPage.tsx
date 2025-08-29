@@ -31,7 +31,7 @@ const LandingPage = () => {
               IA · Mentoría · Crecimiento Diario
             </Badge>
             <h1 className="font-geist font-bold text-4xl lg:text-6xl text-foreground mb-6 leading-tight">
-              <MaityLogo variant="symbol" size="sm" className="inline-block mr-2" /> no te entrena para un curso.{" "}
+              Maity no te entrena para un curso.{" "}
               <span className="text-primary">Te transforma para siempre.</span>
             </h1>
             <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -56,7 +56,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-geist font-bold text-3xl lg:text-4xl text-foreground mb-4">
-              ¿Cómo funciona <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" />?
+              ¿Cómo funciona Maity?
             </h2>
             <p className="font-inter text-lg text-muted-foreground max-w-2xl mx-auto">
               Una plataforma completa que combina inteligencia artificial, gamificación y 
@@ -112,7 +112,7 @@ const LandingPage = () => {
                 Más que una herramienta, un compañero de crecimiento
               </h2>
               <p className="font-inter text-lg text-muted-foreground mb-8">
-                <MaityLogo variant="symbol" size="sm" className="inline-block mr-1" /> no es solo tecnología. Es una experiencia diseñada para crear conexiones 
+                Maity no es solo tecnología. Es una experiencia diseñada para crear conexiones 
                 humanas auténticas mientras potencia el desarrollo profesional de cada miembro de tu equipo.
               </p>
               
@@ -157,7 +157,7 @@ const LandingPage = () => {
               Lo que dicen nuestros usuarios
             </h2>
             <p className="font-inter text-lg text-muted-foreground">
-              Líderes de TI que ya están transformando sus equipos con <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" />
+              Líderes de TI que ya están transformando sus equipos con Maity
             </p>
           </div>
           
@@ -166,7 +166,7 @@ const LandingPage = () => {
               {
                 name: "Carlos Mendoza",
                 role: "CTO, TechStart",
-                content: (<><MaityLogo variant="symbol" size="sm" className="inline-block mr-1" /> ha revolucionado cómo desarrollamos talento en nuestro equipo. Los resultados son medibles y el engagement ha aumentado un 300%.</>),
+                content: "Maity ha revolucionado cómo desarrollamos talento en nuestro equipo. Los resultados son medibles y el engagement ha aumentado un 300%.",
                 rating: 5
               },
               {
@@ -178,7 +178,7 @@ const LandingPage = () => {
               {
                 name: "Roberto Silva",
                 role: "Engineering Manager, DataFlow",
-                content: (<>La automatización de <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" /> nos ahorra 10 horas semanales en gestión de equipo, permitiéndonos enfocarnos en lo que realmente importa.</>),
+                content: "La automatización de Maity nos ahorra 10 horas semanales en gestión de equipo, permitiéndonos enfocarnos en lo que realmente importa.",
                 rating: 5
               }
             ].map((testimonial, index) => (
@@ -186,7 +186,7 @@ const LandingPage = () => {
                 <CardHeader>
                   <Quote className="h-8 w-8 text-primary/30 mb-2" />
                   <CardDescription className="font-inter text-base italic">
-                    {testimonial.content}
+                    "{testimonial.content}"
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -238,7 +238,7 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <MaityLogo size="md" />
             <p className="font-inter text-muted-foreground text-center md:text-right">
-              © 2024 <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" />. Transformando el futuro del aprendizaje en TI.
+              © 2024 Maity. Transformando el futuro del aprendizaje en TI.
             </p>
           </div>
         </div>
