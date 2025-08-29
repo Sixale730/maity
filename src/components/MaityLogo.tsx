@@ -21,39 +21,38 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   if (variant === "symbol") {
     return (
       <div className={`${sizeClasses[size]} ${minWidths.symbol} ${className} flex items-center justify-center`}>
-        {/* Símbolo de Maity - patrón de puntos en forma de asterisco */}
-        <svg viewBox="0 0 40 40" className="w-full h-full" fill="currentColor">
-          <g className="text-primary">
-            {/* Puntos centrales */}
-            <circle cx="20" cy="20" r="2" />
-            
-            {/* Puntos superiores */}
-            <circle cx="20" cy="8" r="2" />
-            <circle cx="16" cy="10" r="1.5" />
-            <circle cx="24" cy="10" r="1.5" />
-            
-            {/* Puntos inferiores */}
-            <circle cx="20" cy="32" r="2" />
-            <circle cx="16" cy="30" r="1.5" />
-            <circle cx="24" cy="30" r="1.5" />
-            
-            {/* Puntos izquierda */}
-            <circle cx="8" cy="20" r="2" />
-            <circle cx="10" cy="16" r="1.5" />
-            <circle cx="10" cy="24" r="1.5" />
-            
-            {/* Puntos derecha */}
-            <circle cx="32" cy="20" r="2" />
-            <circle cx="30" cy="16" r="1.5" />
-            <circle cx="30" cy="24" r="1.5" />
-            
-            {/* Puntos diagonales */}
-            <circle cx="14" cy="14" r="1.5" />
-            <circle cx="26" cy="14" r="1.5" />
-            <circle cx="14" cy="26" r="1.5" />
-            <circle cx="26" cy="26" r="1.5" />
-          </g>
-        </svg>
+      {/* Símbolo de Maity - estrella de 6 puntas con círculos */}
+      <svg viewBox="0 0 40 40" className="w-full h-full" fill="currentColor">
+        <g className="text-primary">
+          {/* Centro */}
+          <circle cx="20" cy="20" r="2.5" />
+          
+          {/* Puntas principales de la estrella (6 direcciones) */}
+          {/* Superior */}
+          <path d="M20 2 L22 10 L18 10 Z" />
+          <circle cx="20" cy="6" r="1.5" />
+          
+          {/* Inferior */}
+          <path d="M20 38 L22 30 L18 30 Z" />
+          <circle cx="20" cy="34" r="1.5" />
+          
+          {/* Superior derecha */}
+          <path d="M34.64 10 L28.28 16.36 L30.64 19.64 Z" />
+          <circle cx="31.46" cy="12.82" r="1.5" />
+          
+          {/* Inferior izquierda */}
+          <path d="M5.36 30 L11.72 23.64 L9.36 20.36 Z" />
+          <circle cx="8.54" cy="27.18" r="1.5" />
+          
+          {/* Superior izquierda */}
+          <path d="M5.36 10 L11.72 16.36 L9.36 19.64 Z" />
+          <circle cx="8.54" cy="12.82" r="1.5" />
+          
+          {/* Inferior derecha */}
+          <path d="M34.64 30 L28.28 23.64 L30.64 20.36 Z" />
+          <circle cx="31.46" cy="27.18" r="1.5" />
+        </g>
+      </svg>
       </div>
     );
   }
@@ -64,23 +63,33 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
       <div className="w-8 h-8 flex items-center justify-center">
         <svg viewBox="0 0 40 40" className="w-full h-full" fill="currentColor">
           <g className="text-primary">
-            <circle cx="20" cy="20" r="2" />
-            <circle cx="20" cy="8" r="2" />
-            <circle cx="16" cy="10" r="1.5" />
-            <circle cx="24" cy="10" r="1.5" />
-            <circle cx="20" cy="32" r="2" />
-            <circle cx="16" cy="30" r="1.5" />
-            <circle cx="24" cy="30" r="1.5" />
-            <circle cx="8" cy="20" r="2" />
-            <circle cx="10" cy="16" r="1.5" />
-            <circle cx="10" cy="24" r="1.5" />
-            <circle cx="32" cy="20" r="2" />
-            <circle cx="30" cy="16" r="1.5" />
-            <circle cx="30" cy="24" r="1.5" />
-            <circle cx="14" cy="14" r="1.5" />
-            <circle cx="26" cy="14" r="1.5" />
-            <circle cx="14" cy="26" r="1.5" />
-            <circle cx="26" cy="26" r="1.5" />
+            {/* Centro */}
+            <circle cx="20" cy="20" r="2.5" />
+            
+            {/* Puntas principales de la estrella (6 direcciones) */}
+            {/* Superior */}
+            <path d="M20 2 L22 10 L18 10 Z" />
+            <circle cx="20" cy="6" r="1.5" />
+            
+            {/* Inferior */}
+            <path d="M20 38 L22 30 L18 30 Z" />
+            <circle cx="20" cy="34" r="1.5" />
+            
+            {/* Superior derecha */}
+            <path d="M34.64 10 L28.28 16.36 L30.64 19.64 Z" />
+            <circle cx="31.46" cy="12.82" r="1.5" />
+            
+            {/* Inferior izquierda */}
+            <path d="M5.36 30 L11.72 23.64 L9.36 20.36 Z" />
+            <circle cx="8.54" cy="27.18" r="1.5" />
+            
+            {/* Superior izquierda */}
+            <path d="M5.36 10 L11.72 16.36 L9.36 19.64 Z" />
+            <circle cx="8.54" cy="12.82" r="1.5" />
+            
+            {/* Inferior derecha */}
+            <path d="M34.64 30 L28.28 23.64 L30.64 20.36 Z" />
+            <circle cx="31.46" cy="27.18" r="1.5" />
           </g>
         </svg>
       </div>

@@ -31,13 +31,12 @@ const LandingPage = () => {
               IA · Mentoría · Crecimiento Diario
             </Badge>
             <h1 className="font-geist font-bold text-4xl lg:text-6xl text-foreground mb-6 leading-tight">
-              Transforma el aprendizaje en{" "}
-              <span className="text-primary">evolución diaria</span>
+              Maity no te entrena para un curso.{" "}
+              <span className="text-primary">Te transforma para siempre.</span>
             </h1>
             <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Maity es tu mentora de inteligencia artificial diseñada para impulsar la evolución 
-              y el crecimiento diario de equipos en el sector de TI. Una experiencia retadora, 
-              emocionalmente inteligente y visionaria.
+              Tu mentora de inteligencia artificial que impulsa la evolución y el crecimiento diario 
+              de equipos en el sector de TI. Una experiencia retadora, emocionalmente inteligente y visionaria.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="font-inter text-lg px-8">
