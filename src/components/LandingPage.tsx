@@ -33,7 +33,7 @@ const LandingPage = () => {
               IA · Mentoría · Crecimiento Diario
             </Badge>
             <h1 className="font-geist font-bold text-4xl lg:text-6xl text-foreground mb-6 leading-tight">
-              <MaityLogo variant="symbol" size="sm" className="inline-block mr-2" /> no te entrena para un curso.{" "}
+              <MaityLogo variant="symbol" size="xl" className="inline-block mr-2" /> no te entrena para un curso.{" "}
               <span className="text-primary">Te transforma para siempre.</span>
             </h1>
             <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">

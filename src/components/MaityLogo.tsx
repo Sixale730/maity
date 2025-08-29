@@ -1,7 +1,7 @@
 import React from "react";
 
 interface MaityLogoProps {
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   variant?: "full" | "symbol";
   className?: string;
 }
@@ -10,7 +10,8 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   const sizeClasses = {
     sm: "h-6",
     md: "h-8", 
-    lg: "h-12"
+    lg: "h-12",
+    xl: "h-16 lg:h-20"
   };
 
   const minWidths = {
