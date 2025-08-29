@@ -42,4 +42,5 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
   );
 };
 
+export { MaityLogo };
 export default MaityLogo;

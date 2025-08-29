@@ -8,7 +8,7 @@ import {
   TrendingUp,
   LogOut
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MaityLogo from "./MaityLogo";
 import {
@@ -72,10 +72,10 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                     className="w-full"
                   >
-                    <a href={item.url} className="flex items-center gap-2">
+                    <Link to={item.url} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
                       {state !== "collapsed" && <span>{item.title}</span>}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
