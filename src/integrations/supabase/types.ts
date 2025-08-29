@@ -53,6 +53,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -65,6 +86,14 @@ export type Database = {
       bytea_to_text: {
         Args: { data: string }
         Returns: string
+      }
+      get_user_company_id: {
+        Args: { user_auth_id?: string }
+        Returns: string
+      }
+      get_user_role: {
+        Args: { user_auth_id?: string }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -81,6 +110,13 @@ export type Database = {
       halfvec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      has_role: {
+        Args: {
+          required_role: Database["public"]["Enums"]["app_role"]
+          user_auth_id: string
+        }
+        Returns: boolean
       }
       hnsw_bit_support: {
         Args: { "": unknown }
@@ -224,6 +260,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "platform_admin" | "org_admin" | "user"
       assign_state: "pending" | "sent" | "answered" | "graded" | "missed"
       attendance_outcome: "SHOW" | "NO_SHOW" | "LATE" | "CANCELLED"
       grade_scale: "na" | "fail" | "pass" | "good" | "excellent"
@@ -371,6 +408,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["platform_admin", "org_admin", "user"],
       assign_state: ["pending", "sent", "answered", "graded", "missed"],
       attendance_outcome: ["SHOW", "NO_SHOW", "LATE", "CANCELLED"],
       grade_scale: ["na", "fail", "pass", "good", "excellent"],
