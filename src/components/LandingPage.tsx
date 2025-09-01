@@ -43,7 +43,7 @@ const LandingPage = () => {
               {t('hero.badge')}
             </Badge>
             <h1 className="font-geist font-bold text-4xl lg:text-6xl text-foreground mb-6 leading-tight">
-              <MaityLogo variant="symbol" size="xl" className="inline-block mr-2" /> {t('hero.title_part1')}{" "}
+              <MaityLogo variant="symbol" size="2xl" className="inline-block mr-2" /> {t('hero.title_part1')}{" "}
               <span className="text-primary">{t('hero.title_part2')}</span>
             </h1>
             <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
