@@ -18,40 +18,23 @@ interface TeamMember {
   joinDate: string;
 }
 
+interface CsvRow {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 const TeamDashboard = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResults, setUploadResults] = useState<any>(null);
-  const [teamMembers] = useState<TeamMember[]>([
-    {
-      id: '1',
-      name: 'Ana García',
-      email: 'ana.garcia@empresa.com',
-      status: 'ACTIVE',
-      role: 'Developer',
-      joinDate: '2024-01-15'
-    },
-    {
-      id: '2', 
-      name: 'Carlos López',
-      email: 'carlos.lopez@empresa.com',
-      status: 'PENDING',
-      role: 'Designer',
-      joinDate: '2024-02-10'
-    },
-    {
-      id: '3',
-      name: 'María Rodríguez',
-      email: 'maria.rodriguez@empresa.com',
-      status: 'ACTIVE',
-      role: 'Project Manager',
-      joinDate: '2024-01-20'
-    }
-  ]);
+  const [csvPreview, setCsvPreview] = useState<CsvRow[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [teamMembers] = useState<TeamMember[]>([]);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -64,25 +47,77 @@ const TeamDashboard = () => {
       return;
     }
 
+    setSelectedFile(file);
+    setUploadResults(null);
+    setCsvPreview([]);
+
+    try {
+      const fileText = await file.text();
+      const lines = fileText.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      if (!headers.includes('name') || !headers.includes('email') || !headers.includes('phone')) {
+        toast({
+          title: "Error",
+          description: "El archivo debe contener las columnas: name, email, phone",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const preview: CsvRow[] = lines.slice(1, 6).filter(line => line.trim()).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const nameIndex = headers.indexOf('name');
+        const emailIndex = headers.indexOf('email');
+        const phoneIndex = headers.indexOf('phone');
+        
+        return {
+          name: values[nameIndex] || '',
+          email: values[emailIndex] || '',
+          phone: values[phoneIndex] || ''
+        };
+      });
+
+      setCsvPreview(preview);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo leer el archivo CSV",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImportUsers = async () => {
+    if (!selectedFile) return;
+
     setIsUploading(true);
     setUploadResults(null);
 
     try {
-      // Read file content
-      const fileText = await file.text();
-      
-      // Call the csv_import_users edge function
-      const { data, error } = await supabase.functions.invoke('csv_import_users', {
-        body: {
-          csvData: fileText,
-          fileName: file.name
-        }
-      });
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-      if (error) {
-        throw error;
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      if (!token) {
+        throw new Error('No se encontró token de autenticación');
       }
 
+      const response = await fetch('https://nhlrtflkxoojvhbyocet.functions.supabase.co/csv_import_users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
       setUploadResults(data);
       
       toast({
@@ -90,27 +125,30 @@ const TeamDashboard = () => {
         description: `Se procesaron ${data.totalProcessed} registros. ${data.successful} exitosos, ${data.failed} fallidos.`,
       });
 
+      // Reset everything after successful import
+      setSelectedFile(null);
+      setCsvPreview([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
     } catch (error: any) {
-      console.error('Error uploading CSV:', error);
+      console.error('Error importing CSV:', error);
       toast({
         title: t('dashboard.team.upload_error'),
-        description: error.message || "Hubo un problema al cargar el archivo CSV",
+        description: error.message || "Hubo un problema al importar el archivo CSV",
         variant: "destructive",
       });
     } finally {
       setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
   const downloadTemplate = () => {
-    const csvTemplate = `name,email,role
-Juan Pérez,juan.perez@empresa.com,Developer
-María García,maria.garcia@empresa.com,Designer
-Carlos López,carlos.lopez@empresa.com,Project Manager`;
+    const csvTemplate = `name,email,phone
+Juan Pérez,juan.perez@empresa.com,+52 55 1234 5678
+María García,maria.garcia@empresa.com,+52 55 8765 4321
+Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
 
     const blob = new Blob([csvTemplate], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -177,7 +215,7 @@ Carlos López,carlos.lopez@empresa.com,Project Manager`;
               ref={fileInputRef}
               type="file"
               accept=".csv"
-              onChange={handleFileUpload}
+              onChange={handleFileSelect}
               disabled={isUploading}
               className="max-w-sm"
             />
@@ -238,9 +276,60 @@ Carlos López,carlos.lopez@empresa.com,Project Manager`;
             </div>
           )}
 
+          {csvPreview.length > 0 && (
+            <div className="p-4 border rounded-lg bg-card">
+              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Previsualización del CSV ({csvPreview.length} registros de muestra)
+              </h4>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Teléfono</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {csvPreview.map((row, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{row.name}</TableCell>
+                        <TableCell>{row.email}</TableCell>
+                        <TableCell>{row.phone}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <Button 
+                  onClick={handleImportUsers}
+                  disabled={isUploading}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  {isUploading ? 'Importando...' : 'Importar Usuarios'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setCsvPreview([]);
+                    setSelectedFile(null);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="text-sm text-muted-foreground">
             <p><strong>{t('dashboard.team.format_required')}:</strong></p>
-            <p>• Columnas: name, email, role</p>
+            <p>• Columnas: name, email, phone</p>
             <p>• Encoding: UTF-8</p>
             <p>• Separrador: coma (,)</p>
           </div>
@@ -248,38 +337,40 @@ Carlos López,carlos.lopez@empresa.com,Project Manager`;
       </Card>
 
       {/* Team Members Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('dashboard.team.members')}</CardTitle>
-          <CardDescription>
-            {t('dashboard.team.members_description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('dashboard.team.name')}</TableHead>
-                <TableHead>{t('dashboard.team.email')}</TableHead>
-                <TableHead>{t('dashboard.team.role')}</TableHead>
-                <TableHead>{t('dashboard.team.status')}</TableHead>
-                <TableHead>{t('dashboard.team.join_date')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teamMembers.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell>{member.role}</TableCell>
-                  <TableCell>{getStatusBadge(member.status)}</TableCell>
-                  <TableCell>{new Date(member.joinDate).toLocaleDateString()}</TableCell>
+      {teamMembers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.team.members')}</CardTitle>
+            <CardDescription>
+              {t('dashboard.team.members_description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('dashboard.team.name')}</TableHead>
+                  <TableHead>{t('dashboard.team.email')}</TableHead>
+                  <TableHead>{t('dashboard.team.role')}</TableHead>
+                  <TableHead>{t('dashboard.team.status')}</TableHead>
+                  <TableHead>{t('dashboard.team.join_date')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {teamMembers.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">{member.name}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell>{member.role}</TableCell>
+                    <TableCell>{getStatusBadge(member.status)}</TableCell>
+                    <TableCell>{new Date(member.joinDate).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
