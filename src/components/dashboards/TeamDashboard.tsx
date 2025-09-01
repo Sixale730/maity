@@ -18,25 +18,21 @@ interface TeamMember {
   joinDate: string;
 }
 
-interface CsvRow {
-  name: string;
-  email: string;
-  phone: string;
-}
-
 const TeamDashboard = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResults, setUploadResults] = useState<any>(null);
-  const [csvPreview, setCsvPreview] = useState<CsvRow[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [teamMembers] = useState<TeamMember[]>([]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
 
     if (!file.name.endsWith('.csv')) {
       toast({
@@ -44,48 +40,12 @@ const TeamDashboard = () => {
         description: t('dashboard.team.csv_error'),
         variant: "destructive",
       });
+      setSelectedFile(null);
       return;
     }
 
     setSelectedFile(file);
     setUploadResults(null);
-    setCsvPreview([]);
-
-    try {
-      const fileText = await file.text();
-      const lines = fileText.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
-      if (!headers.includes('name') || !headers.includes('email') || !headers.includes('phone')) {
-        toast({
-          title: "Error",
-          description: "El archivo debe contener las columnas: name, email, phone",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const preview: CsvRow[] = lines.slice(1, 6).filter(line => line.trim()).map(line => {
-        const values = line.split(',').map(v => v.trim());
-        const nameIndex = headers.indexOf('name');
-        const emailIndex = headers.indexOf('email');
-        const phoneIndex = headers.indexOf('phone');
-        
-        return {
-          name: values[nameIndex] || '',
-          email: values[emailIndex] || '',
-          phone: values[phoneIndex] || ''
-        };
-      });
-
-      setCsvPreview(preview);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo leer el archivo CSV",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleImportUsers = async () => {
@@ -127,7 +87,6 @@ const TeamDashboard = () => {
 
       // Reset everything after successful import
       setSelectedFile(null);
-      setCsvPreview([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -276,33 +235,16 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
             </div>
           )}
 
-          {csvPreview.length > 0 && (
+          {selectedFile && (
             <div className="p-4 border rounded-lg bg-card">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Previsualización del CSV ({csvPreview.length} registros de muestra)
+                Archivo seleccionado
               </h4>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Teléfono</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {csvPreview.map((row, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{row.name}</TableCell>
-                        <TableCell>{row.email}</TableCell>
-                        <TableCell>{row.phone}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
+              <p className="text-sm text-muted-foreground mb-4">
+                📄 {selectedFile.name}
+              </p>
+              <div className="flex items-center gap-2">
                 <Button 
                   onClick={handleImportUsers}
                   disabled={isUploading}
@@ -313,13 +255,13 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
                 </Button>
                 <Button 
                   onClick={() => {
-                    setCsvPreview([]);
                     setSelectedFile(null);
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
                     }
                   }}
                   variant="outline"
+                  disabled={isUploading}
                 >
                   Cancelar
                 </Button>
