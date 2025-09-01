@@ -59,27 +59,39 @@ const TeamDashboard = () => {
   };
 
   const uploadToStorage = async (file: File) => {
+    console.log('🔄 DIAGNÓSTICO: Iniciando carga a Storage');
+    console.log('📁 Archivo:', { name: file.name, size: file.size, type: file.type });
+    
     setIsUploadingToStorage(true);
     setUploadProgress(0);
 
     try {
       // Obtener la información del usuario para crear la ruta del archivo
+      console.log('🔍 DIAGNÓSTICO: Obteniendo usuario autenticado...');
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Usuario obtenido:', { id: user?.id, email: user?.email });
+      
       if (!user) {
         throw new Error('No se encontró usuario autenticado');
       }
 
       // Obtener company_id del usuario
+      console.log('🏢 DIAGNÓSTICO: Obteniendo company_id...');
       const { data: companyData, error: companyError } = await supabase.rpc('get_user_company_id');
+      console.log('🏢 Resultado company_id:', { data: companyData, error: companyError });
+      
       if (companyError || !companyData) {
+        console.error('❌ Error al obtener company_id:', companyError);
         throw new Error('No se pudo obtener la información de la empresa');
       }
 
       // Crear ruta del archivo: company_id/csv_imports/timestamp_filename.csv
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filePath = `${companyData}/csv_imports/${timestamp}_${file.name}`;
+      console.log('📂 DIAGNÓSTICO: Ruta del archivo:', filePath);
 
       // Subir archivo a Storage
+      console.log('⬆️ DIAGNÓSTICO: Iniciando carga a bucket org_uploads...');
       const { error: uploadError } = await supabase.storage
         .from('org_uploads')
         .upload(filePath, file, {
@@ -87,7 +99,10 @@ const TeamDashboard = () => {
           upsert: false
         });
 
+      console.log('📤 Resultado de carga:', { uploadError });
+      
       if (uploadError) {
+        console.error('❌ Error en carga a Storage:', uploadError);
         throw uploadError;
       }
 
@@ -100,7 +115,10 @@ const TeamDashboard = () => {
       });
 
     } catch (error: any) {
-      console.error('Error uploading file to storage:', error);
+      console.error('❌ DIAGNÓSTICO: Error completo en uploadToStorage:', error);
+      console.error('❌ Stack trace:', error.stack);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      
       toast({
         title: "Error al subir archivo",
         description: error.message || "No se pudo subir el archivo a Storage",
@@ -108,12 +126,17 @@ const TeamDashboard = () => {
       });
       setSelectedFile(null);
     } finally {
+      console.log('🏁 DIAGNÓSTICO: Finalizando uploadToStorage');
       setIsUploadingToStorage(false);
     }
   };
 
   const handleImportUsers = async () => {
+    console.log('🚀 DIAGNÓSTICO: Iniciando importación de usuarios');
+    console.log('📂 Archivo a procesar:', uploadedFilePath);
+    
     if (!uploadedFilePath) {
+      console.log('❌ DIAGNÓSTICO: No hay archivo cargado');
       toast({
         title: "Error",
         description: "Primero debes subir un archivo CSV válido",
@@ -126,6 +149,7 @@ const TeamDashboard = () => {
     setUploadResults(null);
 
     try {
+      console.log('📞 DIAGNÓSTICO: Llamando a Edge Function csv_import_users...');
       const { data, error } = await supabase.functions.invoke('csv_import_users', {
         body: {
           filePath: uploadedFilePath,
@@ -133,7 +157,10 @@ const TeamDashboard = () => {
         }
       });
 
+      console.log('📨 DIAGNÓSTICO: Respuesta de Edge Function:', { data, error });
+
       if (error) {
+        console.error('❌ DIAGNÓSTICO: Error en Edge Function:', error);
         throw error;
       }
 
@@ -157,13 +184,17 @@ const TeamDashboard = () => {
       }
 
     } catch (error: any) {
-      console.error('Error importing CSV:', error);
+      console.error('❌ DIAGNÓSTICO: Error completo en handleImportUsers:', error);
+      console.error('❌ Stack trace:', error.stack);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      
       toast({
         title: t('dashboard.team.upload_error'),
         description: error.message || "Hubo un problema al importar el archivo CSV",
         variant: "destructive",
       });
     } finally {
+      console.log('🏁 DIAGNÓSTICO: Finalizando handleImportUsers');
       setIsUploading(false);
     }
   };
