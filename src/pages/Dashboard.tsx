@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useStatusValidation } from "@/hooks/useStatusValidation";
 
 const Dashboard = () => {
   const { userRole, userProfile, loading } = useUserRole();
   const { t } = useLanguage();
+  const { validateStatus } = useStatusValidation();
 
   if (loading) {
     return (

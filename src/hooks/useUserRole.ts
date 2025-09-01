@@ -79,14 +79,26 @@ export const useUserRole = () => {
   useEffect(() => {
     getUserRole();
 
-    // Listen for auth changes
+    // Listen for auth changes and revalidate status
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-        getUserRole();
+        setTimeout(() => {
+          getUserRole();
+        }, 0);
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Revalidate status on window focus (when user returns to tab)
+    const handleWindowFocus = () => {
+      getUserRole();
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('focus', handleWindowFocus);
+    };
   }, []);
 
   return {
