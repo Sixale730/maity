@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Users, Target, Calendar, Award, ArrowRight, Star, Quote } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle, Users, Target, Calendar, Award, ArrowRight, Star, Quote, Globe } from "lucide-react";
 import MaityLogo from "@/components/MaityLogo";
 
 const LandingPage = () => {
@@ -19,6 +20,18 @@ const LandingPage = () => {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="font-inter">Características</Button>
               <Button variant="ghost" className="font-inter">Casos de Éxito</Button>
+              <Select defaultValue="es">
+                <SelectTrigger className="w-[100px] h-9 font-inter">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="es">ES</SelectItem>
+                  <SelectItem value="en">EN</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" className="font-inter" asChild>
                 <Link to="/auth">Iniciar Sesión</Link>
               </Button>
