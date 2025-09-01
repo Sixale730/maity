@@ -30,6 +30,14 @@ export const useUserRole = () => {
         return;
       }
 
+      // Check user status first
+      const { data: status } = await supabase.rpc('my_status' as any);
+      if (status !== 'ACTIVE') {
+        // Redirect to pending if user is not active
+        window.location.href = '/pending';
+        return;
+      }
+
       // Get user role from public.user_roles
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')

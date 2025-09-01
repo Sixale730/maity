@@ -19,15 +19,25 @@ const Auth = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        navigate('/dashboard');
+        const { data: status } = await supabase.rpc('my_status' as any);
+        if (status !== 'ACTIVE') {
+          navigate('/pending');
+        } else {
+          navigate('/dashboard');
+        }
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        navigate('/dashboard');
+        const { data: status } = await supabase.rpc('my_status' as any);
+        if (status !== 'ACTIVE') {
+          navigate('/pending');
+        } else {
+          navigate('/dashboard');
+        }
       }
     });
 
@@ -45,6 +55,14 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+        
+        // Check user status
+        const { data: status } = await supabase.rpc('my_status' as any);
+        if (status !== 'ACTIVE') {
+          navigate('/pending');
+          return;
+        }
+        
         toast({
           title: "¡Bienvenido!",
           description: "Has iniciado sesión exitosamente.",
