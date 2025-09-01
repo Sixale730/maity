@@ -11,6 +11,8 @@ import {
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MaityLogo from "./MaityLogo";
+import LanguageSelector from "./LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Sidebar,
   SidebarContent,
@@ -25,21 +27,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navigationItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-  { title: "Reports", url: "/dashboard/reports", icon: PieChart },
-  { title: "Trends", url: "/dashboard/trends", icon: TrendingUp },
-  { title: "Usuarios", url: "/dashboard/usuarios", icon: Users },
-  { title: "Planes", url: "/dashboard/planes", icon: Settings },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
+
+  const navigationItems = [
+    { title: t('dashboard.home'), url: "/dashboard", icon: Home },
+    { title: t('dashboard.analytics'), url: "/dashboard/analytics", icon: BarChart3 },
+    { title: t('dashboard.reports'), url: "/dashboard/reports", icon: PieChart },
+    { title: t('dashboard.trends'), url: "/dashboard/trends", icon: TrendingUp },
+    { title: t('dashboard.users'), url: "/dashboard/usuarios", icon: Users },
+    { title: t('dashboard.plans'), url: "/dashboard/planes", icon: Settings },
+    { title: t('dashboard.settings'), url: "/dashboard/settings", icon: Settings },
+  ];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -54,12 +57,17 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className="p-4 border-b border-sidebar-border bg-gradient-to-r from-sidebar-background to-sidebar-accent">
-        <div className="flex items-center gap-3">
-          <MaityLogo 
-            size="sm" 
-            variant={state === "collapsed" ? "symbol" : "full"}
-            className="transition-all duration-300"
-          />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <MaityLogo 
+              size="sm" 
+              variant={state === "collapsed" ? "symbol" : "full"}
+              className="transition-all duration-300"
+            />
+          </div>
+          {state !== "collapsed" && (
+            <LanguageSelector compact className="ml-2" />
+          )}
         </div>
       </SidebarHeader>
 
@@ -67,7 +75,7 @@ export function AppSidebar() {
         <SidebarGroup>
           {state !== "collapsed" && (
             <SidebarGroupLabel className="px-4 py-2 text-xs font-medium tracking-wider text-sidebar-foreground/60 uppercase">
-              Navegación
+              {t('nav.navigation')}
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
@@ -110,7 +118,7 @@ export function AppSidebar() {
           `}
         >
           <LogOut className="h-5 w-5" />
-          {state !== "collapsed" && <span className="ml-3 font-medium">Cerrar Sesión</span>}
+          {state !== "collapsed" && <span className="ml-3 font-medium">{t('nav.logout')}</span>}
         </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
