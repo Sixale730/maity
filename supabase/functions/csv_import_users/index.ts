@@ -14,7 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { csvData, fileName } = await req.json();
+    // Parse the request body (expecting JSON with filePath)
+    const requestBody = await req.json();
+    const { filePath, fileName } = requestBody;
+    
+    if (!filePath) {
+      throw new Error('No file path provided in request');
+    }
+
+    console.log(`Processing file from Storage: ${filePath}`);
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -55,6 +63,19 @@ serve(async (req) => {
 
     console.log(`Processing CSV import for user ${user.id}, company ${companyId}, file: ${fileName}`);
 
+    // Download the file from Supabase Storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('org_uploads')
+      .download(filePath);
+      
+    if (downloadError || !fileData) {
+      throw new Error(`Failed to download file from storage: ${downloadError?.message}`);
+    }
+    
+    // Convert blob to text
+    const csvData = await fileData.text();
+    console.log(`CSV content length: ${csvData.length} characters`);
+
     // Parse CSV data
     const lines = csvData.trim().split('\n');
     if (lines.length < 2) {
@@ -62,7 +83,7 @@ serve(async (req) => {
     }
 
     const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase());
-    const requiredHeaders = ['name', 'email', 'role'];
+    const requiredHeaders = ['name', 'email', 'phone'];
     
     // Validate headers
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
@@ -101,8 +122,8 @@ serve(async (req) => {
         }
 
         // Validate required fields
-        if (!userData.name || !userData.email || !userData.role) {
-          throw new Error('Missing required fields (name, email, or role)');
+        if (!userData.name || !userData.email) {
+          throw new Error('Missing required fields (name or email)');
         }
 
         // Create auth user with a temporary password
@@ -113,6 +134,7 @@ serve(async (req) => {
           email_confirm: true,
           user_metadata: {
             name: userData.name,
+            phone: userData.phone || null,
             imported_via_csv: true,
             imported_by: user.id,
             imported_at: new Date().toISOString()
@@ -129,10 +151,8 @@ serve(async (req) => {
           .insert({
             auth_id: authUser.user.id,
             name: userData.name,
-            email: userData.email,
             company_id: companyId,
-            role: userData.role,
-            status: 'PENDING',
+            status: 'ACTIVE',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
@@ -141,6 +161,21 @@ serve(async (req) => {
           // If user insertion fails, clean up the auth user
           await supabase.auth.admin.deleteUser(authUser.user.id);
           throw new Error(`User insertion failed: ${insertError.message}`);
+        }
+
+        // Set user role (default to 'user')
+        const { error: roleInsertError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authUser.user.id,
+            role: 'user' // Always create as regular user for bulk imports
+          });
+
+        if (roleInsertError) {
+          // Clean up user and auth data
+          await supabase.from('maity.users').delete().eq('auth_id', authUser.user.id);
+          await supabase.auth.admin.deleteUser(authUser.user.id);
+          throw new Error(`Role insertion failed: ${roleInsertError.message}`);
         }
 
         results.successful++;

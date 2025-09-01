@@ -214,6 +214,10 @@ export type Database = {
           similarity: number
         }[]
       }
+      my_status: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       sparsevec_out: {
         Args: { "": unknown }
         Returns: unknown

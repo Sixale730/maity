@@ -24,14 +24,18 @@ const TeamDashboard = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingToStorage, setIsUploadingToStorage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResults, setUploadResults] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
   const [teamMembers] = useState<TeamMember[]>([]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       setSelectedFile(null);
+      setUploadedFilePath(null);
       return;
     }
 
@@ -42,43 +46,97 @@ const TeamDashboard = () => {
         variant: "destructive",
       });
       setSelectedFile(null);
+      setUploadedFilePath(null);
       return;
     }
 
     setSelectedFile(file);
     setUploadResults(null);
+    setUploadedFilePath(null);
+    
+    // Subir automáticamente a Storage
+    await uploadToStorage(file);
+  };
+
+  const uploadToStorage = async (file: File) => {
+    setIsUploadingToStorage(true);
+    setUploadProgress(0);
+
+    try {
+      // Obtener la información del usuario para crear la ruta del archivo
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No se encontró usuario autenticado');
+      }
+
+      // Obtener company_id del usuario
+      const { data: companyData, error: companyError } = await supabase.rpc('get_user_company_id');
+      if (companyError || !companyData) {
+        throw new Error('No se pudo obtener la información de la empresa');
+      }
+
+      // Crear ruta del archivo: company_id/csv_imports/timestamp_filename.csv
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filePath = `${companyData}/csv_imports/${timestamp}_${file.name}`;
+
+      // Subir archivo a Storage
+      const { error: uploadError } = await supabase.storage
+        .from('org_uploads')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      setUploadedFilePath(filePath);
+      setUploadProgress(100);
+      
+      toast({
+        title: "Archivo subido",
+        description: `El archivo ${file.name} se subió correctamente a Storage`,
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading file to storage:', error);
+      toast({
+        title: "Error al subir archivo",
+        description: error.message || "No se pudo subir el archivo a Storage",
+        variant: "destructive",
+      });
+      setSelectedFile(null);
+    } finally {
+      setIsUploadingToStorage(false);
+    }
   };
 
   const handleImportUsers = async () => {
-    if (!selectedFile) return;
+    if (!uploadedFilePath) {
+      toast({
+        title: "Error",
+        description: "Primero debes subir un archivo CSV válido",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
     setUploadResults(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token;
-
-      if (!token) {
-        throw new Error('No se encontró token de autenticación');
-      }
-
-      const response = await fetch('https://nhlrtflkxoojvhbyocet.functions.supabase.co/csv_import_users', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
+      const { data, error } = await supabase.functions.invoke('csv_import_users', {
+        body: {
+          filePath: uploadedFilePath,
+          fileName: selectedFile?.name
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
       setUploadResults(data);
       
       toast({
@@ -88,8 +146,14 @@ const TeamDashboard = () => {
 
       // Reset everything after successful import
       setSelectedFile(null);
+      setUploadedFilePath(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
+      }
+
+      // Limpiar el archivo de Storage después de procesarlo exitosamente
+      if (uploadedFilePath) {
+        await supabase.storage.from('org_uploads').remove([uploadedFilePath]);
       }
 
     } catch (error: any) {
@@ -189,10 +253,19 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
             </Button>
           </div>
 
-          {isUploading && (
+          {(isUploading || isUploadingToStorage) && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              {t('dashboard.team.processing')}
+              {isUploadingToStorage ? 'Subiendo archivo a Storage...' : t('dashboard.team.processing')}
+            </div>
+          )}
+
+          {isUploadingToStorage && (
+            <div className="w-full bg-secondary rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
             </div>
           )}
 
@@ -242,13 +315,18 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
                 <FileText className="h-4 w-4" />
                 Archivo seleccionado
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-2">
                 📄 {selectedFile.name}
               </p>
+              {uploadedFilePath && (
+                <p className="text-sm text-accent mb-2">
+                  ✅ Archivo subido correctamente a Storage
+                </p>
+              )}
               <div className="flex items-center gap-2">
                 <Button 
                   onClick={handleImportUsers}
-                  disabled={isUploading}
+                  disabled={isUploading || isUploadingToStorage || !uploadedFilePath}
                   className="flex items-center gap-2"
                 >
                   <Users className="h-4 w-4" />
@@ -257,12 +335,13 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
                 <Button 
                   onClick={() => {
                     setSelectedFile(null);
+                    setUploadedFilePath(null);
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
                     }
                   }}
                   variant="outline"
-                  disabled={isUploading}
+                  disabled={isUploading || isUploadingToStorage}
                 >
                   Cancelar
                 </Button>
