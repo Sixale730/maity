@@ -2,12 +2,14 @@ import React from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { PlatformAdminDashboard } from "./dashboards/PlatformAdminDashboard";
 import { UserDashboard } from "./dashboards/UserDashboard";
+import TeamDashboard from "./dashboards/TeamDashboard";
 import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useLocation } from "react-router-dom";
 import { 
   BarChart, 
   Bar, 
@@ -223,6 +225,7 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
 
 export function DashboardContent() {
   const { userRole, userProfile, loading, error } = useUserRole();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -265,6 +268,15 @@ export function DashboardContent() {
     );
   }
 
+  // Check if we're on the team route for org_admin
+  if (location.pathname === '/dashboard/team' && userRole === 'org_admin') {
+    return (
+      <main className="flex-1">
+        <TeamDashboard />
+      </main>
+    );
+  }
+
   // Render dashboard based on user role
   if (userRole === 'platform_admin') {
     return <PlatformAdminDashboard />;
@@ -276,6 +288,6 @@ export function DashboardContent() {
       />
     );
   } else {
-    return <UserDashboard userName={userProfile?.name} />;
+    return <UserDashboard userName={userProfile?.name} />;  
   }
 }

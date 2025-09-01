@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe } from "lucide-react";
+import { Globe, Check } from "lucide-react";
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LanguageSelectorProps {
@@ -11,17 +11,39 @@ interface LanguageSelectorProps {
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", compact = false }) => {
   const { language, setLanguage } = useLanguage();
 
+  const languages = {
+    es: { code: 'es', name: 'Español', flag: '🇪🇸' },
+    en: { code: 'en', name: 'English', flag: '🇺🇸' }
+  };
+
   return (
     <Select value={language} onValueChange={(value: 'es' | 'en') => setLanguage(value)}>
-      <SelectTrigger className={`${compact ? 'w-[80px] h-8' : 'w-[100px] h-9'} font-inter ${className}`}>
+      <SelectTrigger className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent hover:bg-sidebar-accent/80 border-sidebar-border ${className}`}>
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4" />
-          <SelectValue />
+          <Globe className="h-4 w-4 text-sidebar-foreground" />
+          <span className="text-sm font-medium text-sidebar-foreground">
+            {languages[language].flag} {languages[language].code.toUpperCase()}
+          </span>
         </div>
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="es">ES</SelectItem>
-        <SelectItem value="en">EN</SelectItem>
+      <SelectContent className="bg-popover border-sidebar-border" align="end">
+        {Object.values(languages).map((lang) => (
+          <SelectItem 
+            key={lang.code} 
+            value={lang.code}
+            className="hover:bg-sidebar-accent hover:text-sidebar-foreground cursor-pointer"
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span className="font-medium">{lang.name}</span>
+              </div>
+              {language === lang.code && (
+                <Check className="h-4 w-4 text-accent" />
+              )}
+            </div>
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

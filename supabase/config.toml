@@ -1,1 +1,4 @@
 project_id = "nhlrtflkxoojvhbyocet"
+
+[functions.csv_import_users]
+verify_jwt = true
