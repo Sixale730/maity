@@ -25,7 +25,7 @@ const MaityLogo: React.FC<MaityLogoProps> = ({ size = "md", variant = "full", cl
         <img 
           src="/lovable-uploads/168e7df1-73b1-476d-b64b-e007b8bb7e1e.png" 
           alt="Maity Logo Completo" 
-          className="h-6 w-auto object-contain"
+          className="h-full w-auto object-contain"
         />
       </div>
     );
