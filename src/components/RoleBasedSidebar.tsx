@@ -18,6 +18,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserRole";
 import MaityLogo from "./MaityLogo";
+import LanguageSelector from "./LanguageSelector";
 import {
   Sidebar,
   SidebarContent,
@@ -108,6 +109,11 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
             variant={state === "collapsed" ? "symbol" : "full"}
             className="transition-all duration-300"
           />
+          {state !== "collapsed" && (
+            <div className="ml-auto">
+              <LanguageSelector compact className="bg-sidebar-accent border-sidebar-border" />
+            </div>
+          )}
         </div>
         {state !== "collapsed" && (
           <div className="mt-3 text-xs">
@@ -134,8 +140,8 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
                     className={`
                       w-full transition-all duration-200 rounded-lg
                       ${isActive(item.url) 
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/20' 
-                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/30' 
+                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:shadow-sidebar-primary/10'
                       }
                       ${state === "collapsed" ? 'justify-center p-2' : 'justify-start px-3 py-2'}
                     `}
@@ -159,7 +165,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
           onClick={handleLogout}
           className={`
             w-full transition-all duration-200 rounded-lg
-            text-sidebar-primary hover:bg-sidebar-primary hover:text-white
+            text-platinum hover:bg-sidebar-primary hover:text-white
             ${state === "collapsed" ? 'justify-center p-2' : 'justify-start px-3 py-2'}
           `}
         >

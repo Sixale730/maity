@@ -38,6 +38,9 @@ All colors MUST be HSL.
     --red-muted: 340 100% 35%;          /* #b30038 */
     --red-subtle: 340 100% 95%;         /* #ffe6f0 */
 
+    /* Platinum color */
+    --platinum: 210 11% 71%;            /* #b3b8c4 */
+
     --border: 0 0% 6%;                  /* #0F0F0F */
     --input: 0 0% 6%;                   /* #0F0F0F */
     --ring: 229 93% 65%;                /* #485df4 */
