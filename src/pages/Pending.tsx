@@ -1,12 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import MaityLogo from "@/components/MaityLogo";
 import { Clock, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Pending = () => {
   const navigate = useNavigate();
+
+  // Check status periodically in case it changes
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          navigate('/auth');
+          return;
+        }
+
+        const { data: status } = await supabase.rpc('my_status' as any);
+        if (status === 'ACTIVE') {
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error('Error checking status:', error);
+      }
+    };
+
+    checkStatus();
+
+    // Check status every 30 seconds
+    const interval = setInterval(checkStatus, 30000);
+
+    // Also check on window focus
+    const handleWindowFocus = () => {
+      checkStatus();
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [navigate]);
 
   const handleBackToHome = () => {
     navigate('/');

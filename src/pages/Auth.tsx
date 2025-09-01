@@ -22,10 +22,10 @@ const Auth = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const { data: status } = await supabase.rpc('my_status' as any);
-        if (status !== 'ACTIVE') {
-          navigate('/pending');
-        } else {
+        if (status === 'ACTIVE') {
           navigate('/dashboard');
+        } else if (status === 'PENDING' || status === 'SUSPENDED') {
+          navigate('/pending');
         }
       }
     });
@@ -33,10 +33,10 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         const { data: status } = await supabase.rpc('my_status' as any);
-        if (status !== 'ACTIVE') {
-          navigate('/pending');
-        } else {
+        if (status === 'ACTIVE') {
           navigate('/dashboard');
+        } else if (status === 'PENDING' || status === 'SUSPENDED') {
+          navigate('/pending');
         }
       }
     });
@@ -58,7 +58,10 @@ const Auth = () => {
         
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
-        if (status !== 'ACTIVE') {
+        if (status === 'ACTIVE') {
+          navigate('/dashboard');
+          return;
+        } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
           return;
         }

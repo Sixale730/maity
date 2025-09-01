@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +7,33 @@ import { CheckCircle, Users, Target, Calendar, Award, ArrowRight, Star, Quote } 
 import MaityLogo from "@/components/MaityLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const LandingPage = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  // Check if user is already authenticated and active
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data: status } = await supabase.rpc('my_status' as any);
+          if (status === 'ACTIVE') {
+            navigate('/dashboard');
+          } else if (status === 'PENDING' || status === 'SUSPENDED') {
+            navigate('/pending');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+
+    checkAuthStatus();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background">
