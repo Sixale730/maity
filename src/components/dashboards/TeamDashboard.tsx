@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Upload, Users, Download, FileText, CheckCircle, Trash2, FolderOpen } from "lucide-react";
@@ -20,27 +19,58 @@ interface UploadedFile {
 const TeamDashboard = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+  const [lastObjectPath, setLastObjectPath] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
-  // Cargar archivos subidos al montar el componente
+  // Cargar archivos subidos y company_id al montar el componente
   useEffect(() => {
+    loadUserCompany();
     loadUploadedFiles();
   }, []);
+
+  const loadUserCompany = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: companyId, error } = await supabase.rpc('get_user_company_id', {
+        user_auth_id: session.user.id
+      });
+
+      if (error) {
+        console.error('Error loading user company:', error);
+        return;
+      }
+
+      if (companyId) {
+        setCompanyId(companyId);
+      }
+    } catch (error) {
+      console.error('Error loading user company:', error);
+    }
+  };
 
   const loadUploadedFiles = async () => {
     setIsLoadingFiles(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      // Get company_id using RPC
+      const { data: companyId } = await supabase.rpc('get_user_company_id', {
+        user_auth_id: session.user.id
+      });
+
+      if (!companyId) {
+        console.error('No company_id found for user');
+        return;
+      }
 
       const { data: files, error } = await supabase.storage
         .from('org_uploads')
-        .list('csv_imports', {
+        .list(companyId, {
           sortBy: { column: 'created_at', order: 'desc' }
         });
 
@@ -51,7 +81,7 @@ const TeamDashboard = () => {
 
       const fileList = files?.map(file => ({
         name: file.name,
-        path: `csv_imports/${file.name}`,
+        path: `${companyId}/${file.name}`,
         size: file.metadata?.size || 0,
         uploadedAt: file.created_at
       })) || [];
@@ -64,93 +94,83 @@ const TeamDashboard = () => {
     }
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setSelectedFile(null);
-      return;
+  const handleUploadClick = () => {
+    const picker = document.querySelector('#csvInput') as HTMLInputElement;
+    if (picker) {
+      picker.value = '';
+      picker.click();
     }
-
-    if (!file.name.endsWith('.csv')) {
-      toast({
-        title: "Error de formato",
-        description: "Solo se permiten archivos CSV (.csv)",
-        variant: "destructive",
-      });
-      setSelectedFile(null);
-      return;
-    }
-
-    setSelectedFile(file);
-    await uploadToStorage(file);
   };
 
-  const uploadToStorage = async (file: File) => {
-    setIsUploading(true);
-    setUploadProgress(0);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const picker = event.target;
+    const file = picker.files?.[0];
+    if (!file) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('No se encontró usuario autenticado');
+      // Verificar autenticación
+      const { data: s } = await supabase.auth.getSession();
+      if (!s?.session) {
+        throw new Error("No autenticado");
       }
 
-      // Crear ruta simple: csv_imports/timestamp_filename.csv
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `${timestamp}_${file.name}`;
-      const filePath = `csv_imports/${fileName}`;
+      // Obtener company_id usando RPC
+      const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
+        user_auth_id: s.session.user.id
+      });
+        
+      if (companyError || !companyId) {
+        throw new Error("Sin company_id");
+      }
 
-      // Simular progreso
-      setUploadProgress(20);
+      // Generar ruta con formato {company_id}/{YYYY-MM}/{UUID}.csv
+      const now = new Date();
+      const y = now.getUTCFullYear();
+      const m = String(now.getUTCMonth() + 1).padStart(2, "0");
+      const objectPath = `${companyId}/${y}-${m}/${crypto.randomUUID()}.csv`;
 
-      // Subir archivo a Storage
-      const { error: uploadError } = await supabase.storage
-        .from('org_uploads')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
+      console.log('Uploading to path:', objectPath);
+
+      // Subir archivo a Storage con contentType específico
+      const { error: upErr } = await supabase.storage
+        .from("org_uploads")
+        .upload(objectPath, file, { 
+          contentType: "text/csv" 
         });
-
-      setUploadProgress(80);
-
-      if (uploadError) {
-        throw uploadError;
+        
+      if (upErr) {
+        console.error('Upload error:', upErr);
+        throw upErr;
       }
 
-      setUploadProgress(100);
-      
-      // Agregar archivo a la lista
+      // Guardar objectPath en estado
+      setLastObjectPath(objectPath);
+
+      // Actualizar lista de archivos
       const newFile: UploadedFile = {
-        name: fileName,
-        path: filePath,
+        name: file.name,
+        path: objectPath,
         size: file.size,
         uploadedAt: new Date().toISOString()
       };
       
       setUploadedFiles(prev => [newFile, ...prev]);
-      
+
+      // Mostrar feedback en UI
       toast({
-        title: "¡Archivo subido exitosamente!",
-        description: `${file.name} se guardó como ${fileName}`,
+        title: "Archivo subido ✔️",
+        description: `${file.name} guardado en ${objectPath}`,
       });
 
-      // Limpiar selección
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-
+      console.log('Upload result:', { ok: true, objectPath });
+      
     } catch (error: any) {
-      console.error('Error uploading file:', error);
+      console.error('Upload error:', error);
       toast({
         title: "Error al subir archivo",
         description: error.message || "No se pudo subir el archivo",
         variant: "destructive",
       });
-      setSelectedFile(null);
-    } finally {
-      setIsUploading(false);
-      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
@@ -276,15 +296,24 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Hidden file input */}
+          <input
+            id="csvInput"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          
           <div className="flex items-center gap-4">
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleFileSelect}
-              disabled={isUploading}
-              className="max-w-sm"
-            />
+            <Button
+              onClick={handleUploadClick}
+              className="flex items-center gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Seleccionar Archivo CSV
+            </Button>
+            
             <Button
               onClick={downloadTemplate}
               variant="outline"
@@ -295,18 +324,12 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
             </Button>
           </div>
 
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                Subiendo archivo...
-              </div>
-              <div className="w-full bg-secondary rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
+          {lastObjectPath && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <CheckCircle className="h-4 w-4 inline mr-2" />
+                Último archivo subido: <code className="text-xs bg-green-100 px-1 rounded">{lastObjectPath}</code>
+              </p>
             </div>
           )}
 
