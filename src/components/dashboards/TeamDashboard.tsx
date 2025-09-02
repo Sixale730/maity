@@ -99,11 +99,11 @@ const TeamDashboard = () => {
     const picker = document.querySelector('#csvInput') as HTMLInputElement;
     if (!picker) {
       console.error('File input not found');
-      re
+      return;
     }
     
     // Reset input value to ensure onChange fires every time
-    picker.value turn;= '';
+    picker.value = '';
     picker.click();
   };
 
