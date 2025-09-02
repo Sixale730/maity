@@ -95,84 +95,89 @@ const TeamDashboard = () => {
   };
 
   const handleUploadClick = () => {
+    (document.querySelector('#csvInput') as HTMLInputElement)?.click();
+  };
+
+  // Setup DOM onchange event after component mounts
+  useEffect(() => {
     const picker = document.querySelector('#csvInput') as HTMLInputElement;
-    if (picker) {
-      picker.value = '';
-      picker.click();
-    }
-  };
+    if (!picker) return;
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const picker = event.target;
-    const file = picker.files?.[0];
-    if (!file) return;
+    picker.onchange = async () => {
+      const file = picker.files?.[0];
+      if (!file) return;
 
-    try {
-      // Verificar autenticación
-      const { data: s } = await supabase.auth.getSession();
-      if (!s?.session) {
-        throw new Error("No autenticado");
-      }
+      try {
+        // Verificar autenticación
+        const { data: s } = await supabase.auth.getSession();
+        if (!s?.session) {
+          throw new Error("No autenticado");
+        }
 
-      // Obtener company_id usando RPC
-      const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
-        user_auth_id: s.session.user.id
-      });
-        
-      if (companyError || !companyId) {
-        throw new Error("Sin company_id");
-      }
-
-      // Generar ruta con formato {company_id}/{YYYY-MM}/{UUID}.csv
-      const now = new Date();
-      const y = now.getUTCFullYear();
-      const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-      const objectPath = `${companyId}/${y}-${m}/${crypto.randomUUID()}.csv`;
-
-      console.log('Uploading to path:', objectPath);
-
-      // Subir archivo a Storage con contentType específico
-      const { error: upErr } = await supabase.storage
-        .from("org_uploads")
-        .upload(objectPath, file, { 
-          contentType: "text/csv" 
+        // Obtener company_id usando RPC
+        const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
+          user_auth_id: s.session.user.id
         });
+          
+        if (companyError || !companyId) {
+          throw new Error("Sin company_id");
+        }
+
+        // Generar ruta con formato {company_id}/{YYYY-MM}/{UUID}.csv
+        const now = new Date();
+        const y = now.getUTCFullYear();
+        const m = String(now.getUTCMonth() + 1).padStart(2, "0");
+        const objectPath = `${companyId}/${y}-${m}/${crypto.randomUUID()}.csv`;
+
+        console.log('Uploading to path:', objectPath);
+
+        // Subir archivo a Storage con contentType específico
+        const { error: upErr } = await supabase.storage
+          .from('org_uploads')
+          .upload(objectPath, file, { 
+            contentType: 'text/csv' 
+          });
+          
+        if (upErr) {
+          console.error('Upload error:', upErr);
+          throw upErr;
+        }
+
+        // Guardar objectPath en estado
+        setLastObjectPath(objectPath);
+
+        // Actualizar lista de archivos
+        const newFile: UploadedFile = {
+          name: file.name,
+          path: objectPath,
+          size: file.size,
+          uploadedAt: new Date().toISOString()
+        };
         
-      if (upErr) {
-        console.error('Upload error:', upErr);
-        throw upErr;
+        setUploadedFiles(prev => [newFile, ...prev]);
+
+        // Mostrar feedback en UI
+        toast({
+          title: "Archivo subido ✔️",
+          description: `${file.name} guardado en ${objectPath}`,
+        });
+
+        console.log('Upload result:', { ok: true, objectPath });
+        
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Error al subir archivo",
+          description: error.message || "No se pudo subir el archivo",
+          variant: "destructive",
+        });
       }
+    };
 
-      // Guardar objectPath en estado
-      setLastObjectPath(objectPath);
-
-      // Actualizar lista de archivos
-      const newFile: UploadedFile = {
-        name: file.name,
-        path: objectPath,
-        size: file.size,
-        uploadedAt: new Date().toISOString()
-      };
-      
-      setUploadedFiles(prev => [newFile, ...prev]);
-
-      // Mostrar feedback en UI
-      toast({
-        title: "Archivo subido ✔️",
-        description: `${file.name} guardado en ${objectPath}`,
-      });
-
-      console.log('Upload result:', { ok: true, objectPath });
-      
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Error al subir archivo",
-        description: error.message || "No se pudo subir el archivo",
-        variant: "destructive",
-      });
-    }
-  };
+    return () => {
+      picker.onchange = null;
+    };
+  }, [toast]);
 
   const deleteFile = async (filePath: string) => {
     try {
@@ -301,7 +306,6 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
             id="csvInput"
             type="file"
             accept=".csv,text/csv"
-            onChange={handleFileChange}
             style={{ display: 'none' }}
           />
           
