@@ -68,25 +68,65 @@ const TeamDashboard = () => {
         return;
       }
 
-      const { data: files, error } = await supabase.storage
+      console.log('🔍 Loading files for company:', companyId);
+
+      // First, list subdirectories (year-month folders)
+      const { data: subdirs, error: subdirsError } = await supabase.storage
         .from('org_uploads')
         .list(companyId, {
           sortBy: { column: 'created_at', order: 'desc' }
         });
 
-      if (error) {
-        console.error('Error loading files:', error);
+      if (subdirsError) {
+        console.error('Error loading subdirectories:', subdirsError);
         return;
       }
 
-      const fileList = files?.map(file => ({
-        name: file.name,
-        path: `${companyId}/${file.name}`,
-        size: file.metadata?.size || 0,
-        uploadedAt: file.created_at
-      })) || [];
+      console.log('📁 Found subdirectories:', subdirs?.length || 0);
 
-      setUploadedFiles(fileList);
+      const allFiles: UploadedFile[] = [];
+
+      // For each subdirectory, list the files inside
+      if (subdirs && subdirs.length > 0) {
+        for (const subdir of subdirs) {
+          if (subdir.name && subdir.id) {
+            const subdirPath = `${companyId}/${subdir.name}`;
+            console.log('🔍 Loading files from:', subdirPath);
+
+            const { data: files, error: filesError } = await supabase.storage
+              .from('org_uploads')
+              .list(subdirPath, {
+                sortBy: { column: 'created_at', order: 'desc' }
+              });
+
+            if (filesError) {
+              console.error(`Error loading files from ${subdirPath}:`, filesError);
+              continue;
+            }
+
+            if (files && files.length > 0) {
+              const subdirFiles = files
+                .filter(file => file.name.endsWith('.csv'))
+                .map(file => ({
+                  name: file.name,
+                  path: `${subdirPath}/${file.name}`,
+                  size: file.metadata?.size || 0,
+                  uploadedAt: file.created_at || file.updated_at || new Date().toISOString()
+                }));
+
+              allFiles.push(...subdirFiles);
+              console.log(`✅ Loaded ${subdirFiles.length} files from ${subdirPath}`);
+            }
+          }
+        }
+      }
+
+      // Sort all files by upload date (newest first)
+      allFiles.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+      
+      console.log('📋 Total files loaded:', allFiles.length);
+      setUploadedFiles(allFiles);
+
     } catch (error) {
       console.error('Error loading uploaded files:', error);
     } finally {
@@ -95,99 +135,126 @@ const TeamDashboard = () => {
   };
 
   const handleUploadClick = () => {
-    console.log('Button clicked - triggering file picker');
+    console.log('✅ Button clicked - triggering file picker');
     const picker = document.querySelector('#csvInput') as HTMLInputElement;
     if (!picker) {
-      console.error('File input not found');
+      console.error('❌ File input not found');
       return;
     }
     
     // Reset input value to ensure onChange fires every time
     picker.value = '';
+    console.log('🔄 Input reset, opening file picker...');
     picker.click();
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File input changed');
+    console.log('📁 File selection detected');
     const file = event.target.files?.[0];
     
     if (!file) {
-      console.log('No file selected');
+      console.log('❌ No file selected');
       return;
     }
 
-    console.log('File selected:', { name: file.name, size: file.size, type: file.type });
+    console.log('✅ File selected:', { name: file.name, size: file.size, type: file.type });
+
+    // Verificar que es un archivo CSV
+    if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
+      console.error('❌ Invalid file type:', file.type);
+      toast({
+        title: "Archivo inválido",
+        description: "Por favor selecciona un archivo CSV válido",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       // Verificar autenticación
-      console.log('Checking authentication...');
-      const { data: s } = await supabase.auth.getSession();
-      if (!s?.session) {
-        throw new Error("No autenticado");
+      console.log('🔐 Checking authentication...');
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        console.error('❌ User not authenticated');
+        toast({
+          title: "Error de autenticación",
+          description: "Por favor inicia sesión para subir archivos",
+          variant: "destructive",
+        });
+        return;
       }
-      console.log('User authenticated:', s.session.user.id);
+      console.log('✅ User authenticated:', session.session.user.id);
 
       // Obtener company_id usando RPC
-      console.log('Getting company_id...');
+      console.log('🏢 Getting company_id...');
       const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
-        user_auth_id: s.session.user.id
+        user_auth_id: session.session.user.id
       });
         
       if (companyError || !companyId) {
-        console.error('Company ID error:', companyError);
-        throw new Error("Sin company_id");
+        console.error('❌ Company ID error:', companyError);
+        toast({
+          title: "Error de configuración",
+          description: "No se pudo obtener la información de la empresa",
+          variant: "destructive",
+        });
+        return;
       }
-      console.log('Company ID:', companyId);
+      console.log('✅ Company ID obtained:', companyId);
 
       // Generar ruta con formato {company_id}/{YYYY-MM}/{UUID}.csv
       const now = new Date();
-      const y = now.getUTCFullYear();
-      const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-      const objectPath = `${companyId}/${y}-${m}/${crypto.randomUUID()}.csv`;
+      const year = now.getUTCFullYear();
+      const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+      const uuid = crypto.randomUUID();
+      const objectPath = `${companyId}/${year}-${month}/${uuid}.csv`;
 
-      console.log('Generated upload path:', objectPath);
-      console.log('Starting upload to Supabase Storage...');
+      console.log('📍 Generated upload path:', objectPath);
+      console.log('🚀 Starting upload to Supabase Storage...');
 
       // Subir archivo a Storage con contentType específico
-      const { error: upErr } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('org_uploads')
         .upload(objectPath, file, { 
-          contentType: 'text/csv' 
+          contentType: 'text/csv',
+          cacheControl: '3600'
         });
         
-      if (upErr) {
-        console.error('Upload error:', upErr);
-        throw upErr;
+      if (uploadError) {
+        console.error('❌ Upload error:', uploadError);
+        toast({
+          title: "Error al subir archivo",
+          description: uploadError.message || "No se pudo subir el archivo",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Upload successful!');
+      console.log('✅ Upload successful!', uploadData);
 
       // Guardar objectPath en estado
       setLastObjectPath(objectPath);
 
-      // Actualizar lista de archivos
-      const newFile: UploadedFile = {
-        name: file.name,
-        path: objectPath,
-        size: file.size,
-        uploadedAt: new Date().toISOString()
-      };
-      
-      setUploadedFiles(prev => [newFile, ...prev]);
+      // Recargar lista de archivos para mostrar el nuevo archivo
+      await loadUploadedFiles();
 
       // Mostrar feedback en UI
       toast({
         title: "Archivo subido ✔️",
-        description: `${file.name} guardado en ${objectPath}`,
+        description: `${file.name} guardado correctamente`,
       });
 
-      console.log('Upload completed successfully:', { objectPath, fileName: file.name });
+      console.log('🎉 Upload completed successfully:', { 
+        objectPath, 
+        fileName: file.name,
+        uploadKey: uploadData?.path 
+      });
       
     } catch (error: any) {
-      console.error('Upload error:', error);
+      console.error('💥 Upload error:', error);
       toast({
         title: "Error al subir archivo",
-        description: error.message || "No se pudo subir el archivo",
+        description: error.message || "Error inesperado al subir el archivo",
         variant: "destructive",
       });
     }
@@ -326,6 +393,7 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
           
           <div className="flex items-center gap-4">
             <Button
+              type="button"
               onClick={handleUploadClick}
               className="flex items-center gap-2"
             >
