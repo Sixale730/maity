@@ -16,8 +16,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
     en: { code: 'en', name: 'English', flag: '🇺🇸' }
   };
 
+  const handleLanguageChange = (value: 'es' | 'en') => {
+    console.log('Language change requested from:', language, 'to:', value);
+    setLanguage(value);
+    console.log('Language changed to:', value);
+  };
+
   return (
-    <Select value={language} onValueChange={(value: 'es' | 'en') => setLanguage(value)}>
+    <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent/50 hover:bg-sidebar-accent border-sidebar-border text-sidebar-foreground ${className}`}>
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" />

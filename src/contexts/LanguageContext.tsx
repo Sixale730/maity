@@ -67,6 +67,7 @@ const translations = {
     'footer.copyright': 'Transformando el futuro del aprendizaje en TI.',
     
     // Dashboard
+    'dashboard.title': 'Dashboard',
     'dashboard.loading': 'Cargando dashboard...',
     'dashboard.home': 'Dashboard',
     'dashboard.analytics': 'Analytics',
@@ -158,6 +159,7 @@ const translations = {
     'footer.copyright': 'Transforming the future of IT learning.',
     
     // Dashboard
+    'dashboard.title': 'Dashboard',
     'dashboard.loading': 'Loading dashboard...',
     'dashboard.home': 'Dashboard',
     'dashboard.analytics': 'Analytics',

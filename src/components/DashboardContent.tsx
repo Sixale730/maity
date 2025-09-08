@@ -10,6 +10,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   BarChart, 
   Bar, 
@@ -41,8 +42,11 @@ const chartConfig = {
 
 // Org Admin Dashboard Component
 function OrgAdminDashboard({ userName, companyId }: { userName?: string; companyId?: string }) {
+  const { t } = useLanguage();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
     useDashboardDataByRole('org_admin', companyId);
+
+  console.log('OrgAdminDashboard rendering with language context');
 
   if (loading) {
     return (
@@ -50,8 +54,8 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
         <div className="flex items-center gap-4 border-b border-border pb-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard Organizacional</h1>
-            <p className="text-muted-foreground">Cargando datos del equipo...</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
+            <p className="text-muted-foreground">{t('dashboard.loading')}</p>
           </div>
         </div>
       </main>
@@ -225,7 +229,10 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
 
 export function DashboardContent() {
   const { userRole, userProfile, loading, error } = useUserRole();
+  const { t, language } = useLanguage();
   const location = useLocation();
+
+  console.log('DashboardContent rendering, current language:', language);
 
   if (loading) {
     return (
@@ -233,8 +240,8 @@ export function DashboardContent() {
         <div className="flex items-center gap-4 border-b border-border pb-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Cargando datos del usuario...</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
+            <p className="text-muted-foreground">{t('dashboard.loading')}</p>
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -260,7 +267,7 @@ export function DashboardContent() {
         <div className="flex items-center gap-4 border-b border-border pb-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
             <p className="text-destructive">{error}</p>
           </div>
         </div>
