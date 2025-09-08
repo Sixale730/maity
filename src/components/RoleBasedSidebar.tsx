@@ -17,6 +17,7 @@ import {
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
 import LanguageSelector from "./LanguageSelector";
 import {
@@ -35,35 +36,35 @@ import {
 
 const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
+    { title: "nav.dashboard", url: "/dashboard", icon: Home },
   ];
 
   if (role === 'platform_admin') {
     return [
       ...baseItems,
-      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-      { title: "Organizaciones", url: "/dashboard/organizations", icon: Building },
-      { title: "Usuarios", url: "/dashboard/usuarios", icon: Users },
-      { title: "Reports", url: "/dashboard/reports", icon: PieChart },
-      { title: "Trends", url: "/dashboard/trends", icon: TrendingUp },
-      { title: "Planes", url: "/dashboard/planes", icon: Settings },
-      { title: "Documentos", url: "/dashboard/documentos", icon: FileText },
-      { title: "Settings", url: "/dashboard/settings", icon: Settings },
+      { title: "nav.analytics", url: "/dashboard/analytics", icon: BarChart3 },
+      { title: "nav.organizations", url: "/dashboard/organizations", icon: Building },
+      { title: "nav.users", url: "/dashboard/usuarios", icon: Users },
+      { title: "nav.reports", url: "/dashboard/reports", icon: PieChart },
+      { title: "nav.trends", url: "/dashboard/trends", icon: TrendingUp },
+      { title: "nav.plans", url: "/dashboard/planes", icon: Settings },
+      { title: "nav.documents", url: "/dashboard/documentos", icon: FileText },
+      { title: "nav.settings", url: "/dashboard/settings", icon: Settings },
     ];
   } else if (role === 'org_admin') {
     return [
       ...baseItems,
-      { title: "Mi Equipo", url: "/dashboard/team", icon: Users },
-      { title: "Planes", url: "/dashboard/planes", icon: Target },
-      { title: "Documentos", url: "/dashboard/documentos", icon: FileText },
-      { title: "Ajustes", url: "/dashboard/settings", icon: Settings },
+      { title: "nav.my_team", url: "/dashboard/team", icon: Users },
+      { title: "nav.plans", url: "/dashboard/planes", icon: Target },
+      { title: "nav.documents", url: "/dashboard/documentos", icon: FileText },
+      { title: "nav.settings", url: "/dashboard/settings", icon: Settings },
     ];
   } else {
     // 'user' role
     return [
       ...baseItems,
-      { title: "Plan", url: "/dashboard/plan", icon: Target },
-      { title: "Logros", url: "/dashboard/logros", icon: Trophy },
+      { title: "nav.plan", url: "/dashboard/plan", icon: Target },
+      { title: "nav.achievements", url: "/dashboard/logros", icon: Trophy },
     ];
   }
 };
@@ -77,6 +78,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
   const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const currentPath = location.pathname;
 
   const navigationItems = getNavigationByRole(userRole);
@@ -90,9 +92,9 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'platform_admin': return 'Administrador Global';
-      case 'org_admin': return 'Administrador';
-      case 'user': return 'Usuario';
+      case 'platform_admin': return t('roles.platform_admin');
+      case 'org_admin': return t('roles.org_admin');
+      case 'user': return t('roles.user');
       default: return '';
     }
   };
@@ -117,7 +119,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
         </div>
         {state !== "collapsed" && (
           <div className="mt-3 text-xs">
-            <p className="font-medium text-sidebar-foreground">{userName || 'Usuario'}</p>
+            <p className="font-medium text-sidebar-foreground">{userName || t('roles.default_user')}</p>
             <p className="text-sidebar-foreground/60">{getRoleLabel(userRole)}</p>
           </div>
         )}
@@ -127,7 +129,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
         <SidebarGroup>
           {state !== "collapsed" && (
             <SidebarGroupLabel className="px-4 py-2 text-xs font-medium tracking-wider text-sidebar-foreground/60 uppercase">
-              Navegación
+              {t('nav.navigation')}
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
@@ -149,7 +151,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
                     <Link to={item.url} className={`flex items-center ${state === "collapsed" ? '' : 'gap-3'}`}>
                       <item.icon className={`h-5 w-5 ${isActive(item.url) ? 'text-white' : ''}`} />
                       {state !== "collapsed" && (
-                        <span className="font-medium transition-colors">{item.title}</span>
+                        <span className="font-medium transition-colors">{t(item.title)}</span>
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -170,7 +172,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
           `}
         >
           <LogOut className="h-5 w-5" />
-          {state !== "collapsed" && <span className="ml-3 font-medium">Cerrar Sesión</span>}
+          {state !== "collapsed" && <span className="ml-3 font-medium">{t('nav.logout')}</span>}
         </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>

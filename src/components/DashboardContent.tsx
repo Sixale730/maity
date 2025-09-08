@@ -140,9 +140,9 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
         {/* Monthly Team Performance */}
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Rendimiento Mensual del Equipo</CardTitle>
+            <CardTitle>{t('dashboard.charts.monthly_performance')}</CardTitle>
             <CardDescription>
-              Progreso de tu organización por mes
+              {t('dashboard.charts.monthly_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -153,8 +153,8 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
                   <XAxis dataKey="month" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name="Sesiones del Equipo" />
-                  <Bar dataKey="completed" fill="hsl(var(--accent))" name="Completadas" />
+                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name={t('dashboard.charts.team_sessions')} />
+                  <Bar dataKey="completed" fill="hsl(var(--accent))" name={t('dashboard.charts.completed')} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -164,9 +164,9 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
         {/* Team Session Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Estado del Equipo</CardTitle>
+            <CardTitle>{t('dashboard.charts.team_status')}</CardTitle>
             <CardDescription>
-              Distribución de sesiones
+              {t('dashboard.charts.status_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -196,9 +196,9 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
         {/* Weekly Team Activity */}
         <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Actividad Semanal del Equipo</CardTitle>
+            <CardTitle>{t('dashboard.charts.weekly_activity')}</CardTitle>
             <CardDescription>
-              Sesiones diarias de tu organización
+              {t('dashboard.charts.weekly_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -215,7 +215,7 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
                     stroke="hsl(var(--primary))" 
                     strokeWidth={2}
                     dot={{ fill: "hsl(var(--primary))" }}
-                    name="Sesiones del Equipo"
+                    name={t('dashboard.charts.team_sessions')}
                   />
                 </LineChart>
               </ResponsiveContainer>
