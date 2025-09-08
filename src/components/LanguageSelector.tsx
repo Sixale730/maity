@@ -26,7 +26,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
           </span>
         </div>
       </SelectTrigger>
-      <SelectContent className="z-50 bg-sidebar-accent border-sidebar-border shadow-lg" align="end">
+      <SelectContent className="z-[100] bg-popover border-sidebar-border shadow-lg min-w-[140px]" align="end" side="bottom" sideOffset={4}>
         {Object.values(languages).map((lang) => (
           <SelectItem 
             key={lang.code} 

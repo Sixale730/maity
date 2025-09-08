@@ -110,8 +110,8 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
             className="transition-all duration-300"
           />
           {state !== "collapsed" && (
-            <div className="ml-auto">
-              <LanguageSelector compact className="bg-sidebar-accent border-sidebar-border" />
+            <div className="flex-shrink-0">
+              <LanguageSelector compact />
             </div>
           )}
         </div>
