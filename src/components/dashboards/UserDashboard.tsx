@@ -49,34 +49,6 @@ const chartConfig = {
   },
 };
 
-// Datos para el gráfico radar 360
-const radarData = [
-  {
-    competencia: "Claridad (C)",
-    usuario: 85,
-    coach: 75,
-    fullMark: 100,
-  },
-  {
-    competencia: "Estructura (E)",
-    usuario: 70,
-    coach: 80,
-    fullMark: 100,
-  },
-  {
-    competencia: "Alineación Emocional (A)",
-    usuario: 90,
-    coach: 85,
-    fullMark: 100,
-  },
-  {
-    competencia: "Acción e Influencia (I)",
-    usuario: 65,
-    coach: 70,
-    fullMark: 100,
-  },
-];
-
 interface UserDashboardProps {
   userName?: string;
 }
@@ -85,6 +57,34 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   const { t } = useLanguage();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
     useDashboardDataByRole('user');
+
+  // Datos para el gráfico radar 360
+  const radarData = [
+    {
+      competencia: t('dashboard.user.clarity'),
+      usuario: 85,
+      coach: 75,
+      fullMark: 100,
+    },
+    {
+      competencia: t('dashboard.user.structure'),
+      usuario: 70,
+      coach: 80,
+      fullMark: 100,
+    },
+    {
+      competencia: t('dashboard.user.emotional_alignment'),
+      usuario: 90,
+      coach: 85,
+      fullMark: 100,
+    },
+    {
+      competencia: t('dashboard.user.action_influence'),
+      usuario: 65,
+      coach: 70,
+      fullMark: 100,
+    },
+  ];
 
   if (loading) {
     return (
@@ -187,47 +187,75 @@ export function UserDashboard({ userName }: UserDashboardProps) {
             {t('dashboard.user.radar_description')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex justify-center">
-          <ChartContainer config={chartConfig} className="h-[500px] w-full max-w-2xl">
+        <CardContent className="flex justify-center p-8">
+          <ChartContainer config={chartConfig} className="h-[600px] w-full max-w-3xl">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
+              <RadarChart data={radarData} margin={{ top: 40, right: 120, bottom: 40, left: 120 }}>
                 <PolarGrid 
                   stroke="hsl(var(--muted-foreground))" 
-                  strokeDasharray="3 3"
+                  strokeDasharray="2 2"
+                  strokeWidth={1.5}
+                  gridType="polygon"
                 />
                 <PolarAngleAxis 
                   dataKey="competencia" 
-                  tick={{ fontSize: 14, fontWeight: 500 }}
+                  tick={{ 
+                    fontSize: 16, 
+                    fontWeight: 600,
+                    textAnchor: 'middle',
+                    dominantBaseline: 'middle'
+                  }}
                   className="fill-foreground"
+                  tickFormatter={(value) => value}
                 />
                 <PolarRadiusAxis 
                   domain={[0, 100]} 
-                  tick={{ fontSize: 12 }}
-                  tickCount={6}
+                  tick={{ 
+                    fontSize: 12,
+                    fontWeight: 500
+                  }}
+                  tickCount={5}
                   angle={90}
                   className="fill-muted-foreground"
+                  axisLine={false}
                 />
                 <Radar
-                  name="Mi Evaluación"
+                  name={t('dashboard.user.my_evaluation')}
                   dataKey="usuario"
                   stroke="hsl(var(--primary))"
                   fill="hsl(var(--primary))"
-                  fillOpacity={0.3}
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
+                  fillOpacity={0.25}
+                  strokeWidth={4}
+                  dot={{ 
+                    fill: "hsl(var(--primary))", 
+                    strokeWidth: 3, 
+                    stroke: "white",
+                    r: 8 
+                  }}
                 />
                 <Radar
-                  name="Evaluación Coach"
+                  name={t('dashboard.user.coach_evaluation')}
                   dataKey="coach"
                   stroke="hsl(var(--chart-2))"
                   fill="hsl(var(--chart-2))"
-                  fillOpacity={0.2}
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 6 }}
+                  fillOpacity={0.15}
+                  strokeWidth={4}
+                  dot={{ 
+                    fill: "hsl(var(--chart-2))", 
+                    strokeWidth: 3, 
+                    stroke: "white",
+                    r: 8 
+                  }}
                 />
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                   labelFormatter={(value) => `${value}`}
+                  wrapperStyle={{
+                    backgroundColor: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
                 />
               </RadarChart>
             </ResponsiveContainer>
