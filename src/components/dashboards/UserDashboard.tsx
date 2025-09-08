@@ -15,7 +15,12 @@ import {
   Line,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
 } from "recharts";
 import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
 
@@ -32,7 +37,43 @@ const chartConfig = {
     label: "Mi Humor",
     color: "hsl(var(--chart-3))",
   },
+  user: {
+    label: "Mi Evaluación",
+    color: "hsl(var(--primary))",
+  },
+  coach: {
+    label: "Evaluación Coach",
+    color: "hsl(var(--chart-2))",
+  },
 };
+
+// Datos para el gráfico radar 360
+const radarData = [
+  {
+    competencia: "Claridad (C)",
+    usuario: 85,
+    coach: 75,
+    fullMark: 100,
+  },
+  {
+    competencia: "Estructura (E)",
+    usuario: 70,
+    coach: 80,
+    fullMark: 100,
+  },
+  {
+    competencia: "Alineación Emocional (A)",
+    usuario: 90,
+    coach: 85,
+    fullMark: 100,
+  },
+  {
+    competencia: "Acción e Influencia (I)",
+    usuario: 65,
+    coach: 70,
+    fullMark: 100,
+  },
+];
 
 interface UserDashboardProps {
   userName?: string;
@@ -131,6 +172,62 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gráfico Principal - Evaluación 360° */}
+      <Card className="col-span-full">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Evaluación de Competencias 360°</CardTitle>
+          <CardDescription className="text-center">
+            Comparación entre tu autoevaluación y la evaluación de tu coach
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+          <ChartContainer config={chartConfig} className="h-[500px] w-full max-w-2xl">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radarData} margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
+                <PolarGrid 
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeDasharray="3 3"
+                />
+                <PolarAngleAxis 
+                  dataKey="competencia" 
+                  tick={{ fontSize: 14, fontWeight: 500 }}
+                  className="fill-foreground"
+                />
+                <PolarRadiusAxis 
+                  domain={[0, 100]} 
+                  tick={{ fontSize: 12 }}
+                  tickCount={6}
+                  angle={90}
+                  className="fill-muted-foreground"
+                />
+                <Radar
+                  name="Mi Evaluación"
+                  dataKey="usuario"
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--primary))"
+                  fillOpacity={0.3}
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
+                />
+                <Radar
+                  name="Evaluación Coach"
+                  dataKey="coach"
+                  stroke="hsl(var(--chart-2))"
+                  fill="hsl(var(--chart-2))"
+                  fillOpacity={0.2}
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 6 }}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  labelFormatter={(value) => `${value}`}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Personal Progress Charts */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
