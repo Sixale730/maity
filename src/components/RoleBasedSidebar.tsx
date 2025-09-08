@@ -103,14 +103,14 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
       collapsible="icon"
     >
       <SidebarHeader className="p-4 border-b border-sidebar-border bg-gradient-to-r from-sidebar-background to-sidebar-accent">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <MaityLogo 
             size="sm" 
             variant={state === "collapsed" ? "symbol" : "full"}
-            className="transition-all duration-300"
+            className="transition-all duration-300 flex-shrink-0"
           />
           {state !== "collapsed" && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 ml-auto">
               <LanguageSelector compact />
             </div>
           )}
