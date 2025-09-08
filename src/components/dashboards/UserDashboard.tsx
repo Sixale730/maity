@@ -188,9 +188,14 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center p-8">
-          <ChartContainer config={chartConfig} className="h-[600px] w-full max-w-3xl">
+          <ChartContainer config={chartConfig} className="h-[650px] w-full max-w-4xl">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} margin={{ top: 40, right: 120, bottom: 40, left: 120 }}>
+              <RadarChart 
+                data={radarData} 
+                margin={{ top: 60, right: 150, bottom: 60, left: 150 }}
+                cx="50%" 
+                cy="50%"
+              >
                 <PolarGrid 
                   stroke="hsl(var(--muted-foreground))" 
                   strokeDasharray="2 2"
@@ -200,22 +205,23 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                 <PolarAngleAxis 
                   dataKey="competencia" 
                   tick={{ 
-                    fontSize: 16, 
+                    fontSize: 15, 
                     fontWeight: 600,
                     textAnchor: 'middle',
                     dominantBaseline: 'middle'
                   }}
                   className="fill-foreground"
                   tickFormatter={(value) => value}
+                  radius={130}
                 />
                 <PolarRadiusAxis 
                   domain={[0, 100]} 
                   tick={{ 
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 500
                   }}
                   tickCount={5}
-                  angle={90}
+                  angle={45}
                   className="fill-muted-foreground"
                   axisLine={false}
                 />
