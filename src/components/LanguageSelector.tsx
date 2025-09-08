@@ -11,6 +11,8 @@ interface LanguageSelectorProps {
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", compact = false }) => {
   const { language, setLanguage } = useLanguage();
 
+  console.log('LanguageSelector rendered with language:', language);
+
   const languages = {
     es: { code: 'es', name: 'Español', flag: '🇪🇸' },
     en: { code: 'en', name: 'English', flag: '🇺🇸' }
@@ -22,10 +24,17 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
     console.log('Language changed to:', value);
   };
 
+  const handleClick = () => {
+    console.log('Language selector clicked');
+  };
+
   return (
     <div className="w-full">
       <Select value={language} onValueChange={handleLanguageChange}>
-        <SelectTrigger className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent/50 hover:bg-sidebar-accent border-sidebar-border text-sidebar-foreground ${className}`}>
+        <SelectTrigger 
+          className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent/50 hover:bg-sidebar-accent border-sidebar-border text-sidebar-foreground ${className}`}
+          onClick={handleClick}
+        >
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             <span className="text-sm font-medium">
@@ -43,6 +52,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
             <SelectItem 
               key={lang.code} 
               value={lang.code}
+              onSelect={() => {
+                console.log('SelectItem clicked for:', lang.code);
+                handleLanguageChange(lang.code as 'es' | 'en');
+              }}
               className="text-popover-foreground hover:bg-sidebar-accent-foreground/10 focus:bg-sidebar-accent-foreground/10 cursor-pointer"
             >
               <div className="flex items-center justify-between w-full">

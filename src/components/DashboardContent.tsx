@@ -69,9 +69,9 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
         <div className="flex items-center gap-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard de Mi Organización</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.org.title')}</h1>
             <p className="text-muted-foreground">
-              Vista de tu equipo y progreso organizacional
+              {t('dashboard.org.description')}
             </p>
           </div>
         </div>
@@ -84,52 +84,52 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-indigo-900">Sesiones del Equipo</CardTitle>
+            <CardTitle className="text-sm font-medium text-indigo-900">{t('dashboard.stats.team_sessions')}</CardTitle>
             <span className="text-2xl">👥</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-indigo-900">{dashboardStats.totalSessions}</div>
             <p className="text-xs text-indigo-700">
-              Total de la organización
+              {t('dashboard.stats.organization_total')}
             </p>
           </CardContent>
         </Card>
         
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Activas</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-900">{t('dashboard.stats.active')}</CardTitle>
             <span className="text-2xl">🔄</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">{dashboardStats.activeSessions}</div>
             <p className="text-xs text-green-700">
-              En progreso o programadas
+              {t('dashboard.stats.in_progress')}
             </p>
           </CardContent>
         </Card>
         
         <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-amber-900">Rendimiento</CardTitle>
+            <CardTitle className="text-sm font-medium text-amber-900">{t('dashboard.stats.performance')}</CardTitle>
             <span className="text-2xl">📊</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-900">{dashboardStats.completionRate}%</div>
             <p className="text-xs text-amber-700">
-              Tasa de completado del equipo
+              {t('dashboard.stats.completion_rate')}
             </p>
           </CardContent>
         </Card>
         
         <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-pink-900">Bienestar del Equipo</CardTitle>
+            <CardTitle className="text-sm font-medium text-pink-900">{t('dashboard.stats.team_wellbeing')}</CardTitle>
             <span className="text-2xl">💪</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-pink-900">{dashboardStats.avgMood}</div>
             <p className="text-xs text-pink-700">
-              Humor promedio
+              {t('dashboard.stats.average_mood')}
             </p>
           </CardContent>
         </Card>
