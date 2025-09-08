@@ -18,20 +18,20 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
 
   return (
     <Select value={language} onValueChange={(value: 'es' | 'en') => setLanguage(value)}>
-      <SelectTrigger className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent hover:bg-sidebar-accent/80 border-sidebar-border ${className}`}>
+      <SelectTrigger className={`${compact ? 'w-[120px] h-8' : 'w-[140px] h-9'} font-inter bg-sidebar-accent/50 hover:bg-sidebar-accent border-sidebar-border text-sidebar-foreground ${className}`}>
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-sidebar-foreground" />
-          <span className="text-sm font-medium text-sidebar-foreground">
+          <Globe className="h-4 w-4" />
+          <span className="text-sm font-medium">
             {languages[language].flag} {languages[language].code.toUpperCase()}
           </span>
         </div>
       </SelectTrigger>
-      <SelectContent className="bg-popover border-sidebar-border" align="end">
+      <SelectContent className="z-50 bg-sidebar-accent border-sidebar-border shadow-lg" align="end">
         {Object.values(languages).map((lang) => (
           <SelectItem 
             key={lang.code} 
             value={lang.code}
-            className="hover:bg-sidebar-accent hover:text-sidebar-foreground cursor-pointer"
+            className="text-sidebar-foreground hover:bg-sidebar-accent-foreground/10 focus:bg-sidebar-accent-foreground/10 cursor-pointer"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = "", com
                 <span className="font-medium">{lang.name}</span>
               </div>
               {language === lang.code && (
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-accent ml-2" />
               )}
             </div>
           </SelectItem>
