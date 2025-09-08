@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSelector from "@/components/LanguageSelector";
 import { 
   BarChart, 
   Bar, 
@@ -80,6 +82,7 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ userName }: UserDashboardProps) {
+  const { t } = useLanguage();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
     useDashboardDataByRole('user');
 
@@ -89,8 +92,8 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         <div className="flex items-center gap-4 border-b border-border pb-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Mi Dashboard</h1>
-            <p className="text-muted-foreground">Cargando tu progreso...</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.user.title')}</h1>
+            <p className="text-muted-foreground">{t('dashboard.loading')}</p>
           </div>
         </div>
       </main>
@@ -105,55 +108,58 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              ¡Hola {userName ? userName.split(' ')[0] : 'Usuario'}! 👋
+              {userName ? `${t('dashboard.user.greeting')} ${userName.split(' ')[0]}!` : `${t('dashboard.user.greeting')} ${t('dashboard.user.user')}!`} 👋
             </h1>
             <p className="text-muted-foreground">
-              Aquí tienes tu progreso personal de coaching
+              {t('dashboard.user.description')}
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-          Mi Progreso
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            {t('dashboard.user.progress_badge')}
+          </Badge>
+          <LanguageSelector />
+        </div>
       </div>
 
       {/* Personal Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Mis Sesiones</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-900">{t('dashboard.user.my_sessions')}</CardTitle>
             <span className="text-2xl">🎯</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">{dashboardStats.totalSessions}</div>
             <p className="text-xs text-green-700">
-              Sesiones completadas
+              {t('dashboard.user.sessions_completed')}
             </p>
           </CardContent>
         </Card>
         
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Próximas</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-900">{t('dashboard.user.upcoming')}</CardTitle>
             <span className="text-2xl">📅</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900">{dashboardStats.activeSessions}</div>
             <p className="text-xs text-blue-700">
-              Sesiones programadas
+              {t('dashboard.user.sessions_scheduled')}
             </p>
           </CardContent>
         </Card>
         
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Mi Constancia</CardTitle>
+            <CardTitle className="text-sm font-medium text-purple-900">{t('dashboard.user.consistency')}</CardTitle>
             <span className="text-2xl">🏆</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-900">{dashboardStats.completionRate}%</div>
             <p className="text-xs text-purple-700">
-              Tasa de asistencia
+              {t('dashboard.user.attendance_rate')}
             </p>
             <Progress value={dashboardStats.completionRate} className="mt-2" />
           </CardContent>
@@ -161,13 +167,13 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-900">Mi Bienestar</CardTitle>
+            <CardTitle className="text-sm font-medium text-yellow-900">{t('dashboard.user.wellbeing')}</CardTitle>
             <span className="text-2xl">😊</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-900">{dashboardStats.avgMood}</div>
             <p className="text-xs text-yellow-700">
-              Humor promedio
+              {t('dashboard.user.average_mood')}
             </p>
           </CardContent>
         </Card>
@@ -176,9 +182,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       {/* Gráfico Principal - Evaluación 360° */}
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">Evaluación de Competencias 360°</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">{t('dashboard.user.radar_title')}</CardTitle>
           <CardDescription className="text-center">
-            Comparación entre tu autoevaluación y la evaluación de tu coach
+            {t('dashboard.user.radar_description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
@@ -231,12 +237,11 @@ export function UserDashboard({ userName }: UserDashboardProps) {
 
       {/* Personal Progress Charts */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Personal Monthly Progress */}
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Mi Progreso Mensual</CardTitle>
+            <CardTitle>{t('dashboard.user.monthly_progress')}</CardTitle>
             <CardDescription>
-              Tu evolución en los últimos meses
+              {t('dashboard.user.monthly_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -247,8 +252,8 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name="Mis Sesiones" radius={4} />
-                  <Bar dataKey="completed" fill="hsl(var(--accent))" name="Completadas" radius={4} />
+                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name={t('dashboard.user.my_sessions')} radius={4} />
+                  <Bar dataKey="completed" fill="hsl(var(--accent))" name={t('dashboard.charts.completed')} radius={4} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -258,9 +263,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         {/* Personal Session Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Mis Sesiones</CardTitle>
+            <CardTitle>{t('dashboard.user.sessions_status')}</CardTitle>
             <CardDescription>
-              Estado de tus sesiones
+              {t('dashboard.user.status_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -290,9 +295,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         {/* Personal Weekly Activity */}
         <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Mi Actividad Semanal</CardTitle>
+            <CardTitle>{t('dashboard.user.weekly_activity')}</CardTitle>
             <CardDescription>
-              Tus sesiones en la última semana
+              {t('dashboard.user.weekly_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -309,7 +314,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                     stroke="hsl(var(--primary))" 
                     strokeWidth={3}
                     dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 8 }}
-                    name="Mis Sesiones"
+                    name={t('dashboard.user.my_sessions')}
                   />
                 </LineChart>
               </ResponsiveContainer>

@@ -113,7 +113,6 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
           />
           {state !== "collapsed" && (
             <div className="flex-shrink-0 ml-auto">
-              <LanguageSelector compact />
             </div>
           )}
         </div>
