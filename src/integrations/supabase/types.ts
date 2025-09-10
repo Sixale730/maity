@@ -114,6 +114,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      complete_user_registration: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_company: {
         Args: { company_name: string }
         Returns: {
@@ -137,6 +141,18 @@ export type Database = {
           is_active: boolean
           name: string
           plan: string
+          timezone: string
+        }[]
+      }
+      get_company_by_slug: {
+        Args: { company_slug: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          plan: string
+          slug: string
           timezone: string
         }[]
       }

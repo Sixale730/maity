@@ -43,10 +43,10 @@ export function OrganizationsManager() {
 
       if (error) throw error;
       
-      // Add registration_url to each company
+      // Add registration_url to each company using database slug
       const companiesWithUrls = (data || []).map((company: any) => ({
         ...company,
-        registration_url: `${window.location.origin}/registration?org=${generateSlug(company.name)}`
+        registration_url: `${window.location.origin}/registration?org=${company.slug || generateSlug(company.name)}`
       }));
       
       setCompanies(companiesWithUrls);
@@ -85,10 +85,11 @@ export function OrganizationsManager() {
 
       if (error) throw error;
 
-      // Add registration_url to the new company  
+      // Add registration_url to the new company using database slug
+      const newCompany = (data as any[])[0]; // RPC returns an array
       const newCompanyWithUrl = {
-        ...(data as any[])[0], // RPC returns an array
-        registration_url: `${window.location.origin}/registration?org=${generateSlug((data as any[])[0].name)}`
+        ...newCompany,
+        registration_url: `${window.location.origin}/registration?org=${newCompany.slug || generateSlug(newCompany.name)}`
       };
 
       setCompanies([newCompanyWithUrl, ...companies]);

@@ -19,11 +19,20 @@ const Auth = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
+    // Get return URL from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl');
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          navigate('/dashboard');
+          // Redirect to return URL if available, otherwise dashboard
+          if (returnUrl) {
+            window.location.href = decodeURIComponent(returnUrl);
+          } else {
+            navigate('/dashboard');
+          }
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
         }
@@ -34,7 +43,12 @@ const Auth = () => {
       if (session) {
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          navigate('/dashboard');
+          // Redirect to return URL if available, otherwise dashboard
+          if (returnUrl) {
+            window.location.href = decodeURIComponent(returnUrl);
+          } else {
+            navigate('/dashboard');
+          }
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
         }
@@ -48,6 +62,10 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Get return URL from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl');
+
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
@@ -59,7 +77,12 @@ const Auth = () => {
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          navigate('/dashboard');
+          // Redirect to return URL if available, otherwise dashboard
+          if (returnUrl) {
+            window.location.href = decodeURIComponent(returnUrl);
+          } else {
+            navigate('/dashboard');
+          }
           return;
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
@@ -71,11 +94,12 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
+        const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/dashboard`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: redirectUrl
           }
         });
         if (error) throw error;
@@ -97,11 +121,17 @@ const Auth = () => {
 
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
     setLoading(true);
+    
+    // Get return URL from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl');
+    const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/dashboard`;
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: redirectUrl
         }
       });
       if (error) throw error;
