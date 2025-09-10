@@ -3,49 +3,61 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Plus, ExternalLink } from "lucide-react";
+import { Copy, Plus, ExternalLink, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface Organization {
+interface Company {
   id: string;
   name: string;
-  slug: string;
-  registration_url: string;
+  plan: string;
+  timezone: string;
+  is_active: boolean;
   created_at: string;
+  registration_url?: string; // Generated field
 }
 
 export function OrganizationsManager() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newOrgName, setNewOrgName] = useState("");
-  const [newOrgSlug, setNewOrgSlug] = useState("");
+  const [newCompanyName, setNewCompanyName] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
 
   useEffect(() => {
-    fetchOrganizations();
+    fetchCompanies();
   }, []);
 
-  const fetchOrganizations = async () => {
+  const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
-        .from('organizations')
+        .schema('maity')
+        .from('companies')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrganizations(data || []);
+      
+      // Add registration_url to each company
+      const companiesWithUrls = (data || []).map((company: any) => ({
+        ...company,
+        registration_url: `${window.location.origin}/registration?org=${generateSlug(company.name)}`
+      }));
+      
+      setCompanies(companiesWithUrls);
     } catch (error) {
-      console.error('Error fetching organizations:', error);
+      console.error('Error fetching companies:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar las organizaciones",
+        description: "No se pudieron cargar las empresas",
         variant: "destructive",
       });
     } finally {
@@ -60,54 +72,81 @@ export function OrganizationsManager() {
       .trim();
   };
 
-  const handleNameChange = (name: string) => {
-    setNewOrgName(name);
-    setNewOrgSlug(generateSlug(name));
-  };
-
-  const createOrganization = async () => {
-    if (!newOrgName.trim() || !newOrgSlug.trim()) {
+  const createCompany = async () => {
+    if (!newCompanyName.trim()) {
       toast({
         title: "Error",
-        description: "El nombre y el slug son requeridos",
+        description: "El nombre de la empresa es requerido",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const registrationUrl = `${window.location.origin}/registration?org=${newOrgSlug}`;
-      
       const { data, error } = await supabase
-        .from('organizations')
+        .schema('maity')
+        .from('companies')
         .insert([{
-          name: newOrgName.trim(),
-          slug: newOrgSlug.trim(),
-          registration_url: registrationUrl
+          name: newCompanyName.trim()
         }])
         .select()
         .single();
 
       if (error) throw error;
 
-      setOrganizations([data, ...organizations]);
-      setNewOrgName("");
-      setNewOrgSlug("");
+      // Add registration_url to the new company
+      const newCompanyWithUrl = {
+        ...data,
+        registration_url: `${window.location.origin}/registration?org=${generateSlug(data.name)}`
+      };
+
+      setCompanies([newCompanyWithUrl, ...companies]);
+      setNewCompanyName("");
       setIsDialogOpen(false);
       
       toast({
         title: "Éxito",
-        description: "Organización creada correctamente",
+        description: "Empresa creada correctamente",
       });
     } catch (error: any) {
-      console.error('Error creating organization:', error);
+      console.error('Error creating company:', error);
       toast({
         title: "Error",
         description: error.message.includes('duplicate') 
-          ? "Ya existe una organización con ese nombre o slug"
-          : "No se pudo crear la organización",
+          ? "Ya existe una empresa con ese nombre"
+          : "No se pudo crear la empresa",
         variant: "destructive",
       });
+    }
+  };
+
+  const deleteCompany = async (company: Company) => {
+    setDeleteLoading(company.id);
+    
+    try {
+      const { error } = await supabase
+        .schema('maity')
+        .from('companies')
+        .delete()
+        .eq('id', company.id);
+
+      if (error) throw error;
+
+      setCompanies(prev => prev.filter(c => c.id !== company.id));
+      
+      toast({
+        title: "Éxito",
+        description: "Empresa eliminada correctamente",
+      });
+    } catch (error: any) {
+      console.error('Error deleting company:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la empresa",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
@@ -133,7 +172,7 @@ export function OrganizationsManager() {
         <div className="flex items-center gap-4 border-b border-border pb-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Organizaciones</h1>
+            <h1 className="text-3xl font-bold text-foreground">Empresas</h1>
             <p className="text-muted-foreground">Cargando...</p>
           </div>
         </div>
@@ -148,9 +187,9 @@ export function OrganizationsManager() {
         <div className="flex items-center gap-4">
           <SidebarTrigger />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Organizaciones</h1>
+            <h1 className="text-3xl font-bold text-foreground">Empresas</h1>
             <p className="text-muted-foreground">
-              Gestiona las organizaciones y sus links de registro
+              Gestiona las empresas y sus links de registro
             </p>
           </div>
         </div>
@@ -159,38 +198,26 @@ export function OrganizationsManager() {
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
-              Agregar Organización
+              Agregar Empresa
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nueva Organización</DialogTitle>
+              <DialogTitle>Nueva Empresa</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="orgName">Nombre de la Organización</Label>
+                <Label htmlFor="companyName">Nombre de la Empresa</Label>
                 <Input
-                  id="orgName"
-                  value={newOrgName}
-                  onChange={(e) => handleNameChange(e.target.value)}
+                  id="companyName"
+                  value={newCompanyName}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
                   placeholder="Ej: Mi Empresa S.A."
                 />
               </div>
-              <div>
-                <Label htmlFor="orgSlug">Slug (URL)</Label>
-                <Input
-                  id="orgSlug"
-                  value={newOrgSlug}
-                  onChange={(e) => setNewOrgSlug(e.target.value)}
-                  placeholder="mi-empresa-sa"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Se usará en la URL de registro: /registration?org={newOrgSlug}
-                </p>
-              </div>
               <div className="flex gap-2 pt-4">
-                <Button onClick={createOrganization} className="flex-1">
-                  Crear Organización
+                <Button onClick={createCompany} className="flex-1">
+                  Crear Empresa
                 </Button>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -201,22 +228,22 @@ export function OrganizationsManager() {
         </Dialog>
       </div>
 
-      {/* Organizations Table */}
+      {/* Companies Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Organizaciones ({organizations.length})</CardTitle>
+          <CardTitle>Lista de Empresas ({companies.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {organizations.length === 0 ? (
+          {companies.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No hay organizaciones registradas</p>
+              <p className="text-muted-foreground">No hay empresas registradas</p>
               <Button 
                 onClick={() => setIsDialogOpen(true)} 
                 className="mt-4"
                 variant="outline"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Crear primera organización
+                Crear primera empresa
               </Button>
             </div>
           ) : (
@@ -224,30 +251,40 @@ export function OrganizationsManager() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Slug</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Zona Horaria</TableHead>
                   <TableHead>Link de Registro</TableHead>
                   <TableHead>Fecha de Creación</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {organizations.map((org) => (
-                  <TableRow key={org.id}>
-                    <TableCell className="font-medium">{org.name}</TableCell>
+                {companies.map((company) => (
+                  <TableRow key={company.id}>
+                    <TableCell className="font-medium">{company.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{company.plan}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={company.is_active ? "default" : "destructive"}>
+                        {company.is_active ? "Activa" : "Inactiva"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <code className="bg-muted px-2 py-1 rounded text-sm">
-                        {org.slug}
+                        {company.timezone}
                       </code>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 max-w-sm">
                         <code className="bg-muted px-2 py-1 rounded text-xs truncate flex-1">
-                          {org.registration_url}
+                          {company.registration_url}
                         </code>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => copyToClipboard(org.registration_url)}
+                          onClick={() => copyToClipboard(company.registration_url!)}
                           className="flex-shrink-0"
                         >
                           <Copy className="h-3 w-3" />
@@ -255,14 +292,14 @@ export function OrganizationsManager() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(org.created_at).toLocaleDateString('es-ES')}
+                      {new Date(company.created_at).toLocaleDateString('es-ES')}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyToClipboard(org.registration_url)}
+                          onClick={() => copyToClipboard(company.registration_url!)}
                         >
                           <Copy className="h-3 w-3 mr-1" />
                           Copiar
@@ -270,11 +307,41 @@ export function OrganizationsManager() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(org.registration_url, '_blank')}
+                          onClick={() => window.open(company.registration_url!, '_blank')}
                         >
                           <ExternalLink className="h-3 w-3 mr-1" />
                           Abrir
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={deleteLoading === company.id}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              {deleteLoading === company.id ? "..." : "Eliminar"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Eliminar Empresa</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                ¿Estás seguro que quieres eliminar "{company.name}"? Esta acción no se puede deshacer y eliminará todos los datos asociados.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteCompany(company)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
