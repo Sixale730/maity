@@ -114,9 +114,31 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      create_company: {
+        Args: { company_name: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          plan: string
+          timezone: string
+        }[]
+      }
       delete_company: {
         Args: { company_id: string }
         Returns: undefined
+      }
+      get_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          plan: string
+          timezone: string
+        }[]
       }
       get_user_company_id: {
         Args: { user_auth_id?: string }
