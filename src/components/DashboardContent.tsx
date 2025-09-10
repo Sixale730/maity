@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { OrganizationsManager } from "./OrganizationsManager";
 import { 
   BarChart, 
   Bar, 
@@ -282,6 +283,11 @@ export function DashboardContent() {
         <TeamDashboard />
       </main>
     );
+  }
+
+  // Check if we're on the organizations route for platform_admin
+  if (location.pathname === '/dashboard/organizations' && userRole === 'platform_admin') {
+    return <OrganizationsManager />;
   }
 
   // Render dashboard based on user role
