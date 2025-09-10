@@ -26,13 +26,13 @@ const Registration = () => {
         `}
       </style>
       <iframe 
-        data-tally-src="https://tally.so/r/m6gg1k?transparentBackground=1&formEventsForwarding=1" 
+        data-tally-src="https://tally.so/r/wQGAyA?transparentBackground=1" 
         width="100%" 
         height="100%" 
         frameBorder="0" 
         marginHeight={0} 
         marginWidth={0} 
-        title="Registration form"
+        title="Registro"
         className="absolute inset-0 border-0"
       />
     </div>
