@@ -39,10 +39,7 @@ export function OrganizationsManager() {
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
-        .schema('maity')
-        .from('companies')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_companies' as any);
 
       if (error) throw error;
       
@@ -84,20 +81,14 @@ export function OrganizationsManager() {
 
     try {
       const { data, error } = await supabase
-        .schema('maity')
-        .from('companies')
-        .insert([{
-          name: newCompanyName.trim()
-        }])
-        .select()
-        .single();
+        .rpc('create_company' as any, { company_name: newCompanyName.trim() });
 
       if (error) throw error;
 
-      // Add registration_url to the new company
+      // Add registration_url to the new company  
       const newCompanyWithUrl = {
-        ...data,
-        registration_url: `${window.location.origin}/registration?org=${generateSlug(data.name)}`
+        ...(data as any[])[0], // RPC returns an array
+        registration_url: `${window.location.origin}/registration?org=${generateSlug((data as any[])[0].name)}`
       };
 
       setCompanies([newCompanyWithUrl, ...companies]);
@@ -125,10 +116,7 @@ export function OrganizationsManager() {
     
     try {
       const { error } = await supabase
-        .schema('maity')
-        .from('companies')
-        .delete()
-        .eq('id', company.id);
+        .rpc('delete_company', { company_id: company.id });
 
       if (error) throw error;
 

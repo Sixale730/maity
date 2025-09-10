@@ -114,6 +114,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      delete_company: {
+        Args: { company_id: string }
+        Returns: undefined
+      }
       get_user_company_id: {
         Args: { user_auth_id?: string }
         Returns: string
