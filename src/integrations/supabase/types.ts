@@ -126,6 +126,7 @@ export type Database = {
           is_active: boolean
           name: string
           plan: string
+          slug: string
           timezone: string
         }[]
       }
@@ -141,6 +142,7 @@ export type Database = {
           is_active: boolean
           name: string
           plan: string
+          slug: string
           timezone: string
         }[]
       }
