@@ -57,11 +57,8 @@ const Registration = () => {
       }
 
       // First check if user already has this company assigned
-      const { data: userData, error: userError } = await supabase
-        .from('maity.users')
-        .select('company_id, companies!inner(name, slug)')
-        .eq('auth_id', session.user.id)
-        .single();
+      const { data: userCompanyData, error: userError } = await supabase
+        .rpc('get_user_company_info', { user_auth_id: session.user.id });
 
       if (userError) {
         console.error('Error fetching user data:', userError);
@@ -75,11 +72,12 @@ const Registration = () => {
       }
 
       // If user already has the correct company assigned, use that
-      if (userData?.company_id && userData.companies?.slug === companySlug) {
+      if (userCompanyData && userCompanyData.length > 0 && userCompanyData[0].company_slug === companySlug) {
+        const userCompany = userCompanyData[0];
         setCompany({
-          id: userData.company_id,
-          name: userData.companies.name,
-          slug: userData.companies.slug,
+          id: userCompany.company_id!,
+          name: userCompany.company_name!,
+          slug: userCompany.company_slug!,
           plan: 'standard', // Default plan
           timezone: 'UTC', // Default timezone
           is_active: true,
