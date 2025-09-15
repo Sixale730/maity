@@ -36,38 +36,25 @@ const Auth = () => {
   const navigate = useNavigate();
 
   // Helper function to handle company invitations using company slug
-  const handleCompanyInvitation = async (companyId: string, userId: string) => {
-    if (!companyId) {
+  const handleCompanyInvitation = async (companySlug: string, userId: string, userEmail: string) => {
+    if (!companySlug) {
       // No company specified, just provision the user normally
       await supabase.rpc('provision_user');
       return { success: true, shouldRedirectToRegistration: false, needsConfirmation: false };
     }
 
     try {
-      console.log('Processing company invitation with ID:', companyId);
+      console.log('🏢 Processing company invitation with sync:', {
+        companySlug,
+        userId,
+        userEmail
+      });
       
-      // First get company info by ID to get the slug
-      const { data: companyData, error: companyError } = await supabase
-        .rpc('get_company_by_id', { company_id: companyId });
-
-      if (companyError || !companyData || companyData.length === 0) {
-        console.error('Company not found:', companyError);
-        toast({
-          title: "Error",
-          description: "Empresa no encontrada o inactiva",
-          variant: "destructive",
-        });
-        await supabase.rpc('provision_user');
-        return { success: true, shouldRedirectToRegistration: false, needsConfirmation: false };
-      }
-
-      const company = companyData[0];
-      console.log('Found company:', company);
-
-      // Use handle_company_invitation instead of provision_user
-      const { data: result, error } = await supabase.rpc('handle_company_invitation', {
+      // Use the new handle_user_company_invitation function
+      const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
-        company_slug: company.slug,
+        user_email: userEmail,
+        company_slug: companySlug,
         invitation_source: window.location.href,
         force_assign: false // Don't force assign, let it handle conflicts
       });
@@ -77,7 +64,7 @@ const Auth = () => {
       }
 
       const invitationResult = result as unknown as InvitationResult;
-      console.log('Company invitation result:', invitationResult);
+      console.log('✅ Company invitation result:', invitationResult);
 
       if (invitationResult.success) {
         if (invitationResult.action === 'ASSIGNED' || invitationResult.action === 'NO_CHANGE') {
@@ -111,7 +98,7 @@ const Auth = () => {
       return { success: true, shouldRedirectToRegistration: false, needsConfirmation: false };
       
     } catch (error: any) {
-      console.error('Error processing company invitation:', error);
+      console.error('❌ Error processing company invitation:', error);
       toast({
         title: "Error",
         description: "No se pudo procesar la invitación de empresa. Continuando con registro normal.",
@@ -144,19 +131,25 @@ const Auth = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         // Handle company invitation first
-        const companyId = urlParams.get('company');
-        const invitationResult = await handleCompanyInvitation(companyId || '', session.user.id);
-        
-        if (invitationResult.needsConfirmation) {
-          // User needs to confirm company change
-          navigate('/invitation-confirm');
-          return;
-        }
-        
-        if (invitationResult.shouldRedirectToRegistration) {
-          // User was successfully assigned to company, go directly to registration
-          window.location.href = getRedirectUrl();
-          return;
+        const companySlug = urlParams.get('company');
+        if (companySlug) {
+          const invitationResult = await handleCompanyInvitation(
+            companySlug, 
+            session.user.id, 
+            session.user.email || ''
+          );
+          
+          if (invitationResult.needsConfirmation) {
+            // User needs to confirm company change
+            navigate('/invitation-confirm');
+            return;
+          }
+          
+          if (invitationResult.shouldRedirectToRegistration) {
+            // User was successfully assigned to company, go directly to registration
+            window.location.href = getRedirectUrl();
+            return;
+          }
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -171,19 +164,25 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
         // Handle company invitation first
-        const companyId = urlParams.get('company');
-        const invitationResult = await handleCompanyInvitation(companyId || '', session.user.id);
-        
-        if (invitationResult.needsConfirmation) {
-          // User needs to confirm company change
-          navigate('/invitation-confirm');
-          return;
-        }
-        
-        if (invitationResult.shouldRedirectToRegistration) {
-          // User was successfully assigned to company, go directly to registration
-          window.location.href = getRedirectUrl();
-          return;
+        const companySlug = urlParams.get('company');
+        if (companySlug) {
+          const invitationResult = await handleCompanyInvitation(
+            companySlug, 
+            session.user.id, 
+            session.user.email || ''
+          );
+          
+          if (invitationResult.needsConfirmation) {
+            // User needs to confirm company change
+            navigate('/invitation-confirm');
+            return;
+          }
+          
+          if (invitationResult.shouldRedirectToRegistration) {
+            // User was successfully assigned to company, go directly to registration
+            window.location.href = getRedirectUrl();
+            return;
+          }
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -228,11 +227,16 @@ const Auth = () => {
         
         // Handle company invitation first if company parameter exists
         const urlParams = new URLSearchParams(window.location.search);
-        const companyId = urlParams.get('company');
-        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const companySlug = urlParams.get('company');
+        const userResponse = await supabase.auth.getUser();
+        const user = userResponse.data.user;
         
-        if (companyId && userId) {
-          const invitationResult = await handleCompanyInvitation(companyId, userId);
+        if (companySlug && user) {
+          const invitationResult = await handleCompanyInvitation(
+            companySlug, 
+            user.id, 
+            user.email || ''
+          );
           
           if (invitationResult.needsConfirmation) {
             // User needs to confirm company change
@@ -280,7 +284,11 @@ const Auth = () => {
           try {
             const { data: userData } = await supabase.auth.getUser();
             if (userData.user) {
-              const invitationResult = await handleCompanyInvitation(companyId, userData.user.id);
+              const invitationResult = await handleCompanyInvitation(
+                companyId, 
+                userData.user.id, 
+                userData.user.email || email
+              );
               
               if (invitationResult.success) {
                 console.log('User provisioned successfully with company:', companyId);
