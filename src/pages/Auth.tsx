@@ -19,9 +19,9 @@ const Auth = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    // Get return URL from query params
+    // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
-    const returnTo = urlParams.get('returnTo');
+    const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
@@ -74,9 +74,9 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Get return URL from query params
+    // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
-    const returnTo = urlParams.get('returnTo');
+    const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
 
     try {
       if (isLogin) {
@@ -147,9 +147,9 @@ const Auth = () => {
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
     setLoading(true);
     
-    // Get return URL from query params
+    // Get return URL from query params - support both returnTo and returnUrl  
     const urlParams = new URLSearchParams(window.location.search);
-    const returnTo = urlParams.get('returnTo');
+    const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
     const redirectUrl = returnTo ? decodeURIComponent(returnTo) : `${window.location.origin}/onboarding`;
     
     try {
