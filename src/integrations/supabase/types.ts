@@ -155,6 +155,7 @@ export type Database = {
           company_id: string
           company_name: string
           company_slug: string
+          registration_form_completed: boolean
           user_id: string
         }[]
       }

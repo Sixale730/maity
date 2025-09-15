@@ -74,6 +74,14 @@ const Registration = () => {
       // If user already has the correct company assigned, use that
       if (userCompanyData && userCompanyData.length > 0 && userCompanyData[0].company_slug === companySlug) {
         const userCompany = userCompanyData[0];
+        
+        // Check if registration form is already completed
+        if (userCompany.registration_form_completed) {
+          console.log('Registration already completed, redirecting to dashboard');
+          navigate('/dashboard');
+          return;
+        }
+        
         setCompany({
           id: userCompany.company_id!,
           name: userCompany.company_name!,
