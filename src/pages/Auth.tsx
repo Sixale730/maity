@@ -25,13 +25,19 @@ const Auth = () => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
+        // Provision user in maity schema
+        const { error: provisionError } = await supabase.rpc('provision_user');
+        if (provisionError) {
+          console.error('Error provisioning user:', provisionError);
+        }
+
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Redirect to return URL if available, otherwise dashboard
+          // Redirect to return URL if available, otherwise onboarding
           if (returnUrl) {
             window.location.href = decodeURIComponent(returnUrl);
           } else {
-            navigate('/dashboard');
+            navigate('/onboarding');
           }
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
@@ -40,14 +46,20 @@ const Auth = () => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
+      if (session && event === 'SIGNED_IN') {
+        // Provision user in maity schema
+        const { error: provisionError } = await supabase.rpc('provision_user');
+        if (provisionError) {
+          console.error('Error provisioning user:', provisionError);
+        }
+
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Redirect to return URL if available, otherwise dashboard
+          // Redirect to return URL if available, otherwise onboarding
           if (returnUrl) {
             window.location.href = decodeURIComponent(returnUrl);
           } else {
-            navigate('/dashboard');
+            navigate('/onboarding');
           }
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
@@ -74,14 +86,27 @@ const Auth = () => {
         });
         if (error) throw error;
         
+        // Provision user in maity schema
+        const { error: provisionError } = await supabase.rpc('provision_user');
+        if (provisionError) {
+          console.error('Error provisioning user:', provisionError);
+          toast({
+            title: "Error",
+            description: "Error al configurar usuario",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Redirect to return URL if available, otherwise dashboard
+          // Check if onboarding is completed by trying to get onboarding status
+          // For now, we'll redirect to onboarding instead of dashboard
           if (returnUrl) {
             window.location.href = decodeURIComponent(returnUrl);
           } else {
-            navigate('/dashboard');
+            navigate('/onboarding');
           }
           return;
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
@@ -94,7 +119,7 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
-        const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/dashboard`;
+        const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/onboarding`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -125,7 +150,7 @@ const Auth = () => {
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
     const returnUrl = urlParams.get('returnUrl');
-    const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/dashboard`;
+    const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/onboarding`;
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({

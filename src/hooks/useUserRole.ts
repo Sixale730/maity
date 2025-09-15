@@ -38,24 +38,16 @@ export const useUserRole = () => {
         return;
       }
 
-      // Get user role from public.user_roles
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
+      // Get user role using the RPC function
+      const { data: role, error: roleError } = await supabase.rpc('get_user_role');
 
-      if (roleError && roleError.code !== 'PGRST116') {
+      if (roleError) {
         console.error('Error fetching user role:', roleError);
         setError('Error al obtener el rol del usuario');
         return;
       }
 
-      // Get user profile from maity.users using RPC function or direct schema access
-      // Since maity schema is not exposed by default, we'll use a simpler approach
-      // and store basic user info from auth.users until we set up proper schema access
-      
-      setUserRole((roleData?.role as UserRole) || 'user');
+      setUserRole((role as UserRole) || 'user');
       
       // Create a basic profile from auth user data
       const basicProfile: UserProfile = {
@@ -63,7 +55,7 @@ export const useUserRole = () => {
         auth_id: user.id,
         name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
         company_id: user.user_metadata?.company_id,
-        role: roleData?.role || 'user'
+        role: role || 'user'
       };
       
       setUserProfile(basicProfile);

@@ -93,6 +93,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      complete_onboarding: {
+        Args: { submission_data?: Json }
+        Returns: undefined
+      }
       complete_user_registration: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -267,6 +271,10 @@ export type Database = {
       my_status: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      provision_user: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       sparsevec_out: {
         Args: { "": unknown }

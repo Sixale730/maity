@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useStatusValidation } from "@/hooks/useStatusValidation";
@@ -23,12 +24,14 @@ const Dashboard = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <RoleBasedSidebar userRole={userRole} userName={userProfile?.name} />
-        <DashboardContent />
-      </div>
-    </SidebarProvider>
+    <OnboardingGate>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <RoleBasedSidebar userRole={userRole} userName={userProfile?.name} />
+          <DashboardContent />
+        </div>
+      </SidebarProvider>
+    </OnboardingGate>
   );
 };
 

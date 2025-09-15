@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Pending from "./pages/Pending";
 import Registration from "./pages/Registration";
+import Onboarding from "./pages/Onboarding";
+import OnboardingSuccess from "./pages/OnboardingSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/pending" element={<Pending />} />
             <Route path="/registration" element={<Registration />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
