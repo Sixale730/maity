@@ -191,20 +191,15 @@ const Onboarding = () => {
         <div className="max-w-4xl mx-auto">
           {/* Tally Form Embed */}
           <div 
-            data-tally-src="https://tally.so/embed/wkjLAj?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
-            data-tally-layout="modal"
-            data-tally-width="800"
+            data-tally-src={`https://tally.so/embed/wkjLAj?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&redirectURL=${encodeURIComponent(`${window.location.origin}/onboarding/success?token=${validationToken}&rid={{response_id}}`)}`}
+            data-tally-width="100%"
             data-tally-height="600"
-            data-tally-emoji-text="👋"
-            data-tally-emoji-animation="wave"
-            data-tally-auto-close="2000"
-            data-tally-overlay-bg="rgba(0, 0, 0, 0.4)"
             data-tally-hidden-fields={JSON.stringify({
               user_id: user.id,
               email: user.email,
               validation_token: validationToken
             })}
-            className="min-h-[600px] w-full"
+            className="min-h-[600px] w-full bg-background rounded-lg border"
           />
         </div>
 
