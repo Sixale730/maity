@@ -296,8 +296,12 @@ export type Database = {
         Returns: string
       }
       provision_user: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { target_company_id?: string }
         Returns: undefined
+      }
+      provision_user_with_company: {
+        Args: { company_slug: string; invitation_source?: string }
+        Returns: Json
       }
       sparsevec_out: {
         Args: { "": unknown }

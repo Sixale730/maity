@@ -71,11 +71,23 @@ serve(async (req) => {
       );
     }
 
-    // Extract user information from form fields
+    // Extract user information from form fields and URL parameters
     const fields = payload.data.fields;
-    const userId = fields.find((f: any) => f.key === 'user_id')?.value;
-    const userEmail = fields.find((f: any) => f.key === 'user_email')?.value;
-    const validationToken = fields.find((f: any) => f.key === 'validation_token')?.value;
+    console.log('All fields received:', fields.map(f => ({ key: f.key, label: f.label, value: f.value })));
+    
+    // Try different field mappings (Tally might use different keys)
+    let userId = fields.find((f: any) => f.key === 'user_id' || f.key === 'userId')?.value;
+    let userEmail = fields.find((f: any) => f.key === 'user_email' || f.key === 'userEmail')?.value;
+    let validationToken = fields.find((f: any) => f.key === 'validation_token' || f.key === 'validationToken')?.value;
+    
+    // If not found in fields, might be in hidden fields or URL params embedded by Tally
+    // Tally sometimes embeds URL params as hidden fields with different naming
+    if (!userId) {
+      userId = fields.find((f: any) => f.label?.toLowerCase().includes('userid') || f.label?.toLowerCase().includes('user id'))?.value;
+    }
+    if (!userEmail) {
+      userEmail = fields.find((f: any) => f.label?.toLowerCase().includes('email') || f.type === 'EMAIL')?.value;
+    }
 
     console.log('Processing submission:', { userId, userEmail, validationToken });
 

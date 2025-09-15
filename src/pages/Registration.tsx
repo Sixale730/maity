@@ -301,7 +301,7 @@ const Registration = () => {
         `}
       </style>
       <iframe 
-        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&userId=${user?.id || ''}`}
+        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&user_id=${user?.id || ''}&user_email=${encodeURIComponent(user?.email || '')}`}
         width="100%" 
         height="100%" 
         frameBorder="0" 

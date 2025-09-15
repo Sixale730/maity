@@ -38,58 +38,47 @@ const Auth = () => {
   // Helper function to handle company invitations
   const handleCompanyInvitation = async (orgSlug: string, userId: string) => {
     if (!orgSlug || orgSlug === 'privada') {
-      return { success: true };
+      // For privada or no org, just provision the user normally
+      await supabase.rpc('provision_user');
+      return { success: true, shouldRedirectToRegistration: false };
     }
 
     try {
       console.log('Processing company invitation:', orgSlug);
-      const { data: result, error } = await supabase.rpc('handle_company_invitation', {
-        user_auth_id: userId,
+      const { data: result, error } = await supabase.rpc('provision_user_with_company', {
         company_slug: orgSlug,
-        invitation_source: window.location.href
+        invitation_source: 'auth_flow'
       });
 
       if (error) {
         throw error;
       }
 
-      const invitationResult = result as unknown as InvitationResult;
+      console.log('User provisioned with company result:', result);
       
-      if (invitationResult.success) {
-        console.log('Company invitation processed successfully:', invitationResult.action);
-        return { success: true };
-      } else if (invitationResult.action === 'CONFIRMATION_REQUIRED') {
-        // Store conflict data and redirect to confirmation page
-        const conflictData = {
-          current_company: invitationResult.current_company!,
-          target_company: invitationResult.target_company!,
-          invitation_source: invitationResult.invitation_source
-        };
-        sessionStorage.setItem('invitation_conflict', JSON.stringify(conflictData));
-        
-        // Redirect to confirmation page
-        const params = new URLSearchParams({
-          current_company: invitationResult.current_company!.name,
-          current_id: invitationResult.current_company!.id,
-          target_company: invitationResult.target_company!.name,
-          target_id: invitationResult.target_company!.id,
-          target_slug: invitationResult.target_company!.slug,
-          source: invitationResult.invitation_source || ''
-        });
-        
-        navigate(`/invitation-confirm?${params.toString()}`);
-        return { success: false, requiresConfirmation: true };
+      // Type the result properly
+      const provisionResult = result as any;
+      
+      if (provisionResult?.success) {
+        console.log('Company invitation processed successfully:', provisionResult.action);
+        return { success: true, shouldRedirectToRegistration: true };
+      } else if (provisionResult?.error === 'COMPANY_NOT_FOUND') {
+        console.log('Company not found, using normal provision');
+        await supabase.rpc('provision_user');
+        return { success: true, shouldRedirectToRegistration: false };
       } else {
-        throw new Error(invitationResult.message || 'Error al procesar la invitación');
+        throw new Error(provisionResult?.message || 'Error al procesar la invitación');
       }
     } catch (error: any) {
       console.error('Error processing company invitation:', error);
       toast({
         title: "Error",
-        description: "No se pudo procesar la invitación de empresa. Contacta al administrador.",
+        description: "No se pudo procesar la invitación de empresa. Continuando con registro normal.",
         variant: "destructive",
       });
-      return { success: false };
+      // Fallback to normal provision
+      await supabase.rpc('provision_user');
+      return { success: true, shouldRedirectToRegistration: false };
     }
   };
 
@@ -112,12 +101,14 @@ const Auth = () => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        // Handle company invitation
+        // Handle company invitation first
         const orgSlug = urlParams.get('org');
         const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
         
-        if (invitationResult.requiresConfirmation) {
-          return; // User is being redirected to confirmation page
+        if (invitationResult.shouldRedirectToRegistration) {
+          // User was successfully assigned to company, go directly to registration
+          window.location.href = getRedirectUrl();
+          return;
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -131,12 +122,14 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Handle company invitation
+        // Handle company invitation first
         const orgSlug = urlParams.get('org');
         const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
         
-        if (invitationResult.requiresConfirmation) {
-          return; // User is being redirected to confirmation page
+        if (invitationResult.shouldRedirectToRegistration) {
+          // User was successfully assigned to company, go directly to registration
+          window.location.href = getRedirectUrl();
+          return;
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -181,7 +174,7 @@ const Auth = () => {
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Handle company invitation
+          // Handle company invitation first
           const urlParams = new URLSearchParams(window.location.search);
           const orgSlug = urlParams.get('org');
           const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -189,8 +182,10 @@ const Auth = () => {
           if (userId) {
             const invitationResult = await handleCompanyInvitation(orgSlug || '', userId);
             
-            if (invitationResult.requiresConfirmation) {
-              return; // User is being redirected to confirmation page
+            if (invitationResult.shouldRedirectToRegistration) {
+              // User was successfully assigned to company, go directly to registration
+              window.location.href = getRedirectUrl();
+              return;
             }
           }
           
