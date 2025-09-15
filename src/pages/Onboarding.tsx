@@ -210,38 +210,32 @@ const Onboarding = () => {
   const validationToken = btoa(`${user.id}:${Date.now()}`);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">¡Bienvenido a Maity!</h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Completa tu perfil para comenzar a usar la plataforma
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          {/* Tally Form Embed */}
-          <iframe 
-            data-tally-src={`https://tally.so/embed/wQGAyA?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&redirectURL=${encodeURIComponent(`${window.location.origin}/onboarding/success?token=${validationToken}&rid={{response_id}}`)}`}
-            loading="lazy" 
-            width="100%" 
-            height="587" 
-            frameBorder="0" 
-            marginHeight={0} 
-            marginWidth={0} 
-            title="Registro"
-            className="min-h-[587px] w-full bg-background rounded-lg border"
-          />
-        </div>
-
-        <div className="text-center mt-8">
-          <Button variant="outline" onClick={handleBackToHome}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al Inicio
-          </Button>
-        </div>
-      </div>
-    </div>
+    <>
+      <style>
+        {`
+          html { margin: 0; height: 100%; overflow: hidden; }
+          body { margin: 0; height: 100%; overflow: hidden; }
+          #root { height: 100%; }
+        `}
+      </style>
+      <iframe 
+        data-tally-src="https://tally.so/r/wQGAyA?transparentBackground=1" 
+        width="100%" 
+        height="100%" 
+        frameBorder="0" 
+        marginHeight={0} 
+        marginWidth={0} 
+        title="Registro"
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          border: 0
+        }}
+      />
+    </>
   );
 };
 
