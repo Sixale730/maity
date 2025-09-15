@@ -76,27 +76,39 @@ serve(async (req) => {
     console.log('All fields received:', fields.map(f => ({ key: f.key, label: f.label, value: f.value })));
     
     // Try different field mappings (Tally might use different keys)
+    // Try to get user info from authentication context if possible
+    // Since Tally webhooks don't include auth context, we need user_id and user_email
+    // These should be passed as hidden fields in the Tally form
     let userId = fields.find((f: any) => f.key === 'user_id' || f.key === 'userId')?.value;
     let userEmail = fields.find((f: any) => f.key === 'user_email' || f.key === 'userEmail')?.value;
     let validationToken = fields.find((f: any) => f.key === 'validation_token' || f.key === 'validationToken')?.value;
     
-    // If not found in fields, might be in hidden fields or URL params embedded by Tally
-    // Tally sometimes embeds URL params as hidden fields with different naming
+    // If not found in direct fields, look for them in various other field formats
     if (!userId) {
-      userId = fields.find((f: any) => f.label?.toLowerCase().includes('userid') || f.label?.toLowerCase().includes('user id'))?.value;
+      userId = fields.find((f: any) => 
+        f.label?.toLowerCase().includes('userid') || 
+        f.label?.toLowerCase().includes('user id') ||
+        f.key.includes('user') && f.key.includes('id')
+      )?.value;
     }
     if (!userEmail) {
-      userEmail = fields.find((f: any) => f.label?.toLowerCase().includes('email') || f.type === 'EMAIL')?.value;
+      // Try to find email from various field types
+      userEmail = fields.find((f: any) => 
+        f.label?.toLowerCase().includes('email') || 
+        f.type === 'EMAIL' ||
+        f.key.includes('email')
+      )?.value;
     }
 
     console.log('Processing submission:', { userId, userEmail, validationToken });
 
+    // If we still don't have user info, this webhook call is invalid
     if (!userId || !userEmail) {
-      console.log('Missing required fields, ignoring submission');
+      console.log('Missing required user fields. Available fields:', fields.map(f => ({key: f.key, label: f.label, value: f.value})));
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Missing required fields: user_id or user_email' 
+          message: 'Missing required fields: user_id or user_email. These must be included as hidden fields in the Tally form.' 
         }),
         { 
           status: 400, 

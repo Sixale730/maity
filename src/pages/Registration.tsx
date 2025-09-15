@@ -309,6 +309,15 @@ const Registration = () => {
         marginWidth={0} 
         title="Registro"
       />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Note: user_id and user_email are passed as URL parameters to Tally
+            // They will be automatically included as hidden fields in the form submission
+            console.log('Tally form loaded with user data for user: ${user?.email || ''}');
+          `
+        }}
+      />
     </>
   );
 };
