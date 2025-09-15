@@ -96,15 +96,11 @@ const Registration = () => {
         return;
       }
 
-      // Fetch company by ID to get full details
+      // Fetch company by ID using RPC function
       const { data: companyData, error: companyError } = await supabase
-        .from('maity.companies')
-        .select('*')
-        .eq('id', companyId)
-        .eq('is_active', true)
-        .single();
+        .rpc('get_company_by_id', { company_id: companyId });
 
-      if (companyError || !companyData) {
+      if (companyError || !companyData || companyData.length === 0) {
         toast({
           title: "Error",
           description: "Empresa no encontrada o inactiva",
@@ -114,7 +110,7 @@ const Registration = () => {
         return;
       }
 
-      setCompany(companyData);
+      setCompany(companyData[0]);
       
       // Load Tally script after company is confirmed
       loadTallyScript();
