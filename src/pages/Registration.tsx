@@ -95,19 +95,50 @@ const Registration = () => {
         return;
       }
 
-      // If user doesn't have the company or has a different one, try to assign it
+      // If user doesn't have the company or has a different one, handle invitation
       if (companySlug !== 'privada') {
         try {
-          await supabase.rpc('assign_user_to_company', {
+          const { data: result, error } = await supabase.rpc('handle_company_invitation', {
             user_auth_id: session.user.id,
-            company_slug: companySlug
+            company_slug: companySlug,
+            invitation_source: window.location.href
           });
-          console.log('Successfully assigned user to company:', companySlug);
+
+          if (error) {
+            throw error;
+          }
+
+          const invitationResult = result as any;
+          
+          if (invitationResult.action === 'CONFIRMATION_REQUIRED') {
+            // Store conflict data and redirect to confirmation page
+            const conflictData = {
+              current_company: invitationResult.current_company,
+              target_company: invitationResult.target_company,
+              invitation_source: invitationResult.invitation_source
+            };
+            sessionStorage.setItem('invitation_conflict', JSON.stringify(conflictData));
+            
+            // Redirect to confirmation page
+            const params = new URLSearchParams({
+              current_company: invitationResult.current_company.name,
+              current_id: invitationResult.current_company.id,
+              target_company: invitationResult.target_company.name,
+              target_id: invitationResult.target_company.id,
+              target_slug: invitationResult.target_company.slug,
+              source: invitationResult.invitation_source || ''
+            });
+            
+            navigate(`/invitation-confirm?${params.toString()}`);
+            return;
+          }
+          
+          console.log('Company invitation processed successfully:', invitationResult.action);
         } catch (error) {
-          console.error('Error assigning user to company:', error);
+          console.error('Error processing company invitation:', error);
           toast({
             title: "Error",
-            description: "No se pudo asignar la empresa. Contacta al administrador.",
+            description: "No se pudo procesar la invitación de empresa. Contacta al administrador.",
             variant: "destructive",
           });
           navigate('/');

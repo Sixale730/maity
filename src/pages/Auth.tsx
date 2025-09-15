@@ -9,6 +9,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import MaityLogo from "@/components/MaityLogo";
 
+interface InvitationResult {
+  success: boolean;
+  action?: string;
+  message?: string;
+  error?: string;
+  company_name?: string;
+  current_company?: {
+    id: string;
+    name: string;
+  };
+  target_company?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  invitation_source?: string;
+}
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -16,6 +34,64 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Helper function to handle company invitations
+  const handleCompanyInvitation = async (orgSlug: string, userId: string) => {
+    if (!orgSlug || orgSlug === 'privada') {
+      return { success: true };
+    }
+
+    try {
+      console.log('Processing company invitation:', orgSlug);
+      const { data: result, error } = await supabase.rpc('handle_company_invitation', {
+        user_auth_id: userId,
+        company_slug: orgSlug,
+        invitation_source: window.location.href
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const invitationResult = result as unknown as InvitationResult;
+      
+      if (invitationResult.success) {
+        console.log('Company invitation processed successfully:', invitationResult.action);
+        return { success: true };
+      } else if (invitationResult.action === 'CONFIRMATION_REQUIRED') {
+        // Store conflict data and redirect to confirmation page
+        const conflictData = {
+          current_company: invitationResult.current_company!,
+          target_company: invitationResult.target_company!,
+          invitation_source: invitationResult.invitation_source
+        };
+        sessionStorage.setItem('invitation_conflict', JSON.stringify(conflictData));
+        
+        // Redirect to confirmation page
+        const params = new URLSearchParams({
+          current_company: invitationResult.current_company!.name,
+          current_id: invitationResult.current_company!.id,
+          target_company: invitationResult.target_company!.name,
+          target_id: invitationResult.target_company!.id,
+          target_slug: invitationResult.target_company!.slug,
+          source: invitationResult.invitation_source || ''
+        });
+        
+        navigate(`/invitation-confirm?${params.toString()}`);
+        return { success: false, requiresConfirmation: true };
+      } else {
+        throw new Error(invitationResult.message || 'Error al procesar la invitación');
+      }
+    } catch (error: any) {
+      console.error('Error processing company invitation:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la invitación de empresa. Contacta al administrador.",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+  };
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -36,26 +112,12 @@ const Auth = () => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        // Check if we need to assign a company based on org parameter
-        const urlParams = new URLSearchParams(window.location.search);
+        // Handle company invitation
         const orgSlug = urlParams.get('org');
+        const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
         
-        if (orgSlug && orgSlug !== 'privada') {
-          try {
-            console.log('Assigning user to company:', orgSlug);
-            await supabase.rpc('assign_user_to_company', {
-              user_auth_id: session.user.id,
-              company_slug: orgSlug
-            });
-            console.log('Successfully assigned user to company');
-          } catch (error) {
-            console.error('Error assigning user to company:', error);
-            toast({
-              title: "Error",
-              description: "No se pudo asignar la empresa. Contacta al administrador.",
-              variant: "destructive",
-            });
-          }
+        if (invitationResult.requiresConfirmation) {
+          return; // User is being redirected to confirmation page
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -69,26 +131,12 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Check if we need to assign a company based on org parameter
-        const urlParams = new URLSearchParams(window.location.search);
+        // Handle company invitation
         const orgSlug = urlParams.get('org');
+        const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
         
-        if (orgSlug && orgSlug !== 'privada') {
-          try {
-            console.log('Assigning user to company:', orgSlug);
-            await supabase.rpc('assign_user_to_company', {
-              user_auth_id: session.user.id,
-              company_slug: orgSlug
-            });
-            console.log('Successfully assigned user to company');
-          } catch (error) {
-            console.error('Error assigning user to company:', error);
-            toast({
-              title: "Error",
-              description: "No se pudo asignar la empresa. Contacta al administrador.",
-              variant: "destructive",
-            });
-          }
+        if (invitationResult.requiresConfirmation) {
+          return; // User is being redirected to confirmation page
         }
         
         const { data: status } = await supabase.rpc('my_status' as any);
@@ -133,25 +181,16 @@ const Auth = () => {
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Check if we need to assign a company based on org parameter
+          // Handle company invitation
           const urlParams = new URLSearchParams(window.location.search);
           const orgSlug = urlParams.get('org');
+          const userId = (await supabase.auth.getUser()).data.user?.id;
           
-          if (orgSlug && orgSlug !== 'privada') {
-            try {
-              console.log('Assigning user to company:', orgSlug);
-              await supabase.rpc('assign_user_to_company', {
-                user_auth_id: (await supabase.auth.getUser()).data.user?.id,
-                company_slug: orgSlug
-              });
-              console.log('Successfully assigned user to company');
-            } catch (error) {
-              console.error('Error assigning user to company:', error);
-              toast({
-                title: "Error",
-                description: "No se pudo asignar la empresa. Contacta al administrador.",
-                variant: "destructive",
-              });
+          if (userId) {
+            const invitationResult = await handleCompanyInvitation(orgSlug || '', userId);
+            
+            if (invitationResult.requiresConfirmation) {
+              return; // User is being redirected to confirmation page
             }
           }
           

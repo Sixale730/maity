@@ -179,6 +179,15 @@ export type Database = {
         Args: { "": unknown[] }
         Returns: number
       }
+      handle_company_invitation: {
+        Args: {
+          company_slug: string
+          force_assign?: boolean
+          invitation_source?: string
+          user_auth_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           required_role: Database["public"]["Enums"]["app_role"]
