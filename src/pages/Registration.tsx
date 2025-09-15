@@ -38,8 +38,8 @@ const Registration = () => {
       
       if (!session) {
         // Redirect to auth with return URL
-        const returnUrl = encodeURIComponent(window.location.href);
-        navigate(`/auth?returnUrl=${returnUrl}`);
+        const returnTo = encodeURIComponent(window.location.href);
+        navigate(`/auth?returnTo=${returnTo}`);
         return;
       }
 
@@ -201,46 +201,25 @@ const Registration = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <h1 className="font-semibold text-foreground">Registro para {company.name}</h1>
-              <p className="text-sm text-muted-foreground">Completa tu información</p>
-            </div>
-          </div>
-          <Button onClick={handleBackToHome} variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Salir
-          </Button>
-        </div>
-      </div>
-
-      {/* Tally Form */}
-      <div className="w-full h-[calc(100vh-80px)]">
-        <style>
-          {`
-            html { margin: 0; height: 100%; overflow-x: hidden; }
-            iframe { border: 0; }
-          `}
-        </style>
-        <iframe 
-          data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&userId=${user?.id || ''}`}
-          width="100%" 
-          height="100%" 
-          frameBorder="0" 
-          marginHeight={0} 
-          marginWidth={0} 
-          title={`Registro - ${company.name}`}
-          className="w-full h-full"
-        />
-      </div>
-    </div>
+    <>
+      <style>
+        {`
+          html { margin: 0; height: 100%; overflow: hidden; }
+          body { margin: 0; height: 100%; overflow: hidden; }
+          #root { height: 100%; }
+          iframe { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border: 0; }
+        `}
+      </style>
+      <iframe 
+        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&userId=${user?.id || ''}`}
+        width="100%" 
+        height="100%" 
+        frameBorder="0" 
+        marginHeight={0} 
+        marginWidth={0} 
+        title="Registro"
+      />
+    </>
   );
 };
 

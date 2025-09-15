@@ -21,7 +21,7 @@ const Auth = () => {
   useEffect(() => {
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
-    const returnUrl = urlParams.get('returnUrl');
+    const returnTo = urlParams.get('returnTo');
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
@@ -34,8 +34,8 @@ const Auth = () => {
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
           // Redirect to return URL if available, otherwise onboarding
-          if (returnUrl) {
-            window.location.href = decodeURIComponent(returnUrl);
+          if (returnTo) {
+            window.location.href = decodeURIComponent(returnTo);
           } else {
             navigate('/onboarding');
           }
@@ -56,8 +56,8 @@ const Auth = () => {
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
           // Redirect to return URL if available, otherwise onboarding
-          if (returnUrl) {
-            window.location.href = decodeURIComponent(returnUrl);
+          if (returnTo) {
+            window.location.href = decodeURIComponent(returnTo);
           } else {
             navigate('/onboarding');
           }
@@ -76,7 +76,7 @@ const Auth = () => {
 
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
-    const returnUrl = urlParams.get('returnUrl');
+    const returnTo = urlParams.get('returnTo');
 
     try {
       if (isLogin) {
@@ -103,8 +103,8 @@ const Auth = () => {
         if (status === 'ACTIVE') {
           // Check if onboarding is completed by trying to get onboarding status
           // For now, we'll redirect to onboarding instead of dashboard
-          if (returnUrl) {
-            window.location.href = decodeURIComponent(returnUrl);
+          if (returnTo) {
+            window.location.href = decodeURIComponent(returnTo);
           } else {
             navigate('/onboarding');
           }
@@ -119,7 +119,7 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
-        const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/onboarding`;
+        const redirectUrl = returnTo ? decodeURIComponent(returnTo) : `${window.location.origin}/onboarding`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -149,8 +149,8 @@ const Auth = () => {
     
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
-    const returnUrl = urlParams.get('returnUrl');
-    const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : `${window.location.origin}/onboarding`;
+    const returnTo = urlParams.get('returnTo');
+    const redirectUrl = returnTo ? decodeURIComponent(returnTo) : `${window.location.origin}/onboarding`;
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
