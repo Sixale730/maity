@@ -96,11 +96,25 @@ const Registration = () => {
         return;
       }
 
-      // Fetch company by ID using RPC function
-      const { data: companyData, error: companyError } = await supabase
-        .rpc('get_company_by_id', { company_id: companyId });
+      // If user doesn't have this company, we need to validate the company exists
+      // We'll use the existing company validation by trying to get company info
+      const { data: allCompanies, error: companiesError } = await supabase
+        .rpc('get_companies');
 
-      if (companyError || !companyData || companyData.length === 0) {
+      if (companiesError) {
+        console.error('Error fetching companies:', companiesError);
+        toast({
+          title: "Error",
+          description: "Error al verificar la empresa",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      const targetCompany = allCompanies?.find(company => company.id === companyId);
+      
+      if (!targetCompany) {
         toast({
           title: "Error",
           description: "Empresa no encontrada o inactiva",
@@ -110,7 +124,7 @@ const Registration = () => {
         return;
       }
 
-      setCompany(companyData[0]);
+      setCompany(targetCompany);
       
       // Load Tally script after company is confirmed
       loadTallyScript();

@@ -133,6 +133,18 @@ export type Database = {
           timezone: string
         }[]
       }
+      get_company_by_id: {
+        Args: { company_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          plan: string
+          slug: string
+          timezone: string
+        }[]
+      }
       get_company_by_slug: {
         Args: { company_slug: string }
         Returns: {
