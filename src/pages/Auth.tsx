@@ -22,23 +22,23 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
+    const org = urlParams.get('org');
+
+    // Helper function to get redirect URL with default company
+    const getRedirectUrl = () => {
+      if (returnTo) {
+        return decodeURIComponent(returnTo);
+      }
+      // Use default "Privada" company if no org specified
+      const defaultOrg = org || 'privada';
+      return `/registration?org=${defaultOrg}`;
+    };
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        // Provision user in maity schema
-        const { error: provisionError } = await supabase.rpc('provision_user');
-        if (provisionError) {
-          console.error('Error provisioning user:', provisionError);
-        }
-
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Redirect to return URL if available, otherwise onboarding
-          if (returnTo) {
-            window.location.href = decodeURIComponent(returnTo);
-          } else {
-            navigate('/onboarding');
-          }
+          window.location.href = getRedirectUrl();
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
         }
@@ -47,20 +47,9 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Provision user in maity schema
-        const { error: provisionError } = await supabase.rpc('provision_user');
-        if (provisionError) {
-          console.error('Error provisioning user:', provisionError);
-        }
-
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Redirect to return URL if available, otherwise onboarding
-          if (returnTo) {
-            window.location.href = decodeURIComponent(returnTo);
-          } else {
-            navigate('/onboarding');
-          }
+          window.location.href = getRedirectUrl();
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
         }
@@ -77,6 +66,17 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
+    const org = urlParams.get('org');
+
+    // Helper function to get redirect URL with default company
+    const getRedirectUrl = () => {
+      if (returnTo) {
+        return decodeURIComponent(returnTo);
+      }
+      // Use default "Privada" company if no org specified
+      const defaultOrg = org || 'privada';
+      return `${window.location.origin}/registration?org=${defaultOrg}`;
+    };
 
     try {
       if (isLogin) {
@@ -86,28 +86,10 @@ const Auth = () => {
         });
         if (error) throw error;
         
-        // Provision user in maity schema
-        const { error: provisionError } = await supabase.rpc('provision_user');
-        if (provisionError) {
-          console.error('Error provisioning user:', provisionError);
-          toast({
-            title: "Error",
-            description: "Error al configurar usuario",
-            variant: "destructive",
-          });
-          return;
-        }
-
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Check if onboarding is completed by trying to get onboarding status
-          // For now, we'll redirect to onboarding instead of dashboard
-          if (returnTo) {
-            window.location.href = decodeURIComponent(returnTo);
-          } else {
-            navigate('/onboarding');
-          }
+          window.location.href = getRedirectUrl();
           return;
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
           navigate('/pending');
@@ -119,12 +101,11 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
-        const redirectUrl = returnTo ? decodeURIComponent(returnTo) : `${window.location.origin}/onboarding`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: redirectUrl
+            emailRedirectTo: getRedirectUrl()
           }
         });
         if (error) throw error;
@@ -150,13 +131,23 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl  
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-    const redirectUrl = returnTo ? decodeURIComponent(returnTo) : `${window.location.origin}/onboarding`;
+    const org = urlParams.get('org');
+    
+    // Helper function to get redirect URL with default company
+    const getRedirectUrl = () => {
+      if (returnTo) {
+        return decodeURIComponent(returnTo);
+      }
+      // Use default "Privada" company if no org specified
+      const defaultOrg = org || 'privada';
+      return `${window.location.origin}/registration?org=${defaultOrg}`;
+    };
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: redirectUrl
+          redirectTo: getRedirectUrl()
         }
       });
       if (error) throw error;
