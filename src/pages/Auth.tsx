@@ -171,24 +171,24 @@ const Auth = () => {
         });
         if (error) throw error;
         
-        // Check user status
+        // Handle company invitation first if org parameter exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgSlug = urlParams.get('org');
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        
+        if (orgSlug && userId) {
+          const invitationResult = await handleCompanyInvitation(orgSlug, userId);
+          
+          if (invitationResult.shouldRedirectToRegistration) {
+            // User was successfully assigned to company, go directly to registration
+            window.location.href = getRedirectUrl();
+            return;
+          }
+        }
+        
+        // Check user status after handling invitation
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
-          // Handle company invitation first
-          const urlParams = new URLSearchParams(window.location.search);
-          const orgSlug = urlParams.get('org');
-          const userId = (await supabase.auth.getUser()).data.user?.id;
-          
-          if (userId) {
-            const invitationResult = await handleCompanyInvitation(orgSlug || '', userId);
-            
-            if (invitationResult.shouldRedirectToRegistration) {
-              // User was successfully assigned to company, go directly to registration
-              window.location.href = getRedirectUrl();
-              return;
-            }
-          }
-          
           window.location.href = getRedirectUrl();
           return;
         } else if (status === 'PENDING' || status === 'SUSPENDED') {
@@ -201,6 +201,10 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
+        // Sign up flow - get org parameter first
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgSlug = urlParams.get('org');
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -209,6 +213,25 @@ const Auth = () => {
           }
         });
         if (error) throw error;
+        
+        // After successful signup, provision user with company if org parameter exists
+        if (orgSlug) {
+          try {
+            const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
+              company_slug: orgSlug,
+              invitation_source: 'registration_link'
+            });
+            
+            if (provisionError) {
+              console.error('Error provisioning user with company:', provisionError);
+            } else if (provisionResult && typeof provisionResult === 'object' && 'success' in provisionResult && provisionResult.success) {
+              console.log('User provisioned successfully:', provisionResult);
+            }
+          } catch (provisionErr) {
+            console.error('Provision error:', provisionErr);
+          }
+        }
+        
         toast({
           title: "¡Cuenta creada!",
           description: "Revisa tu correo para confirmar tu cuenta.",
