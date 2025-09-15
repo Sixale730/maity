@@ -138,41 +138,23 @@ serve(async (req) => {
       }
     }
 
-    // Store the submission in the database
-    const { error: insertError } = await supabase
-      .from('tally_submissions')
-      .insert({
-        user_id: userId,
-        submission_data: payload.data,
-        tally_response_id: payload.data.responseId
+    // Store the submission and complete onboarding using RPC function
+    const { error: completeError } = await supabase
+      .rpc('complete_onboarding', { 
+        submission_data: payload.data 
       });
 
-    if (insertError) {
-      console.error('Error storing Tally submission:', insertError);
-      // Don't return error if it's a duplicate - this is idempotent
-      if (insertError.code !== '23505') { // unique_violation
-        return new Response(
-          JSON.stringify({ error: 'Failed to store submission' }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-    }
-
-    // Mark onboarding as completed
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq('auth_id', userId)
-      .is('onboarding_completed_at', null); // Only update if not already completed
-
-    if (updateError) {
-      console.error('Error updating onboarding status:', updateError);
-      // Continue even if update fails - the submission is stored
+    if (completeError) {
+      console.error('Error completing onboarding:', completeError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to complete onboarding' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     } else {
-      console.log('Onboarding completed for user:', userId);
+      console.log('Onboarding completed successfully for user:', userId);
     }
 
     return new Response(
