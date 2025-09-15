@@ -54,12 +54,43 @@ const Onboarding = () => {
   };
 
   const loadTallyScript = () => {
-    if (document.getElementById('tally-js')) return;
+    // Check if Tally is already loaded
+    if ((window as any).Tally) {
+      (window as any).Tally.loadEmbeds();
+      return;
+    }
+    
+    // Check if script is already present
+    if (document.querySelector('script[src="https://tally.so/widgets/embed.js"]')) {
+      return;
+    }
     
     const script = document.createElement('script');
-    script.id = 'tally-js';
     script.src = 'https://tally.so/widgets/embed.js';
-    script.async = true;
+    script.onload = () => {
+      if ((window as any).Tally) {
+        (window as any).Tally.loadEmbeds();
+      } else {
+        // Fallback for iframes
+        document.querySelectorAll('iframe[data-tally-src]:not([src])').forEach((iframe) => {
+          const htmlIframe = iframe as HTMLIFrameElement;
+          const src = htmlIframe.getAttribute('data-tally-src');
+          if (src) {
+            htmlIframe.src = src;
+          }
+        });
+      }
+    };
+    script.onerror = () => {
+      // Fallback for iframes
+      document.querySelectorAll('iframe[data-tally-src]:not([src])').forEach((iframe) => {
+        const htmlIframe = iframe as HTMLIFrameElement;
+        const src = htmlIframe.getAttribute('data-tally-src');
+        if (src) {
+          htmlIframe.src = src;
+        }
+      });
+    };
     document.body.appendChild(script);
   };
 
@@ -190,16 +221,16 @@ const Onboarding = () => {
 
         <div className="max-w-4xl mx-auto">
           {/* Tally Form Embed */}
-          <div 
-            data-tally-src={`https://tally.so/embed/wkjLAj?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&redirectURL=${encodeURIComponent(`${window.location.origin}/onboarding/success?token=${validationToken}&rid={{response_id}}`)}`}
-            data-tally-width="100%"
-            data-tally-height="600"
-            data-tally-hidden-fields={JSON.stringify({
-              user_id: user.id,
-              email: user.email,
-              validation_token: validationToken
-            })}
-            className="min-h-[600px] w-full bg-background rounded-lg border"
+          <iframe 
+            data-tally-src={`https://tally.so/embed/wQGAyA?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&redirectURL=${encodeURIComponent(`${window.location.origin}/onboarding/success?token=${validationToken}&rid={{response_id}}`)}`}
+            loading="lazy" 
+            width="100%" 
+            height="587" 
+            frameBorder="0" 
+            marginHeight={0} 
+            marginWidth={0} 
+            title="Registro"
+            className="min-h-[587px] w-full bg-background rounded-lg border"
           />
         </div>
 
