@@ -56,7 +56,60 @@ const Registration = () => {
         return;
       }
 
-      // Fetch company by slug
+      // First check if user already has this company assigned
+      const { data: userData, error: userError } = await supabase
+        .from('maity.users')
+        .select('company_id, companies!inner(name, slug)')
+        .eq('auth_id', session.user.id)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        toast({
+          title: "Error",
+          description: "Error al verificar los datos del usuario",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      // If user already has the correct company assigned, use that
+      if (userData?.company_id && userData.companies?.slug === companySlug) {
+        setCompany({
+          id: userData.company_id,
+          name: userData.companies.name,
+          slug: userData.companies.slug,
+          plan: 'standard', // Default plan
+          timezone: 'UTC', // Default timezone
+          is_active: true,
+          created_at: new Date().toISOString()
+        });
+        loadTallyScript();
+        return;
+      }
+
+      // If user doesn't have the company or has a different one, try to assign it
+      if (companySlug !== 'privada') {
+        try {
+          await supabase.rpc('assign_user_to_company', {
+            user_auth_id: session.user.id,
+            company_slug: companySlug
+          });
+          console.log('Successfully assigned user to company:', companySlug);
+        } catch (error) {
+          console.error('Error assigning user to company:', error);
+          toast({
+            title: "Error",
+            description: "No se pudo asignar la empresa. Contacta al administrador.",
+            variant: "destructive",
+          });
+          navigate('/');
+          return;
+        }
+      }
+
+      // Fetch company by slug to get full details
       const { data: companyData, error: companyError } = await supabase
         .rpc('get_company_by_slug', { company_slug: companySlug });
 

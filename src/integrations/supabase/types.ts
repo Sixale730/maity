@@ -85,6 +85,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_to_company: {
+        Args: { company_slug: string; user_auth_id: string }
+        Returns: undefined
+      }
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown

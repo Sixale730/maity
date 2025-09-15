@@ -36,6 +36,28 @@ const Auth = () => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
+        // Check if we need to assign a company based on org parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgSlug = urlParams.get('org');
+        
+        if (orgSlug && orgSlug !== 'privada') {
+          try {
+            console.log('Assigning user to company:', orgSlug);
+            await supabase.rpc('assign_user_to_company', {
+              user_auth_id: session.user.id,
+              company_slug: orgSlug
+            });
+            console.log('Successfully assigned user to company');
+          } catch (error) {
+            console.error('Error assigning user to company:', error);
+            toast({
+              title: "Error",
+              description: "No se pudo asignar la empresa. Contacta al administrador.",
+              variant: "destructive",
+            });
+          }
+        }
+        
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
           window.location.href = getRedirectUrl();
@@ -47,6 +69,28 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
+        // Check if we need to assign a company based on org parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgSlug = urlParams.get('org');
+        
+        if (orgSlug && orgSlug !== 'privada') {
+          try {
+            console.log('Assigning user to company:', orgSlug);
+            await supabase.rpc('assign_user_to_company', {
+              user_auth_id: session.user.id,
+              company_slug: orgSlug
+            });
+            console.log('Successfully assigned user to company');
+          } catch (error) {
+            console.error('Error assigning user to company:', error);
+            toast({
+              title: "Error",
+              description: "No se pudo asignar la empresa. Contacta al administrador.",
+              variant: "destructive",
+            });
+          }
+        }
+        
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
           window.location.href = getRedirectUrl();
@@ -89,6 +133,28 @@ const Auth = () => {
         // Check user status
         const { data: status } = await supabase.rpc('my_status' as any);
         if (status === 'ACTIVE') {
+          // Check if we need to assign a company based on org parameter
+          const urlParams = new URLSearchParams(window.location.search);
+          const orgSlug = urlParams.get('org');
+          
+          if (orgSlug && orgSlug !== 'privada') {
+            try {
+              console.log('Assigning user to company:', orgSlug);
+              await supabase.rpc('assign_user_to_company', {
+                user_auth_id: (await supabase.auth.getUser()).data.user?.id,
+                company_slug: orgSlug
+              });
+              console.log('Successfully assigned user to company');
+            } catch (error) {
+              console.error('Error assigning user to company:', error);
+              toast({
+                title: "Error",
+                description: "No se pudo asignar la empresa. Contacta al administrador.",
+                variant: "destructive",
+              });
+            }
+          }
+          
           window.location.href = getRedirectUrl();
           return;
         } else if (status === 'PENDING' || status === 'SUSPENDED') {

@@ -72,24 +72,20 @@ serve(async (req) => {
     }
 
     // Extract user information from form fields
-    let userId: string | null = null;
-    let userEmail: string | null = null;
-    let validationToken: string | null = null;
+    const fields = payload.data.fields;
+    const userId = fields.find((f: any) => f.key === 'user_id')?.value;
+    const userEmail = fields.find((f: any) => f.key === 'user_email')?.value;
+    const validationToken = fields.find((f: any) => f.key === 'validation_token')?.value;
 
-    for (const field of payload.data.fields) {
-      if (field.key === 'user_id' || field.label.toLowerCase().includes('user_id')) {
-        userId = field.value;
-      } else if (field.key === 'email' || field.label.toLowerCase().includes('email')) {
-        userEmail = field.value;
-      } else if (field.key === 'validation_token' || field.label.toLowerCase().includes('validation_token')) {
-        validationToken = field.value;
-      }
-    }
+    console.log('Processing submission:', { userId, userEmail, validationToken });
 
-    if (!userId) {
-      console.error('No user_id found in form submission');
+    if (!userId || !userEmail) {
+      console.log('Missing required fields, ignoring submission');
       return new Response(
-        JSON.stringify({ error: 'User ID not found in submission' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Missing required fields: user_id or user_email' 
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -97,70 +93,112 @@ serve(async (req) => {
       );
     }
 
-    // Validate the token if provided
-    if (validationToken) {
-      try {
-        const tokenData = atob(validationToken);
-        const [tokenUserId, timestamp] = tokenData.split(':');
-        
-        if (tokenUserId !== userId) {
-          console.error('Token user ID mismatch');
-          return new Response(
-            JSON.stringify({ error: 'Invalid validation token' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        }
+    // Verify that the user already has a company assigned (should have been done at auth time)
+    const { data: userData, error: userError } = await supabase
+      .from('maity.users')
+      .select('company_id, name')
+      .eq('auth_id', userId)
+      .single();
 
-        // Check if token is not too old (24 hours)
-        const tokenAge = Date.now() - parseInt(timestamp);
-        if (tokenAge > 24 * 60 * 60 * 1000) {
-          console.error('Validation token expired');
-          return new Response(
-            JSON.stringify({ error: 'Validation token expired' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
+    if (userError || !userData) {
+      console.error('User not found or error fetching user:', userError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'User not found in system' 
+        }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
+      );
+    }
+
+    if (!userData.company_id) {
+      console.error('User does not have a company assigned:', userId);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'User must have a company assigned before completing onboarding' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // If validation token is provided, validate it
+    let tokenValidationError = null;
+    
+    if (validationToken) {
+      console.log('Validating token...');
+      
+      try {
+        // Parse the token (assuming it's base64 encoded JSON)
+        const tokenData = JSON.parse(atob(validationToken));
+        const { userId: tokenUserId, expiresAt } = tokenData;
+        
+        // Check if token matches user and hasn't expired
+        if (tokenUserId !== userId) {
+          tokenValidationError = 'Token user ID mismatch';
+        } else if (new Date(expiresAt) < new Date()) {
+          tokenValidationError = 'Token has expired';
+        }
+        
+        console.log('Token validation result:', { 
+          valid: !tokenValidationError, 
+          error: tokenValidationError 
+        });
+        
       } catch (error) {
-        console.error('Error validating token:', error);
-        return new Response(
-          JSON.stringify({ error: 'Invalid validation token format' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        console.error('Token parsing error:', error);
+        tokenValidationError = 'Invalid token format';
       }
     }
 
-    // Store the submission and complete onboarding using RPC function
-    const { error: completeError } = await supabase
-      .rpc('complete_onboarding', { 
-        submission_data: payload.data 
-      });
+    // Call the complete_onboarding function with submission data
+    const submissionData = {
+      eventId: payload.eventId,
+      formId: payload.data.formId,
+      responseId: payload.data.responseId,
+      fields: fields,
+      submittedAt: payload.createdAt,
+      validationToken: validationToken,
+      tokenValidationError: tokenValidationError,
+      userCompanyId: userData.company_id
+    };
 
-    if (completeError) {
-      console.error('Error completing onboarding:', completeError);
+    console.log('Calling complete_onboarding with data:', submissionData);
+
+    const { data, error } = await supabase.rpc('complete_onboarding', {
+      submission_data: submissionData
+    });
+
+    if (error) {
+      console.error('Error completing onboarding:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to complete onboarding' }),
+        JSON.stringify({ 
+          success: false, 
+          error: error.message,
+          details: error.details || 'No additional details available'
+        }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
-    } else {
-      console.log('Onboarding completed successfully for user:', userId);
     }
 
+    console.log('Successfully completed onboarding for user:', userId, 'with company:', userData.company_id);
+    
     return new Response(
       JSON.stringify({ 
-        message: 'Webhook processed successfully',
-        responseId: payload.data.responseId 
+        success: true, 
+        message: 'Onboarding completed successfully',
+        userId: userId,
+        companyId: userData.company_id,
+        tokenValidated: !tokenValidationError
       }),
       { 
         status: 200, 
