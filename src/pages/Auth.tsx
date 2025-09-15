@@ -35,19 +35,18 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Helper function to handle company invitations
-  const handleCompanyInvitation = async (orgSlug: string, userId: string) => {
-    if (!orgSlug || orgSlug === 'privada') {
-      // For privada or no org, just provision the user normally
+  // Helper function to handle company invitations using company ID
+  const handleCompanyInvitation = async (companyId: string, userId: string) => {
+    if (!companyId) {
+      // No company specified, just provision the user normally
       await supabase.rpc('provision_user');
       return { success: true, shouldRedirectToRegistration: false };
     }
 
     try {
-      console.log('Processing company invitation:', orgSlug);
-      const { data: result, error } = await supabase.rpc('provision_user_with_company', {
-        company_slug: orgSlug,
-        invitation_source: 'auth_flow'
+      console.log('Processing company invitation with ID:', companyId);
+      const { data: result, error } = await supabase.rpc('provision_user', {
+        target_company_id: companyId
       });
 
       if (error) {
@@ -55,20 +54,8 @@ const Auth = () => {
       }
 
       console.log('User provisioned with company result:', result);
+      return { success: true, shouldRedirectToRegistration: true };
       
-      // Type the result properly
-      const provisionResult = result as any;
-      
-      if (provisionResult?.success) {
-        console.log('Company invitation processed successfully:', provisionResult.action);
-        return { success: true, shouldRedirectToRegistration: true };
-      } else if (provisionResult?.error === 'COMPANY_NOT_FOUND') {
-        console.log('Company not found, using normal provision');
-        await supabase.rpc('provision_user');
-        return { success: true, shouldRedirectToRegistration: false };
-      } else {
-        throw new Error(provisionResult?.message || 'Error al procesar la invitación');
-      }
     } catch (error: any) {
       console.error('Error processing company invitation:', error);
       toast({
@@ -87,23 +74,24 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-    const org = urlParams.get('org');
+    const company = urlParams.get('company');
 
-    // Helper function to get redirect URL with default company
+    // Helper function to get redirect URL
     const getRedirectUrl = () => {
       if (returnTo) {
         return decodeURIComponent(returnTo);
       }
-      // Use default "Privada" company if no org specified
-      const defaultOrg = org || 'privada';
-      return `/registration?org=${defaultOrg}`;
+      if (company) {
+        return `/registration?company=${company}`;
+      }
+      return '/dashboard'; // Default if no company specified
     };
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         // Handle company invitation first
-        const orgSlug = urlParams.get('org');
-        const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
+        const companyId = urlParams.get('company');
+        const invitationResult = await handleCompanyInvitation(companyId || '', session.user.id);
         
         if (invitationResult.shouldRedirectToRegistration) {
           // User was successfully assigned to company, go directly to registration
@@ -123,8 +111,8 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
         // Handle company invitation first
-        const orgSlug = urlParams.get('org');
-        const invitationResult = await handleCompanyInvitation(orgSlug || '', session.user.id);
+        const companyId = urlParams.get('company');
+        const invitationResult = await handleCompanyInvitation(companyId || '', session.user.id);
         
         if (invitationResult.shouldRedirectToRegistration) {
           // User was successfully assigned to company, go directly to registration
@@ -151,16 +139,17 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-    const org = urlParams.get('org');
+    const company = urlParams.get('company');
 
-    // Helper function to get redirect URL with default company
+    // Helper function to get redirect URL
     const getRedirectUrl = () => {
       if (returnTo) {
         return decodeURIComponent(returnTo);
       }
-      // Use default "Privada" company if no org specified
-      const defaultOrg = org || 'privada';
-      return `${window.location.origin}/registration?org=${defaultOrg}`;
+      if (company) {
+        return `${window.location.origin}/registration?company=${company}`;
+      }
+      return `${window.location.origin}/dashboard`; // Default if no company specified
     };
 
     try {
@@ -171,13 +160,13 @@ const Auth = () => {
         });
         if (error) throw error;
         
-        // Handle company invitation first if org parameter exists
+        // Handle company invitation first if company parameter exists
         const urlParams = new URLSearchParams(window.location.search);
-        const orgSlug = urlParams.get('org');
+        const companyId = urlParams.get('company');
         const userId = (await supabase.auth.getUser()).data.user?.id;
         
-        if (orgSlug && userId) {
-          const invitationResult = await handleCompanyInvitation(orgSlug, userId);
+        if (companyId && userId) {
+          const invitationResult = await handleCompanyInvitation(companyId, userId);
           
           if (invitationResult.shouldRedirectToRegistration) {
             // User was successfully assigned to company, go directly to registration
@@ -201,9 +190,9 @@ const Auth = () => {
           description: "Has iniciado sesión exitosamente.",
         });
       } else {
-        // Sign up flow - get org parameter first
+        // Sign up flow - get company parameter first
         const urlParams = new URLSearchParams(window.location.search);
-        const orgSlug = urlParams.get('org');
+        const companyId = urlParams.get('company');
         
         const { error } = await supabase.auth.signUp({
           email,
@@ -214,18 +203,17 @@ const Auth = () => {
         });
         if (error) throw error;
         
-        // After successful signup, provision user with company if org parameter exists
-        if (orgSlug) {
+        // After successful signup, provision user with company if company parameter exists
+        if (companyId) {
           try {
-            const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
-              company_slug: orgSlug,
-              invitation_source: 'registration_link'
+            const { error: provisionError } = await supabase.rpc('provision_user', {
+              target_company_id: companyId
             });
             
             if (provisionError) {
               console.error('Error provisioning user with company:', provisionError);
-            } else if (provisionResult && typeof provisionResult === 'object' && 'success' in provisionResult && provisionResult.success) {
-              console.log('User provisioned successfully:', provisionResult);
+            } else {
+              console.log('User provisioned successfully with company:', companyId);
             }
           } catch (provisionErr) {
             console.error('Provision error:', provisionErr);
@@ -254,16 +242,17 @@ const Auth = () => {
     // Get return URL from query params - support both returnTo and returnUrl  
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-    const org = urlParams.get('org');
+    const company = urlParams.get('company');
     
-    // Helper function to get redirect URL with default company
+    // Helper function to get redirect URL
     const getRedirectUrl = () => {
       if (returnTo) {
         return decodeURIComponent(returnTo);
       }
-      // Use default "Privada" company if no org specified
-      const defaultOrg = org || 'privada';
-      return `${window.location.origin}/registration?org=${defaultOrg}`;
+      if (company) {
+        return `${window.location.origin}/registration?company=${company}`;
+      }
+      return `${window.location.origin}/dashboard`; // Default if no company specified
     };
     
     try {

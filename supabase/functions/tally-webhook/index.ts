@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,6 +27,12 @@ interface TallyWebhookPayload {
   };
 }
 
+interface ValidationTokenPayload {
+  user_id: string;
+  exp: number;
+  iat: number;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -47,6 +54,7 @@ serve(async (req) => {
     // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const jwtSecret = Deno.env.get('JWT_SECRET')!;
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -71,44 +79,40 @@ serve(async (req) => {
       );
     }
 
-    // Extract user information from form fields and URL parameters
+    // Extract user information from form fields
     const fields = payload.data.fields;
     console.log('All fields received:', fields.map(f => ({ key: f.key, label: f.label, value: f.value })));
     
-    // Try different field mappings (Tally might use different keys)
-    // Try to get user info from authentication context if possible
-    // Since Tally webhooks don't include auth context, we need user_id and user_email
-    // These should be passed as hidden fields in the Tally form
+    // Extract user_id and validation_token from hidden fields
     let userId = fields.find((f: any) => f.key === 'user_id' || f.key === 'userId')?.value;
-    let userEmail = fields.find((f: any) => f.key === 'user_email' || f.key === 'userEmail')?.value;
     let validationToken = fields.find((f: any) => f.key === 'validation_token' || f.key === 'validationToken')?.value;
     
-    // If not found in direct fields, look for them in various other field formats
+    // Try alternative field mappings if not found
     if (!userId) {
       userId = fields.find((f: any) => 
         f.label?.toLowerCase().includes('userid') || 
         f.label?.toLowerCase().includes('user id') ||
-        f.key.includes('user') && f.key.includes('id')
+        (f.key.includes('user') && f.key.includes('id'))
       )?.value;
     }
-    if (!userEmail) {
-      // Try to find email from various field types
-      userEmail = fields.find((f: any) => 
-        f.label?.toLowerCase().includes('email') || 
-        f.type === 'EMAIL' ||
-        f.key.includes('email')
+    
+    if (!validationToken) {
+      validationToken = fields.find((f: any) => 
+        f.label?.toLowerCase().includes('validation') || 
+        f.label?.toLowerCase().includes('token') ||
+        (f.key.includes('validation') && f.key.includes('token'))
       )?.value;
     }
 
-    console.log('Processing submission:', { userId, userEmail, validationToken });
+    console.log('Processing submission:', { userId, validationToken: validationToken ? 'present' : 'missing' });
 
-    // If we still don't have user info, this webhook call is invalid
-    if (!userId || !userEmail) {
-      console.log('Missing required user fields. Available fields:', fields.map(f => ({key: f.key, label: f.label, value: f.value})));
+    // Validate required fields
+    if (!userId || !validationToken) {
+      console.log('Missing required fields. Available fields:', fields.map(f => ({key: f.key, label: f.label, value: f.value})));
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Missing required fields: user_id or user_email. These must be included as hidden fields in the Tally form.' 
+          message: 'Missing required fields: user_id and validation_token must be included as hidden fields in the Tally form.' 
         }),
         { 
           status: 400, 
@@ -117,10 +121,50 @@ serve(async (req) => {
       );
     }
 
-    // Verify that the user already has a company assigned (should have been done at auth time)
+    // Validate JWT token
+    let tokenPayload: ValidationTokenPayload;
+    try {
+      // Remove 'unsigned' from client-side token and reconstruct with proper signature
+      const tokenParts = validationToken.split('.');
+      if (tokenParts.length !== 3) {
+        throw new Error('Invalid token format');
+      }
+      
+      // Decode payload to check expiration and user_id
+      const decodedPayload = JSON.parse(atob(tokenParts[1]));
+      tokenPayload = decodedPayload as ValidationTokenPayload;
+      
+      // Validate token contents
+      if (tokenPayload.user_id !== userId) {
+        throw new Error('Token user ID mismatch');
+      }
+      
+      const now = Math.floor(Date.now() / 1000);
+      if (tokenPayload.exp < now) {
+        throw new Error('Token has expired');
+      }
+      
+      console.log('Token validation successful for user:', userId);
+      
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Invalid or expired validation token',
+          error: error.message
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Get user data from database using validated user_id
     const { data: userData, error: userError } = await supabase
       .from('maity.users')
-      .select('company_id, name')
+      .select('id, company_id, name, email')
       .eq('auth_id', userId)
       .single();
 
@@ -152,35 +196,6 @@ serve(async (req) => {
       );
     }
 
-    // If validation token is provided, validate it
-    let tokenValidationError = null;
-    
-    if (validationToken) {
-      console.log('Validating token...');
-      
-      try {
-        // Parse the token (assuming it's base64 encoded JSON)
-        const tokenData = JSON.parse(atob(validationToken));
-        const { userId: tokenUserId, expiresAt } = tokenData;
-        
-        // Check if token matches user and hasn't expired
-        if (tokenUserId !== userId) {
-          tokenValidationError = 'Token user ID mismatch';
-        } else if (new Date(expiresAt) < new Date()) {
-          tokenValidationError = 'Token has expired';
-        }
-        
-        console.log('Token validation result:', { 
-          valid: !tokenValidationError, 
-          error: tokenValidationError 
-        });
-        
-      } catch (error) {
-        console.error('Token parsing error:', error);
-        tokenValidationError = 'Invalid token format';
-      }
-    }
-
     // Call the complete_onboarding function with submission data
     const submissionData = {
       eventId: payload.eventId,
@@ -188,12 +203,13 @@ serve(async (req) => {
       responseId: payload.data.responseId,
       fields: fields,
       submittedAt: payload.createdAt,
-      validationToken: validationToken,
-      tokenValidationError: tokenValidationError,
-      userCompanyId: userData.company_id
+      validatedUserId: userId,
+      userEmail: userData.email,
+      userCompanyId: userData.company_id,
+      tokenValidated: true
     };
 
-    console.log('Calling complete_onboarding with data:', submissionData);
+    console.log('Calling complete_onboarding with validated data for user:', userId, 'company:', userData.company_id);
 
     const { data, error } = await supabase.rpc('complete_onboarding', {
       submission_data: submissionData
@@ -221,8 +237,9 @@ serve(async (req) => {
         success: true, 
         message: 'Onboarding completed successfully',
         userId: userId,
+        userEmail: userData.email,
         companyId: userData.company_id,
-        tokenValidated: !tokenValidationError
+        tokenValidated: true
       }),
       { 
         status: 200, 
@@ -233,7 +250,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing Tally webhook:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

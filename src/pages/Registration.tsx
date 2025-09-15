@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Building2, ArrowLeft } from 'lucide-react';
+import { createValidationToken } from '@/lib/jwt';
 
 interface Company {
   id: string;
@@ -25,11 +26,11 @@ const Registration = () => {
   const [user, setUser] = useState<any>(null);
   const [formCompleted, setFormCompleted] = useState(false);
 
-  const companySlug = searchParams.get('org');
+  const companyId = searchParams.get('company');
 
   useEffect(() => {
     checkAuthAndCompany();
-  }, [companySlug]);
+  }, [companyId]);
 
   const checkAuthAndCompany = async () => {
     try {
@@ -45,8 +46,8 @@ const Registration = () => {
 
       setUser(session.user);
 
-      // Check if company slug is provided
-      if (!companySlug) {
+      // Check if company ID is provided
+      if (!companyId) {
         toast({
           title: "Error",
           description: "No se especificó una empresa válida",
@@ -72,7 +73,7 @@ const Registration = () => {
       }
 
       // If user already has the correct company assigned, use that
-      if (userCompanyData && userCompanyData.length > 0 && userCompanyData[0].company_slug === companySlug) {
+      if (userCompanyData && userCompanyData.length > 0 && userCompanyData[0].company_id === companyId) {
         const userCompany = userCompanyData[0];
         
         // Check if registration form is already completed
@@ -95,62 +96,15 @@ const Registration = () => {
         return;
       }
 
-      // If user doesn't have the company or has a different one, handle invitation
-      if (companySlug !== 'privada') {
-        try {
-          const { data: result, error } = await supabase.rpc('handle_company_invitation', {
-            user_auth_id: session.user.id,
-            company_slug: companySlug,
-            invitation_source: window.location.href
-          });
-
-          if (error) {
-            throw error;
-          }
-
-          const invitationResult = result as any;
-          
-          if (invitationResult.action === 'CONFIRMATION_REQUIRED') {
-            // Store conflict data and redirect to confirmation page
-            const conflictData = {
-              current_company: invitationResult.current_company,
-              target_company: invitationResult.target_company,
-              invitation_source: invitationResult.invitation_source
-            };
-            sessionStorage.setItem('invitation_conflict', JSON.stringify(conflictData));
-            
-            // Redirect to confirmation page
-            const params = new URLSearchParams({
-              current_company: invitationResult.current_company.name,
-              current_id: invitationResult.current_company.id,
-              target_company: invitationResult.target_company.name,
-              target_id: invitationResult.target_company.id,
-              target_slug: invitationResult.target_company.slug,
-              source: invitationResult.invitation_source || ''
-            });
-            
-            navigate(`/invitation-confirm?${params.toString()}`);
-            return;
-          }
-          
-          console.log('Company invitation processed successfully:', invitationResult.action);
-        } catch (error) {
-          console.error('Error processing company invitation:', error);
-          toast({
-            title: "Error",
-            description: "No se pudo procesar la invitación de empresa. Contacta al administrador.",
-            variant: "destructive",
-          });
-          navigate('/');
-          return;
-        }
-      }
-
-      // Fetch company by slug to get full details
+      // Fetch company by ID to get full details
       const { data: companyData, error: companyError } = await supabase
-        .rpc('get_company_by_slug', { company_slug: companySlug });
+        .from('maity.companies')
+        .select('*')
+        .eq('id', companyId)
+        .eq('is_active', true)
+        .single();
 
-      if (companyError || !companyData || companyData.length === 0) {
+      if (companyError || !companyData) {
         toast({
           title: "Error",
           description: "Empresa no encontrada o inactiva",
@@ -160,7 +114,7 @@ const Registration = () => {
         return;
       }
 
-      setCompany(companyData[0]);
+      setCompany(companyData);
       
       // Load Tally script after company is confirmed
       loadTallyScript();
@@ -301,7 +255,7 @@ const Registration = () => {
         `}
       </style>
       <iframe 
-        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&user_id=${user?.id || ''}&user_email=${encodeURIComponent(user?.email || '')}`}
+        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&user_id=${user?.id || ''}&validation_token=${createValidationToken(user?.id || '')}`}
         width="100%" 
         height="100%" 
         frameBorder="0" 
@@ -312,7 +266,7 @@ const Registration = () => {
       <script
         dangerouslySetInnerHTML={{
           __html: `
-            // Note: user_id and user_email are passed as URL parameters to Tally
+            // Note: user_id and validation_token are passed as URL parameters to Tally
             // They will be automatically included as hidden fields in the form submission
             console.log('Tally form loaded with user data for user: ${user?.email || ''}');
           `
