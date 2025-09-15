@@ -46,7 +46,7 @@ export function OrganizationsManager() {
       // Add registration_url to each company using database slug
       const companiesWithUrls = (data || []).map((company: any) => ({
         ...company,
-        registration_url: `${window.location.origin}/registration?org=${company.slug || generateSlug(company.name)}`
+        registration_url: `https://maity.lovable.app/registration?org=${company.slug || generateSlug(company.name)}`
       }));
       
       setCompanies(companiesWithUrls);
@@ -89,7 +89,7 @@ export function OrganizationsManager() {
       const newCompany = (data as any[])[0]; // RPC returns an array
       const newCompanyWithUrl = {
         ...newCompany,
-        registration_url: `${window.location.origin}/registration?org=${newCompany.slug || generateSlug(newCompany.name)}`
+        registration_url: `https://maity.lovable.app/registration?org=${newCompany.slug || generateSlug(newCompany.name)}`
       };
 
       setCompanies([newCompanyWithUrl, ...companies]);

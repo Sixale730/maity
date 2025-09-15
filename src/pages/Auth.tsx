@@ -22,8 +22,6 @@ const Auth = () => {
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo');
-    console.log('🔍 Auth: Current URL:', window.location.href);
-    console.log('🔍 Auth: ReturnTo parameter:', returnTo);
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {

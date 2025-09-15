@@ -33,20 +33,13 @@ const Registration = () => {
 
   const checkAuthAndCompany = async () => {
     try {
-      console.log('🔍 Registration: Checking auth and company...');
-      console.log('🔍 Registration: Current URL:', window.location.href);
-      console.log('🔍 Registration: Company slug:', companySlug);
-      
       // Check authentication
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔍 Registration: Session:', session ? 'EXISTS' : 'NULL');
       
       if (!session) {
         // Redirect to auth with return URL
         const returnTo = encodeURIComponent(window.location.href);
-        const redirectUrl = `/auth?returnTo=${returnTo}`;
-        console.log('🔍 Registration: No session, redirecting to:', redirectUrl);
-        navigate(redirectUrl);
+        navigate(`/auth?returnTo=${returnTo}`);
         return;
       }
 
