@@ -33,13 +33,28 @@ const Onboarding = () => {
         return;
       }
 
-      // Provision user in maity schema
+      // Check if user has company assignment
+      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      
+      if (!userInfo || !userInfo.company_id) {
+        // User has no company assigned, requires invitation
+        navigate('/invitation-required');
+        return;
+      }
+
+      // If user already completed registration, redirect to dashboard
+      if (userInfo.registration_form_completed) {
+        navigate('/dashboard');
+        return;
+      }
+
+      // Provision user in maity schema (this should work now)
       const { error: provisionError } = await supabase.rpc('provision_user');
       if (provisionError) {
         console.error('Error provisioning user:', provisionError);
         toast({
           title: "Error",
-          description: "Error al configurar usuario",
+          description: "Error al configurar usuario: " + provisionError.message,
           variant: "destructive",
         });
       }
@@ -49,7 +64,7 @@ const Onboarding = () => {
     } catch (error) {
       console.error('Error checking auth:', error);
       setLoading(false);
-      navigate('/auth?returnTo=/onboarding');
+      navigate('/invitation-required');
     }
   };
 

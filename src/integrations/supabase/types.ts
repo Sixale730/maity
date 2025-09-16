@@ -333,7 +333,7 @@ export type Database = {
         Returns: string
       }
       provision_user: {
-        Args: Record<PropertyKey, never> | { target_company_id?: string }
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       provision_user_with_company: {
