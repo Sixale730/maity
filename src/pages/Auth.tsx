@@ -43,7 +43,7 @@ const Auth = () => {
       const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
         user_email: userEmail,
-        target_company_id: companyId,
+        company_slug: companyId,
         invitation_source: window.location.href,
         force_assign: true // Force assign since user clicked invitation link
       });
