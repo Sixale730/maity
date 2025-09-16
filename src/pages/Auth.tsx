@@ -35,60 +35,38 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Helper function to assign company to user
+  // Helper function to assign company to user (simplified)
   const assignCompanyToUser = async (companyId: string, userId: string, userEmail: string) => {
     try {
-      console.log('🏢 [DEBUG] Starting company assignment:', { 
+      console.log('🏢 [DEBUG] Starting simple company assignment:', { 
         companySlug: companyId, 
         userId, 
-        userEmail,
-        currentUrl: window.location.href 
+        userEmail
       });
       
-      // First, let's check if the company exists
-      const { data: companyCheck } = await supabase.rpc('get_company_by_slug', {
-        company_slug: companyId
-      });
-      console.log('🏢 [DEBUG] Company check result:', companyCheck);
-      
-      const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
+      const { data: result, error } = await supabase.rpc('assign_company_simple', {
         user_auth_id: userId,
-        user_email: userEmail,
-        company_slug: companyId,
-        invitation_source: window.location.href,
-        force_assign: true // Force assign since user clicked invitation link
+        company_slug: companyId
       });
 
       if (error) {
         console.error('❌ [DEBUG] Database error in company assignment:', error);
-        console.error('❌ [DEBUG] Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         throw error;
       }
 
-      const invitationResult = result as unknown as InvitationResult;
-      console.log('✅ [DEBUG] Raw company assignment result:', result);
-      console.log('✅ [DEBUG] Parsed company assignment result:', invitationResult);
+      const assignmentResult = result as any;
+      console.log('✅ [DEBUG] Company assignment result:', assignmentResult);
 
-      if (!invitationResult.success) {
-        console.error('❌ [DEBUG] Company assignment failed:', invitationResult);
-        console.error('❌ [DEBUG] Failure details:', {
-          error: invitationResult.error,
-          message: invitationResult.message,
-          action: invitationResult.action
-        });
+      if (!assignmentResult.success) {
+        console.error('❌ [DEBUG] Company assignment failed:', assignmentResult);
         
-        if (invitationResult.error === 'USER_NOT_FOUND') {
+        if (assignmentResult.error === 'USER_NOT_FOUND') {
           toast({
             title: "Error",
-            description: "Usuario no encontrado en el sistema. Contacta al administrador.",
+            description: "Usuario no encontrado en el sistema.",
             variant: "destructive",
           });
-        } else if (invitationResult.error === 'COMPANY_NOT_FOUND') {
+        } else if (assignmentResult.error === 'COMPANY_NOT_FOUND') {
           toast({
             title: "Error", 
             description: "La empresa no fue encontrada o está inactiva.",
@@ -98,26 +76,15 @@ const Auth = () => {
         return false;
       }
 
-      console.log('✅ [DEBUG] Company assignment successful!', {
-        action: invitationResult.action,
-        companyName: invitationResult.company_name,
-        message: invitationResult.message
-      });
-
       toast({
         title: "¡Éxito!",
-        description: `Te has unido a ${invitationResult.company_name}`,
+        description: `Te has unido a ${assignmentResult.company_name}`,
         variant: "default",
       });
-
-      // Verify assignment worked by checking user info again
-      const { data: verifyUserInfo } = await supabase.rpc('get_user_info');
-      console.log('🔍 [DEBUG] User info after assignment:', verifyUserInfo);
 
       return true;
     } catch (error: any) {
       console.error('❌ [DEBUG] Unexpected error in assignCompanyToUser:', error);
-      console.error('❌ [DEBUG] Error stack:', error.stack);
       return false;
     }
   };
