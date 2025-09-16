@@ -35,7 +35,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
 
       // Check if user needs to complete registration form
       if (userInfo.company_id && !userInfo.registration_form_completed) {
-        navigate(`/registration?company=${userInfo.company_slug}`);
+        navigate(`/registration?company=${userInfo.company_id}`);
         return;
       }
 
