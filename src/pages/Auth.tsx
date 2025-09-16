@@ -38,7 +38,18 @@ const Auth = () => {
   // Helper function to assign company to user
   const assignCompanyToUser = async (companyId: string, userId: string, userEmail: string) => {
     try {
-      console.log('🏢 Assigning company to user:', { companyId, userId, userEmail });
+      console.log('🏢 [DEBUG] Starting company assignment:', { 
+        companySlug: companyId, 
+        userId, 
+        userEmail,
+        currentUrl: window.location.href 
+      });
+      
+      // First, let's check if the company exists
+      const { data: companyCheck } = await supabase.rpc('get_company_by_slug', {
+        company_slug: companyId
+      });
+      console.log('🏢 [DEBUG] Company check result:', companyCheck);
       
       const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
@@ -49,15 +60,28 @@ const Auth = () => {
       });
 
       if (error) {
-        console.error('❌ Database error in company assignment:', error);
+        console.error('❌ [DEBUG] Database error in company assignment:', error);
+        console.error('❌ [DEBUG] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
       const invitationResult = result as unknown as InvitationResult;
-      console.log('✅ Company assignment result:', invitationResult);
+      console.log('✅ [DEBUG] Raw company assignment result:', result);
+      console.log('✅ [DEBUG] Parsed company assignment result:', invitationResult);
 
       if (!invitationResult.success) {
-        console.error('❌ Company assignment failed:', invitationResult);
+        console.error('❌ [DEBUG] Company assignment failed:', invitationResult);
+        console.error('❌ [DEBUG] Failure details:', {
+          error: invitationResult.error,
+          message: invitationResult.message,
+          action: invitationResult.action
+        });
+        
         if (invitationResult.error === 'USER_NOT_FOUND') {
           toast({
             title: "Error",
@@ -74,15 +98,26 @@ const Auth = () => {
         return false;
       }
 
+      console.log('✅ [DEBUG] Company assignment successful!', {
+        action: invitationResult.action,
+        companyName: invitationResult.company_name,
+        message: invitationResult.message
+      });
+
       toast({
         title: "¡Éxito!",
         description: `Te has unido a ${invitationResult.company_name}`,
         variant: "default",
       });
 
+      // Verify assignment worked by checking user info again
+      const { data: verifyUserInfo } = await supabase.rpc('get_user_info');
+      console.log('🔍 [DEBUG] User info after assignment:', verifyUserInfo);
+
       return true;
     } catch (error: any) {
-      console.error('❌ Error assigning company:', error);
+      console.error('❌ [DEBUG] Unexpected error in assignCompanyToUser:', error);
+      console.error('❌ [DEBUG] Error stack:', error.stack);
       return false;
     }
   };
@@ -113,21 +148,30 @@ const Auth = () => {
 
   const handleLoggedInUser = async (user: any, companyId: string | null) => {
     try {
-      console.log('🔑 Handling logged in user:', { userId: user.id, email: user.email, companyId });
+      console.log('🔑 [DEBUG] === STARTING handleLoggedInUser ===');
+      console.log('🔑 [DEBUG] Input params:', { 
+        userId: user.id, 
+        email: user.email, 
+        companyId,
+        userMetadata: user.user_metadata 
+      });
 
       // Get current user info first (now searches by email if auth_id is null)
       let { data: userInfoArray, error } = await supabase.rpc('get_user_info');
+      console.log('🔍 [DEBUG] Initial get_user_info result:', { userInfoArray, error });
       
       // If user found but auth_id is null, update it
       if (userInfoArray && userInfoArray.length > 0 && !userInfoArray[0].auth_id) {
-        console.log('🔄 Updating user auth_id and status...');
-        await supabase.rpc('update_user_auth_status', {
+        console.log('🔄 [DEBUG] User found but auth_id is null, updating...');
+        const { error: updateError } = await supabase.rpc('update_user_auth_status', {
           user_auth_id: user.id,
           user_email: user.email
         });
+        console.log('🔄 [DEBUG] Update auth status result:', { updateError });
         
         // Refresh user info after updating auth_id
-        const { data: refreshedUserInfo } = await supabase.rpc('get_user_info');
+        const { data: refreshedUserInfo, error: refreshError } = await supabase.rpc('get_user_info');
+        console.log('🔄 [DEBUG] Refreshed user info after auth update:', { refreshedUserInfo, refreshError });
         if (refreshedUserInfo && refreshedUserInfo.length > 0) {
           userInfoArray = refreshedUserInfo;
         }
@@ -135,23 +179,26 @@ const Auth = () => {
       
       // If no user info found, provision the user first
       if (!userInfoArray || userInfoArray.length === 0) {
-        console.log('📝 User not found in database, provisioning...');
+        console.log('📝 [DEBUG] User not found in database, provisioning...');
         
         if (companyId) {
+          console.log('📝 [DEBUG] Provisioning user with company:', companyId);
           // Provision user with company assignment
           const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
             company_slug: companyId,
             invitation_source: window.location.href
           });
           
+          console.log('📝 [DEBUG] Provision result:', { provisionResult, provisionError });
+          
           const result = provisionResult as any;
           if (provisionError || !result?.success) {
-            console.error('❌ Failed to provision user with company:', provisionError, result);
+            console.error('❌ [DEBUG] Failed to provision user with company:', provisionError, result);
             navigate('/invitation-required');
             return;
           }
           
-          console.log('✅ User provisioned with company:', result);
+          console.log('✅ [DEBUG] User provisioned with company successfully:', result);
           toast({
             title: "¡Bienvenido!",
             description: `Te has unido a ${result.company_name}`,
@@ -163,8 +210,9 @@ const Auth = () => {
         
         // Get user info after provisioning
         const { data: newUserInfoArray, error: newError } = await supabase.rpc('get_user_info');
+        console.log('📝 [DEBUG] User info after provisioning:', { newUserInfoArray, newError });
         if (newError || !newUserInfoArray || newUserInfoArray.length === 0) {
-          console.error('❌ Failed to get user info after provisioning:', newError);
+          console.error('❌ [DEBUG] Failed to get user info after provisioning:', newError);
           navigate('/invitation-required');
           return;
         }
@@ -172,35 +220,45 @@ const Auth = () => {
       } 
       // If user exists but has company in URL, try to assign it
       else if (companyId) {
-        console.log('🏢 Company ID found in URL, attempting assignment...');
+        console.log('🏢 [DEBUG] User exists, company ID found in URL, attempting assignment...');
+        console.log('🏢 [DEBUG] Current user state before assignment:', userInfoArray[0]);
+        
         const assigned = await assignCompanyToUser(companyId, user.id, user.email);
         if (!assigned) {
-          console.log('❌ Company assignment failed, redirecting to invitation required');
+          console.log('❌ [DEBUG] Company assignment failed, redirecting to invitation required');
           navigate('/invitation-required');
           return;
         }
-        console.log('✅ Company assignment successful');
+        console.log('✅ [DEBUG] Company assignment completed successfully');
         
         // Refresh user info after assignment
-        const { data: updatedUserInfoArray } = await supabase.rpc('get_user_info');
+        const { data: updatedUserInfoArray, error: updateError } = await supabase.rpc('get_user_info');
+        console.log('🔍 [DEBUG] User info after company assignment:', { updatedUserInfoArray, updateError });
         if (updatedUserInfoArray && updatedUserInfoArray.length > 0) {
           userInfoArray = updatedUserInfoArray;
         }
       }
 
       const userInfo = userInfoArray[0];
-      console.log('🔍 Current user info:', userInfo);
+      console.log('🔍 [DEBUG] === FINAL USER STATE ===');
+      console.log('🔍 [DEBUG] Final user info:', userInfo);
+      console.log('🔍 [DEBUG] Company ID check:', { 
+        hasCompanyId: !!userInfo.company_id, 
+        companyId: userInfo.company_id,
+        registrationCompleted: userInfo.registration_form_completed 
+      });
 
       // Check if user has company assignment
       if (!userInfo.company_id) {
-        console.log('❌ User has no company assigned');
+        console.log('❌ [DEBUG] User has no company assigned, redirecting to invitation required');
         navigate('/invitation-required');
         return;
       }
 
       // Check registration status
       if (!userInfo.registration_form_completed) {
-        console.log('📝 User needs to complete registration form');
+        console.log('📝 [DEBUG] User needs to complete registration form');
+        console.log('📝 [DEBUG] Redirecting to registration with company ID:', userInfo.company_id);
         navigate(`/registration?company=${userInfo.company_id}`);
         return;
       }
@@ -208,11 +266,13 @@ const Auth = () => {
       // User is fully set up, redirect appropriately
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('returnTo') || '/dashboard';
-      console.log('✅ User fully configured, redirecting to:', returnTo);
+      console.log('✅ [DEBUG] User fully configured, redirecting to:', returnTo);
+      console.log('✅ [DEBUG] === HANDLELOGGEDINUSER COMPLETE ===');
       navigate(returnTo);
       
     } catch (error) {
-      console.error('❌ Unexpected error in handleLoggedInUser:', error);
+      console.error('❌ [DEBUG] Unexpected error in handleLoggedInUser:', error);
+      console.error('❌ [DEBUG] Error stack:', error.stack);
       toast({
         title: "Error",
         description: "Ocurrió un error inesperado. Por favor, intenta de nuevo.",

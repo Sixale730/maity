@@ -72,11 +72,29 @@ const Registration = () => {
       }
 
       const userInfo = userInfoArray[0];
-      console.log('🔍 Registration - User info:', userInfo);
+      console.log('🔍 [DEBUG] Registration - User info:', userInfo);
+      console.log('🔍 [DEBUG] Registration - Company ID check:', { 
+        hasCompanyId: !!userInfo.company_id, 
+        companyId: userInfo.company_id,
+        registrationCompleted: userInfo.registration_form_completed,
+        userAuthId: userInfo.auth_id 
+      });
+
+      // Check if user has company assignment (critical for Tally webhook)
+      if (!userInfo.company_id) {
+        console.error('❌ [DEBUG] User has no company assigned in Registration');
+        toast({
+          title: "Error",
+          description: "No tienes una empresa asignada. Contacta al administrador.",
+          variant: "destructive",
+        });
+        navigate('/invitation-required');
+        return;
+      }
 
       // Check if registration form is already completed
       if (userInfo.registration_form_completed) {
-        console.log('✅ Registration already completed, redirecting to dashboard');
+        console.log('✅ [DEBUG] Registration already completed, redirecting to dashboard');
         navigate('/dashboard');
         return;
       }
@@ -140,12 +158,23 @@ const Registration = () => {
 
   const handleFormCompletion = async () => {
     try {
+      console.log('📝 [DEBUG] Starting form completion process...');
+      
+      // Get current user info to verify state
+      const { data: currentUserInfo } = await supabase.rpc('get_user_info');
+      console.log('📝 [DEBUG] Current user info before completion:', currentUserInfo);
+      
       // Mark user registration as completed
       const { error } = await supabase.rpc('complete_user_registration');
+      console.log('📝 [DEBUG] Complete registration result:', { error });
       
       if (error) throw error;
 
       setFormCompleted(true);
+      
+      // Verify the update worked
+      const { data: updatedUserInfo } = await supabase.rpc('get_user_info');
+      console.log('📝 [DEBUG] User info after completion:', updatedUserInfo);
       
       toast({
         title: "¡Registro completado!",
@@ -158,7 +187,8 @@ const Registration = () => {
       }, 3000);
 
     } catch (error) {
-      console.error('Error completing registration:', error);
+      console.error('❌ [DEBUG] Error completing registration:', error);
+      console.error('❌ [DEBUG] Error details:', error.message, error.details);
       toast({
         title: "Error",
         description: "Error al completar el registro",
