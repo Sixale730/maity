@@ -216,13 +216,21 @@ export type Database = {
         Returns: Json
       }
       handle_user_company_invitation: {
-        Args: {
-          company_slug: string
-          force_assign?: boolean
-          invitation_source?: string
-          user_auth_id: string
-          user_email: string
-        }
+        Args:
+          | {
+              company_id: string
+              force_assign?: boolean
+              invitation_source?: string
+              user_auth_id: string
+              user_email: string
+            }
+          | {
+              company_slug: string
+              force_assign?: boolean
+              invitation_source?: string
+              user_auth_id: string
+              user_email: string
+            }
         Returns: Json
       }
       has_role: {

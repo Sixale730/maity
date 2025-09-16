@@ -53,7 +53,7 @@ const Auth = () => {
       const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
         user_email: userEmail,
-        company_slug: companyId, // We'll pass ID as slug parameter for now
+        company_id: companyId,
         invitation_source: window.location.href,
         force_assign: false // Don't force assign, let it handle conflicts
       });
