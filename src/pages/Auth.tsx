@@ -101,9 +101,18 @@ const Auth = () => {
       }
 
       // Get user info to check company assignment and registration status
-      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
       
-      if (!userInfo || !userInfo.company_id) {
+      if (error || !userInfoArray || userInfoArray.length === 0) {
+        console.error('Error fetching user info:', error);
+        navigate('/invitation-required');
+        return;
+      }
+
+      const userInfo = userInfoArray[0];
+      console.log('🔍 User info after login:', userInfo);
+
+      if (!userInfo.company_id) {
         // User has no company assigned, requires invitation
         navigate('/invitation-required');
         return;

@@ -58,9 +58,10 @@ const Registration = () => {
       }
 
       // Get user info including registration status
-      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
       
-      if (!userInfo) {
+      if (error || !userInfoArray || userInfoArray.length === 0) {
+        console.error('Error fetching user info:', error);
         toast({
           title: "Error",
           description: "Error al verificar los datos del usuario",
@@ -70,19 +71,23 @@ const Registration = () => {
         return;
       }
 
+      const userInfo = userInfoArray[0];
+      console.log('🔍 Registration - User info:', userInfo);
+
       // Check if registration form is already completed
       if (userInfo.registration_form_completed) {
-        console.log('Registration already completed, redirecting to dashboard');
+        console.log('✅ Registration already completed, redirecting to dashboard');
         navigate('/dashboard');
         return;
       }
 
       // Get company details by ID
-      const { data: companyData } = await supabase.rpc('get_company_by_id' as any, {
+      const { data: companyDataArray, error: companyError } = await supabase.rpc('get_company_by_id', {
         company_id: companyId
       });
       
-      if (!companyData) {
+      if (companyError || !companyDataArray || companyDataArray.length === 0) {
+        console.error('Error fetching company:', companyError);
         toast({
           title: "Error",
           description: "Empresa no encontrada o inactiva",
@@ -92,6 +97,7 @@ const Registration = () => {
         return;
       }
 
+      const companyData = companyDataArray[0];
       setCompany(companyData);
       
       // Load Tally script after company is confirmed
@@ -233,7 +239,7 @@ const Registration = () => {
         `}
       </style>
       <iframe 
-        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&companyName=${encodeURIComponent(company.name)}&companyId=${company.id}&userId=${user?.id || ''}&validationToken=${createValidationToken(user?.id || '')}`}
+        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&companyName=${encodeURIComponent(company.name)}&companyId=${company.id}&userId=${user?.id || ''}&validationToken=${createValidationToken(user?.id || '')}&webhookUrl=${encodeURIComponent('https://nhlrtflkxoojvhbyocet.supabase.co/functions/v1/tally-webhook')}`}
         width="100%" 
         height="100%" 
         frameBorder="0" 
