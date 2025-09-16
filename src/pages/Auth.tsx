@@ -115,8 +115,48 @@ const Auth = () => {
     try {
       console.log('🔑 Handling logged in user:', { userId: user.id, email: user.email, companyId });
 
-      // If company ID in URL, try to assign it to the user
-      if (companyId) {
+      // Get current user info first
+      let { data: userInfoArray, error } = await supabase.rpc('get_user_info');
+      
+      // If no user info found, provision the user first
+      if (!userInfoArray || userInfoArray.length === 0) {
+        console.log('📝 User not found in database, provisioning...');
+        
+        if (companyId) {
+          // Provision user with company assignment
+          const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
+            company_slug: companyId,
+            invitation_source: window.location.href
+          });
+          
+          const result = provisionResult as any;
+          if (provisionError || !result?.success) {
+            console.error('❌ Failed to provision user with company:', provisionError, result);
+            navigate('/invitation-required');
+            return;
+          }
+          
+          console.log('✅ User provisioned with company:', result);
+          toast({
+            title: "¡Bienvenido!",
+            description: `Te has unido a ${result.company_name}`,
+          });
+        } else {
+          // Provision user without company
+          await supabase.rpc('provision_user');
+        }
+        
+        // Get user info after provisioning
+        const { data: newUserInfoArray, error: newError } = await supabase.rpc('get_user_info');
+        if (newError || !newUserInfoArray || newUserInfoArray.length === 0) {
+          console.error('❌ Failed to get user info after provisioning:', newError);
+          navigate('/invitation-required');
+          return;
+        }
+        userInfoArray = newUserInfoArray;
+      } 
+      // If user exists but has company in URL, try to assign it
+      else if (companyId) {
         console.log('🏢 Company ID found in URL, attempting assignment...');
         const assigned = await assignCompanyToUser(companyId, user.id, user.email);
         if (!assigned) {
@@ -125,21 +165,12 @@ const Auth = () => {
           return;
         }
         console.log('✅ Company assignment successful');
-      }
-
-      // Get user info to check current status
-      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
-      
-      if (error) {
-        console.error('❌ Error fetching user info:', error);
-        navigate('/invitation-required');
-        return;
-      }
-
-      if (!userInfoArray || userInfoArray.length === 0) {
-        console.log('❌ No user info found, user may need to be provisioned');
-        navigate('/invitation-required');
-        return;
+        
+        // Refresh user info after assignment
+        const { data: updatedUserInfoArray } = await supabase.rpc('get_user_info');
+        if (updatedUserInfoArray && updatedUserInfoArray.length > 0) {
+          userInfoArray = updatedUserInfoArray;
+        }
       }
 
       const userInfo = userInfoArray[0];

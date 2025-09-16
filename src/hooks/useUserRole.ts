@@ -49,12 +49,15 @@ export const useUserRole = () => {
 
       setUserRole((role as UserRole) || 'user');
       
-      // Create a basic profile from auth user data
+      // Get user info to get company_id and other data
+      const { data: userInfo } = await supabase.rpc('get_user_info');
+      
+      // Create a profile from user info data
       const basicProfile: UserProfile = {
         id: user.id,
         auth_id: user.id,
-        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
-        company_id: user.user_metadata?.company_id,
+        name: userInfo?.[0]?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
+        company_id: userInfo?.[0]?.company_id,
         role: role || 'user'
       };
       
