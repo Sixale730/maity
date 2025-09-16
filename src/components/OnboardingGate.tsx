@@ -25,27 +25,24 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
         return;
       }
 
-      // For now, we'll use a simple RPC call to check if onboarding is completed
-      // This will be enhanced when we have better access to maity.users table
-      const { data: status } = await supabase.rpc('my_status' as any);
+      // Get comprehensive user info
+      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
       
-      if (status !== 'ACTIVE') {
-        navigate('/pending');
+      if (!userInfo) {
+        navigate('/onboarding');
         return;
       }
 
-      // For the initial implementation, we'll assume onboarding is needed
-      // In a real implementation, you would check the onboarding_completed_at field
-      // from maity.users table through an RPC function
-      
-      // Check if user has completed registration (existing logic)
-      // This is a temporary approach until we have proper onboarding status RPC
-      try {
-        const { error } = await supabase.rpc('complete_user_registration' as any);
-        // If this doesn't error, user exists and registration is completed
+      // Check if user needs to complete registration form
+      if (userInfo.company_id && !userInfo.registration_form_completed) {
+        navigate(`/registration?company=${userInfo.company_slug}`);
+        return;
+      }
+
+      // Check if user has completed registration
+      if (userInfo.registration_form_completed) {
         setOnboardingCompleted(true);
-      } catch (err) {
-        // User might not have completed onboarding
+      } else {
         navigate('/onboarding');
         return;
       }

@@ -112,90 +112,70 @@ const Auth = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    // Get return URL from query params - support both returnTo and returnUrl
     const urlParams = new URLSearchParams(window.location.search);
-    const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-    const company = urlParams.get('company');
-
-    // Helper function to get redirect URL
-    const getRedirectUrl = () => {
-      if (returnTo) {
-        return decodeURIComponent(returnTo);
-      }
-      if (company) {
-        return `/registration?company=${company}`;
-      }
-      return '/dashboard'; // Default if no company specified
-    };
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        // Handle company invitation first
-        const companySlug = urlParams.get('company');
-        if (companySlug) {
-          const invitationResult = await handleCompanyInvitation(
-            companySlug, 
-            session.user.id, 
-            session.user.email || ''
-          );
-          
-          if (invitationResult.needsConfirmation) {
-            // User needs to confirm company change
-            navigate('/invitation-confirm');
-            return;
-          }
-          
-          if (invitationResult.shouldRedirectToRegistration) {
-            // User was successfully assigned to company, go directly to registration
-            window.location.href = getRedirectUrl();
-            return;
-          }
-        }
-        
-        const { data: status } = await supabase.rpc('my_status' as any);
-        if (status === 'ACTIVE') {
-          window.location.href = getRedirectUrl();
-        } else if (status === 'PENDING' || status === 'SUSPENDED') {
-          navigate('/pending');
-        }
+    const companySlug = urlParams.get('company');
+    
+    // Check for existing session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        handleLoggedInUser(session.user, companySlug);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session && event === 'SIGNED_IN') {
-        // Handle company invitation first
-        const companySlug = urlParams.get('company');
-        if (companySlug) {
-          const invitationResult = await handleCompanyInvitation(
-            companySlug, 
-            session.user.id, 
-            session.user.email || ''
-          );
-          
-          if (invitationResult.needsConfirmation) {
-            // User needs to confirm company change
-            navigate('/invitation-confirm');
-            return;
-          }
-          
-          if (invitationResult.shouldRedirectToRegistration) {
-            // User was successfully assigned to company, go directly to registration
-            window.location.href = getRedirectUrl();
-            return;
-          }
-        }
-        
-        const { data: status } = await supabase.rpc('my_status' as any);
-        if (status === 'ACTIVE') {
-          window.location.href = getRedirectUrl();
-        } else if (status === 'PENDING' || status === 'SUSPENDED') {
-          navigate('/pending');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          handleLoggedInUser(session.user, companySlug);
         }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
+
+  const handleLoggedInUser = async (user: any, companySlug: string | null) => {
+    try {
+      // Handle company invitation if company slug is present
+      if (companySlug) {
+        const result = await handleCompanyInvitation(companySlug, user.id, user.email);
+        
+        if (result.success) {
+          // Check if user needs to complete registration form
+          const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+          
+          if (userInfo && !userInfo.registration_form_completed) {
+            navigate(`/registration?company=${companySlug}`);
+            return;
+          }
+          
+          const urlParams = new URLSearchParams(window.location.search);
+          const returnTo = urlParams.get('returnTo') || '/dashboard';
+          navigate(returnTo);
+          return;
+        } else if (result.needsConfirmation) {
+          navigate(`/invitation-conflict?company=${companySlug}`);
+          return;
+        }
+      }
+
+      // Check if user needs to complete registration form
+      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      
+      if (userInfo && userInfo.company_id && !userInfo.registration_form_completed) {
+        navigate(`/registration?company=${userInfo.company_slug}`);
+        return;
+      }
+
+      // Navigate to dashboard if everything is complete
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnTo = urlParams.get('returnTo') || '/dashboard';
+      navigate(returnTo);
+    } catch (error) {
+      console.error('Error handling logged in user:', error);
+      navigate('/onboarding');
+    }
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,15 +231,17 @@ const Auth = () => {
           }
         }
         
-        // Check user status after handling invitation
-        const { data: status } = await supabase.rpc('my_status' as any);
-        if (status === 'ACTIVE') {
-          window.location.href = getRedirectUrl();
-          return;
-        } else if (status === 'PENDING' || status === 'SUSPENDED') {
-          navigate('/pending');
+        // Check if user needs to complete registration form
+        const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+        
+        if (userInfo && userInfo.company_id && !userInfo.registration_form_completed) {
+          navigate(`/registration?company=${userInfo.company_slug}`);
           return;
         }
+        
+        // Navigate to dashboard
+        window.location.href = getRedirectUrl();
+        return;
         
         toast({
           title: "¡Bienvenido!",
@@ -291,6 +273,14 @@ const Auth = () => {
               );
               
               if (invitationResult.success) {
+                // Check if user needs to complete registration form
+                const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+                
+                if (userInfo && !userInfo.registration_form_completed) {
+                  navigate(`/registration?company=${companyId}`);
+                  return;
+                }
+                
                 console.log('User provisioned successfully with company:', companyId);
                 if (invitationResult.companyName) {
                   toast({

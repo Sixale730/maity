@@ -26,11 +26,11 @@ const Registration = () => {
   const [user, setUser] = useState<any>(null);
   const [formCompleted, setFormCompleted] = useState(false);
 
-  const companyId = searchParams.get('company');
+  const companySlug = searchParams.get('company');
 
   useEffect(() => {
     checkAuthAndCompany();
-  }, [companyId]);
+  }, [companySlug]);
 
   const checkAuthAndCompany = async () => {
     try {
@@ -46,8 +46,8 @@ const Registration = () => {
 
       setUser(session.user);
 
-      // Check if company ID is provided
-      if (!companyId) {
+      // Check if company slug is provided
+      if (!companySlug) {
         toast({
           title: "Error",
           description: "No se especificó una empresa válida",
@@ -57,12 +57,10 @@ const Registration = () => {
         return;
       }
 
-      // First check if user already has this company assigned
-      const { data: userCompanyData, error: userError } = await supabase
-        .rpc('get_user_company_info', { user_auth_id: session.user.id });
-
-      if (userError) {
-        console.error('Error fetching user data:', userError);
+      // Get user info including registration status
+      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      
+      if (!userInfo) {
         toast({
           title: "Error",
           description: "Error al verificar los datos del usuario",
@@ -72,49 +70,19 @@ const Registration = () => {
         return;
       }
 
-      // If user already has the correct company assigned, use that
-      if (userCompanyData && userCompanyData.length > 0 && userCompanyData[0].company_id === companyId) {
-        const userCompany = userCompanyData[0];
-        
-        // Check if registration form is already completed
-        if (userCompany.registration_form_completed) {
-          console.log('Registration already completed, redirecting to dashboard');
-          navigate('/dashboard');
-          return;
-        }
-        
-        setCompany({
-          id: userCompany.company_id!,
-          name: userCompany.company_name!,
-          slug: userCompany.company_slug!,
-          plan: 'standard', // Default plan
-          timezone: 'UTC', // Default timezone
-          is_active: true,
-          created_at: new Date().toISOString()
-        });
-        loadTallyScript();
+      // Check if registration form is already completed
+      if (userInfo.registration_form_completed) {
+        console.log('Registration already completed, redirecting to dashboard');
+        navigate('/dashboard');
         return;
       }
 
-      // If user doesn't have this company, we need to validate the company exists
-      // We'll use the existing company validation by trying to get company info
-      const { data: allCompanies, error: companiesError } = await supabase
-        .rpc('get_companies');
-
-      if (companiesError) {
-        console.error('Error fetching companies:', companiesError);
-        toast({
-          title: "Error",
-          description: "Error al verificar la empresa",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
-
-      const targetCompany = allCompanies?.find(company => company.id === companyId);
+      // Get company details by slug
+      const { data: companyData } = await supabase.rpc('get_company_by_slug' as any, {
+        company_slug: companySlug
+      });
       
-      if (!targetCompany) {
+      if (!companyData) {
         toast({
           title: "Error",
           description: "Empresa no encontrada o inactiva",
@@ -124,7 +92,7 @@ const Registration = () => {
         return;
       }
 
-      setCompany(targetCompany);
+      setCompany(companyData);
       
       // Load Tally script after company is confirmed
       loadTallyScript();
@@ -265,7 +233,7 @@ const Registration = () => {
         `}
       </style>
       <iframe 
-        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&company=${encodeURIComponent(company.name)}&user_id=${user?.id || ''}&validation_token=${createValidationToken(user?.id || '')}`}
+        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&companyName=${encodeURIComponent(company.name)}&companyId=${company.id}&userId=${user?.id || ''}&validationToken=${createValidationToken(user?.id || '')}`}
         width="100%" 
         height="100%" 
         frameBorder="0" 
