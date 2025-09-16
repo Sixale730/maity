@@ -35,25 +35,25 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Helper function to handle company invitations using company slug
-  const handleCompanyInvitation = async (companySlug: string, userId: string, userEmail: string) => {
-    if (!companySlug) {
+  // Helper function to handle company invitations using company ID
+  const handleCompanyInvitation = async (companyId: string, userId: string, userEmail: string) => {
+    if (!companyId) {
       // No company specified, this should not be called
       return { success: false, shouldRedirectToRegistration: false, needsConfirmation: false };
     }
 
     try {
-      console.log('🏢 Processing company invitation with sync:', {
-        companySlug,
+      console.log('🏢 Processing company invitation with ID:', {
+        companyId,
         userId,
         userEmail
       });
       
-      // Use the new handle_user_company_invitation function
+      // Use the handle_user_company_invitation function with company ID
       const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
         user_email: userEmail,
-        company_slug: companySlug,
+        company_slug: companyId, // We'll pass ID as slug parameter for now
         invitation_source: window.location.href,
         force_assign: false // Don't force assign, let it handle conflicts
       });
@@ -112,12 +112,12 @@ const Auth = () => {
   // Check if user is already authenticated
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const companySlug = urlParams.get('company');
+    const companyId = urlParams.get('company');
     
     // Check for existing session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        handleLoggedInUser(session.user, companySlug);
+        handleLoggedInUser(session.user, companyId);
       }
     });
 
@@ -125,7 +125,7 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
-          handleLoggedInUser(session.user, companySlug);
+          handleLoggedInUser(session.user, companyId);
         }
       }
     );
@@ -133,18 +133,18 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLoggedInUser = async (user: any, companySlug: string | null) => {
+  const handleLoggedInUser = async (user: any, companyId: string | null) => {
     try {
-      // Handle company invitation if company slug is present
-      if (companySlug) {
-        const result = await handleCompanyInvitation(companySlug, user.id, user.email);
+      // Handle company invitation if company ID is present
+      if (companyId) {
+        const result = await handleCompanyInvitation(companyId, user.id, user.email);
         
         if (result.success) {
           // Check if user needs to complete registration form
           const { data: userInfo } = await supabase.rpc('get_user_info' as any);
           
           if (userInfo && !userInfo.registration_form_completed) {
-            navigate(`/registration?company=${companySlug}`);
+            navigate(`/registration?company=${companyId}`);
             return;
           }
           
@@ -153,7 +153,7 @@ const Auth = () => {
           navigate(returnTo);
           return;
         } else if (result.needsConfirmation) {
-          navigate(`/invitation-conflict?company=${companySlug}`);
+          navigate(`/invitation-conflict?company=${companyId}`);
           return;
         } else {
           // Company invitation failed, treat as no invitation
@@ -162,7 +162,7 @@ const Auth = () => {
         }
       }
 
-      // No company slug in URL - check if user already has company assignment
+      // No company ID in URL - check if user already has company assignment
       const { data: userInfo } = await supabase.rpc('get_user_info' as any);
       
       if (!userInfo || !userInfo.company_id) {
@@ -174,7 +174,7 @@ const Auth = () => {
       // User has company assignment
       if (!userInfo.registration_form_completed) {
         // Needs to complete registration
-        navigate(`/registration?company=${userInfo.company_slug}`);
+        navigate(`/registration?company=${userInfo.company_id}`);
         return;
       }
 
@@ -261,10 +261,10 @@ const Auth = () => {
       } else {
         // Sign up flow - get company parameter first
         const urlParams = new URLSearchParams(window.location.search);
-        const companySlug = urlParams.get('company');
+        const companyId = urlParams.get('company');
         
         // Require company invitation for signup
-        if (!companySlug) {
+        if (!companyId) {
           toast({
             title: "Invitación requerida",
             description: "Necesitas un enlace de invitación válido para crear una cuenta.",
@@ -284,12 +284,12 @@ const Auth = () => {
         if (error) throw error;
         
         // After successful signup, provision user with company if company parameter exists
-        if (companySlug) {
+        if (companyId) {
           try {
             const { data: userData } = await supabase.auth.getUser();
             if (userData.user) {
               const invitationResult = await handleCompanyInvitation(
-                companySlug, 
+                companyId, 
                 userData.user.id, 
                 userData.user.email || email
               );
@@ -299,11 +299,11 @@ const Auth = () => {
                 const { data: userInfo } = await supabase.rpc('get_user_info' as any);
                 
                 if (userInfo && !userInfo.registration_form_completed) {
-                  navigate(`/registration?company=${companySlug}`);
+                  navigate(`/registration?company=${companyId}`);
                   return;
                 }
                 
-                console.log('User provisioned successfully with company:', companySlug);
+                console.log('User provisioned successfully with company:', companyId);
                 if (invitationResult.companyName) {
                   toast({
                     title: "¡Asignado a empresa!",

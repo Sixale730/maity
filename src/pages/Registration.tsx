@@ -26,11 +26,11 @@ const Registration = () => {
   const [user, setUser] = useState<any>(null);
   const [formCompleted, setFormCompleted] = useState(false);
 
-  const companySlug = searchParams.get('company');
+  const companyId = searchParams.get('company');
 
   useEffect(() => {
     checkAuthAndCompany();
-  }, [companySlug]);
+  }, [companyId]);
 
   const checkAuthAndCompany = async () => {
     try {
@@ -46,8 +46,8 @@ const Registration = () => {
 
       setUser(session.user);
 
-      // Check if company slug is provided
-      if (!companySlug) {
+      // Check if company ID is provided
+      if (!companyId) {
         toast({
           title: "Error",
           description: "No se especificó una empresa válida",
@@ -77,9 +77,9 @@ const Registration = () => {
         return;
       }
 
-      // Get company details by slug
-      const { data: companyData } = await supabase.rpc('get_company_by_slug' as any, {
-        company_slug: companySlug
+      // Get company details by ID
+      const { data: companyData } = await supabase.rpc('get_company_by_id' as any, {
+        company_id: companyId
       });
       
       if (!companyData) {
