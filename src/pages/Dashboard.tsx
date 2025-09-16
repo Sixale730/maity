@@ -1,13 +1,24 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
-import { OnboardingGate } from "@/components/OnboardingGate";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+
 const Dashboard = () => {
-  const { userRole, userProfile, loading } = useUserRole();
+  const { userRole, userProfile, loading, error } = useUserRole();
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  // Redirect to auth if no user or error
+  useEffect(() => {
+    if (!loading && (error || !userProfile)) {
+      console.log('🚫 Dashboard: No user profile or error, redirecting to auth');
+      navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
+    }
+  }, [loading, error, userProfile, navigate]);
 
   if (loading) {
     return (
@@ -20,15 +31,17 @@ const Dashboard = () => {
     );
   }
 
+  if (error || !userProfile) {
+    return null; // Will redirect to auth
+  }
+
   return (
-    <OnboardingGate>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <RoleBasedSidebar userRole={userRole} userName={userProfile?.name} />
-          <DashboardContent />
-        </div>
-      </SidebarProvider>
-    </OnboardingGate>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <RoleBasedSidebar userRole={userRole} userName={userProfile?.name} />
+        <DashboardContent />
+      </div>
+    </SidebarProvider>
   );
 };
 

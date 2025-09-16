@@ -43,17 +43,44 @@ const Auth = () => {
       const { data: result, error } = await supabase.rpc('handle_user_company_invitation', {
         user_auth_id: userId,
         user_email: userEmail,
-        company_id: companyId,
+        target_company_id: companyId,
         invitation_source: window.location.href,
         force_assign: true // Force assign since user clicked invitation link
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error in company assignment:', error);
+        throw error;
+      }
 
       const invitationResult = result as unknown as InvitationResult;
       console.log('✅ Company assignment result:', invitationResult);
 
-      return invitationResult.success;
+      if (!invitationResult.success) {
+        console.error('❌ Company assignment failed:', invitationResult);
+        if (invitationResult.error === 'USER_NOT_FOUND') {
+          toast({
+            title: "Error",
+            description: "Usuario no encontrado en el sistema. Contacta al administrador.",
+            variant: "destructive",
+          });
+        } else if (invitationResult.error === 'COMPANY_NOT_FOUND') {
+          toast({
+            title: "Error", 
+            description: "La empresa no fue encontrada o está inactiva.",
+            variant: "destructive",
+          });
+        }
+        return false;
+      }
+
+      toast({
+        title: "¡Éxito!",
+        description: `Te has unido a ${invitationResult.company_name}`,
+        variant: "default",
+      });
+
+      return true;
     } catch (error: any) {
       console.error('❌ Error assigning company:', error);
       return false;
@@ -86,51 +113,65 @@ const Auth = () => {
 
   const handleLoggedInUser = async (user: any, companyId: string | null) => {
     try {
-      // If company ID in URL, assign it to the user
+      console.log('🔑 Handling logged in user:', { userId: user.id, email: user.email, companyId });
+
+      // If company ID in URL, try to assign it to the user
       if (companyId) {
+        console.log('🏢 Company ID found in URL, attempting assignment...');
         const assigned = await assignCompanyToUser(companyId, user.id, user.email);
         if (!assigned) {
-          toast({
-            title: "Error",
-            description: "No se pudo asignar la empresa",
-            variant: "destructive",
-          });
+          console.log('❌ Company assignment failed, redirecting to invitation required');
           navigate('/invitation-required');
           return;
         }
+        console.log('✅ Company assignment successful');
       }
 
-      // Get user info to check company assignment and registration status
+      // Get user info to check current status
       const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
       
-      if (error || !userInfoArray || userInfoArray.length === 0) {
-        console.error('Error fetching user info:', error);
+      if (error) {
+        console.error('❌ Error fetching user info:', error);
+        navigate('/invitation-required');
+        return;
+      }
+
+      if (!userInfoArray || userInfoArray.length === 0) {
+        console.log('❌ No user info found, user may need to be provisioned');
         navigate('/invitation-required');
         return;
       }
 
       const userInfo = userInfoArray[0];
-      console.log('🔍 User info after login:', userInfo);
+      console.log('🔍 Current user info:', userInfo);
 
+      // Check if user has company assignment
       if (!userInfo.company_id) {
-        // User has no company assigned, requires invitation
+        console.log('❌ User has no company assigned');
         navigate('/invitation-required');
         return;
       }
 
-      // User has company assignment - check registration status
+      // Check registration status
       if (!userInfo.registration_form_completed) {
-        // Needs to complete registration
+        console.log('📝 User needs to complete registration form');
         navigate(`/registration?company=${userInfo.company_id}`);
         return;
       }
 
-      // Everything is complete, go to dashboard
+      // User is fully set up, redirect appropriately
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('returnTo') || '/dashboard';
+      console.log('✅ User fully configured, redirecting to:', returnTo);
       navigate(returnTo);
+      
     } catch (error) {
-      console.error('Error handling logged in user:', error);
+      console.error('❌ Unexpected error in handleLoggedInUser:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
+        variant: "destructive",
+      });
       navigate('/invitation-required');
     }
   };

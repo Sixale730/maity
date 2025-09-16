@@ -218,16 +218,16 @@ export type Database = {
       handle_user_company_invitation: {
         Args:
           | {
-              company_id: string
+              company_slug: string
               force_assign?: boolean
               invitation_source?: string
               user_auth_id: string
               user_email: string
             }
           | {
-              company_slug: string
               force_assign?: boolean
               invitation_source?: string
+              target_company_id: string
               user_auth_id: string
               user_email: string
             }
