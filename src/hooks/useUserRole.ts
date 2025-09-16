@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocation } from 'react-router-dom';
 
 export type UserRole = 'platform_admin' | 'org_admin' | 'user' | null;
 
@@ -16,6 +17,7 @@ export const useUserRole = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
 
   const getUserRole = async () => {
     try {
@@ -30,10 +32,10 @@ export const useUserRole = () => {
         return;
       }
 
-      // Check user status first
+      // Check user status first, but don't redirect if we're on auth page
       const { data: status } = await supabase.rpc('my_status' as any);
-      if (status !== 'ACTIVE') {
-        // Redirect to pending if user is not active
+      if (status !== 'ACTIVE' && !location.pathname.startsWith('/auth')) {
+        // Redirect to pending if user is not active (but not if we're on auth page)
         window.location.href = '/pending';
         return;
       }

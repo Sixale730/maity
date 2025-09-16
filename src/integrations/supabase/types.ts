@@ -364,6 +364,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      update_user_auth_status: {
+        Args: { user_auth_id: string; user_email: string }
+        Returns: undefined
+      }
       urlencode: {
         Args: { data: Json } | { string: string } | { string: string }
         Returns: string

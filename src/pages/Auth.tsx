@@ -115,8 +115,23 @@ const Auth = () => {
     try {
       console.log('🔑 Handling logged in user:', { userId: user.id, email: user.email, companyId });
 
-      // Get current user info first
+      // Get current user info first (now searches by email if auth_id is null)
       let { data: userInfoArray, error } = await supabase.rpc('get_user_info');
+      
+      // If user found but auth_id is null, update it
+      if (userInfoArray && userInfoArray.length > 0 && !userInfoArray[0].auth_id) {
+        console.log('🔄 Updating user auth_id and status...');
+        await supabase.rpc('update_user_auth_status', {
+          user_auth_id: user.id,
+          user_email: user.email
+        });
+        
+        // Refresh user info after updating auth_id
+        const { data: refreshedUserInfo } = await supabase.rpc('get_user_info');
+        if (refreshedUserInfo && refreshedUserInfo.length > 0) {
+          userInfoArray = refreshedUserInfo;
+        }
+      }
       
       // If no user info found, provision the user first
       if (!userInfoArray || userInfoArray.length === 0) {
