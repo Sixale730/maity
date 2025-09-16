@@ -38,9 +38,9 @@ const Auth = () => {
   // Helper function to handle company invitations using company slug
   const handleCompanyInvitation = async (companySlug: string, userId: string, userEmail: string) => {
     if (!companySlug) {
-      // No company specified, just provision the user normally
-      await supabase.rpc('provision_user');
-      return { success: true, shouldRedirectToRegistration: false, needsConfirmation: false };
+      // No company specified, redirect to invitation required page
+      navigate('/invitation-required');
+      return { success: false, shouldRedirectToRegistration: false, needsConfirmation: false };
     }
 
     try {
@@ -159,10 +159,16 @@ const Auth = () => {
         }
       }
 
-      // Check if user needs to complete registration form
+      // Check if user has company assignment, if not require invitation
       const { data: userInfo } = await supabase.rpc('get_user_info' as any);
       
-      if (userInfo && userInfo.company_id && !userInfo.registration_form_completed) {
+      if (!userInfo || !userInfo.company_id) {
+        // User has no company assigned, requires invitation
+        navigate('/invitation-required');
+        return;
+      }
+
+      if (userInfo.company_id && !userInfo.registration_form_completed) {
         navigate(`/registration?company=${userInfo.company_slug}`);
         return;
       }
@@ -250,7 +256,18 @@ const Auth = () => {
       } else {
         // Sign up flow - get company parameter first
         const urlParams = new URLSearchParams(window.location.search);
-        const companyId = urlParams.get('company');
+        const companySlug = urlParams.get('company');
+        
+        // Require company invitation for signup
+        if (!companySlug) {
+          toast({
+            title: "Invitación requerida",
+            description: "Necesitas un enlace de invitación válido para crear una cuenta.",
+            variant: "destructive",
+          });
+          navigate('/invitation-required');
+          return;
+        }
         
         const { error } = await supabase.auth.signUp({
           email,
@@ -262,12 +279,12 @@ const Auth = () => {
         if (error) throw error;
         
         // After successful signup, provision user with company if company parameter exists
-        if (companyId) {
+        if (companySlug) {
           try {
             const { data: userData } = await supabase.auth.getUser();
             if (userData.user) {
               const invitationResult = await handleCompanyInvitation(
-                companyId, 
+                companySlug, 
                 userData.user.id, 
                 userData.user.email || email
               );
@@ -277,11 +294,11 @@ const Auth = () => {
                 const { data: userInfo } = await supabase.rpc('get_user_info' as any);
                 
                 if (userInfo && !userInfo.registration_form_completed) {
-                  navigate(`/registration?company=${companyId}`);
+                  navigate(`/registration?company=${companySlug}`);
                   return;
                 }
                 
-                console.log('User provisioned successfully with company:', companyId);
+                console.log('User provisioned successfully with company:', companySlug);
                 if (invitationResult.companyName) {
                   toast({
                     title: "¡Asignado a empresa!",

@@ -13,6 +13,7 @@ import Registration from "./pages/Registration";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import InvitationConflict from "./pages/InvitationConflict";
+import InvitationRequired from "./pages/InvitationRequired";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/invitation-confirm" element={<InvitationConflict />} />
+            <Route path="/invitation-required" element={<InvitationRequired />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
