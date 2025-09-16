@@ -38,8 +38,7 @@ const Auth = () => {
   // Helper function to handle company invitations using company slug
   const handleCompanyInvitation = async (companySlug: string, userId: string, userEmail: string) => {
     if (!companySlug) {
-      // No company specified, redirect to invitation required page
-      navigate('/invitation-required');
+      // No company specified, this should not be called
       return { success: false, shouldRedirectToRegistration: false, needsConfirmation: false };
     }
 
@@ -156,10 +155,14 @@ const Auth = () => {
         } else if (result.needsConfirmation) {
           navigate(`/invitation-conflict?company=${companySlug}`);
           return;
+        } else {
+          // Company invitation failed, treat as no invitation
+          navigate('/invitation-required');
+          return;
         }
       }
 
-      // Check if user has company assignment, if not require invitation
+      // No company slug in URL - check if user already has company assignment
       const { data: userInfo } = await supabase.rpc('get_user_info' as any);
       
       if (!userInfo || !userInfo.company_id) {
@@ -168,12 +171,14 @@ const Auth = () => {
         return;
       }
 
-      if (userInfo.company_id && !userInfo.registration_form_completed) {
+      // User has company assignment
+      if (!userInfo.registration_form_completed) {
+        // Needs to complete registration
         navigate(`/registration?company=${userInfo.company_slug}`);
         return;
       }
 
-      // Navigate to dashboard if everything is complete
+      // Everything is complete, go to dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('returnTo') || '/dashboard';
       navigate(returnTo);
