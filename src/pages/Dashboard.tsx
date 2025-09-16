@@ -5,12 +5,9 @@ import { DashboardContent } from "@/components/DashboardContent";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useStatusValidation } from "@/hooks/useStatusValidation";
-
 const Dashboard = () => {
   const { userRole, userProfile, loading } = useUserRole();
   const { t } = useLanguage();
-  const { validateStatus } = useStatusValidation();
 
   if (loading) {
     return (

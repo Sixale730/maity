@@ -25,32 +25,42 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
         return;
       }
 
-      // Get comprehensive user info
-      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
+      // Get user info using RPC function
+      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
       
-      if (!userInfo) {
-        navigate('/onboarding');
+      if (error || !userInfoArray || userInfoArray.length === 0) {
+        console.error('Error fetching user info:', error);
+        // If user not found in our system, redirect to invitation required
+        navigate('/invitation-required');
+        return;
+      }
+
+      const userInfo = userInfoArray[0];
+
+      // Check if user status is not ACTIVE
+      if (userInfo.status !== 'ACTIVE') {
+        navigate('/pending');
+        return;
+      }
+
+      // Check if user has no company assigned
+      if (!userInfo.company_id) {
+        navigate('/invitation-required');
         return;
       }
 
       // Check if user needs to complete registration form
-      if (userInfo.company_id && !userInfo.registration_form_completed) {
+      if (!userInfo.registration_form_completed) {
         navigate(`/registration?company=${userInfo.company_id}`);
         return;
       }
 
-      // Check if user has completed registration
-      if (userInfo.registration_form_completed) {
-        setOnboardingCompleted(true);
-      } else {
-        navigate('/onboarding');
-        return;
-      }
-
+      // User is ready for dashboard
+      setOnboardingCompleted(true);
       setLoading(false);
     } catch (error) {
       console.error('Error checking onboarding status:', error);
-      navigate('/onboarding');
+      navigate('/invitation-required');
     }
   };
 
