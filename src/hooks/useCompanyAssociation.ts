@@ -44,7 +44,7 @@ export const useCompanyAssociation = () => {
 
       console.log('[DEBUG] useCompanyAssociation: Function result', result);
 
-      if (!error && result && result.length > 0) {
+      if (!error && result && (result as any)?.success) {
         toast({
           title: 'Éxito',
           description: 'Usuario asociado con empresa exitosamente',

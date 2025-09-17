@@ -43,10 +43,10 @@ export function OrganizationsManager() {
 
       if (error) throw error;
       
-      // Add registration_url to each company using company ID
+      // Add registration_url to each company using company ID for auth_company
       const companiesWithUrls = (data || []).map((company: any) => ({
         ...company,
-        registration_url: `https://maity.lovable.app/registration?company=${company.id}`
+        registration_url: `${window.location.origin}/auth_company?company=${company.id}`
       }));
       
       setCompanies(companiesWithUrls);
@@ -85,11 +85,11 @@ export function OrganizationsManager() {
 
       if (error) throw error;
 
-      // Add registration_url to the new company using company ID
+      // Add registration_url to the new company using company ID for auth_company
       const newCompany = (data as any[])[0]; // RPC returns an array
       const newCompanyWithUrl = {
         ...newCompany,
-        registration_url: `https://maity.lovable.app/registration?company=${newCompany.id}`
+        registration_url: `${window.location.origin}/auth_company?company=${newCompany.id}`
       };
 
       setCompanies([newCompanyWithUrl, ...companies]);
