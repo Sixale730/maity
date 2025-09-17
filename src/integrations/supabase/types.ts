@@ -86,11 +86,11 @@ export type Database = {
     }
     Functions: {
       assign_company_simple: {
-        Args: { company_id: string; user_auth_id: string }
+        Args: { company_slug: string; user_auth_id: string }
         Returns: Json
       }
       assign_user_to_company: {
-        Args: { company_id: string; user_auth_id: string }
+        Args: { company_slug: string; user_auth_id: string }
         Returns: undefined
       }
       binary_quantize: {
@@ -150,7 +150,7 @@ export type Database = {
         }[]
       }
       get_company_by_slug: {
-        Args: { company_id: string }
+        Args: { company_slug: string }
         Returns: {
           created_at: string
           id: string
@@ -170,7 +170,7 @@ export type Database = {
         Returns: {
           company_id: string
           company_name: string
-          company_id: string
+          company_slug: string
           registration_form_completed: boolean
           user_id: string
         }[]
@@ -181,7 +181,7 @@ export type Database = {
           auth_id: string
           company_id: string
           company_name: string
-          company_id: string
+          company_slug: string
           email: string
           name: string
           onboarding_completed_at: string
@@ -212,7 +212,7 @@ export type Database = {
       }
       handle_company_invitation: {
         Args: {
-          company_id: string
+          company_slug: string
           force_assign?: boolean
           invitation_source?: string
           user_auth_id: string
@@ -222,7 +222,7 @@ export type Database = {
       handle_user_company_invitation: {
         Args:
           | {
-              company_id: string
+              company_slug: string
               force_assign?: boolean
               invitation_source?: string
               user_auth_id: string
@@ -349,7 +349,7 @@ export type Database = {
         Returns: undefined
       }
       provision_user_with_company: {
-        Args: { company_id: string; invitation_source?: string }
+        Args: { company_slug: string; invitation_source?: string }
         Returns: Json
       }
       sparsevec_out: {
