@@ -7,6 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCompany from "./pages/AuthCompany";
+import AuthCallback from "./pages/AuthCallback";
+import OAuthTest from "./pages/OAuthTest";
 import Dashboard from "./pages/Dashboard";
 import Pending from "./pages/Pending";
 import Registration from "./pages/Registration";
@@ -28,6 +31,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth_company" element={<AuthCompany />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/oauth-test" element={<OAuthTest />} />
             <Route path="/pending" element={<Pending />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/onboarding" element={<Onboarding />} />

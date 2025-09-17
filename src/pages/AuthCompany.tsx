@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import MaityLogo from "@/components/MaityLogo";
+import { useCompanyAssociation } from "@/hooks/useCompanyAssociation";
 
 interface InvitationResult {
   success: boolean;
@@ -31,20 +32,18 @@ interface CompanyRecord {
   name: string;
 }
 
-interface AuthProps {
-  mode?: 'default' | 'company';
-}
-
-const Auth = ({ mode = 'default' }: AuthProps) => {
+const AuthCompany = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const isCompanyMode = mode === 'company';
   const [companyIdFieldValue, setCompanyIdFieldValue] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const { associateUserWithCompany, associateUserFromMetadata } = useCompanyAssociation();
   const isValidUUID = (value: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value);
+  
   const fetchCompanyById = async (companyId: string): Promise<CompanyRecord | null> => {
     if (!companyId) {
       return null;
@@ -71,7 +70,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
       return null;
     }
   };
-
 
   // Helper function to assign company to user (simplified)
   const assignCompanyToUser = async (companyId: string, userId: string, userEmail: string) => {
@@ -128,152 +126,93 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   };
 
   const extractCompanyId = (params: URLSearchParams) => {
-
     const entries = Object.fromEntries(params.entries());
-
     console.log('[DEBUG] extractCompanyId:start', { entries });
 
     const directCompanyId = params.get('company');
 
     if (directCompanyId) {
-
       console.log('[DEBUG] extractCompanyId:direct', { directCompanyId });
-
       return directCompanyId;
-
     }
-
-
 
     const returnParam = params.get('returnTo') || params.get('returnUrl');
 
     if (!returnParam) {
-
       console.log('[DEBUG] extractCompanyId:noCompanyParam', { entries });
-
       return null;
-
     }
-
-
 
     let decodedReturn = returnParam;
 
     try {
-
       decodedReturn = decodeURIComponent(returnParam);
-
     } catch (decodeError) {
-
       console.warn('[DEBUG] extractCompanyId:decodeFailed', { returnParam, decodeError });
-
     }
-
-
 
     try {
-
       const parsedUrl = new URL(decodedReturn, window.location.origin);
-
       const nestedCompany = parsedUrl.searchParams.get('company');
-
       console.log('[DEBUG] extractCompanyId:nested', { decodedReturn, nestedCompany });
-
       return nestedCompany;
-
     } catch (parseError) {
-
       console.error('[DEBUG] extractCompanyId:parseFailed', { decodedReturn, parseError });
-
       return null;
-
     }
-
   };
 
-
-
-
-
   // Check if user is already authenticated
-
   useEffect(() => {
-
     const urlParams = new URLSearchParams(window.location.search);
-
     const companyId = extractCompanyId(urlParams);
     setCompanyIdFieldValue(companyId ?? '');
 
     console.log('[DEBUG] Auth useEffect:init', {
-
       companyId,
-
       urlParams: Object.fromEntries(urlParams.entries()),
-
       locationSearch: window.location.search,
-
     });
 
-
+    // Fetch company name if company ID exists
+    if (companyId && isValidUUID(companyId)) {
+      fetchCompanyById(companyId).then(company => {
+        if (company) {
+          setCompanyName(company.name);
+        }
+      });
+    }
 
     // Check for existing session first
-
     supabase.auth.getSession().then(({ data: { session } }) => {
-
       console.log('[DEBUG] Auth getSession', {
-
         hasSession: !!session,
-
         userId: session?.user?.id,
-
         companyId,
-
       });
 
       if (session?.user) {
-
         handleLoggedInUser(session.user, companyId);
-
       }
-
     });
 
-
-
     // Set up auth state listener
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-
       async (event, session) => {
-
         console.log('[DEBUG] Auth onAuthStateChange', {
-
           event,
-
           hasSessionUser: !!session?.user,
-
           companyId,
-
         });
 
         if (event === 'SIGNED_IN' && session?.user) {
-
           handleLoggedInUser(session.user, companyId);
-
         }
-
       }
-
     );
 
-
-
     return () => subscription.unsubscribe();
-
   }, []);
-
-
-
 
   const handleLoggedInUser = async (user: any, companyId: string | null) => {
     try {
@@ -381,8 +320,9 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
         console.log('[DEBUG] handleLoggedInUser:assignExistingUser');
         console.log('[DEBUG] handleLoggedInUser:beforeAssignmentState', userInfoArray[0]);
 
-        const assigned = await assignCompanyToUser(targetCompanyId, user.id, user.email);
-        if (!assigned) {
+        // Use the new company association hook
+        const associationResult = await associateUserWithCompany(user.id, targetCompanyId, user.email);
+        if (!associationResult.success) {
           console.log('[DEBUG] handleLoggedInUser:assignmentFailedRedirect');
           navigate('/invitation-required');
           return;
@@ -394,6 +334,19 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
         console.log('[DEBUG] handleLoggedInUser:userInfoAfterAssignment', { updatedUserInfoArray, updateError });
         if (updatedUserInfoArray && updatedUserInfoArray.length > 0) {
           userInfoArray = updatedUserInfoArray;
+        }
+      }
+      // If user exists but no company in URL, check if they have company_id in metadata (from email signup)
+      else {
+        console.log('[DEBUG] handleLoggedInUser:checkingMetadataForCompany');
+        const metadataResult = await associateUserFromMetadata(user.id, user.email);
+        if (metadataResult?.success) {
+          console.log('[DEBUG] handleLoggedInUser:associatedFromMetadata');
+          // Refresh user info after association
+          const { data: updatedUserInfoArray, error: updateError } = await supabase.rpc('get_user_info');
+          if (updatedUserInfoArray && updatedUserInfoArray.length > 0) {
+            userInfoArray = updatedUserInfoArray;
+          }
         }
       }
       const userInfo = userInfoArray[0];
@@ -421,45 +374,29 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
       }
 
       // User is fully set up, redirect appropriately
-
       const urlParams = new URLSearchParams(window.location.search);
-
       const rawReturnTo = urlParams.get('returnTo');
-
       const returnTo = rawReturnTo || '/dashboard';
 
       let decodedReturnTo: string | null = null;
 
       if (rawReturnTo) {
-
         try {
-
           decodedReturnTo = decodeURIComponent(rawReturnTo);
-
         } catch (error) {
-
           console.warn('[DEBUG] handleLoggedInUser:decodeReturnToFailed', { rawReturnTo, error });
-
         }
-
       }
 
       console.log('[DEBUG] handleLoggedInUser:finalRedirect', {
-
         locationSearch: window.location.search,
-
         rawReturnTo,
-
         decodedReturnTo,
-
         destination: returnTo,
-
       });
 
       navigate(returnTo);
-
       console.log('[DEBUG] handleLoggedInUser:complete', { destination: returnTo });
-
       
     } catch (error) {
       console.error('[DEBUG] handleLoggedInUser:error', error);
@@ -474,258 +411,221 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
-
     e.preventDefault();
-
     setLoading(true);
 
-
-
     const urlParams = new URLSearchParams(window.location.search);
-
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-
     const companyId = extractCompanyId(urlParams);
     setCompanyIdFieldValue(companyId ?? '');
 
     console.log('[DEBUG] handleEmailAuth:start', {
-
       isLogin,
-
       email,
-
       hasPassword: Boolean(password),
-
       returnTo,
-
       companyId,
-
       locationSearch: window.location.search,
-
     });
 
-
-
     const getRedirectUrl = () => {
-
       if (returnTo) {
-
         try {
-
           return decodeURIComponent(returnTo);
-
         } catch (error) {
-
           console.warn('[DEBUG] handleEmailAuth:decodeReturnToFailed', { returnTo, error });
-
           return returnTo;
-
         }
-
       }
 
       if (companyId) {
-
         return `${window.location.origin}/registration?company=${companyId}`;
-
       }
 
       return `${window.location.origin}/dashboard`; // Default if no company specified
-
     };
 
-
-
     const redirectTarget = getRedirectUrl();
-
     console.log('[DEBUG] handleEmailAuth:redirectTarget', { returnTo, companyId, redirectTarget });
 
-
-
     try {
-
       if (isLogin) {
-
         const { error } = await supabase.auth.signInWithPassword({
-
           email,
-
           password,
-
         });
 
         if (error) throw error;
 
         console.log('[DEBUG] handleEmailAuth:passwordLoginSuccess', { userEmail: email, redirectTarget });
 
-
-
         toast({
-
           title: 'Bienvenido!',
-
           description: 'Has iniciado sesion exitosamente.',
-
         });
 
       } else {
-
         if (!companyId) {
-
           toast({
-
             title: 'Invitacion requerida',
-
             description: 'Necesitas un enlace de invitacion valido para crear una cuenta.',
-
             variant: 'destructive',
-
           });
 
           navigate('/invitation-required');
-
           return;
-
         }
 
-
-
         const { error } = await supabase.auth.signUp({
-
           email,
-
           password,
-
           options: {
-
-            emailRedirectTo: redirectTarget
-
+            emailRedirectTo: redirectTarget,
+            data: {
+              company_id: companyId // Store company_id in user metadata for later association
+            }
           }
-
         });
 
         if (error) throw error;
 
         console.log('[DEBUG] handleEmailAuth:signUpSuccess', { userEmail: email, companyId, redirectTarget });
 
-
-
         toast({
-
           title: 'Cuenta creada!',
-
           description: 'Revisa tu correo para confirmar tu cuenta.',
-
         });
 
       }
 
     } catch (error: any) {
-
       toast({
-
         title: 'Error',
-
         description: error.message || 'Ocurrio un error inesperado.',
-
         variant: 'destructive',
-
       });
 
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
+  const OAUTH_STATE_STORAGE_KEY = 'maity.oauth.state';
 
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
-
     setLoading(true);
 
-    
-
-    // Get return URL from query params - support both returnTo and returnUrl  
-
     const urlParams = new URLSearchParams(window.location.search);
-
-    const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
-
     const companyId = extractCompanyId(urlParams);
+    const rawReturnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
     setCompanyIdFieldValue(companyId ?? '');
 
     console.log('[DEBUG] handleOAuthLogin:start', {
-
       provider,
-
-      returnTo,
-
+      rawReturnTo,
       companyId,
-
       locationSearch: window.location.search,
-
     });
 
-    
+    if (!companyId) {
+      toast({
+        title: 'Empresa requerida',
+        description: 'Este enlace de acceso necesita un company_id válido.',
+        variant: 'destructive',
+      });
+      setLoading(false);
+      return;
+    }
 
-    // Helper function to get redirect URL
+    if (!isValidUUID(companyId)) {
+      toast({
+        title: 'Identificador inválido',
+        description: 'El company_id proporcionado no es válido.',
+        variant: 'destructive',
+      });
+      setLoading(false);
+      return;
+    }
 
-    const getRedirectUrl = () => {
+    const sanitizedReturnTo = (() => {
+      if (!rawReturnTo) return '/dashboard';
 
-      if (returnTo) {
-
-        try {
-
-          return decodeURIComponent(returnTo);
-
-        } catch (error) {
-
-          console.warn('[DEBUG] handleOAuthLogin:decodeReturnToFailed', { returnTo, error });
-
-          return returnTo;
-
+      try {
+        const decoded = decodeURIComponent(rawReturnTo);
+        if (decoded.startsWith('/')) {
+          return decoded;
         }
 
+        const parsed = new URL(decoded, window.location.origin);
+        if (parsed.origin === window.location.origin) {
+          return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/dashboard';
+        }
+      } catch (error) {
+        console.warn('[DEBUG] handleOAuthLogin:returnToDecodeFailed', { rawReturnTo, error });
       }
 
-      if (companyId) {
+      return '/dashboard';
+    })();
 
-        return `${window.location.origin}/registration?company=${companyId}`;
-
-      }
-
-      return `${window.location.origin}/dashboard`; // Default if no company specified
-
+    const encodeStatePayload = (payload: Record<string, unknown>) => {
+      const json = JSON.stringify(payload);
+      const bytes = new TextEncoder().encode(json);
+      let binary = '';
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary);
     };
 
-    
+    const createOAuthState = () => {
+      const statePayload = {
+        company_id: companyId,
+        return_to: sanitizedReturnTo,
+        nonce: crypto.randomUUID(),
+        timestamp: Date.now(),
+      };
 
-    const redirectTarget = getRedirectUrl();
+      sessionStorage.setItem(
+        OAUTH_STATE_STORAGE_KEY,
+        JSON.stringify({
+          nonce: statePayload.nonce,
+          company_id: companyId,
+          timestamp: statePayload.timestamp,
+        }),
+      );
 
-    console.log('[DEBUG] handleOAuthLogin:redirectTarget', { provider, returnTo, companyId, redirectTarget });
+      return encodeStatePayload(statePayload);
+    };
 
-    
+    const encodedState = createOAuthState();
+    const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
+    redirectUrl.searchParams.set('app_state', encodedState);
+
+    console.log('[DEBUG] handleOAuthLogin:redirectTarget', {
+      provider,
+      companyId,
+      sanitizedReturnTo,
+      redirectUrl: redirectUrl.toString(),
+      encodedStateLength: encodedState.length,
+    });
 
     try {
-
       const { error } = await supabase.auth.signInWithOAuth({
-
-
         provider,
         options: {
-          redirectTo: redirectTarget
-        }
+          redirectTo: redirectUrl.toString(),
+        },
       });
+
       if (error) throw error;
     } catch (error: any) {
+      console.error('[DEBUG] AuthCompany: OAuth error', error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo conectar con el proveedor.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'No se pudo conectar con el proveedor.',
+        variant: 'destructive',
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -748,6 +648,21 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Company Display Field */}
+          {companyName && (
+            <div className="space-y-2">
+              <Label htmlFor="company" className="font-inter">Empresa</Label>
+              <Input
+                id="company"
+                type="text"
+                value={companyName}
+                readOnly
+                className="font-inter cursor-not-allowed opacity-75"
+                placeholder="Nombre de la empresa"
+              />
+            </div>
+          )}
+
           {/* OAuth Buttons */}
           <div className="space-y-3">
             <Button
@@ -842,7 +757,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
           </div>
 
           {/* Back to home */}
-          <div className="text-center pt-4">
+          <div className="text-center pt-2">
             <button
               type="button"
               onClick={() => navigate('/')}
@@ -857,5 +772,10 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   );
 };
 
-export default Auth;
+export default AuthCompany;
+
+
+
+
+
 

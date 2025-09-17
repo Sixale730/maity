@@ -20,7 +20,6 @@ interface InvitationResult {
   target_company?: {
     id: string;
     name: string;
-    slug: string;
   };
   invitation_source?: string;
 }
@@ -45,7 +44,7 @@ const Pending = () => {
       try {
         console.log('Processing company invitation from Pending page:', companyId);
         
-        // Get company info by ID to get the slug
+        // Validate that the company exists before processing
         const { data: companyData, error: companyError } = await supabase
           .rpc('get_company_by_id', { company_id: companyId });
 
@@ -70,7 +69,7 @@ const Pending = () => {
         // Use handle_company_invitation
         const { data: result, error } = await supabase.rpc('handle_company_invitation', {
           user_auth_id: user.id,
-          company_slug: company.slug,
+          company_id: companyId,
           invitation_source: window.location.href,
           force_assign: false
         });

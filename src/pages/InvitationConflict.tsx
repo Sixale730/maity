@@ -11,7 +11,6 @@ import MaityLogo from "@/components/MaityLogo";
 interface CompanyInfo {
   id: string;
   name: string;
-  slug?: string;
 }
 
 interface ConflictData {
@@ -40,7 +39,6 @@ const InvitationConflict = () => {
     // Get conflict data from URL params or session storage
     const currentCompanyName = searchParams.get('current_company');
     const targetCompanyName = searchParams.get('target_company');
-    const targetCompanySlug = searchParams.get('target_slug');
     const invitationSource = searchParams.get('source');
 
     if (!currentCompanyName || !targetCompanyName) {
@@ -67,15 +65,14 @@ const InvitationConflict = () => {
       },
       target_company: {
         id: searchParams.get('target_id') || '',
-        name: targetCompanyName,
-        slug: targetCompanySlug || ''
+        name: targetCompanyName
       },
       invitation_source: invitationSource || undefined
     });
   }, [searchParams, navigate]);
 
   const handleAcceptInvitation = async () => {
-    if (!conflictData?.target_company.slug) {
+    if (!conflictData?.target_company.id) {
       toast({
         title: "Error",
         description: "Información de invitación incompleta",
@@ -88,7 +85,7 @@ const InvitationConflict = () => {
     try {
       const { data: result, error } = await supabase.rpc('handle_company_invitation', {
         user_auth_id: (await supabase.auth.getUser()).data.user?.id,
-        company_slug: conflictData.target_company.slug,
+        company_id: conflictData.target_company.id,
         invitation_source: conflictData.invitation_source || window.location.href,
         force_assign: true
       });
@@ -109,7 +106,7 @@ const InvitationConflict = () => {
         sessionStorage.removeItem('invitation_conflict');
         
         // Redirect to registration or dashboard
-        navigate(`/registration?org=${conflictData.target_company.slug}`);
+        navigate(`/registration?company=${conflictData.target_company.id}`);
       } else {
         throw new Error(invitationResult.message || 'Error al procesar la invitación');
       }

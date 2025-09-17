@@ -10,7 +10,6 @@ import { createValidationToken } from '@/lib/jwt';
 interface Company {
   id: string;
   name: string;
-  slug: string;
   plan: string;
   timezone: string;
   is_active: boolean;
