@@ -11,6 +11,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Copy, Plus, ExternalLink, Trash2 } from "lucide-react";
+import { getAppUrl } from "@/lib/appUrl";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Company {
@@ -30,6 +31,7 @@ export function OrganizationsManager() {
   const [newCompanyName, setNewCompanyName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const appUrl = getAppUrl();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function OrganizationsManager() {
       // Add registration_url to each company using company ID for auth_company
       const companiesWithUrls = (data || []).map((company: any) => ({
         ...company,
-        registration_url: `${window.location.origin}/auth_company?company=${company.id}`
+        registration_url: `${appUrl}/auth_company?company=${company.id}`
       }));
       
       setCompanies(companiesWithUrls);
@@ -89,7 +91,7 @@ export function OrganizationsManager() {
       const newCompany = (data as any[])[0]; // RPC returns an array
       const newCompanyWithUrl = {
         ...newCompany,
-        registration_url: `${window.location.origin}/auth_company?company=${newCompany.id}`
+        registration_url: `${appUrl}/auth_company?company=${newCompany.id}`
       };
 
       setCompanies([newCompanyWithUrl, ...companies]);

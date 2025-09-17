@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { getAppUrl } from "@/lib/appUrl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ const OAuthTest = () => {
   console.log('[DEBUG] OAuthTest: Component rendering');
   
   const [companyId, setCompanyId] = useState('9368d119-ec44-4d9a-a94f-b1a4bff39d6d');
+  const appUrl = getAppUrl();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -23,7 +25,7 @@ const OAuthTest = () => {
       console.log('[DEBUG] OAuthTest: Testing OAuth with provider', provider);
       
       // Simple redirect URL without query parameters first
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectUrl = `${appUrl}/auth/callback`;
       
       console.log('[DEBUG] OAuthTest: Redirect URL', redirectUrl);
       
@@ -62,7 +64,7 @@ const OAuthTest = () => {
       console.log('[DEBUG] OAuthTest: Testing OAuth with company', { provider, companyId });
       
       // Redirect URL with company_id as query parameter
-      const redirectUrl = `${window.location.origin}/auth/callback?company_id=${companyId}&return_to=/dashboard`;
+      const redirectUrl = `${appUrl}/auth/callback?company_id=${companyId}&return_to=/dashboard`;
       
       console.log('[DEBUG] OAuthTest: Redirect URL with company', redirectUrl);
       
@@ -180,7 +182,7 @@ const OAuthTest = () => {
 
           <div className="text-center pt-4">
             <p className="text-sm text-muted-foreground font-inter">
-              URL actual: <code className="bg-muted px-1 rounded">{window.location.origin}</code>
+              URL actual: <code className="bg-muted px-1 rounded">{appUrl}</code>
             </p>
           </div>
         </CardContent>

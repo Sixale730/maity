@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/appUrl";
 import { useNavigate } from "react-router-dom";
 import MaityLogo from "@/components/MaityLogo";
 
@@ -41,6 +42,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const appUrl = getAppUrl();
   const navigate = useNavigate();
   const isCompanyMode = mode === 'company';
   const [companyIdFieldValue, setCompanyIdFieldValue] = useState('');
@@ -173,7 +175,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
     try {
 
-      const parsedUrl = new URL(decodedReturn, window.location.origin);
+      const parsedUrl = new URL(decodedReturn, appUrl);
 
       const nestedCompany = parsedUrl.searchParams.get('company');
 
@@ -526,11 +528,11 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       if (companyId) {
 
-        return `${window.location.origin}/registration?company=${companyId}`;
+        return `${appUrl}/registration?company=${companyId}`;
 
       }
 
-      return `${window.location.origin}/dashboard`; // Default if no company specified
+      return `${appUrl}/dashboard`; // Default if no company specified
 
     };
 
@@ -693,11 +695,11 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       if (companyId) {
 
-        return `${window.location.origin}/registration?company=${companyId}`;
+        return `${appUrl}/registration?company=${companyId}`;
 
       }
 
-      return `${window.location.origin}/dashboard`; // Default if no company specified
+      return `${appUrl}/dashboard`; // Default if no company specified
 
     };
 

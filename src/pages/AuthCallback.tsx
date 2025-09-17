@@ -4,9 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MaityLogo from '@/components/MaityLogo';
+import { COMPANY_ID_COOKIE, COMPANY_ID_KEY, persistCompanyId, isValidUUID } from '@/lib/companyPersistence';
+import { getAppUrl } from '@/lib/appUrl';
 
 const OAUTH_STATE_STORAGE_KEY = 'maity.oauth.state';
 const MAX_STATE_AGE_MS = 10 * 60 * 1000;
+
+type CompanyResolutionSource = 'query' | 'cookie' | 'localStorage' | 'state';
 
 interface StatePayload {
   company_id: string;
@@ -35,8 +39,8 @@ const sanitizeReturnTo = (value?: string) => {
       return value;
     }
 
-    const parsed = new URL(value, window.location.origin);
-    if (parsed.origin === window.location.origin) {
+    const parsed = new URL(value, getAppUrl());
+    if (parsed.origin === getAppUrl()) {
       return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/dashboard';
     }
   } catch (error) {
@@ -47,18 +51,94 @@ const sanitizeReturnTo = (value?: string) => {
 };
 
 const buildDestination = (returnTo: string, companyId: string) => {
-  const url = new URL(returnTo, window.location.origin);
+  const url = new URL(returnTo, getAppUrl());
   url.searchParams.set('company_id', companyId);
   return `${url.pathname}${url.search}${url.hash}`;
+};
+
+const getCompanyIdFromCookie = (): string | null => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === COMPANY_ID_COOKIE && value) {
+      return value;
+    }
+  }
+
+  return null;
+};
+
+const getCompanyIdFromLocalStorage = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(COMPANY_ID_KEY);
+  } catch (error) {
+    console.warn('[CB-3] No se pudo acceder a localStorage para recuperar company_id', error);
+    return null;
+  }
+};
+
+const resolveCompanyId = (stateCompanyId?: string): { companyId: string | null; source: CompanyResolutionSource | null } => {
+  if (typeof window === 'undefined') {
+    return { companyId: null, source: null };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = params.get('company_id') ?? params.get('company');
+  if (fromQuery) {
+    if (isValidUUID(fromQuery)) {
+      console.log(`[CB-3] company_id resuelto desde query: ${fromQuery}`);
+      return { companyId: fromQuery, source: 'query' };
+    }
+    console.warn('[CB-3] company_id de query invalido', { fromQuery });
+  }
+
+  const fromCookie = getCompanyIdFromCookie();
+  if (fromCookie) {
+    if (isValidUUID(fromCookie)) {
+      console.log(`[CB-3] company_id resuelto desde cookie: ${fromCookie}`);
+      return { companyId: fromCookie, source: 'cookie' };
+    }
+    console.warn('[CB-3] company_id de cookie invalido', { fromCookie });
+  }
+
+  const fromLocalStorage = getCompanyIdFromLocalStorage();
+  if (fromLocalStorage) {
+    if (isValidUUID(fromLocalStorage)) {
+      console.log(`[CB-3] company_id resuelto desde localStorage: ${fromLocalStorage}`);
+      return { companyId: fromLocalStorage, source: 'localStorage' };
+    }
+    console.warn('[CB-3] company_id de localStorage invalido', { fromLocalStorage });
+  }
+
+  if (stateCompanyId && isValidUUID(stateCompanyId)) {
+    console.log(`[CB-3] company_id resuelto desde estado OAuth: ${stateCompanyId}`);
+    return { companyId: stateCompanyId, source: 'state' };
+  }
+
+  console.error('[CB-3][ERROR] No se encontro company_id - abortando enlace');
+  return { companyId: null, source: null };
 };
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const appUrl = getAppUrl();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorActionPath, setErrorActionPath] = useState('/auth_company');
+  const [errorActionLabel, setErrorActionLabel] = useState('Intentar de nuevo');
 
   useEffect(() => {
+    console.log('[CB-1] Callback cargado - esperando sesion Supabase');
+
     const handleAuthCallback = async () => {
       try {
         const currentUrl = new URL(window.location.href);
@@ -81,12 +161,14 @@ const AuthCallback = () => {
         });
 
         if (errorParam || errorDescription) {
+          console.log('[CB-7][ERROR] Enlace fallido - motivo: proveedor rechazo la autenticacion', { errorParam, errorDescription });
           setErrorMessage(errorDescription || errorParam || 'El proveedor rechazo la autenticacion.');
           setLoading(false);
           return;
         }
 
         if (!appStateParam) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: estado ausente');
           setErrorMessage('No se pudo recuperar el estado de la solicitud. Intenta nuevamente.');
           setLoading(false);
           return;
@@ -96,7 +178,7 @@ const AuthCallback = () => {
         try {
           statePayload = decodeStatePayload(appStateParam);
         } catch (decodeError) {
-          console.error('[DEBUG] AuthCallback:decodeStateFailed', decodeError);
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: decode state', decodeError);
           setErrorMessage('No se pudo validar la respuesta del proveedor.');
           setLoading(false);
           return;
@@ -105,12 +187,14 @@ const AuthCallback = () => {
         console.log('[DEBUG] AuthCallback:decodedState', statePayload);
 
         if (!statePayload.company_id || !uuidRegex.test(statePayload.company_id)) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: company_id en estado invalido', statePayload);
           setErrorMessage('El company_id recibido no es valido.');
           setLoading(false);
           return;
         }
 
         if (Math.abs(Date.now() - statePayload.timestamp) > MAX_STATE_AGE_MS) {
+          console.warn('[CB-7][ERROR] Enlace fallido - motivo: estado expirado', { timestamp: statePayload.timestamp });
           setErrorMessage('El enlace de autenticacion expiro. Vuelve a iniciar sesion.');
           setLoading(false);
           return;
@@ -118,6 +202,7 @@ const AuthCallback = () => {
 
         const storedStateRaw = sessionStorage.getItem(OAUTH_STATE_STORAGE_KEY);
         if (!storedStateRaw) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: estado en sessionStorage ausente');
           setErrorMessage('No se pudo validar el estado de la solicitud OAuth. Intenta nuevamente.');
           setLoading(false);
           return;
@@ -133,18 +218,43 @@ const AuthCallback = () => {
         sessionStorage.removeItem(OAUTH_STATE_STORAGE_KEY);
 
         if (storedState.nonce !== statePayload.nonce) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: nonce no coincide', { storedNonce: storedState.nonce, stateNonce: statePayload.nonce });
           setErrorMessage('No se pudo verificar la integridad de la solicitud OAuth.');
           setLoading(false);
           return;
         }
 
         if (storedState.company_id && storedState.company_id !== statePayload.company_id) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: company_id en estado previo no coincide', {
+            storedCompanyId: storedState.company_id,
+            stateCompanyId: statePayload.company_id,
+          });
           setErrorMessage('El company_id recibido no coincide con el solicitado.');
           setLoading(false);
           return;
         }
 
         const sanitizedReturnTo = sanitizeReturnTo(statePayload.return_to);
+
+        const { companyId: resolvedCompanyId, source: resolvedSource } = resolveCompanyId(statePayload.company_id);
+        if (!resolvedCompanyId) {
+          setErrorMessage('No se pudo identificar la empresa para completar el enlace.');
+          setLoading(false);
+          return;
+        }
+
+        if (statePayload.company_id && resolvedSource !== 'state' && statePayload.company_id !== resolvedCompanyId) {
+          console.error('[CB-3][ERROR] El company_id recuperado no coincide con el enviado en estado', {
+            stateCompanyId: statePayload.company_id,
+            resolvedCompanyId,
+            resolvedSource,
+          });
+          setErrorMessage('La empresa especificada no coincide con la esperada.');
+          setLoading(false);
+          return;
+        }
+
+        persistCompanyId(resolvedCompanyId);
 
         const sessionResponse = await supabase.auth.getSession();
         if (sessionResponse.error) {
@@ -155,6 +265,7 @@ const AuthCallback = () => {
 
         if (!session) {
           if (!code) {
+            console.error('[CB-7][ERROR] Enlace fallido - motivo: codigo de autorizacion ausente');
             setErrorMessage('No se encontro el codigo de autorizacion para completar el inicio de sesion.');
             setLoading(false);
             return;
@@ -162,7 +273,7 @@ const AuthCallback = () => {
 
           const exchangeResult = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeResult.error || !exchangeResult.data.session) {
-            console.error('[DEBUG] AuthCallback:exchangeFailed', exchangeResult.error);
+            console.error('[CB-7][ERROR] Enlace fallido - motivo: intercambio de codigo', exchangeResult.error);
             setErrorMessage('No se pudo completar el inicio de sesion con el proveedor.');
             setLoading(false);
             return;
@@ -172,64 +283,94 @@ const AuthCallback = () => {
         }
 
         if (!session?.user) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: sesion sin usuario');
           setErrorMessage('No se encontro la sesion del usuario.');
           setLoading(false);
           return;
         }
 
-        const { data: company, error: companyError } = await supabase
-          .rpc('get_company_by_id', { company_id: statePayload.company_id });
+        console.log(`[CB-2] Sesion detectada - user.id=${session.user.id}`);
+        const provider = (session.user as any)?.app_metadata?.provider;
+        if (provider) {
+          console.log(`[CB-2] Proveedor detectado: ${provider}`);
+        }
 
-        if (companyError) {
-          console.error('[DEBUG] AuthCallback:companyLookupError', companyError);
+        const { data: companyLookup, error: companyLookupError } = await supabase
+          .rpc('get_company_by_id', { company_id: resolvedCompanyId });
+
+        if (companyLookupError) {
+          console.error('[CB-4][ERROR] RPC fallo - get_company_by_id', companyLookupError);
           setErrorMessage('No se pudo validar la empresa seleccionada.');
           setLoading(false);
           return;
         }
 
-        if (!Array.isArray(company) || company.length === 0 || !company[0]) {
+        if (!Array.isArray(companyLookup) || companyLookup.length === 0 || !companyLookup[0]) {
+          console.error('[CB-3][ERROR] company_id valido pero sin registro', { resolvedCompanyId });
           setErrorMessage('La empresa especificada no existe o no esta disponible.');
           setLoading(false);
           return;
         }
 
-        const companyData = company[0];
-        
-        // Use the simple assignment function
-        const { data: assignResult, error: userUpsertError } = await supabase
-          .rpc('assign_company_simple' as any, { 
-            user_auth_id: session.user.id, 
-            company_slug: companyData.slug
-          } as any);
+        const { data: userInfo, error: userInfoError } = await supabase.rpc('get_user_info', {
+          user_auth_id: session.user.id,
+        } as any);
 
-        if (userUpsertError || !(assignResult as any)?.success) {
-          console.error('[DEBUG] AuthCallback:userUpsertError', userUpsertError || assignResult);
+        if (userInfoError) {
+          console.error('[CB-7][ERROR] Enlace fallido - motivo: get_user_info', userInfoError);
+          setErrorMessage('No se pudo validar el estado de tu cuenta.');
+          setLoading(false);
+          return;
+        }
+
+        const userRecord = Array.isArray(userInfo) && userInfo.length > 0 ? userInfo[0] : null;
+        const existingCompanyId = userRecord?.company_id ?? null;
+
+        if (existingCompanyId) {
+          console.log('[CB-7][ERROR] Enlace fallido - motivo: usuario ya asociado a empresa', {
+            existingCompanyId,
+            userId: session.user.id,
+          });
+          setErrorMessage('Tu cuenta ya esta asociada a una empresa activa. Ingresa desde el portal principal.');
+          setErrorActionPath('/auth');
+          setErrorActionLabel('Ir a login principal');
+          console.log('[CB-7] Accion usuario: Volver a /auth');
+          setLoading(false);
+          return;
+        }
+
+        console.log(`[CB-4] RPC link_user_company_by_company_id -> company_id=${resolvedCompanyId}`);
+        const { data: linkResult, error: linkError } = await supabase.rpc('link_user_company_by_company_id', {
+          company_id: resolvedCompanyId,
+          user_auth_id: session.user.id,
+        } as any);
+
+        if (linkError || !(linkResult as any)?.success) {
+          console.error('[CB-4][ERROR] RPC fallo -', linkError || linkResult);
           setErrorMessage('No se pudo vincular tu usuario con la empresa.');
           setLoading(false);
           return;
         }
 
-        // Check if there was a different company (for the toast message)
-        const { data: finalUserInfo } = await supabase.rpc('get_user_info', { user_auth_id: session.user.id });
-        const isDifferentCompany = false; // Simplified for now
+        console.log('[CB-4] RPC OK - usuario enlazado a compania');
 
-        if (isDifferentCompany) {
-          toast({
-            title: 'Cuenta ya asociada',
-            description: 'Conservamos tu acceso a la empresa previamente asignada.',
-          });
-        } else {
-          toast({
-            title: 'Autenticacion completada',
-            description: 'Tu cuenta se asocio correctamente a la empresa.',
-          });
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (!refreshError) {
+          console.log('[CB-5] Sesion refrescada tras enlace');
+        } else if (refreshError) {
+          console.warn('[CB-5] No se pudo refrescar la sesion', refreshError);
         }
 
-        const destination = buildDestination(sanitizedReturnTo, statePayload.company_id);
-        console.log('[DEBUG] AuthCallback:navigate', { destination });
+        toast({
+          title: 'Autenticacion completada',
+          description: 'Tu cuenta se asocio correctamente a la empresa.',
+        });
+
+        const destination = buildDestination(sanitizedReturnTo, resolvedCompanyId);
+        console.log(`[CB-6] Redirigiendo a ${destination}`);
         navigate(destination, { replace: true });
       } catch (error) {
-        console.error('[DEBUG] AuthCallback:Unexpected error', error);
+        console.error('[CB-7][ERROR] Enlace fallido - motivo: error inesperado', error);
         setErrorMessage('Ocurrio un error inesperado durante la autenticacion.');
         setLoading(false);
       }
@@ -274,10 +415,10 @@ const AuthCallback = () => {
           </CardHeader>
           <CardContent className="text-center space-y-3">
             <button
-              onClick={() => navigate('/auth_company')}
+              onClick={() => navigate(errorActionPath)}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-inter"
             >
-              Intentar de nuevo
+              {errorActionLabel}
             </button>
           </CardContent>
         </Card>
@@ -289,6 +430,4 @@ const AuthCallback = () => {
 };
 
 export default AuthCallback;
-
-
 
