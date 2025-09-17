@@ -69,7 +69,7 @@ const Pending = () => {
         // Use handle_company_invitation
         const { data: result, error } = await supabase.rpc('handle_company_invitation', {
           user_auth_id: user.id,
-          company_id: companyId,
+          company_slug: companyId,
           invitation_source: window.location.href,
           force_assign: false
         });

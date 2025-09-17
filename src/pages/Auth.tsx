@@ -84,7 +84,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
     try {
       const { data: result, error } = await supabase.rpc('assign_company_simple', {
         user_auth_id: userId,
-        company_id: companyId
+        company_slug: companyId
       });
 
       if (error) {
@@ -343,7 +343,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
         if (targetCompanyId) {
           console.log('[DEBUG] handleLoggedInUser:provisionWithCompany', targetCompanyId);
           const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
-            company_id: targetCompanyId,
+            company_slug: targetCompanyId,
             invitation_source: window.location.href
           });
 

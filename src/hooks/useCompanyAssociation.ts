@@ -29,7 +29,7 @@ export const useCompanyAssociation = () => {
 
       // Use the existing provision_user_with_company function
       const { data: result, error } = await supabase.rpc('provision_user_with_company', {
-        company_id: companyId,
+        company_slug: companyId,
         invitation_source: window.location.href
       });
 
