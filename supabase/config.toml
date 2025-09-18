@@ -1,5 +1,11 @@
 project_id = "nhlrtflkxoojvhbyocet"
 
+[functions.accept-invite]
+verify_jwt = false
+
+[functions.finalize-invite]
+verify_jwt = false
+
 [functions.csv_import_users]
 verify_jwt = true
 

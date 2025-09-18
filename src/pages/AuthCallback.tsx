@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,6 +23,28 @@ export default function AuthCallback() {
 
         if (!session) throw new Error("No session after callback");
 
+        // Handle invite flow
+        try {
+          const response = await fetch('https://functions.maity.com.mx/finalize-invite', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.redirect) {
+              window.location.href = data.redirect;
+              return;
+            }
+          }
+        } catch (inviteError) {
+          console.log('[callback] No invite or invite processing failed:', inviteError);
+          // Continue with normal flow if invite processing fails
+        }
+
         const url = new URL(href);
         const returnTo = url.searchParams.get("returnTo") || "/dashboard";
 
@@ -34,12 +56,10 @@ export default function AuthCallback() {
           // eslint-disable-next-line no-console
           console.error("[callback] auth error:", error);
         }
-        // Optionally: navigate("/auth", { replace: true });
+        navigate("/auth", { replace: true });
       }
     })();
   }, [navigate]);
 
   return null;
 }
-
-

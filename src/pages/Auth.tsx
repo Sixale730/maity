@@ -24,6 +24,28 @@ import MaityLogo from "@/components/MaityLogo";
 
 import { buildRedirectTo } from '@/lib/auth'; // o ruta relativa
 
+// Missing type and utility definitions
+interface CompanyInfo {
+  id: string;
+  name: string;
+}
+
+const parseAssignCompanyResult = (result: any) => {
+  if (!result) return { success: false };
+  return result;
+};
+
+const parseProvisionWithCompanyResult = (result: any) => {
+  if (!result) return { success: false };
+  return result;
+};
+
+const getErrorMessage = (error: any): string => {
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  return 'An unexpected error occurred';
+};
+
 
 
 interface InvitationResult {

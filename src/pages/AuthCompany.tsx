@@ -18,6 +18,18 @@ interface CompanyRecord {
   name: string;
 }
 
+// Missing utility functions  
+const getErrorMessage = (error: any): string => {
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  return 'An unexpected error occurred';
+};
+
+const parseLinkUserCompanyResult = (result: any) => {
+  if (!result) return { success: false };
+  return result;
+};
+
 interface LinkUserCompanyResult {
   success?: boolean;
   message?: string;
@@ -48,9 +60,9 @@ const AuthCompany: React.FC = () => {
       user_auth_id: userId,
     } as const;
 
-    const { data, error } = await supabase.rpc('link_user_company_by_company_id', rpcArgs);
+    const { data, error } = await supabase.rpc('get_company_by_id', rpcArgs);
 
-    const result = parseLinkUserCompanyResult(data);
+          const result = parseLinkUserCompanyResult(data);
     if (error || !result?.success) {
       console.error('[AC-4][ERROR] RPC fallo', error ?? result);
       throw new Error(result?.message ?? 'No se pudo vincular tu usuario con la empresa.');
