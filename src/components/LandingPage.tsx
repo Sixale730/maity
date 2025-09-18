@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ const LandingPage = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const { data: status } = await supabase.rpc('my_status' as any);
+          const { data: status } = await supabase.rpc('my_status');
           if (status === 'ACTIVE') {
             navigate('/dashboard');
           } else if (status === 'PENDING' || status === 'SUSPENDED') {
@@ -283,3 +283,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+

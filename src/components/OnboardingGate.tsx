@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Loader2 } from 'lucide-react';
 
 interface OnboardingGateProps {
   children: React.ReactNode;
 }
+
+type UserInfo = Database['public']['Functions']['get_user_info']['Returns'][number];
 
 export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -13,56 +16,53 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkOnboardingStatus();
-  }, []);
+    const checkOnboardingStatus = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-  const checkOnboardingStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
-        return;
-      }
+        if (!user) {
+          navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
+          return;
+        }
 
-      // Get user info using RPC function
-      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
-      
-      if (error || !userInfoArray || userInfoArray.length === 0) {
-        console.error('Error fetching user info:', error);
-        // If user not found in our system, redirect to invitation required
+        const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
+
+        if (error || !userInfoArray || userInfoArray.length === 0) {
+          console.error('Error fetching user info:', error);
+          navigate('/invitation-required');
+          return;
+        }
+
+        const userInfo: UserInfo = userInfoArray[0];
+
+        if (userInfo.status !== 'ACTIVE') {
+          navigate('/pending');
+          return;
+        }
+
+        if (!userInfo.company_id) {
+          navigate('/invitation-required');
+          return;
+        }
+
+        if (!userInfo.registration_form_completed) {
+          navigate(`/registration?company=${userInfo.company_id}`);
+          return;
+        }
+
+        setOnboardingCompleted(true);
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
         navigate('/invitation-required');
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const userInfo = userInfoArray[0];
-
-      // Check if user status is not ACTIVE
-      if (userInfo.status !== 'ACTIVE') {
-        navigate('/pending');
-        return;
-      }
-
-      // Check if user has no company assigned
-      if (!userInfo.company_id) {
-        navigate('/invitation-required');
-        return;
-      }
-
-      // Check if user needs to complete registration form
-      if (!userInfo.registration_form_completed) {
-        navigate(`/registration?company=${userInfo.company_id}`);
-        return;
-      }
-
-      // User is ready for dashboard
-      setOnboardingCompleted(true);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error checking onboarding status:', error);
-      navigate('/invitation-required');
-    }
-  };
+    void checkOnboardingStatus();
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -76,7 +76,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   }
 
   if (!onboardingCompleted) {
-    return null; // Will redirect to onboarding
+    return null;
   }
 
   return <>{children}</>;

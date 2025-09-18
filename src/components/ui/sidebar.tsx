@@ -1,4 +1,4 @@
-import * as React from "react"
+﻿import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
@@ -733,6 +733,7 @@ const SidebarMenuSubButton = React.forwardRef<
 })
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
 
+/* eslint-disable-next-line react-refresh/only-export-components */
 export {
   Sidebar,
   SidebarContent,
@@ -759,3 +760,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+

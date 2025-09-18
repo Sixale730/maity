@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getAppUrl } from "@/lib/appUrl";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -36,7 +36,7 @@ export const useUserRole = () => {
       }
 
       // Check user status first, but don't redirect if we're on auth page
-      const { data: status } = await supabase.rpc('my_status' as any);
+      const { data: status } = await supabase.rpc('my_status');
       if (status !== 'ACTIVE' && !location.pathname.startsWith('/auth')) {
         const pendingPath = '/pending';
 
@@ -117,3 +117,4 @@ export const useUserRole = () => {
     isUser: userRole === 'user'
   };
 };
+

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'es' | 'en';
 
@@ -14,7 +14,7 @@ const translations = {
   es: {
     // Navigation
     'nav.features': 'Características',
-    'nav.success_cases': 'Casos de Éxito',
+    'nav.success_cases': 'Casos de �?xito',
     'nav.login': 'Iniciar Sesión',
     'nav.start_free': 'Empezar Gratis',
     'nav.navigation': 'Navegación',
@@ -59,7 +59,7 @@ const translations = {
     
     // CTA Section
     'cta.title': '¿Listo para transformar tu equipo?',
-    'cta.description': 'Únete a cientos de líderes de TI que ya están viendo resultados reales. Comienza tu prueba gratuita hoy y descubre el potencial de tu equipo.',
+    'cta.description': '�snete a cientos de líderes de TI que ya están viendo resultados reales. Comienza tu prueba gratuita hoy y descubre el potencial de tu equipo.',
     'cta.start_trial': 'Iniciar Prueba Gratuita',
     'cta.schedule_demo': 'Agendar Demo',
     
@@ -316,6 +316,7 @@ const translations = {
   }
 };
 
+/* eslint-disable-next-line react-refresh/only-export-components */
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
@@ -338,6 +339,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
+/* eslint-disable-next-line react-refresh/only-export-components */
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
@@ -345,3 +347,5 @@ export const useLanguage = () => {
   }
   return context;
 };
+
+

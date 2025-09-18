@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ interface UploadedFile {
   uploadedAt: string;
 }
 
+
+const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 const TeamDashboard = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -177,17 +179,18 @@ const TeamDashboard = () => {
 
       // Mostrar feedback en UI
       toast({
-        title: "Archivo subido ✔️",
+        title: "Archivo subido con éxito",
         description: `${file.name} guardado en ${objectPath}`,
       });
 
       console.log('Upload completed successfully:', { objectPath, fileName: file.name });
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload error:', error);
+      const description = getErrorMessage(error) || 'No se pudo subir el archivo';
       toast({
         title: "Error al subir archivo",
-        description: error.message || "No se pudo subir el archivo",
+        description,
         variant: "destructive",
       });
     }
@@ -209,11 +212,12 @@ const TeamDashboard = () => {
         title: "Archivo eliminado",
         description: "El archivo se eliminó correctamente",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting file:', error);
+      const description = getErrorMessage(error) || 'No se pudo eliminar el archivo';
       toast({
         title: "Error al eliminar",
-        description: error.message || "No se pudo eliminar el archivo",
+        description,
         variant: "destructive",
       });
     }
@@ -243,11 +247,12 @@ const TeamDashboard = () => {
         title: "Descarga iniciada",
         description: `Descargando ${fileName}`,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error downloading file:', error);
+      const description = getErrorMessage(error) || 'No se pudo descargar el archivo';
       toast({
         title: "Error al descargar",
-        description: error.message || "No se pudo descargar el archivo",
+        description,
         variant: "destructive",
       });
     }
@@ -347,16 +352,16 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
                 <CheckCircle className="h-4 w-4 inline mr-2" />
-                Último archivo subido: <code className="text-xs bg-green-100 px-1 rounded">{lastObjectPath}</code>
+                ?sltimo archivo subido: <code className="text-xs bg-green-100 px-1 rounded">{lastObjectPath}</code>
               </p>
             </div>
           )}
 
           <div className="text-sm text-muted-foreground">
             <p><strong>Formato requerido:</strong></p>
-            <p>• Archivo CSV (.csv)</p>
-            <p>• Encoding: UTF-8</p>
-            <p>• Separador: coma (,)</p>
+            <p>??? Archivo CSV (.csv)</p>
+            <p>??? Encoding: UTF-8</p>
+            <p>??? Separador: coma (,)</p>
           </div>
         </CardContent>
       </Card>
@@ -444,3 +449,12 @@ Carlos López,carlos.lopez@empresa.com,+52 55 5555 1234`;
 };
 
 export default TeamDashboard;
+
+
+
+
+
+
+
+
+

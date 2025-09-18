@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingStatus {
@@ -33,11 +33,11 @@ export const useOnboardingStatus = () => {
       }
 
       // Check onboarding status using my_status function that accesses maity.users
-      const { data: statusResult } = await supabase.rpc('my_status' as any);
+      const { data: statusResult } = await supabase.rpc('my_status');
       
       // For now, we'll use a simple approach - if user has ACTIVE status and has completed registration_form
       // In the future, we can create a specific RPC for onboarding status
-      const { data, error } = await supabase.rpc('complete_user_registration' as any);
+      const { data, error } = await supabase.rpc('complete_user_registration');
       
       if (error && error.code !== 'PGRST301') { // Ignore "No data returned" error
         console.error('Error checking onboarding status:', error);

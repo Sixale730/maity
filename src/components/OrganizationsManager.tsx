@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,19 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Plus, ExternalLink, Trash2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+import { Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { getAppUrl } from "@/lib/appUrl";
-import { useLanguage } from "@/contexts/LanguageContext";
 
-interface Company {
-  id: string;
-  name: string;
-  plan: string;
-  timezone: string;
-  is_active: boolean;
-  created_at: string;
-  registration_url?: string; // Generated field
-}
+type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
+
+type Company = SupabaseCompany & {
+  registration_url?: string;
+};
 
 export function OrganizationsManager() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -32,28 +28,21 @@ export function OrganizationsManager() {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const { toast } = useToast();
   const appUrl = getAppUrl();
-  const { t } = useLanguage();
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_companies' as any);
+      const { data, error } = await supabase.rpc("get_companies");
 
       if (error) throw error;
-      
-      // Add registration_url to each company using company ID for auth_company
-      const companiesWithUrls = (data || []).map((company: any) => ({
+
+      const companiesWithUrls: Company[] = (data ?? []).map((company) => ({
         ...company,
-        registration_url: `${appUrl}/auth_company?company=${company.id}`
+        registration_url: `${appUrl}/auth_company?company=${company.id}`,
       }));
-      
+
       setCompanies(companiesWithUrls);
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error("Error fetching companies:", error);
       toast({
         title: "Error",
         description: "No se pudieron cargar las empresas",
@@ -62,14 +51,11 @@ export function OrganizationsManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appUrl, toast]);
 
-  const generateSlug = (name: string) => {
-    return name.toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
-  };
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const createCompany = async () => {
     if (!newCompanyName.trim()) {
@@ -82,31 +68,36 @@ export function OrganizationsManager() {
     }
 
     try {
-      const { data, error } = await supabase
-        .rpc('create_company' as any, { company_name: newCompanyName.trim() });
+      const { data, error } = await supabase.rpc("create_company", {
+        company_name: newCompanyName.trim(),
+      });
 
       if (error) throw error;
 
-      // Add registration_url to the new company using company ID for auth_company
-      const newCompany = (data as any[])[0]; // RPC returns an array
-      const newCompanyWithUrl = {
+      const newCompany = data?.[0];
+      if (!newCompany) {
+        throw new Error("No se pudo crear la empresa");
+      }
+
+      const newCompanyWithUrl: Company = {
         ...newCompany,
-        registration_url: `${appUrl}/auth_company?company=${newCompany.id}`
+        registration_url: `${appUrl}/auth_company?company=${newCompany.id}`,
       };
 
-      setCompanies([newCompanyWithUrl, ...companies]);
+      setCompanies((prev) => [newCompanyWithUrl, ...prev]);
       setNewCompanyName("");
       setIsDialogOpen(false);
-      
+
       toast({
-        title: "Éxito",
+        title: "A%xito",
         description: "Empresa creada correctamente",
       });
-    } catch (error: any) {
-      console.error('Error creating company:', error);
+    } catch (error) {
+      console.error("Error creating company:", error);
+      const errorMessage = error instanceof Error ? error.message : "";
       toast({
         title: "Error",
-        description: error.message.includes('duplicate') 
+        description: errorMessage.toLowerCase().includes("duplicate")
           ? "Ya existe una empresa con ese nombre"
           : "No se pudo crear la empresa",
         variant: "destructive",
@@ -116,24 +107,24 @@ export function OrganizationsManager() {
 
   const deleteCompany = async (company: Company) => {
     setDeleteLoading(company.id);
-    
+
     try {
-      const { error } = await supabase
-        .rpc('delete_company', { company_id: company.id });
+      const { error } = await supabase.rpc("delete_company", { company_id: company.id });
 
       if (error) throw error;
 
-      setCompanies(prev => prev.filter(c => c.id !== company.id));
-      
+      setCompanies((prev) => prev.filter((c) => c.id !== company.id));
+
       toast({
-        title: "Éxito",
+        title: "A%xito",
         description: "Empresa eliminada correctamente",
       });
-    } catch (error: any) {
-      console.error('Error deleting company:', error);
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      const message = error instanceof Error ? error.message : "No se pudo eliminar la empresa";
       toast({
         title: "Error",
-        description: "No se pudo eliminar la empresa",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -149,6 +140,7 @@ export function OrganizationsManager() {
         description: "Link copiado al portapapeles",
       });
     } catch (error) {
+      console.error("Error copying link:", error);
       toast({
         title: "Error",
         description: "No se pudo copiar el link",
@@ -184,7 +176,7 @@ export function OrganizationsManager() {
             </p>
           </div>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
@@ -201,17 +193,17 @@ export function OrganizationsManager() {
                 <Label htmlFor="companyName">Nombre de la Empresa</Label>
                 <Input
                   id="companyName"
+                  placeholder="Ingresa el nombre de la empresa"
                   value={newCompanyName}
-                  onChange={(e) => setNewCompanyName(e.target.value)}
-                  placeholder="Ej: Mi Empresa S.A."
+                  onChange={(event) => setNewCompanyName(event.target.value)}
                 />
               </div>
-              <div className="flex gap-2 pt-4">
-                <Button onClick={createCompany} className="flex-1">
-                  Crear Empresa
-                </Button>
+              <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
+                </Button>
+                <Button onClick={createCompany} className="flex-1">
+                  Crear Empresa
                 </Button>
               </div>
             </div>
@@ -222,21 +214,11 @@ export function OrganizationsManager() {
       {/* Companies Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Empresas ({companies.length})</CardTitle>
+          <CardTitle>Empresas Registradas</CardTitle>
         </CardHeader>
         <CardContent>
           {companies.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No hay empresas registradas</p>
-              <Button 
-                onClick={() => setIsDialogOpen(true)} 
-                className="mt-4"
-                variant="outline"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Crear primera empresa
-              </Button>
-            </div>
+            <p className="text-muted-foreground">No hay empresas registradas</p>
           ) : (
             <Table>
               <TableHeader>
@@ -246,8 +228,8 @@ export function OrganizationsManager() {
                   <TableHead>Estado</TableHead>
                   <TableHead>Zona Horaria</TableHead>
                   <TableHead>Link de Registro</TableHead>
-                  <TableHead>Fecha de Creación</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead>Creado</TableHead>
+                  <TableHead className="w-[100px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -262,78 +244,60 @@ export function OrganizationsManager() {
                         {company.is_active ? "Activa" : "Inactiva"}
                       </Badge>
                     </TableCell>
+                    <TableCell>{company.timezone}</TableCell>
                     <TableCell>
-                      <code className="bg-muted px-2 py-1 rounded text-sm">
-                        {company.timezone}
-                      </code>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 max-w-sm">
-                        <code className="bg-muted px-2 py-1 rounded text-xs truncate flex-1">
+                      <div className="flex flex-col gap-2">
+                        <code className="text-xs break-all bg-muted px-2 py-1 rounded">
                           {company.registration_url}
                         </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyToClipboard(company.registration_url!)}
-                          className="flex-shrink-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(company.registration_url ?? "")}
+                          >
+                            <Copy className="h-4 w-4 mr-1" /> Copiar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(company.registration_url ?? "", "_blank")}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" /> Abrir
+                          </Button>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(company.created_at).toLocaleDateString('es-ES')}
+                      {new Date(company.created_at).toLocaleDateString("es-ES")}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copyToClipboard(company.registration_url!)}
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          Copiar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(company.registration_url!, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Abrir
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={deleteLoading === company.id}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              {deleteLoading === company.id ? "..." : "Eliminar"}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Eliminar Empresa</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                ¿Estás seguro que quieres eliminar "{company.name}"? Esta acción no se puede deshacer y eliminará todos los datos asociados.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteCompany(company)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Eliminar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={deleteLoading === company.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            {deleteLoading === company.id ? "..." : "Eliminar"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Eliminar empresa</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              ¿Estás seguro que quieres eliminar "{company.name}"? Esta acción no se puede deshacer y eliminará todos los datos asociados.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteCompany(company)}>
+                              Confirmar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

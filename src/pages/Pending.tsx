@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -136,7 +136,7 @@ const Pending = () => {
           return; // Don't continue with status check if invitation was processed
         }
 
-        const { data: status } = await supabase.rpc('my_status' as any);
+        const { data: status } = await supabase.rpc('my_status');
         if (status === 'ACTIVE') {
           navigate('/dashboard');
         }
@@ -229,3 +229,4 @@ const Pending = () => {
 };
 
 export default Pending;
+

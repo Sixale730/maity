@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,7 +13,7 @@ export const useStatusValidation = () => {
         return false;
       }
 
-      const { data: status } = await supabase.rpc('my_status' as any);
+      const { data: status } = await supabase.rpc('my_status');
       if (status !== 'ACTIVE') {
         navigate('/pending');
         return false;

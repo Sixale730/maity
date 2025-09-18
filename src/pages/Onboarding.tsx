@@ -1,103 +1,103 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+﻿import React, { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+type UserInfo = Database['public']['Functions']['get_user_info']['Returns'][number];
+
+declare global {
+  interface Window {
+    Tally?: {
+      loadEmbeds: () => void;
+    };
+  }
+}
+
 const Onboarding = () => {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [formCompleted, setFormCompleted] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAuthAndUser();
-    setupTallyListener();
+    void checkAuthAndUser();
+    const cleanupListener = setupTallyListener();
     loadTallyScript();
+
+    return cleanupListener;
   }, []);
 
   const checkAuthAndUser = async () => {
     try {
       setLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      if (!currentUser) {
         navigate('/auth?returnTo=/onboarding');
         return;
       }
 
-      // Check if user has company assignment
-      const { data: userInfo } = await supabase.rpc('get_user_info' as any);
-      
+      const { data: userInfoResponse } = await supabase.rpc('get_user_info');
+      const userInfo = userInfoResponse?.[0] as UserInfo | undefined;
+
       if (!userInfo || !userInfo.company_id) {
-        // User has no company assigned, requires invitation
         navigate('/invitation-required');
         return;
       }
 
-      // If user already completed registration, redirect to dashboard
       if (userInfo.registration_form_completed) {
         navigate('/dashboard');
         return;
       }
 
-      // Provision user in maity schema (this should work now)
       const { error: provisionError } = await supabase.rpc('provision_user');
       if (provisionError) {
         console.error('Error provisioning user:', provisionError);
         toast({
-          title: "Error",
-          description: "Error al configurar usuario: " + provisionError.message,
-          variant: "destructive",
+          title: 'Error',
+          description: `Error al configurar usuario: ${provisionError.message}`,
+          variant: 'destructive',
         });
       }
 
-      setUser(user);
-      setLoading(false);
+      setUser(currentUser);
     } catch (error) {
       console.error('Error checking auth:', error);
-      setLoading(false);
       navigate('/invitation-required');
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadTallyScript = () => {
-    // Check if Tally is already loaded
-    if ((window as any).Tally) {
-      (window as any).Tally.loadEmbeds();
+    if (window.Tally) {
+      window.Tally.loadEmbeds();
       return;
     }
-    
-    // Check if script is already present
+
     if (document.querySelector('script[src="https://tally.so/widgets/embed.js"]')) {
       return;
     }
-    
+
     const script = document.createElement('script');
     script.src = 'https://tally.so/widgets/embed.js';
     script.onload = () => {
-      if ((window as any).Tally) {
-        (window as any).Tally.loadEmbeds();
-      } else {
-        // Fallback for iframes
-        document.querySelectorAll('iframe[data-tally-src]:not([src])').forEach((iframe) => {
-          const htmlIframe = iframe as HTMLIFrameElement;
-          const src = htmlIframe.getAttribute('data-tally-src');
-          if (src) {
-            htmlIframe.src = src;
-          }
-        });
+      if (window.Tally) {
+        window.Tally.loadEmbeds();
+        return;
       }
-    };
-    script.onerror = () => {
-      // Fallback for iframes
+
       document.querySelectorAll('iframe[data-tally-src]:not([src])').forEach((iframe) => {
         const htmlIframe = iframe as HTMLIFrameElement;
         const src = htmlIframe.getAttribute('data-tally-src');
@@ -106,14 +106,23 @@ const Onboarding = () => {
         }
       });
     };
+    script.onerror = () => {
+      document.querySelectorAll('iframe[data-tally-src]:not([src])').forEach((iframe) => {
+        const htmlIframe = iframe as HTMLIFrameElement;
+        const src = htmlIframe.getAttribute('data-tally-src');
+        if (src) {
+          htmlIframe.src = src;
+        }
+      });
+    };
+
     document.body.appendChild(script);
   };
 
   const setupTallyListener = () => {
     const handleMessage = (event: MessageEvent) => {
-      // Listen for Tally form completion
-      if (event.data.type === 'TALLY_FORM_COMPLETED') {
-        handleFormCompletion();
+      if (event.data?.type === 'TALLY_FORM_COMPLETED') {
+        void handleFormCompletion();
       }
     };
 
@@ -123,97 +132,78 @@ const Onboarding = () => {
 
   const handleFormCompletion = async () => {
     try {
-      // Complete onboarding in database
       const { error } = await supabase.rpc('complete_onboarding');
-      
+
       if (error) {
         console.error('Error completing onboarding:', error);
         toast({
-          title: "Error",
-          description: "Error al completar onboarding",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Error al completar onboarding',
+          variant: 'destructive',
         });
         return;
       }
 
       setFormCompleted(true);
-      
+
       toast({
-        title: "¡Bienvenido!",
-        description: "Onboarding completado exitosamente",
+        title: 'Bienvenido!',
+        description: 'Onboarding completado exitosamente',
       });
 
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
-
     } catch (error) {
       console.error('Error in form completion:', error);
       toast({
-        title: "Error",
-        description: "Error al procesar formulario",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Error al procesar formulario',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleBackToHome = () => {
+  const handleRetry = () => {
+    setLoading(true);
+    setUser(null);
+    void checkAuthAndUser();
+  };
+
+  const handleBack = () => {
     navigate('/');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-lg text-muted-foreground">Verificando datos...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">{t('onboarding.loading')}</p>
         </div>
-      </div>
-    );
-  }
-
-  if (formCompleted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20">
-        <Card className="w-full max-w-md mx-4">
-          <CardHeader className="text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <CardTitle className="text-2xl">¡Bienvenido a Maity!</CardTitle>
-            <CardDescription>
-              Tu onboarding ha sido completado exitosamente. Serás redirigido al dashboard en breve.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => navigate('/dashboard')} 
-              className="w-full"
-            >
-              Ir al Dashboard
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20">
-        <Card className="w-full max-w-md mx-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>Acceso Requerido</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowLeft className="h-5 w-5" onClick={handleBack} role="button" tabIndex={0} />
+              {t('onboarding.not_authorized_title')}
+            </CardTitle>
             <CardDescription>
-              Necesitas iniciar sesión para acceder al onboarding.
+              {t('onboarding.not_authorized_description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => navigate('/auth')} className="w-full">
-              Iniciar Sesión
+            <Button onClick={handleRetry} className="w-full">
+              {t('onboarding.retry_button')}
             </Button>
-            <Button variant="outline" onClick={handleBackToHome} className="w-full">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+            <Button variant="outline" onClick={handleBack} className="w-full">
+              {t('onboarding.back_button')}
             </Button>
           </CardContent>
         </Card>
@@ -221,7 +211,27 @@ const Onboarding = () => {
     );
   }
 
-  // Generate validation token (simple approach for now)
+  if (formCompleted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="space-y-4 text-center">
+            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            <CardTitle>{t('onboarding.success_title')}</CardTitle>
+            <CardDescription>{t('onboarding.success_description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground text-center">
+              {t('onboarding.redirect_message')}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const validationToken = btoa(`${user.id}:${Date.now()}`);
 
   return (
@@ -233,13 +243,13 @@ const Onboarding = () => {
           #root { height: 100%; }
         `}
       </style>
-      <iframe 
-        data-tally-src="https://tally.so/r/wQGAyA?transparentBackground=1" 
-        width="100%" 
-        height="100%" 
-        frameBorder="0" 
-        marginHeight={0} 
-        marginWidth={0} 
+      <iframe
+        data-tally-src="https://tally.so/r/wQGAyA?transparentBackground=1"
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        marginHeight={0}
+        marginWidth={0}
         title="Registro"
         style={{
           position: 'absolute',
@@ -255,3 +265,5 @@ const Onboarding = () => {
 };
 
 export default Onboarding;
+
+
