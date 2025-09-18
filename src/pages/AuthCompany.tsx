@@ -107,25 +107,26 @@ const AuthCompany: React.FC = () => {
       setShowMissingCompanyWarning(false);
       persistCompanyId(candidateId);
 
-      supabase
-        .rpc("get_company_by_id", { company_id: candidateId })
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("[AC-1][ERROR] get_company_by_id", error);
-            return;
-          }
-
-          if (Array.isArray(data) && data.length > 0) {
-            const record = data[0] as CompanyRecord;
-            setCompanyName(record?.name ?? "");
-          } else {
-            console.warn("[AC-1][WARN] company_id valido pero sin registro", { candidateId });
-            setCompanyName("");
-          }
-        })
-        .catch((error) => {
-          console.error("[AC-1][ERROR] get_company_by_id:exception", error);
-        });
+      (async () => {
+        try {
+          const { data, error } = await supabase.rpc("get_company_by_id", { company_id: candidateId });
+          
+          if (error) {
+            console.error("[AC-1][ERROR] get_company_by_id", error);
+            return;
+          }
+
+          if (Array.isArray(data) && data.length > 0) {
+            const record = data[0] as CompanyRecord;
+            setCompanyName(record?.name ?? "");
+          } else {
+            console.warn("[AC-1][WARN] company_id valido pero sin registro", { candidateId });
+            setCompanyName("");
+          }
+        } catch (error) {
+          console.error("[AC-1][ERROR] get_company_by_id:exception", error);
+        }
+      })();
     } else {
       setCompanyId("");
       setCompanyName("");
@@ -198,43 +199,44 @@ const AuthCompany: React.FC = () => {
     }
   };
 
-  const handleOAuthLogin = async (provider: "google" | "azure") => {
-    if (!hasValidCompanyId) {
-      toast({
-        title: "Company ID requerido",
-        description: "Necesitas un company_id valido para continuar.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    persistCompanyId(companyId);
-    setLoading(true);
-
-    const redirectUrl = new URL('/auth/callback', baseOrigin);
-    redirectUrl.searchParams.set('company_id', companyId);
-
-    console.log(`[AC-3] Lanzando login (provider=${provider}) -> redirect=${redirectUrl.toString()}`);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: redirectUrl.toString(),
-        },
-      });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('[AC-3][ERROR] OAuth login failed', error);
-      const description = getErrorMessage(error) || `No se pudo continuar con ${provider}.`;
-      toast({
-        title: 'Error de autenticacion',
-        description,
-        variant: 'destructive',
-      });
-    }
-  };
+  const handleOAuthLogin = async (provider: "google" | "azure") => {
+    if (!hasValidCompanyId) {
+      toast({
+        title: "Company ID requerido",
+        description: "Necesitas un company_id valido para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    persistCompanyId(companyId);
+    setLoading(true);
+
+    const redirectUrl = new URL('/auth/callback', baseOrigin);
+    redirectUrl.searchParams.set('company_id', companyId);
+
+    console.log(`[AC-3] Lanzando login (provider=${provider}) -> redirect=${redirectUrl.toString()}`);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectUrl.toString(),
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[AC-3][ERROR] OAuth login failed', error);
+      const description = getErrorMessage(error) || `No se pudo continuar con ${provider}.`;
+      toast({
+        title: 'Error de autenticacion',
+        description,
+        variant: 'destructive',
+      });
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
