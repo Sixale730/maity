@@ -1,204 +1,151 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, Building2, ArrowLeft } from 'lucide-react';
-import { createValidationToken } from '@/lib/jwt';
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { buildTallyEmbedUrl } from "@/lib/tally";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, Building2, ArrowLeft } from "lucide-react";
 
-interface Company {
+/**
+ * NOTAS IMPORTANTES:
+ * - Este componente ya NO depende de ?company=... en la URL.
+ * - Usa ?otk=<token> que te manda el backend desde /api/finalize-invite.
+ * - Pasa hidden fields a Tally: auth_id y otk (se validan más tarde en el webhook).
+ * - NO marca registro como completado desde el cliente (eso lo hace el webhook).
+ * - Al terminar, Tally redirige a /onboarding/success donde haces poll a /api/my_status.
+ */
+
+type Company = {
   id: string;
   name: string;
-  plan: string;
-  timezone: string;
+  plan: string | null;
+  timezone: string | null;
   is_active: boolean;
   created_at: string;
-}
+};
 
-const Registration = () => {
-  const [searchParams] = useSearchParams();
+const TALLY_FORM_ID = import.meta.env.VITE_TALLY_FORM_ID || "wQGAyA"; // o hardcodea si prefieres
+
+const Registration: React.FC = () => {
+  const [params] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [formCompleted, setFormCompleted] = useState(false);
+  const [authId, setAuthId] = useState<string>("");
 
-  const companyId = searchParams.get('company');
+  const otk = params.get("otk") || "";
 
   useEffect(() => {
-    checkAuthAndCompany();
-  }, [companyId]);
+    void init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otk]);
 
-  const checkAuthAndCompany = async () => {
+  const init = async () => {
     try {
-      // Check authentication
+      // 1) Sesión obligatoria
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (!session) {
-        // Redirect to auth with return URL
         const returnTo = encodeURIComponent(window.location.href);
         navigate(`/auth?returnTo=${returnTo}`);
         return;
       }
+      setAuthId(session.user.id);
 
-      setUser(session.user);
-
-      // Check if company ID is provided
-      if (!companyId) {
+      // 2) OTK obligatorio (lo genera finalize-invite)
+      if (!otk) {
         toast({
-          title: "Error",
-          description: "No se especificó una empresa válida",
+          title: "Falta token",
+          description: "Vuelve a abrir tu enlace de invitación.",
           variant: "destructive",
         });
-        navigate('/');
+        navigate("/");
         return;
       }
 
-      // Get user info including registration status
-      const { data: userInfoArray, error } = await supabase.rpc('get_user_info');
-      
-      if (error || !userInfoArray || userInfoArray.length === 0) {
-        console.error('Error fetching user info:', error);
+      // 3) Traer info de usuario (propia fila). Debes tener RLS para select propio.
+      const { data: me, error: meErr } = await supabase
+        .from("users") // si tu tabla está bajo schema maity con RLS, ten un view/rpc; o expón vista en public.
+        .select("company_id, registration_form_completed")
+        .single();
+
+      if (meErr || !me) {
+        console.error("[registration] meErr", meErr);
         toast({
           title: "Error",
-          description: "Error al verificar los datos del usuario",
+          description: "No se pudo obtener tu perfil.",
           variant: "destructive",
         });
-        navigate('/');
+        navigate("/");
         return;
       }
 
-      const userInfo = userInfoArray[0];
-      console.log('🔍 [DEBUG] Registration - User info:', userInfo);
-      console.log('🔍 [DEBUG] Registration - Company ID check:', { 
-        hasCompanyId: !!userInfo.company_id, 
-        companyId: userInfo.company_id,
-        registrationCompleted: userInfo.registration_form_completed,
-        userAuthId: userInfo.auth_id 
+      // 4) Debe existir company asignada (la asignó finalize-invite/RPC)
+      if (!me.company_id) {
+        toast({
+          title: "Sin empresa asignada",
+          description: "Tu invitación no pudo asignarte a una empresa.",
+          variant: "destructive",
+        });
+        navigate("/invitation-required");
+        return;
+      }
+
+      // 5) Si ya completaste el registro, directo al dashboard
+      if (me.registration_form_completed) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      // 6) Traer datos de la empresa (usa tu RPC existente si la tabla está bajo schema maity)
+      // Reemplaza por tu RPC si la usas: get_company_by_id(company_id uuid)
+      const { data: companyRows, error: compErr } = await supabase.rpc("get_company_by_id", {
+        company_id: me.company_id,
       });
 
-      // Check if user has company assignment (critical for Tally webhook)
-      if (!userInfo.company_id) {
-        console.error('❌ [DEBUG] User has no company assigned in Registration');
+      if (compErr || !companyRows || companyRows.length === 0) {
+        console.error("[registration] company error", compErr);
         toast({
-          title: "Error",
-          description: "No tienes una empresa asignada. Contacta al administrador.",
+          title: "Empresa no encontrada o inactiva",
+          description: "Contacta a tu administrador.",
           variant: "destructive",
         });
-        navigate('/invitation-required');
+        navigate("/");
         return;
       }
 
-      // Check if registration form is already completed
-      if (userInfo.registration_form_completed) {
-        console.log('✅ [DEBUG] Registration already completed, redirecting to dashboard');
-        navigate('/dashboard');
-        return;
-      }
-
-      // Get company details by ID
-      const { data: companyDataArray, error: companyError } = await supabase.rpc('get_company_by_id', {
-        company_id: companyId
-      });
-      
-      if (companyError || !companyDataArray || companyDataArray.length === 0) {
-        console.error('Error fetching company:', companyError);
-        toast({
-          title: "Error",
-          description: "Empresa no encontrada o inactiva",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
-
-      const companyData = companyDataArray[0];
-      setCompany(companyData);
-      
-      // Load Tally script after company is confirmed
-      loadTallyScript();
-      
-    } catch (error) {
-      console.error('Error checking auth and company:', error);
+      setCompany(companyRows[0]);
+    } catch (e: any) {
+      console.error("[registration] init error", e);
       toast({
         title: "Error",
-        description: "Error al verificar los datos",
+        description: "No se pudo cargar el registro.",
         variant: "destructive",
       });
-      navigate('/');
+      navigate("/");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTallyScript = () => {
-    const script = document.createElement('script');
-    script.src = 'https://tally.so/widgets/embed.js';
-    script.async = true;
-    script.onload = () => {
-      // Listen for form completion
-      setupTallyListener();
-    };
-    document.head.appendChild(script);
-  };
+  const iframeSrc = useMemo(() => {
+    if (!authId || !otk) return "";
+    return buildTallyEmbedUrl(
+      TALLY_FORM_ID,
+      {
+        auth_id: authId,      // obligatorio
+        otk,                  // obligatorio
+        company_id: company?.id || "",          // opcional
+        company_name: company?.name || "",      // opcional
+        // email: session?.user?.email || "",    // opcional
+      },
+      { redirectTo: `${location.origin}/onboarding/success` }
+    );
+  }, [authId, otk, company]);
 
-  const setupTallyListener = () => {
-    // Listen for Tally form submission
-    window.addEventListener('message', async (event) => {
-      if (event.origin !== 'https://tally.so') return;
-      
-      if (event.data.type === 'TALLY_FORM_SUBMIT') {
-        await handleFormCompletion();
-      }
-    });
-  };
-
-  const handleFormCompletion = async () => {
-    try {
-      console.log('📝 [DEBUG] Starting form completion process...');
-      
-      // Get current user info to verify state
-      const { data: currentUserInfo } = await supabase.rpc('get_user_info');
-      console.log('📝 [DEBUG] Current user info before completion:', currentUserInfo);
-      
-      // Mark user registration as completed
-      const { error } = await supabase.rpc('complete_user_registration');
-      console.log('📝 [DEBUG] Complete registration result:', { error });
-      
-      if (error) throw error;
-
-      setFormCompleted(true);
-      
-      // Verify the update worked
-      const { data: updatedUserInfo } = await supabase.rpc('get_user_info');
-      console.log('📝 [DEBUG] User info after completion:', updatedUserInfo);
-      
-      toast({
-        title: "¡Registro completado!",
-        description: "Serás redirigido al dashboard en unos segundos",
-      });
-
-      // Redirect to dashboard after 3 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
-
-    } catch (error) {
-      console.error('❌ [DEBUG] Error completing registration:', error);
-      console.error('❌ [DEBUG] Error details:', error.message, error.details);
-      toast({
-        title: "Error",
-        description: "Error al completar el registro",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBackToHome = () => {
-    navigate('/');
-  };
+  const handleBackToHome = () => navigate("/");
 
   if (loading) {
     return (
@@ -207,29 +154,6 @@ const Registration = () => {
           <CardContent className="flex flex-col items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Verificando datos...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (formCompleted) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl">¡Registro completado!</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground mb-6">
-              Tu registro para <strong>{company?.name}</strong> ha sido completado exitosamente.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Serás redirigido al dashboard automáticamente...
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -257,34 +181,32 @@ const Registration = () => {
     );
   }
 
+  // Estilos para fullscreen del iframe
   return (
     <>
       <style>
         {`
-          html { margin: 0; height: 100%; overflow: hidden; }
-          body { margin: 0; height: 100%; overflow: hidden; }
-          #root { height: 100%; }
-          iframe { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border: 0; }
+          html, body, #root { height: 100%; }
+          body { margin: 0; overflow: hidden; }
+          iframe { position: fixed; inset: 0; border: 0; width: 100%; height: 100%; }
         `}
       </style>
-      <iframe 
-        data-tally-src={`https://tally.so/r/wQGAyA?transparentBackground=1&companyName=${encodeURIComponent(company.name)}&companyId=${company.id}&userId=${user?.id || ''}&validationToken=${createValidationToken(user?.id || '')}&webhookUrl=${encodeURIComponent('https://nhlrtflkxoojvhbyocet.supabase.co/functions/v1/tally-webhook')}`}
-        width="100%" 
-        height="100%" 
-        frameBorder="0" 
-        marginHeight={0} 
-        marginWidth={0} 
-        title="Registro"
-      />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            // Note: user_id and validation_token are passed as URL parameters to Tally
-            // They will be automatically included as hidden fields in the form submission
-            console.log('Tally form loaded with user data for user: ${user?.email || ''}');
-          `
-        }}
-      />
+
+      {!iframeSrc ? (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Cargando formulario…</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Loader2 className="h-5 w-5 animate-spin inline-block mr-2" />
+              Espera un momento…
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <iframe title="Registro / Diagnóstico" src={iframeSrc} />
+      )}
     </>
   );
 };
