@@ -25,28 +25,11 @@ import MaityLogo from "@/components/MaityLogo";
 import { buildRedirectTo } from '@/lib/auth'; // o ruta relativa
 
 // Missing type and utility definitions
-interface CompanyInfo {
-  id: string;
-  name: string;
-}
-
-const parseAssignCompanyResult = (result: any) => {
-  if (!result) return { success: false };
-  return result;
-};
-
-const parseProvisionWithCompanyResult = (result: any) => {
-  if (!result) return { success: false };
-  return result;
-};
-
 const getErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
   if (error?.message) return error.message;
   return 'An unexpected error occurred';
 };
-
-
 
 interface InvitationResult {
 
@@ -80,25 +63,11 @@ interface InvitationResult {
 
 }
 
-
-
-interface CompanyRecord {
-
-  id: string;
-
-  name: string;
-
-}
-
-
-
 interface AuthProps {
 
   mode?: 'default' | 'company';
 
 }
-
-
 
 const Auth = ({ mode = 'default' }: AuthProps) => {
 
@@ -118,519 +87,66 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   const baseOrigin = resolveBaseOrigin(appUrl);
 
-
-
   const buildDashboardUrl = () => new URL('/dashboard', baseOrigin).toString();
 
+  const buildLocalRedirect = (rawReturnTo: string | null) => {
 
+    const fallback = buildDashboardUrl();
 
-  const buildRegistrationUrl = (companyId: string) => {
-
-    const url = new URL('/registration', baseOrigin);
-
-    url.searchParams.set('company', companyId);
-
-    return url.toString();
+    return rebaseUrlToOrigin(rawReturnTo, baseOrigin, fallback);
 
   };
-
-
-
-  const buildLocalRedirect = (rawReturnTo: string | null, companyId?: string | null) => {
-
-    const fallback = companyId ? buildRegistrationUrl(companyId) : buildDashboardUrl();
-
-
-
-    return rebaseUrlToOrigin(rawReturnTo, baseOrigin, fallback, (url) => {
-
-      if (!companyId) {
-
-        return;
-
-      }
-
-
-
-      const hasCompanyParam = url.searchParams.has('company') || url.searchParams.has('company_id');
-
-      if (!hasCompanyParam) {
-
-        url.searchParams.set('company', companyId);
-
-      }
-
-    });
-
-  };
-
-  const isCompanyMode = mode === 'company';
-
-  const [companyIdFieldValue, setCompanyIdFieldValue] = useState('');
-
-  const isValidUUID = (value: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value);
-
-  const fetchCompanyById = async (companyId: string): Promise<CompanyRecord | null> => {
-
-    if (!companyId) {
-
-      return null;
-
-    }
-
-    try {
-
-      const { data, error } = await supabase.rpc('get_company_by_id', {
-
-        company_id: companyId,
-
-      });
-
-      if (error) {
-
-        console.error('[DEBUG] Error fetching company by ID:', error);
-
-        return null;
-
-      }
-
-      if (!data || data.length === 0) {
-
-        return null;
-
-      }
-
-      const record = data[0] as CompanyInfo;
-
-
-
-      console.log('[DEBUG] fetchCompanyById:success', { companyId, name: record.name });
-
-
-
-      return { id: record.id, name: record.name };
-
-
-
-    } catch (error) {
-
-      console.error('[DEBUG] Unexpected error fetching company by ID:', error);
-
-      return null;
-
-    }
-
-  };
-
-
-
-
-
-  // Helper function to assign company to user (simplified)
-
-  const assignCompanyToUser = async (companyId: string, userId: string, userEmail: string) => {
-
-    console.log('[DEBUG] Starting simple company assignment:', {
-
-      companyId,
-
-      userId,
-
-      userEmail
-
-    });
-
-
-
-    try {
-
-      const { data: result, error } = await supabase.rpc('assign_company_simple', {
-
-        user_auth_id: userId,
-
-        company_slug: companyId
-
-      });
-
-
-
-      if (error) {
-
-        console.error('[DEBUG] Database error in company assignment:', error);
-
-        throw error;
-
-      }
-
-
-
-      const assignmentResult = parseAssignCompanyResult(result);
-
-      console.log('[DEBUG] Company assignment result:', assignmentResult);
-
-
-
-      if (!assignmentResult.success) {
-
-        console.error('[DEBUG] Company assignment failed:', assignmentResult);
-
-
-
-        if (assignmentResult.error === 'USER_NOT_FOUND') {
-
-          toast({
-
-            title: 'Error',
-
-            description: 'Usuario no encontrado en el sistema.',
-
-            variant: 'destructive',
-
-          });
-
-        } else if (assignmentResult.error === 'COMPANY_NOT_FOUND') {
-
-          toast({
-
-            title: 'Error',
-
-            description: 'La empresa no fue encontrada o esta inactiva.',
-
-            variant: 'destructive',
-
-          });
-
-        }
-
-        return false;
-
-      }
-
-
-
-      toast({
-
-        title: 'Exito!',
-
-        description: `Te has unido a ${assignmentResult.company_name}`,
-
-        variant: 'default',
-
-      });
-
-
-
-      return true;
-
-    } catch (error) {
-
-      console.error('[DEBUG] Unexpected error in assignCompanyToUser:', error);
-
-      return false;
-
-    }
-
-  };
-
-
-
-  const extractCompanyId = (params: URLSearchParams) => {
-
-
-
-    const entries = Object.fromEntries(params.entries());
-
-
-
-    console.log('[DEBUG] extractCompanyId:start', { entries });
-
-
-
-    const directCompanyId = params.get('company');
-
-
-
-    if (directCompanyId) {
-
-
-
-      console.log('[DEBUG] extractCompanyId:direct', { directCompanyId });
-
-
-
-      return directCompanyId;
-
-
-
-    }
-
-
-
-
-
-
-
-    const returnParam = params.get('returnTo') || params.get('returnUrl');
-
-
-
-    if (!returnParam) {
-
-
-
-      console.log('[DEBUG] extractCompanyId:noCompanyParam', { entries });
-
-
-
-      return null;
-
-
-
-    }
-
-
-
-
-
-
-
-    let decodedReturn = returnParam;
-
-
-
-    try {
-
-
-
-      decodedReturn = decodeURIComponent(returnParam);
-
-
-
-    } catch (decodeError) {
-
-
-
-      console.warn('[DEBUG] extractCompanyId:decodeFailed', { returnParam, decodeError });
-
-
-
-    }
-
-
-
-
-
-
-
-    try {
-
-
-
-      const parsedUrl = new URL(decodedReturn, appUrl);
-
-
-
-      const nestedCompany = parsedUrl.searchParams.get('company');
-
-
-
-      console.log('[DEBUG] extractCompanyId:nested', { decodedReturn, nestedCompany });
-
-
-
-      return nestedCompany;
-
-
-
-    } catch (parseError) {
-
-
-
-      console.error('[DEBUG] extractCompanyId:parseFailed', { decodedReturn, parseError });
-
-
-
-      return null;
-
-
-
-    }
-
-
-
-  };
-
-
-
-
-
-
-
-
-
 
 
   // Check if user is already authenticated
 
-
-
   useEffect(() => {
-
-
-
-    const urlParams = new URLSearchParams(window.location.search);
-
-
-
-    const companyId = extractCompanyId(urlParams);
-
-    setCompanyIdFieldValue(companyId ?? '');
-
-
-
-    console.log('[DEBUG] Auth useEffect:init', {
-
-
-
-      companyId,
-
-
-
-      urlParams: Object.fromEntries(urlParams.entries()),
-
-
-
-      locationSearch: window.location.search,
-
-
-
-    });
-
-
-
-
-
-
-
-    // Check for existing session first
-
-
 
     supabase.auth.getSession().then(({ data: { session } }) => {
 
-
-
       console.log('[DEBUG] Auth getSession', {
-
-
 
         hasSession: !!session,
 
-
-
         userId: session?.user?.id,
-
-
-
-        companyId,
-
-
 
       });
 
-
-
       if (session?.user) {
 
-
-
-        handleLoggedInUser(session.user, companyId);
-
-
+        handleLoggedInUser(session.user);
 
       }
-
-
 
     });
 
-
-
-
-
-
-
-    // Set up auth state listener
-
-
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-
-
 
       async (event, session) => {
 
-
-
         console.log('[DEBUG] Auth onAuthStateChange', {
-
-
 
           event,
 
-
-
           hasSessionUser: !!session?.user,
-
-
-
-          companyId,
-
-
 
         });
 
+        if (event === "SIGNED_IN" && session?.user) {
 
-
-        if (event === 'SIGNED_IN' && session?.user) {
-
-
-
-          handleLoggedInUser(session.user, companyId);
-
-
+          handleLoggedInUser(session.user);
 
         }
 
-
-
       }
-
-
 
     );
 
-
-
-
-
-
-
     return () => subscription.unsubscribe();
-
-
 
   }, []);
 
-
-
-
-
-
-
-
-
-  const handleLoggedInUser = async (user: any, companyId: string | null) => {
+  const handleLoggedInUser = async (user: any) => {
 
     try {
 
@@ -642,81 +158,15 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         email: user.email, 
 
-        companyId,
-
         userMetadata: user.user_metadata 
 
       });
-
-
-
-      let targetCompanyId: string | null = null;
-
-      let targetCompanyName: string | null = null;
-
-
-
-      if (companyId) {
-
-        if (!isValidUUID(companyId)) {
-
-          toast({
-
-            title: "Error",
-
-            description: "El identificador de la empresa no es valido.",
-
-            variant: "destructive",
-
-          });
-
-          navigate('/invitation-required');
-
-          return;
-
-        }
-
-
-
-        const companyRecord = await fetchCompanyById(companyId);
-
-        console.log('[DEBUG] Resolved company from parameter:', { companyId, companyRecord });
-
-        if (!companyRecord) {
-
-          toast({
-
-            title: "Error",
-
-            description: "La empresa no fue encontrada o esta inactiva.",
-
-            variant: "destructive",
-
-          });
-
-          navigate('/invitation-required');
-
-          return;
-
-        }
-
-
-
-        targetCompanyId = companyRecord.id;
-
-        targetCompanyName = companyRecord.name;
-
-      }
-
-
 
       // Get current user info first (now searches by email if auth_id is null)
 
       let { data: userInfoArray, error } = await supabase.rpc('get_user_info');
 
       console.log('[DEBUG] handleLoggedInUser:getUserInfoInitial', { userInfoArray, error });
-
-      
 
       // If user found but auth_id is null, update it
 
@@ -734,8 +184,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         console.log('[DEBUG] handleLoggedInUser:updateAuthStatus', { updateError });
 
-        
-
         // Refresh user info after updating auth_id
 
         const { data: refreshedUserInfo, error: refreshError } = await supabase.rpc('get_user_info');
@@ -750,67 +198,13 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       }
 
-      
-
       // If no user info found, provision the user first
 
       if (!userInfoArray || userInfoArray.length === 0) {
 
         console.log('[DEBUG] handleLoggedInUser:provisioningFreshUser');
 
-        
-
-        if (targetCompanyId) {
-
-          console.log('[DEBUG] handleLoggedInUser:provisionWithCompany', targetCompanyId);
-
-          const { data: provisionResult, error: provisionError } = await supabase.rpc('provision_user_with_company', {
-
-            company_slug: targetCompanyId,
-
-            invitation_source: window.location.href
-
-          });
-
-
-
-          console.log('[DEBUG] handleLoggedInUser:provisionResult', { provisionResult, provisionError });
-
-
-
-          const result = parseProvisionWithCompanyResult(provisionResult);
-
-          if (provisionError || !result?.success) {
-
-            console.error('[DEBUG] Failed to provision user with company:', provisionError, result);
-
-            navigate('/invitation-required');
-
-            return;
-
-          }
-
-
-
-          console.log('[DEBUG] handleLoggedInUser:provisionSuccess', result);
-
-          toast({
-
-            title: targetCompanyName ? `Bienvenido a ${targetCompanyName}` : 'Bienvenido!',
-
-            description: `Te has unido a ${result.company_name}`,
-
-          });
-
-        } else {
-
-          // Provision user without company
-
-          await supabase.rpc('provision_user');
-
-        }
-
-        
+        await supabase.rpc('provision_user');
 
         // Get user info after provisioning
 
@@ -832,46 +226,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       } 
 
-      // If user exists but has company in URL, try to assign it
-
-      else if (targetCompanyId) {
-
-        console.log('[DEBUG] handleLoggedInUser:assignExistingUser');
-
-        console.log('[DEBUG] handleLoggedInUser:beforeAssignmentState', userInfoArray[0]);
-
-
-
-        const assigned = await assignCompanyToUser(targetCompanyId, user.id, user.email);
-
-        if (!assigned) {
-
-          console.log('[DEBUG] handleLoggedInUser:assignmentFailedRedirect');
-
-          navigate('/invitation-required');
-
-          return;
-
-        }
-
-        console.log('[DEBUG] handleLoggedInUser:assignmentSucceeded');
-
-
-
-        // Refresh user info after assignment
-
-        const { data: updatedUserInfoArray, error: updateError } = await supabase.rpc('get_user_info');
-
-        console.log('[DEBUG] handleLoggedInUser:userInfoAfterAssignment', { updatedUserInfoArray, updateError });
-
-        if (updatedUserInfoArray && updatedUserInfoArray.length > 0) {
-
-          userInfoArray = updatedUserInfoArray;
-
-        }
-
-      }
-
       const userInfo = userInfoArray[0];
 
       console.log('[DEBUG] handleLoggedInUser:finalStateBanner');
@@ -888,8 +242,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       });
 
-
-
       // Check if user has company assignment
 
       if (!userInfo.company_id) {
@@ -901,8 +253,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
         return;
 
       }
-
-
 
       // Check registration status
 
@@ -918,89 +268,46 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
       }
 
-
-
       // User is fully set up, redirect appropriately
-
-
 
       const urlParams = new URLSearchParams(window.location.search);
 
-
-
       const rawReturnTo = urlParams.get('returnTo');
-
-
 
       const returnTo = rawReturnTo || '/dashboard';
 
 
-
       let decodedReturnTo: string | null = null;
-
-
 
       if (rawReturnTo) {
 
-
-
         try {
-
-
 
           decodedReturnTo = decodeURIComponent(rawReturnTo);
 
-
-
         } catch (error) {
-
-
 
           console.warn('[DEBUG] handleLoggedInUser:decodeReturnToFailed', { rawReturnTo, error });
 
-
-
         }
-
-
 
       }
 
-
-
       console.log('[DEBUG] handleLoggedInUser:finalRedirect', {
-
-
 
         locationSearch: window.location.search,
 
-
-
         rawReturnTo,
-
-
 
         decodedReturnTo,
 
-
-
         destination: returnTo,
-
-
 
       });
 
-
-
       navigate(returnTo);
 
-
-
       console.log('[DEBUG] handleLoggedInUser:complete', { destination: returnTo });
-
-
-
-      
 
     } catch (error) {
 
@@ -1024,305 +331,125 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   };
 
-
-
   const handleEmailAuth = async (e: React.FormEvent) => {
-
-
 
     e.preventDefault();
 
-
-
     setLoading(true);
-
-
-
-
-
-
 
     const urlParams = new URLSearchParams(window.location.search);
 
-
-
     const returnTo = urlParams.get('returnTo') || urlParams.get('returnUrl');
 
-
-
-    const companyId = extractCompanyId(urlParams);
-
-    setCompanyIdFieldValue(companyId ?? '');
-
+    const redirectTarget = buildLocalRedirect(returnTo);
 
 
     console.log('[DEBUG] handleEmailAuth:start', {
 
-
-
       isLogin,
-
-
 
       email,
 
-
-
       hasPassword: Boolean(password),
-
-
 
       returnTo,
 
-
-
-      companyId,
-
-
-
       locationSearch: window.location.search,
-
-
 
     });
 
-
-
-
-
-
-
-    const redirectTarget = buildLocalRedirect(returnTo, companyId);
-
-    console.log('[DEBUG] handleEmailAuth:redirectTarget', { returnTo, companyId, redirectTarget });
-
-
-
-
-
+    console.log('[DEBUG] handleEmailAuth:redirectTarget', { returnTo, redirectTarget });
 
 
     try {
 
-
-
       if (isLogin) {
-
-
 
         const { error } = await supabase.auth.signInWithPassword({
 
-
-
           email,
-
-
 
           password,
 
-
-
         });
-
-
 
         if (error) throw error;
 
-
-
         console.log('[DEBUG] handleEmailAuth:passwordLoginSuccess', { userEmail: email, redirectTarget });
-
-
-
-
-
-
 
         toast({
 
-
-
           title: 'Bienvenido!',
-
-
 
           description: 'Has iniciado sesion exitosamente.',
 
-
-
         });
-
-
 
       } else {
 
 
-
-        if (!companyId) {
-
-
-
-          toast({
-
-
-
-            title: 'Invitacion requerida',
-
-
-
-            description: 'Necesitas un enlace de invitacion valido para crear una cuenta.',
-
-
-
-            variant: 'destructive',
-
-
-
-          });
-
-
-
-          navigate('/invitation-required');
-
-
-
-          return;
-
-
-
-        }
-
-
-
-
-
-
-
         const { error } = await supabase.auth.signUp({
-
-
 
           email,
 
-
-
           password,
-
-
 
           options: {
 
-
-
             emailRedirectTo: redirectTarget
-
-
 
           }
 
-
-
         });
-
-
 
         if (error) throw error;
 
-
-
-        console.log('[DEBUG] handleEmailAuth:signUpSuccess', { userEmail: email, companyId, redirectTarget });
-
-
-
-
-
+        console.log('[DEBUG] handleEmailAuth:signUpSuccess', { userEmail: email, redirectTarget });
 
 
         toast({
 
-
-
           title: 'Cuenta creada!',
-
-
 
           description: 'Revisa tu correo para confirmar tu cuenta.',
 
-
-
         });
-
-
 
       }
 
-
-
     } catch (error) {
-
-
 
       toast({
 
-
-
         title: 'Error',
-
-
 
         description: error.message || 'Ocurrio un error inesperado.',
 
-
-
         variant: 'destructive',
-
-
 
       });
 
-
-
     } finally {
-
-
 
       setLoading(false);
 
-
-
     }
 
-
-
   };
-
-
-
-
-
-
 
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
 
     setLoading(true);
 
-  
-
     const urlParams = new URLSearchParams(window.location.search);
 
     const returnTo  = urlParams.get('returnTo') || urlParams.get('returnUrl');
 
-    const companyId = extractCompanyId?.(urlParams) ?? null;
+    const redirectTarget = buildRedirectTo(returnTo);
 
-    setCompanyIdFieldValue(companyId ?? '');
 
-  
 
-    const redirectTarget = buildRedirectTo(returnTo, companyId);
-
-    console.debug('[AUTH] provider=', provider, { returnTo, companyId, redirectTarget });
-
-  
+    console.debug('[AUTH] provider=', provider, { returnTo, redirectTarget });
 
     try {
 
@@ -1355,10 +482,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
     }
 
   };
-
-  
-
-
 
   return (
 
@@ -1432,8 +555,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             </Button>
 
-            
-
             <Button
 
               type="button"
@@ -1468,8 +589,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           </div>
 
-
-
           <div className="relative">
 
             <div className="absolute inset-0 flex items-center">
@@ -1489,8 +608,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
             </div>
 
           </div>
-
-
 
           {/* Email Form */}
 
@@ -1552,8 +669,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           </form>
 
-
-
           {/* Toggle Login/Signup */}
 
           <div className="text-center">
@@ -1579,8 +694,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
             </button>
 
           </div>
-
-
 
           {/* Back to home */}
 
@@ -1612,19 +725,5 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
 };
 
-
-
 export default Auth;
-
-
-
-
-
-
-
-
-
-
-
-
 
