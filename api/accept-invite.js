@@ -33,22 +33,22 @@ export default async function handler(req, res) {
   if (invite.max_uses && invite.used_count >= invite.max_uses) return res.status(400).send('Invite exhausted');
 
   const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://www.maity.com.mx';
-  res.writeHead(302, { Location: `${FRONTEND_ORIGIN}/auth` });
-  const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.maity.com.mx';
+  const COOKIE_DOMAIN   = process.env.COOKIE_DOMAIN   || '.maity.com.mx';
 
-  // Cookie 30 min
-  res.setHeader(
-    'Set-Cookie',
-    cookieString('invite_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'Lax',
-      domain: COOKIE_DOMAIN,
-      path: '/',
-      maxAge: 60 * 30,
-    })
-  );
+  // 1) Setea la cookie (antes de enviar headers)
+  res.setHeader('Set-Cookie', cookieString('invite_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Lax',
+    domain: COOKIE_DOMAIN,
+    path: '/',
+    maxAge: 60 * 30, // 30 min
+  }));
+  // opcional: evita caches
+  res.setHeader('Cache-Control', 'no-store');
 
-  res.writeHead(302, { Location: `${FRONTEND_ORIGIN}/auth` });
+  // 2) Un solo redirect
+  res.statusCode = 302;
+  res.setHeader('Location', `${FRONTEND_ORIGIN}/auth`);
   res.end();
 }
