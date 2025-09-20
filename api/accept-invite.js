@@ -33,6 +33,7 @@ export default async function handler(req, res) {
   if (invite.max_uses && invite.used_count >= invite.max_uses) return res.status(400).send('Invite exhausted');
 
   const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://www.maity.com.mx';
+  res.writeHead(302, { Location: `${FRONTEND_ORIGIN}/auth` });
   const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.maity.com.mx';
 
   // Cookie 30 min
