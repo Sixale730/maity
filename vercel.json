@@ -1,10 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-
     { "source": "/accept-invite", "destination": "/api/accept-invite" },
     { "source": "/finalize-invite", "destination": "/api/finalize-invite" },
-
     { "source": "/(.*)", "destination": "/" }
   ]
 }
