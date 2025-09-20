@@ -1,3 +1,4 @@
+// src/pages/AuthCallback.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ export default function AuthCallback() {
       const href = window.location.href;
 
       try {
-        // 1) Obtener sesión actual (o intercambiar el code del callback)
+        // 1) Sesión actual o intercambio de code -> session
         let {
           data: { session },
         } = await supabase.auth.getSession();
@@ -24,14 +25,15 @@ export default function AuthCallback() {
 
         if (!session) throw new Error("No session after callback");
 
-        // 2) Preparar base URL del backend (con fallback a prod)
+        // 2) Base URL del backend
         const API_BASE =
           (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) ||
-          "https://maity.com.mx";
+          (location.hostname === "localhost"
+            ? "http://localhost:8080"
+            : "https://api.maity.com.mx");
 
-        // 3) Intentar finalizar invite (si hay cookie invite_token, el server la leerá)
+        // 3) Intentar finalizar el invite (si hay cookie invite_token, el server la leerá)
         try {
-          // Logs útiles para depurar en consola del navegador
           console.log("[callback] VITE_API_URL =", import.meta.env.VITE_API_URL);
           console.log("[callback] calling:", `${API_BASE}/api/finalize-invite`);
           console.log(
@@ -44,46 +46,42 @@ export default function AuthCallback() {
             headers: {
               Authorization: `Bearer ${session.access_token}`,
             },
-            credentials: "include", // imprescindible para que viaje la cookie
+            // MUY IMPORTANTE: para que viaje la cookie invite_token al subdominio API
+            credentials: "include",
           });
 
           const text = await res.text();
           console.log("[callback] finalize-invite status:", res.status, "body:", text);
 
           if (res.ok) {
-            // Refrescar la sesión por si tu guard lee algo inmediatamente
+            // Refrescamos sesión por si tu guard consulta cambios inmediatos
             await supabase.auth.refreshSession();
 
-            // Parsear JSON de respuesta
-            let data: any = null;
+            // Si el server manda un redirect, obedécelo
             try {
-              data = JSON.parse(text);
+              const data = JSON.parse(text);
+              if (data?.success && data?.redirect) {
+                window.location.href = data.redirect;
+                return; // cortamos aquí
+              }
             } catch {
-              // si no es JSON válido, sigue flujo normal
-            }
-
-            if (data?.success && data?.redirect) {
-              window.location.href = data.redirect; // /admin/dashboard o /app/dashboard
-              return; // IMPORTANT: corta aquí para no seguir al flujo normal
+              // si no es JSON, seguimos flujo normal
             }
           }
         } catch (inviteError) {
-          console.log("[callback] No invite o fallo al procesarlo:", inviteError);
-          // continúa con el flujo normal
+          console.warn("[callback] No invite o fallo al procesarlo:", inviteError);
         }
 
-        // 4) Flujo normal (si no hay invite o ya se usó)
+        // 4) Flujo normal (sin invite o ya usado)
         const url = new URL(href);
         const returnTo = url.searchParams.get("returnTo") || "/dashboard";
 
-        // Limpia la URL (quita query params de OAuth)
+        // Limpia la URL del callback
         window.history.replaceState({}, "", "/auth/callback");
 
         navigate(returnTo.startsWith("/") ? returnTo : "/dashboard", { replace: true });
       } catch (err) {
-        if (import.meta.env.DEV) {
-          console.error("[callback] auth error:", err);
-        }
+        console.error("[callback] auth error:", err);
         navigate("/auth", { replace: true });
       }
     })();
