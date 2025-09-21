@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 
 import { Button } from "@/components/ui/button";
 
@@ -97,108 +97,6 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   };
 
-
-  // Check if user is already authenticated
-
-  useEffect(() => {
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-
-      console.log('[DEBUG] Auth getSession', {
-
-        hasSession: !!session,
-
-        userId: session?.user?.id,
-
-      });
-
-      if (session?.user) {
-
-        handleLoggedInUser(session.user);
-
-      }
-
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-
-      async (event, session) => {
-
-        console.log('[DEBUG] Auth onAuthStateChange', {
-
-          event,
-
-          hasSessionUser: !!session?.user,
-
-        });
-
-        if (event === "SIGNED_IN" && session?.user) {
-
-          handleLoggedInUser(session.user);
-
-        }
-
-      }
-
-    );
-
-    return () => subscription.unsubscribe();
-
-  }, []);
-
-  const handleLoggedInUser = async (user: any) => {
-    try {
-      const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
-      if (phaseError) {
-        console.error('[auth] my_phase error:', phaseError);
-        navigate('/auth', { replace: true });
-        return;
-      }
-
-      const extractField = (value: unknown, field: string) => {
-        if (!value || typeof value === 'string') return undefined;
-        if (Array.isArray(value)) {
-          return (value[0] as Record<string, unknown> | undefined)?.[field];
-        }
-        return (value as Record<string, unknown>)[field];
-      };
-
-      const phaseRaw =
-        typeof phaseData === 'string'
-          ? phaseData
-          : (extractField(phaseData, 'phase') as string | undefined);
-
-      const phase = String(phaseRaw || '').toUpperCase();
-
-      if (phase === 'NO_COMPANY') {
-        navigate('/pending', { replace: true });
-        return;
-      }
-
-      if (phase === 'REGISTRATION') {
-        navigate('/registration', { replace: true });
-        return;
-      }
-
-      if (phase === 'ACTIVE') {
-        const params = new URLSearchParams(window.location.search);
-        const rawReturnTo = params.get('returnTo');
-        const destination = rawReturnTo && rawReturnTo.startsWith('/') ? rawReturnTo : '/dashboard';
-        navigate(destination, { replace: true });
-        return;
-      }
-
-      navigate('/auth', { replace: true });
-    } catch (error: any) {
-      console.error('[auth] handleLoggedInUser error', error);
-      toast({
-        title: 'Error',
-        description: getErrorMessage(error),
-        variant: 'destructive',
-      });
-      navigate('/auth', { replace: true });
-    }
-  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
 
@@ -595,4 +493,5 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 };
 
 export default Auth;
+
 

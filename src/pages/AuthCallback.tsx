@@ -1,71 +1,48 @@
-﻿import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+﻿import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const hasRoutedRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+    if (hasRoutedRef.current) return;
 
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        if (location.pathname !== "/auth") {
-          navigate("/auth", { replace: true });
-        }
-        return;
-      }
+      if (!session) { hasRoutedRef.current = true; navigate("/auth", { replace: true }); return; }
 
+      // 1) Procesar invitación sólo si existe
       const url = new URL(window.location.href);
-      const raw = url.searchParams.get("invite") ?? "";
+      const raw = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken") ?? "";
       const invite = decodeURIComponent(raw).trim();
-
       if (invite.length > 0) {
         const { error } = await supabase.rpc("accept_invite", { p_invite_token: invite });
         if (error) console.error("[accept_invite]", error);
       }
 
-      const { data, error } = await supabase.rpc("my_phase");
-      if (error) {
-        console.error("[AuthCb] my_phase error:", error);
-        if (!cancelled && location.pathname !== "/auth") {
-          navigate("/auth", { replace: true });
-        }
-        return;
-      }
-
-      const rawPhase =
-        typeof data === "string"
-          ? data
-          : (data as any)?.phase ??
-            (Array.isArray(data) ? (data[0] as any)?.phase : undefined);
-
-      const phase = String(rawPhase || "").toUpperCase();
-
+      // 2) Limpiar siempre
+      localStorage.removeItem("inviteToken");
+      sessionStorage.removeItem("inviteToken");
       localStorage.removeItem("companyId");
-      if (cancelled) return;
 
-      let targetPath = "/auth";
-      if (phase === "ACTIVE") {
-        targetPath = "/dashboard";
-      } else if (phase === "REGISTRATION") {
-        targetPath = "/registration";
-      } else if (phase === "NO_COMPANY") {
-        targetPath = "/pending";
-      }
+      // 3) Decidir por fase
+      const { data, error } = await supabase.rpc("my_phase");
+      if (error) { console.error("[AuthCb] my_phase error:", error); hasRoutedRef.current = true; navigate("/auth", { replace: true }); return; }
 
-      if (location.pathname !== targetPath) {
-        navigate(targetPath, { replace: true });
-      }
+      const phase =
+        typeof data === "string"
+          ? data.toUpperCase()
+          : String((data as any)?.phase ?? (Array.isArray(data) ? (data[0] as any)?.phase : "")).toUpperCase();
+
+      hasRoutedRef.current = true;
+      if (phase === "ACTIVE") { navigate("/dashboard", { replace: true }); return; }
+      if (phase === "REGISTRATION") { navigate("/registration", { replace: true }); return; }
+      // NO_COMPANY (u otro) → pending
+      navigate("/pending", { replace: true });
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [location.pathname, navigate]);
+  }, [navigate]);
 
   return <p>Procesando inicio de sesión…</p>;
 }
-
