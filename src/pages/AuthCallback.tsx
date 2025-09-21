@@ -1,58 +1,69 @@
 ﻿import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      // 1) Espera sesión real
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return; // opcional: intenta otra vez con onAuthStateChange
-
-      // 2) (Opcional) Acepta invitación si viene en la URL o storage
-      const url = new URL(window.location.href);
-      const invite = url.searchParams.get('invite') ?? localStorage.getItem('inviteToken');
-      if (invite) {
-        await supabase.rpc('accept_invite', { p_invite_token: invite }).catch(console.error);
+      if (!session) {
+        if (location.pathname !== "/auth") {
+          navigate("/auth", { replace: true });
+        }
+        return;
       }
 
-      // 3) Obtén status de forma robusta
-      const { data, error } = await supabase.rpc('my_status');
-      if (error) { console.error('[AuthCb] my_status error:', error); return; }
+      const url = new URL(window.location.href);
+      const invite = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken");
+      if (invite) {
+        await supabase.rpc("accept_invite", { p_invite_token: invite }).catch(console.error);
+      }
+      localStorage.removeItem("inviteToken");
+      sessionStorage.removeItem("inviteToken");
+
+      const { data, error } = await supabase.rpc("my_phase");
+      if (error) {
+        console.error("[AuthCb] my_phase error:", error);
+        if (!cancelled && location.pathname !== "/auth") {
+          navigate("/auth", { replace: true });
+        }
+        return;
+      }
 
       const raw =
-        typeof data === 'string'
+        typeof data === "string"
           ? data
-          : (data as any)?.status ??
-            (Array.isArray(data) ? (data[0] as any)?.status : undefined);
+          : (data as any)?.phase ??
+            (Array.isArray(data) ? (data[0] as any)?.phase : undefined);
 
-      const status = String(raw || '').toUpperCase();
+      const phase = String(raw || "").toUpperCase();
 
-      localStorage.removeItem('inviteToken');
-      sessionStorage.removeItem('inviteToken');
-      localStorage.removeItem('companyId');
+      localStorage.removeItem("companyId");
       if (cancelled) return;
 
-      // 4) Decide destino final UNA sola vez
-      const targetPath = status === 'ACTIVE' ? '/dashboard' : '/auth';
+      let targetPath = "/auth";
+      if (phase === "ACTIVE") {
+        targetPath = "/dashboard";
+      } else if (phase === "REGISTRATION") {
+        targetPath = "/registration";
+      } else if (phase === "NO_COMPANY") {
+        targetPath = "/pending";
+      }
+
       if (location.pathname !== targetPath) {
         navigate(targetPath, { replace: true });
       }
     })();
 
-    return () => { cancelled = true; };
-  }, [navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, navigate]);
 
   return <p>Procesando inicio de sesión…</p>;
 }
-
-
-
-
-
-
-

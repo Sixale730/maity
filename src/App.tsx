@@ -13,6 +13,7 @@ import AuthCompany from "./pages/AuthCompany";
 import AuthCallback from "./pages/AuthCallback";
 import OAuthTest from "./pages/OAuthTest";
 import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./routes/ProtectedRoute";
 import Registration from "./pages/Registration";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
@@ -43,7 +44,9 @@ const App = () => (
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/invitation-confirm" element={<InvitationConflict />} />
             <Route path="/invitation-required" element={<InvitationRequired />} />
-            <Route path="/dashboard/*" element={<Dashboard />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard/*" element={<Dashboard />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -54,3 +57,5 @@ const App = () => (
 );
 
 export default App;
+
+
