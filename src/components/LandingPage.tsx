@@ -14,25 +14,54 @@ const LandingPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  // Check if user is already authenticated and active
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuthStatus = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const { data: status } = await supabase.rpc('my_status');
-          if (status === 'ACTIVE') {
-            navigate('/dashboard');
-          } else if (status === 'PENDING' || status === 'SUSPENDED') {
-            navigate('/pending');
-          }
+        console.log("[guard] session?", !!session);
+
+        if (!session) {
+          // Si aqui quieres, navega a /auth. Si ya estas en /auth, no hagas nada.
+          return;
         }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
+
+        const { data, error } = await supabase.rpc("my_status");
+        if (error) {
+          console.error("[guard] my_status error:", error);
+          return;
+        }
+
+        const raw =
+          typeof data === "string"
+            ? data
+            : (data as any)?.status ??
+              (Array.isArray(data) ? (data[0] as any)?.status : undefined);
+
+        const status = String(raw || "").toUpperCase();
+        console.log("[guard] status =", status, "data =", data);
+
+        if (cancelled) return;
+
+        if (status === "ACTIVE") {
+          if (location.pathname !== "/dashboard") {
+            navigate("/dashboard", { replace: true });
+          }
+        } else if (status === "PENDING" || status === "SUSPENDED") {
+          if (location.pathname !== "/pending") {
+            navigate("/pending", { replace: true });
+          }
+        } else {
+          console.warn("[guard] status inesperado:", status);
+        }
+      } catch (err) {
+        console.error("[guard] error general:", err);
       }
     };
 
     checkAuthStatus();
+    return () => { cancelled = true; };
   }, [navigate]);
 
   return (
@@ -283,4 +312,6 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
+
 
