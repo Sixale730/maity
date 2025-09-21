@@ -147,188 +147,57 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   }, []);
 
   const handleLoggedInUser = async (user: any) => {
-
     try {
-
-      console.log('[DEBUG] === STARTING handleLoggedInUser ===');
-
-      console.log('[DEBUG] Input params:', {
-
-        userId: user.id, 
-
-        email: user.email, 
-
-        userMetadata: user.user_metadata 
-
-      });
-
-      // Get current user info first (now searches by email if auth_id is null)
-
-      let { data: userInfoArray, error } = await supabase.rpc('get_user_info');
-
-      console.log('[DEBUG] handleLoggedInUser:getUserInfoInitial', { userInfoArray, error });
-
-      // If user found but auth_id is null, update it
-
-      if (userInfoArray && userInfoArray.length > 0 && !userInfoArray[0].auth_id) {
-
-        console.log('[DEBUG] handleLoggedInUser:missingAuthIdUpdating');
-
-        const { error: updateError } = await supabase.rpc('update_user_auth_status', {
-
-          user_auth_id: user.id,
-
-          user_email: user.email
-
-        });
-
-        console.log('[DEBUG] handleLoggedInUser:updateAuthStatus', { updateError });
-
-        // Refresh user info after updating auth_id
-
-        const { data: refreshedUserInfo, error: refreshError } = await supabase.rpc('get_user_info');
-
-        console.log('[DEBUG] handleLoggedInUser:refreshedUserInfo', { refreshedUserInfo, refreshError });
-
-        if (refreshedUserInfo && refreshedUserInfo.length > 0) {
-
-          userInfoArray = refreshedUserInfo;
-
-        }
-
-      }
-
-      // If no user info found, provision the user first
-
-      if (!userInfoArray || userInfoArray.length === 0) {
-
-        console.log('[DEBUG] handleLoggedInUser:provisioningFreshUser');
-
-        await supabase.rpc('provision_user');
-
-        // Get user info after provisioning
-
-        const { data: newUserInfoArray, error: newError } = await supabase.rpc('get_user_info');
-
-        console.log('[DEBUG] handleLoggedInUser:userInfoAfterProvisioning', { newUserInfoArray, newError });
-
-        if (newError || !newUserInfoArray || newUserInfoArray.length === 0) {
-
-          console.error('[DEBUG] Failed to get user info after provisioning:', newError);
-
-          navigate('/invitation-required');
-
-          return;
-
-        }
-
-        userInfoArray = newUserInfoArray;
-
-      } 
-
-      const userInfo = userInfoArray[0];
-
-      console.log('[DEBUG] handleLoggedInUser:finalStateBanner');
-
-      console.log('[DEBUG] handleLoggedInUser:finalUserInfo', userInfo);
-
-      console.log('[DEBUG] handleLoggedInUser:companyCheck', { 
-
-        hasCompanyId: !!userInfo.company_id, 
-
-        companyId: userInfo.company_id,
-
-        registrationCompleted: userInfo.registration_form_completed 
-
-      });
-
-      // Check if user has company assignment
-
-      if (!userInfo.company_id) {
-
-        console.log('[DEBUG] handleLoggedInUser:noCompanyRedirect');
-
-        navigate('/invitation-required');
-
+      const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
+      if (phaseError) {
+        console.error('[auth] my_phase error:', phaseError);
+        navigate('/auth', { replace: true });
         return;
-
       }
 
-      // Check registration status
-
-      if (!userInfo.registration_form_completed) {
-
-        console.log('[DEBUG] handleLoggedInUser:needsRegistration');
-
-        console.log('[DEBUG] handleLoggedInUser:redirectingToRegistration', userInfo.company_id);
-
-        navigate(`/registration?company=${userInfo.company_id}`);
-
-        return;
-
-      }
-
-      // User is fully set up, redirect appropriately
-
-      const urlParams = new URLSearchParams(window.location.search);
-
-      const rawReturnTo = urlParams.get('returnTo');
-
-      const returnTo = rawReturnTo || '/dashboard';
-
-
-      let decodedReturnTo: string | null = null;
-
-      if (rawReturnTo) {
-
-        try {
-
-          decodedReturnTo = decodeURIComponent(rawReturnTo);
-
-        } catch (error) {
-
-          console.warn('[DEBUG] handleLoggedInUser:decodeReturnToFailed', { rawReturnTo, error });
-
+      const extractField = (value: unknown, field: string) => {
+        if (!value || typeof value === 'string') return undefined;
+        if (Array.isArray(value)) {
+          return (value[0] as Record<string, unknown> | undefined)?.[field];
         }
+        return (value as Record<string, unknown>)[field];
+      };
 
+      const phaseRaw =
+        typeof phaseData === 'string'
+          ? phaseData
+          : (extractField(phaseData, 'phase') as string | undefined);
+
+      const phase = String(phaseRaw || '').toUpperCase();
+
+      if (phase === 'NO_COMPANY') {
+        navigate('/pending', { replace: true });
+        return;
       }
 
-      console.log('[DEBUG] handleLoggedInUser:finalRedirect', {
+      if (phase === 'REGISTRATION') {
+        navigate('/registration', { replace: true });
+        return;
+      }
 
-        locationSearch: window.location.search,
+      if (phase === 'ACTIVE') {
+        const params = new URLSearchParams(window.location.search);
+        const rawReturnTo = params.get('returnTo');
+        const destination = rawReturnTo && rawReturnTo.startsWith('/') ? rawReturnTo : '/dashboard';
+        navigate(destination, { replace: true });
+        return;
+      }
 
-        rawReturnTo,
-
-        decodedReturnTo,
-
-        destination: returnTo,
-
-      });
-
-      navigate(returnTo);
-
-      console.log('[DEBUG] handleLoggedInUser:complete', { destination: returnTo });
-
-    } catch (error) {
-
-      console.error('[DEBUG] handleLoggedInUser:error', error);
-
-      console.error('[DEBUG] handleLoggedInUser:errorStack', error.stack);
-
+      navigate('/auth', { replace: true });
+    } catch (error: any) {
+      console.error('[auth] handleLoggedInUser error', error);
       toast({
-
-        title: "Error",
-
-        description: "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
-
-        variant: "destructive",
-
+        title: 'Error',
+        description: getErrorMessage(error),
+        variant: 'destructive',
       });
-
-      navigate('/invitation-required');
-
+      navigate('/auth', { replace: true });
     }
-
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
