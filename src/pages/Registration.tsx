@@ -35,6 +35,7 @@ const Registration: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
   const [authId, setAuthId] = useState<string>("");
+  const [missingOtk, setMissingOtk] = useState(false);
 
   const otk = params.get("otk") || "";
 
@@ -45,6 +46,7 @@ const Registration: React.FC = () => {
 
   const init = async () => {
     try {
+      setMissingOtk(false);
       // 1) Sesión obligatoria
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -57,7 +59,7 @@ const Registration: React.FC = () => {
       // 2) OTK obligatorio (lo genera finalize-invite)
       if (!otk) {
         console.warn('[registration] missing otk token');
-        navigate('/auth', { replace: true });
+        setMissingOtk(true);
         return;
       }
 
@@ -156,6 +158,27 @@ const Registration: React.FC = () => {
     );
   }
 
+  if (missingOtk) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Invitación requerida</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-muted-foreground">
+              Necesitas abrir el enlace de invitación que recibiste para continuar con el registro.
+            </p>
+            <Button onClick={handleBackToHome} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al inicio
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!company) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -208,3 +231,5 @@ const Registration: React.FC = () => {
 };
 
 export default Registration;
+
+
