@@ -48,10 +48,6 @@ const LandingPage = () => {
           if (location.pathname !== "/dashboard") {
             navigate("/dashboard", { replace: true });
           }
-        } else if (status === "PENDING" || status === "SUSPENDED") {
-          if (location.pathname !== "/pending") {
-            navigate("/pending", { replace: true });
-          }
         } else {
           console.warn("[guard] status inesperado:", status);
         }
@@ -312,6 +308,7 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
 
 
 
