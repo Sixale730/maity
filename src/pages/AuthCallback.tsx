@@ -19,12 +19,13 @@ export default function AuthCallback() {
       }
 
       const url = new URL(window.location.href);
-      const invite = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken");
-      if (invite) {
-        await supabase.rpc("accept_invite", { p_invite_token: invite }).catch(console.error);
+      const raw = url.searchParams.get("invite") ?? "";
+      const invite = decodeURIComponent(raw).trim();
+
+      if (invite.length > 0) {
+        const { error } = await supabase.rpc("accept_invite", { p_invite_token: invite });
+        if (error) console.error("[accept_invite]", error);
       }
-      localStorage.removeItem("inviteToken");
-      sessionStorage.removeItem("inviteToken");
 
       const { data, error } = await supabase.rpc("my_phase");
       if (error) {
@@ -35,13 +36,13 @@ export default function AuthCallback() {
         return;
       }
 
-      const raw =
+      const rawPhase =
         typeof data === "string"
           ? data
           : (data as any)?.phase ??
             (Array.isArray(data) ? (data[0] as any)?.phase : undefined);
 
-      const phase = String(raw || "").toUpperCase();
+      const phase = String(rawPhase || "").toUpperCase();
 
       localStorage.removeItem("companyId");
       if (cancelled) return;
@@ -52,7 +53,7 @@ export default function AuthCallback() {
       } else if (phase === "REGISTRATION") {
         targetPath = "/registration";
       } else if (phase === "NO_COMPANY") {
-        targetPath = "/pending";
+        targetPath = "/invitation-required";
       }
 
       if (location.pathname !== targetPath) {

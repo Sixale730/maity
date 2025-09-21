@@ -56,12 +56,8 @@ const Registration: React.FC = () => {
 
       // 2) OTK obligatorio (lo genera finalize-invite)
       if (!otk) {
-        toast({
-          title: "Falta token",
-          description: "Vuelve a abrir tu enlace de invitación.",
-          variant: "destructive",
-        });
-        navigate("/");
+        console.warn('[registration] missing otk token');
+        navigate('/auth', { replace: true });
         return;
       }
 
