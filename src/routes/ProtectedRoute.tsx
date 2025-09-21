@@ -53,7 +53,7 @@ const ProtectedRoute = () => {
         if (phase === 'REGISTRATION') {
           target = '/registration';
         } else if (phase === 'NO_COMPANY') {
-          target = '/invitation-required';
+          target = '/pending';
         }
 
         if (pathname !== target) {
@@ -88,4 +88,5 @@ const ProtectedRoute = () => {
 };
 
 export default ProtectedRoute;
+
 

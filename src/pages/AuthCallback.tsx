@@ -53,7 +53,7 @@ export default function AuthCallback() {
       } else if (phase === "REGISTRATION") {
         targetPath = "/registration";
       } else if (phase === "NO_COMPANY") {
-        targetPath = "/invitation-required";
+        targetPath = "/pending";
       }
 
       if (location.pathname !== targetPath) {
@@ -68,3 +68,4 @@ export default function AuthCallback() {
 
   return <p>Procesando inicio de sesión…</p>;
 }
+

@@ -13,6 +13,7 @@ import AuthCompany from "./pages/AuthCompany";
 import AuthCallback from "./pages/AuthCallback";
 import OAuthTest from "./pages/OAuthTest";
 import Dashboard from "./pages/Dashboard";
+import Pending from "./pages/Pending";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Registration from "./pages/Registration";
 import Onboarding from "./pages/Onboarding";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/invitation-confirm" element={<InvitationConflict />} />
+            <Route path="/pending" element={<Pending />} />
             <Route path="/invitation-required" element={<InvitationRequired />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/*" element={<Dashboard />} />
@@ -57,5 +59,6 @@ const App = () => (
 );
 
 export default App;
+
 
 
