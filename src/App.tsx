@@ -1,4 +1,4 @@
-// src/App.tsx
+﻿// src/App.tsx
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,7 +13,6 @@ import AuthCompany from "./pages/AuthCompany";
 import AuthCallback from "./pages/AuthCallback";
 import OAuthTest from "./pages/OAuthTest";
 import Dashboard from "./pages/Dashboard";
-import Pending from "./pages/Pending";
 import Registration from "./pages/Registration";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
@@ -39,7 +38,6 @@ const App = () => (
             <Route path="/auth_company" element={<AuthCompany />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/oauth-test" element={<OAuthTest />} />
-            <Route path="/pending" element={<Pending />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />

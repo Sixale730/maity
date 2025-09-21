@@ -38,12 +38,12 @@ export const useUserRole = () => {
       // Check user status first, but don't redirect if we're on auth page
       const { data: status } = await supabase.rpc('my_status');
       if (status !== 'ACTIVE' && !location.pathname.startsWith('/auth')) {
-        const pendingPath = '/pending';
+        const authPath = '/auth';
 
         if (appUrl) {
-          window.location.replace(appUrl + pendingPath);
+          window.location.replace(appUrl + authPath);
         } else {
-          navigate(pendingPath, { replace: true });
+          navigate(authPath, { replace: true });
         }
         return;
       }
@@ -117,4 +117,3 @@ export const useUserRole = () => {
     isUser: userRole === 'user'
   };
 };
-

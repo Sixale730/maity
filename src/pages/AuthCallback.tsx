@@ -38,7 +38,7 @@ export default function AuthCallback() {
       if (cancelled) return;
 
       // 4) Decide destino final UNA sola vez
-      const targetPath = status === 'ACTIVE' ? '/dashboard' : '/pending';
+      const targetPath = status === 'ACTIVE' ? '/dashboard' : '/auth';
       if (location.pathname !== targetPath) {
         navigate(targetPath, { replace: true });
       }
@@ -49,6 +49,7 @@ export default function AuthCallback() {
 
   return <p>Procesando inicio de sesión…</p>;
 }
+
 
 
 
