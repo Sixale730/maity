@@ -35,7 +35,37 @@ export const useUserRole = () => {
         return;
       }
 
-      // Check user phase first - solo proceder si es ACTIVE
+      // Primero obtener el rol del usuario
+      const { data: role, error: roleError } = await supabase.rpc('get_user_role');
+
+      if (roleError) {
+        console.error('Error fetching user role:', roleError);
+        setError('Error al obtener el rol del usuario');
+        return;
+      }
+
+      // Si es admin o manager, proceder independientemente de la fase
+      if (role === 'admin' || role === 'manager') {
+        console.log('[useUserRole] User is admin/manager, proceeding regardless of phase');
+        setUserRole((role as UserRole) || 'user');
+
+        // Get user info to get company_id and other data
+        const { data: userInfo } = await supabase.rpc('get_user_info');
+
+        // Create a profile from user info data
+        const basicProfile: UserProfile = {
+          id: user.id,
+          auth_id: user.id,
+          name: userInfo?.[0]?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
+          company_id: userInfo?.[0]?.company_id,
+          role: role || 'user'
+        };
+
+        setUserProfile(basicProfile);
+        return;
+      }
+
+      // Para usuarios regulares, verificar fase
       const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
 
       if (phaseError) {
@@ -55,20 +85,12 @@ export const useUserRole = () => {
         return;
       }
 
-      // Get user role using the RPC function
-      const { data: role, error: roleError } = await supabase.rpc('get_user_role');
-
-      if (roleError) {
-        console.error('Error fetching user role:', roleError);
-        setError('Error al obtener el rol del usuario');
-        return;
-      }
-
+      // Para usuarios regulares que llegaron aquí (fase ACTIVE)
       setUserRole((role as UserRole) || 'user');
-      
+
       // Get user info to get company_id and other data
       const { data: userInfo } = await supabase.rpc('get_user_info');
-      
+
       // Create a profile from user info data
       const basicProfile: UserProfile = {
         id: user.id,
@@ -77,7 +99,7 @@ export const useUserRole = () => {
         company_id: userInfo?.[0]?.company_id,
         role: role || 'user'
       };
-      
+
       setUserProfile(basicProfile);
 
     } catch (err) {
