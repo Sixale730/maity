@@ -1,7 +1,8 @@
 // api/accept-invite.js
 import { createClient } from '@supabase/supabase-js';
+import { env } from '../src/lib/env.js';
 
-const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const admin = createClient(env.supabaseUrl, env.supabaseServiceKey);
 
 function cookieString(name, value, opts = {}) {
   const parts = [`${name}=${encodeURIComponent(value)}`];
