@@ -214,7 +214,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
     setLoading(true);
 
-    const redirectTarget = new URL('/callback', baseOrigin).toString();
+    const redirectTarget = new URL('/auth/callback', baseOrigin).toString();
 
     console.debug('[AUTH/OAuth] redirectTarget=', redirectTarget);
 
