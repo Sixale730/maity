@@ -11,8 +11,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
  * NOTAS IMPORTANTES:
  * - La fase del usuario se valida vía RPC my_phase().
  * - El usuario debe tener company_id asignado en maity.users; si no, se redirige a /pending.
- * - El token de registro (otk) se obtiene del resultado de my_phase() o de futuras fuentes internas.
- * - El formulario de Tally recibe auth_id y otk como hidden fields; el webhook valida el resto.
+ * - El formulario de Tally recibe auth_id y company info como hidden fields.
  */
 
 type Company = {
@@ -33,7 +32,6 @@ const Registration: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
   const [authId, setAuthId] = useState<string>("");
-  const [registrationToken, setRegistrationToken] = useState<string>("");
 
   useEffect(() => {
     void init();
@@ -52,26 +50,15 @@ const Registration: React.FC = () => {
 
       // 2) Verificar fase actual del usuario
       const { data: phaseData, error: phaseError } = await supabase.rpc("my_phase");
+
       if (phaseError) {
         console.error("[registration] my_phase error", phaseError);
-        navigate("/auth", { replace: true });
+        navigate("/user-status-error", { replace: true });
         return;
       }
 
-      const extractField = (value: unknown, field: string) => {
-        if (typeof value === "string" || value == null) return undefined;
-        if (Array.isArray(value)) {
-          return (value[0] as Record<string, unknown> | undefined)?.[field];
-        }
-        return (value as Record<string, unknown>)[field];
-      };
-
-      const phaseRaw =
-        typeof phaseData === "string"
-          ? phaseData
-          : (extractField(phaseData, "phase") as string | undefined);
-
-      const phase = String(phaseRaw || "").toUpperCase();
+      const phase = String(phaseData || "").toUpperCase();
+      console.log("[registration] User phase:", phase);
 
       if (phase === "ACTIVE") {
         navigate("/dashboard", { replace: true });
@@ -84,15 +71,8 @@ const Registration: React.FC = () => {
       }
 
       if (phase !== "REGISTRATION") {
-        navigate("/auth", { replace: true });
+        navigate("/user-status-error", { replace: true });
         return;
-      }
-
-      const phaseToken = extractField(phaseData, "registration_token")
-        ?? extractField(phaseData, "otk")
-        ?? extractField(phaseData, "token");
-      if (phaseToken) {
-        setRegistrationToken(String(phaseToken));
       }
 
       // 3) Traer info de usuario (propia fila) para validar company y estado del formulario
@@ -139,11 +119,9 @@ const Registration: React.FC = () => {
         return;
       }
 
-      const companyRecord = companyRows[0] as Company & { registration_token?: string | null };
+      const companyRecord = companyRows[0] as Company;
       setCompany(companyRecord);
-      if (companyRecord?.registration_token) {
-        setRegistrationToken(current => current || String(companyRecord.registration_token));
-      }
+      console.log('[Registration] Company loaded:', companyRecord);
     } catch (error) {
       console.error("[registration] init error", error);
       toast({
@@ -158,20 +136,32 @@ const Registration: React.FC = () => {
   };
 
   const iframeSrc = useMemo(() => {
-    if (!authId || !registrationToken || !company?.id) return "";
+    console.log('[Registration] Building iframe src with:', {
+      authId,
+      companyId: company?.id,
+      companyName: company?.name,
+      tallyFormId: TALLY_FORM_ID
+    });
+
+    if (!authId || !company?.id) {
+      console.log('[Registration] Missing required data for iframe');
+      return "";
+    }
     if (typeof window === 'undefined') return "";
 
-    return buildTallyEmbedUrl(
+    const url = buildTallyEmbedUrl(
       TALLY_FORM_ID,
       {
         auth_id: authId,
-        otk: registrationToken,
         company_id: company.id,
         company_name: company.name || "",
       },
       { redirectTo: `${window.location.origin}/onboarding/success` }
     );
-  }, [authId, registrationToken, company]);
+
+    console.log('[Registration] Built Tally URL:', url);
+    return url;
+  }, [authId, company]);
 
   const handleBackToHome = () => navigate("/");
 
@@ -188,26 +178,6 @@ const Registration: React.FC = () => {
     );
   }
 
-  if (!registrationToken) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Invitación requerida</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <p className="text-muted-foreground">
-              No encontramos un token de registro activo. Abre el enlace de invitación más reciente o contacta a tu administrador.
-            </p>
-            <Button onClick={handleBackToHome} variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al inicio
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (!company) {
     return (

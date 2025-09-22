@@ -1,7 +1,6 @@
     // src/lib/tally.ts
 export type HiddenFields = Partial<{
     auth_id: string;       // OBLIGATORIO (lo usará el webhook)
-    otk: string;           // OBLIGATORIO (token de una sola vez)
     company_id: string;    // opcional, informativo
     company_name: string;  // opcional, informativo
     email: string;         // opcional, informativo
