@@ -92,7 +92,10 @@ export default function AuthCallback() {
       const returnTo = url.searchParams.get("returnTo");
 
       // 4) Primero verificar roles
+      console.log("[AuthCb] About to call my_roles()");
       const { data: rolesData, error: rolesError } = await supabase.rpc("my_roles");
+      console.log("[AuthCb] my_roles() returned:", { rolesData, rolesError });
+
       if (!rolesError && rolesData && Array.isArray(rolesData)) {
         console.log("[AuthCb] User roles:", rolesData);
 
@@ -103,6 +106,7 @@ export default function AuthCallback() {
           navigate("/dashboard", { replace: true });
           return;
         }
+        console.log("[AuthCb] User does not have admin/manager role, continuing to my_phase");
       } else {
         console.log("[AuthCb] my_roles error or no roles:", rolesError);
       }
