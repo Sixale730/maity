@@ -12,12 +12,27 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  // Redirect to auth if no user or error
+  // Only redirect if there's an authentication error (no user session)
   useEffect(() => {
-    if (!loading && (error || !userProfile)) {
-      console.log('🚫 Dashboard: No user profile or error, redirecting to auth');
-      navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
-    }
+    const checkAuth = async () => {
+      if (!loading) {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          console.log('🚫 Dashboard: No authenticated user, redirecting to auth');
+          navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
+          return;
+        }
+
+        // If we have a user but no profile, it means they're not ACTIVE
+        // Let ProtectedRoute handle the redirect to appropriate page
+        if (!userProfile && !error) {
+          console.log('ℹ️ Dashboard: User not ACTIVE, letting ProtectedRoute handle redirect');
+        }
+      }
+    };
+
+    checkAuth();
   }, [loading, error, userProfile, navigate]);
 
   if (loading) {

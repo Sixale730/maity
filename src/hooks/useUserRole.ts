@@ -35,16 +35,23 @@ export const useUserRole = () => {
         return;
       }
 
-      // Check user status first, but don't redirect if we're on auth page
-      const { data: status } = await supabase.rpc('my_status');
-      if (status !== 'ACTIVE' && !location.pathname.startsWith('/auth')) {
-        const authPath = '/auth';
+      // Check user phase first - solo proceder si es ACTIVE
+      const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
 
-        if (appUrl) {
-          window.location.replace(appUrl + authPath);
-        } else {
-          navigate(authPath, { replace: true });
-        }
+      if (phaseError) {
+        console.error('[useUserRole] my_phase error:', phaseError);
+        setError('Error al verificar el estado del usuario');
+        return;
+      }
+
+      const phase = String(phaseData || '').toUpperCase();
+      console.log('[useUserRole] User phase:', phase);
+
+      // Solo continuar si el usuario está ACTIVE
+      if (phase !== 'ACTIVE') {
+        console.log('[useUserRole] User not active, skipping role fetch');
+        setUserRole(null);
+        setUserProfile(null);
         return;
       }
 
