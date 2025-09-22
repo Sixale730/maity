@@ -68,8 +68,8 @@ export default function AuthCallback() {
       if (error) {
         console.error("[AuthCb] my_phase error:", error);
         hasRoutedRef.current = true;
-        // Si hay error en my_phase pero tenemos sesión, ir a pending en lugar de auth
-        navigate("/pending", { replace: true });
+        // Error en my_phase - ir a página de error del estado del usuario
+        navigate("/user-status-error", { replace: true });
         return;
       }
 
@@ -90,18 +90,24 @@ export default function AuthCallback() {
       }
 
       if (phase === "ACTIVE") {
-        console.log("[AuthCb] Redirecting to dashboard");
+        console.log("[AuthCb] User is ACTIVE - redirecting to dashboard");
         navigate("/dashboard", { replace: true });
         return;
       }
       if (phase === "REGISTRATION") {
-        console.log("[AuthCb] Redirecting to registration");
+        console.log("[AuthCb] User needs REGISTRATION - redirecting to registration");
         navigate("/registration", { replace: true });
         return;
       }
-      // NO_COMPANY (u otro) ? pending
-      console.log("[AuthCb] Redirecting to pending");
-      navigate("/pending", { replace: true });
+      if (phase === "NO_COMPANY") {
+        console.log("[AuthCb] User has NO_COMPANY - redirecting to pending");
+        navigate("/pending", { replace: true });
+        return;
+      }
+
+      // Estado desconocido
+      console.warn("[AuthCb] Unknown phase:", phase);
+      navigate("/user-status-error", { replace: true });
     })();
   }, [navigate]);
 

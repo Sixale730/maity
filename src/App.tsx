@@ -19,6 +19,7 @@ import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import InvitationConflict from "./pages/InvitationConflict";
 import InvitationRequired from "./pages/InvitationRequired";
+import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
 
 import FinalizeInviteWatcher from "@/components/FinalizeInviteWatcher"; // ← nuevo
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/invitation-confirm" element={<InvitationConflict />} />
             <Route path="/pending" element={<Pending />} />
             <Route path="/invitation-required" element={<InvitationRequired />} />
+            <Route path="/user-status-error" element={<UserStatusError />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/*" element={<Dashboard />} />
             </Route>

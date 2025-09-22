@@ -36,9 +36,9 @@ const ProtectedRoute = () => {
         const { data, error } = await supabase.rpc('my_phase');
         if (error) {
           console.error('[ProtectedRoute] my_phase error:', error);
-          // Si hay error en my_phase pero tenemos sesión válida, ir a pending
-          if (pathname !== '/pending') {
-            navigate('/pending', { replace: true });
+          // Error en my_phase - ir a página de error del estado del usuario
+          if (pathname !== '/user-status-error') {
+            navigate('/user-status-error', { replace: true });
           }
           if (!cancelled) setState('deny');
           return;
@@ -54,16 +54,20 @@ const ProtectedRoute = () => {
         console.log("[ProtectedRoute] User phase:", phase, "for path:", pathname);
 
         if (phase === 'ACTIVE') {
-          console.log("[ProtectedRoute] Access granted");
+          console.log("[ProtectedRoute] User is ACTIVE - access granted");
           if (!cancelled) setState('allow');
           return;
         }
 
-        let target = '/auth';
+        let target = '/user-status-error'; // fallback por defecto
         if (phase === 'REGISTRATION') {
           target = '/registration';
+          console.log("[ProtectedRoute] User needs REGISTRATION - redirecting");
         } else if (phase === 'NO_COMPANY') {
           target = '/pending';
+          console.log("[ProtectedRoute] User has NO_COMPANY - redirecting to pending");
+        } else {
+          console.warn("[ProtectedRoute] Unknown phase:", phase);
         }
 
         if (pathname !== target) {
