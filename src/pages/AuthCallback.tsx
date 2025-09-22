@@ -96,8 +96,8 @@ export default function AuthCallback() {
       if (!rolesError && rolesData && Array.isArray(rolesData)) {
         console.log("[AuthCb] User roles:", rolesData);
 
-        // Si tiene platform_admin o org_admin, ir directo a dashboard
-        if (rolesData.includes('platform_admin') || rolesData.includes('org_admin')) {
+        // Si tiene admin o manager, ir directo a dashboard
+        if (rolesData.includes('admin') || rolesData.includes('manager')) {
           console.log("[AuthCb] User has admin/manager role - redirecting to dashboard");
           hasRoutedRef.current = true;
           navigate("/dashboard", { replace: true });
