@@ -6,7 +6,7 @@ Este documento describe la implementación completa del flujo de autenticación 
 
 ### Componentes Implementados
 
-1. **AuthCompany.tsx** - Componente de autenticación con campo de empresa
+1. **Auth.tsx** - Componente de autenticación unificado (con soporte para empresa)
 2. **AuthCallback.tsx** - Callback para procesar retornos de OAuth
 3. **useCompanyAssociation.ts** - Hook para asociar usuarios con empresas
 4. **Edge Function** - Función de Supabase para asociación segura
@@ -15,7 +15,7 @@ Este documento describe la implementación completa del flujo de autenticación 
 
 ```mermaid
 graph TD
-    A[Usuario accede a /auth_company?company=ID] --> B[AuthCompany muestra campo empresa]
+    A[Usuario accede a /auth?company=ID] --> B[Auth muestra campo empresa]
     B --> C{Usuario elige método}
     C -->|Email/Password| D[SignUp/SignIn con company_id en metadata]
     C -->|OAuth Google/Azure| E[OAuth con state codificado]
@@ -36,7 +36,7 @@ graph TD
 - `supabase/functions/associate-user-company/deno.json` - Configuración Deno
 
 ### Archivos Modificados
-- `src/pages/AuthCompany.tsx` - Actualizado para OAuth y asociación
+- `src/pages/Auth.tsx` - Actualizado para OAuth y asociación
 - `src/App.tsx` - Agregada ruta `/auth/callback`
 
 ## 🔧 Configuración Requerida
@@ -124,7 +124,7 @@ CREATE POLICY "Anyone can view active companies" ON maity.companies
 
 ```bash
 # Autenticación con empresa específica
-http://localhost:8080/auth_company?company=9368d119-ec44-4d9a-a94f-b1a4bff39d6d
+http://localhost:8080/auth?company=9368d119-ec44-4d9a-a94f-b1a4bff39d6d
 
 # Callback de OAuth (automático)
 http://localhost:8080/auth/callback?code=...&state=...
@@ -165,7 +165,7 @@ const stateData = {
 ### Logs Importantes
 
 ```typescript
-// En AuthCompany.tsx
+// En Auth.tsx
 console.log('[DEBUG] handleOAuthLogin:redirectTarget', { 
   provider, companyId, redirectTarget, stateData, encodedState 
 });
@@ -217,11 +217,11 @@ supabase functions logs associate-user-company
 
 ```bash
 # Prueba con empresa válida
-http://localhost:8080/auth_company?company=9368d119-ec44-4d9a-a94f-b1a4bff39d6d
+http://localhost:8080/auth?company=9368d119-ec44-4d9a-a94f-b1a4bff39d6d
 
 # Prueba con empresa inválida
-http://localhost:8080/auth_company?company=invalid-uuid
+http://localhost:8080/auth?company=invalid-uuid
 
 # Prueba sin empresa
-http://localhost:8080/auth_company
+http://localhost:8080/auth
 ```

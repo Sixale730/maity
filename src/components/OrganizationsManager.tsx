@@ -37,7 +37,7 @@ export function OrganizationsManager() {
 
       const companiesWithUrls: Company[] = (data ?? []).map((company) => ({
         ...company,
-        registration_url: `${appUrl}/auth_company?company=${company.id}`,
+        registration_url: `${appUrl}/auth?company=${company.id}`,
       }));
 
       setCompanies(companiesWithUrls);
@@ -81,7 +81,7 @@ export function OrganizationsManager() {
 
       const newCompanyWithUrl: Company = {
         ...newCompany,
-        registration_url: `${appUrl}/auth_company?company=${newCompany.id}`,
+        registration_url: `${appUrl}/auth?company=${newCompany.id}`,
       };
 
       setCompanies((prev) => [newCompanyWithUrl, ...prev]);
