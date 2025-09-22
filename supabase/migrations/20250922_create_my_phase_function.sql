@@ -16,6 +16,21 @@ BEGIN
     RETURN 'UNAUTHORIZED';
   END IF;
 
+  -- Get user role FIRST (before checking company)
+  SELECT role INTO user_role
+  FROM maity.user_roles
+  WHERE user_id = user_id;
+
+  -- If no role found, default to 'user'
+  IF user_role IS NULL THEN
+    user_role := 'user';
+  END IF;
+
+  -- platform_admin users are always ACTIVE (regardless of company)
+  IF user_role = 'platform_admin' THEN
+    RETURN 'ACTIVE';
+  END IF;
+
   -- Get user info from maity.users
   SELECT auth_id, company_id, registration_form_completed
   INTO user_record
@@ -32,18 +47,8 @@ BEGIN
     RETURN 'NO_COMPANY';
   END IF;
 
-  -- Get user role
-  SELECT role INTO user_role
-  FROM maity.user_roles
-  WHERE user_id = user_id;
-
-  -- If no role found, default to 'user'
-  IF user_role IS NULL THEN
-    user_role := 'user';
-  END IF;
-
-  -- platform_admin and org_admin users are always ACTIVE (skip registration)
-  IF user_role = 'platform_admin' OR user_role = 'org_admin' THEN
+  -- org_admin users are always ACTIVE (but need company)
+  IF user_role = 'org_admin' THEN
     RETURN 'ACTIVE';
   END IF;
 
