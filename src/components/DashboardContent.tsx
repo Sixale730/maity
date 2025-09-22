@@ -45,7 +45,7 @@ const chartConfig = {
 function OrgAdminDashboard({ userName, companyId }: { userName?: string; companyId?: string }) {
   const { t } = useLanguage();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
-    useDashboardDataByRole('org_admin', companyId);
+    useDashboardDataByRole('manager', companyId);
 
   console.log('OrgAdminDashboard rendering with language context');
 
@@ -276,8 +276,8 @@ export function DashboardContent() {
     );
   }
 
-  // Check if we're on the team route for org_admin
-  if (location.pathname === '/dashboard/team' && userRole === 'org_admin') {
+  // Check if we're on the team route for manager
+  if (location.pathname === '/dashboard/team' && userRole === 'manager') {
     return (
       <main className="flex-1">
         <TeamDashboard />
@@ -285,15 +285,15 @@ export function DashboardContent() {
     );
   }
 
-  // Check if we're on the organizations route for platform_admin
-  if (location.pathname === '/dashboard/organizations' && userRole === 'platform_admin') {
+  // Check if we're on the organizations route for admin
+  if (location.pathname === '/dashboard/organizations' && userRole === 'admin') {
     return <OrganizationsManager />;
   }
 
   // Render dashboard based on user role
-  if (userRole === 'platform_admin') {
+  if (userRole === 'admin') {
     return <PlatformAdminDashboard />;
-  } else if (userRole === 'org_admin') {
+  } else if (userRole === 'manager') {
     return (
       <OrgAdminDashboard 
         userName={userProfile?.name} 

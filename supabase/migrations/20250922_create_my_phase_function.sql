@@ -26,8 +26,8 @@ BEGIN
     user_role := 'user';
   END IF;
 
-  -- platform_admin users are always ACTIVE (regardless of company)
-  IF user_role = 'platform_admin' THEN
+  -- admin users are always ACTIVE (regardless of company)
+  IF user_role = 'admin' THEN
     RETURN 'ACTIVE';
   END IF;
 
@@ -47,8 +47,8 @@ BEGIN
     RETURN 'NO_COMPANY';
   END IF;
 
-  -- org_admin users are always ACTIVE (but need company)
-  IF user_role = 'org_admin' THEN
+  -- manager users are always ACTIVE (but need company)
+  IF user_role = 'manager' THEN
     RETURN 'ACTIVE';
   END IF;
 

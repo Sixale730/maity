@@ -1,9 +1,9 @@
 // api/finalize-invite.js
 import { createClient } from '@supabase/supabase-js';
 import { parse } from 'cookie';
-import crypto from 'crypto';
+import { env } from '../src/lib/env.js';
 
-const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const admin = createClient(env.supabaseUrl, env.supabaseServiceKey);
 
 const RAW_ORIGINS =
   process.env.CORS_ORIGINS ||
@@ -57,64 +57,98 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, note: 'NO_INVITE_COOKIE', redirect: '/dashboard' });
     }
 
-    // 3) RPC transaccional (idempotente): aceptar invitación y (si corresponde) asignar company
-    const { data, error: rpcErr } = await admin.rpc('accept_invite_and_assign', {
-      p_auth_id: authId,
-      p_token: inviteToken,
-    });
+    // 3) Validar token de invitación
+    const { data: invite, error: inviteErr } = await admin
+      .schema('maity')
+      .from('invite_links')
+      .select('id, company_id, audience, is_revoked, expires_at, max_uses, used_count')
+      .eq('token', inviteToken)
+      .single();
 
     // Siempre limpiar la cookie de invite, tenga éxito o no
     clearInviteCookie(res);
 
-    if (rpcErr) {
-      const msg = (rpcErr.message || '').toUpperCase();
-      const map = { INVALID_INVITE: 400, INVITE_REVOKED: 400, INVITE_EXPIRED: 400, INVITE_EXHAUSTED: 400 };
-      return res.status(map[msg] ?? 500).json({ error: msg || 'RPC_ERROR' });
+    if (inviteErr || !invite) {
+      return res.status(400).json({ error: 'INVALID_INVITE' });
     }
 
-    const rpcRow = Array.isArray(data) ? data[0] : data;
+    if (invite.is_revoked) {
+      return res.status(400).json({ error: 'INVITE_REVOKED' });
+    }
 
-    // 4) ¿El usuario ya completó el registro? Si no, genera/renueva OTK y redirige a /registration
-    const { data: uRow, error: uErr2 } = await admin
+    if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+      return res.status(400).json({ error: 'INVITE_EXPIRED' });
+    }
+
+    if (invite.max_uses && invite.used_count >= invite.max_uses) {
+      return res.status(400).json({ error: 'INVITE_EXHAUSTED' });
+    }
+
+    // 4) Determinar rol según audience
+    let roleToAssign = 'user'; // default
+    if (invite.audience === 'admin') {
+      roleToAssign = 'admin';
+    } else if (invite.audience === 'manager') {
+      roleToAssign = 'manager';
+    }
+
+    // 5) Vincular usuario con empresa
+    const { error: userUpdateErr } = await admin
       .schema('maity')
       .from('users')
-      .select('registration_form_completed, onboarding_token, onboarding_token_expires_at')
-      .eq('auth_id', authId)
-      .single();
-
-    if (uErr2 || !uRow) {
-      return res.status(500).json({ error: 'USER_STATUS_READ_FAILED' });
-    }
-
-    if (!uRow.registration_form_completed) {
-      let token = uRow.onboarding_token || null;
-      const expMs = uRow.onboarding_token_expires_at ? new Date(uRow.onboarding_token_expires_at).getTime() : 0;
-      const stillValid = expMs > Date.now();
-
-      if (!token || !stillValid) {
-        token = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(); // 24h
-        const { error: tokErr } = await admin
-          .schema('maity')
-          .from('users')
-          .update({ onboarding_token: token, onboarding_token_expires_at: expiresAt })
-          .eq('auth_id', authId);
-        if (tokErr) return res.status(500).json({ error: 'ONBOARDING_TOKEN_SAVE_FAILED' });
-      }
-
-      const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://www.maity.com.mx';
-      return res.status(200).json({
-        success: true,
-        assigned: !!(rpcRow && rpcRow.assigned),
-        redirect: `${FRONTEND_ORIGIN}/registration?otk=${token}`,
+      .upsert({
+        auth_id: authId,
+        email: userResp.user.email,
+        company_id: invite.company_id,
+        registration_form_completed: false, // Siempre false inicialmente
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'auth_id',
+        ignoreDuplicates: false
       });
+
+    if (userUpdateErr) {
+      console.error('[finalize] User update error:', userUpdateErr);
+      return res.status(500).json({ error: 'USER_UPDATE_FAILED' });
     }
 
-    // 5) Si ya completó el formulario, directo a /dashboard
+    // 6) Asignar rol al usuario
+    const { error: roleErr } = await admin
+      .schema('maity')
+      .from('user_roles')
+      .upsert({
+        user_id: authId,
+        role: roleToAssign,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
+      });
+
+    if (roleErr) {
+      console.error('[finalize] Role assignment error:', roleErr);
+      return res.status(500).json({ error: 'ROLE_ASSIGNMENT_FAILED' });
+    }
+
+    // 7) Incrementar contador de uso del invite
+    await admin
+      .schema('maity')
+      .from('invite_links')
+      .update({
+        used_count: invite.used_count + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', invite.id);
+
+    // 8) Respuesta exitosa (sin redirect, el frontend decide)
     return res.status(200).json({
       success: true,
-      assigned: !!(rpcRow && rpcRow.assigned),
-      redirect: '/dashboard',
+      message: 'Invite processed successfully',
+      company_id: invite.company_id,
+      role_assigned: roleToAssign,
+      user_id: authId
     });
   } catch (e) {
     console.error('[finalize] INTERNAL', e);

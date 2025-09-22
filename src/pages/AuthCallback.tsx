@@ -2,6 +2,25 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to call finalize-invite API
+const finalizeInvite = async (accessToken: string) => {
+  const response = await fetch('/api/finalize-invite', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', // Include cookies
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export default function AuthCallback() {
   const navigate = useNavigate();
   const hasRoutedRef = useRef(false);
@@ -44,18 +63,27 @@ export default function AuthCallback() {
         return;
       }
 
-      // 1) Procesar invitación sólo si existe
-      const raw = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken") ?? "";
-      const invite = decodeURIComponent(raw).trim();
-      if (invite.length > 0) {
-        console.log("[AuthCb] Processing invite token");
-        const { error } = await supabase.rpc("accept_invite", { p_invite_token: invite });
-        if (error) console.error("[accept_invite]", error);
-      } else {
-        console.log("[AuthCb] No invite token to process");
+      // 1) Procesar invitación via API (si hay cookie)
+      console.log("[AuthCb] Checking for invite cookie...");
+
+      try {
+        const result = await finalizeInvite(session.access_token);
+        console.log("[AuthCb] Finalize invite result:", result);
+
+        if (result.success && result.note !== 'NO_INVITE_COOKIE') {
+          console.log("[AuthCb] User linked to company:", {
+            company_id: result.company_id,
+            role_assigned: result.role_assigned
+          });
+        } else {
+          console.log("[AuthCb] No invite to process");
+        }
+      } catch (error) {
+        console.error("[AuthCb] Finalize invite error:", error);
+        // No redirigir por error de invite, continuar con el flujo normal
       }
 
-      // 2) Limpiar siempre
+      // 2) Limpiar localStorage/sessionStorage (la API ya limpió la cookie)
       localStorage.removeItem("inviteToken");
       sessionStorage.removeItem("inviteToken");
       localStorage.removeItem("companyId");
@@ -63,7 +91,23 @@ export default function AuthCallback() {
       // 3) Verificar returnTo antes de decidir por fase
       const returnTo = url.searchParams.get("returnTo");
 
-      // 4) Decidir por fase
+      // 4) Primero verificar roles
+      const { data: rolesData, error: rolesError } = await supabase.rpc("my_roles");
+      if (!rolesError && rolesData && Array.isArray(rolesData)) {
+        console.log("[AuthCb] User roles:", rolesData);
+
+        // Si tiene platform_admin o org_admin, ir directo a dashboard
+        if (rolesData.includes('platform_admin') || rolesData.includes('org_admin')) {
+          console.log("[AuthCb] User has admin/manager role - redirecting to dashboard");
+          hasRoutedRef.current = true;
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+      } else {
+        console.log("[AuthCb] my_roles error or no roles:", rolesError);
+      }
+
+      // 5) Si no tiene roles admin/manager, verificar fase
       const { data, error } = await supabase.rpc("my_phase");
       if (error) {
         console.error("[AuthCb] my_phase error:", error);
@@ -99,8 +143,8 @@ export default function AuthCallback() {
         navigate("/registration", { replace: true });
         return;
       }
-      if (phase === "NO_COMPANY") {
-        console.log("[AuthCb] User has NO_COMPANY - redirecting to pending");
+      if (phase === "NO_COMPANY" || phase === "PENDING") {
+        console.log("[AuthCb] User has NO_COMPANY/PENDING - redirecting to pending");
         navigate("/pending", { replace: true });
         return;
       }

@@ -22,7 +22,6 @@ import InvitationRequired from "./pages/InvitationRequired";
 import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
 
-import FinalizeInviteWatcher from "@/components/FinalizeInviteWatcher"; // ← nuevo
 
 const queryClient = new QueryClient();
 
@@ -32,7 +31,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <FinalizeInviteWatcher /> {/* ← se monta una vez y escucha SIGNED_IN */}
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

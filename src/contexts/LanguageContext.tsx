@@ -277,8 +277,8 @@ const translations = {
     'nav.achievements': 'Achievements',
     
     // Roles
-    'roles.platform_admin': 'Global Administrator',
-    'roles.org_admin': 'Administrator',
+    'roles.admin': 'Global Administrator',
+    'roles.manager': 'Administrator',
     'roles.user': 'User',
     'roles.default_user': 'User',
     'dashboard.analytics': 'Analytics',

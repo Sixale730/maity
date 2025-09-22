@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getAppUrl } from "@/lib/appUrl";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export type UserRole = 'platform_admin' | 'org_admin' | 'user' | null;
+export type UserRole = 'admin' | 'manager' | 'user' | null;
 
 export interface UserProfile {
   id: string;
@@ -119,8 +119,8 @@ export const useUserRole = () => {
     loading,
     error,
     refreshRole: getUserRole,
-    isAdmin: userRole === 'platform_admin',
-    isOrgAdmin: userRole === 'org_admin',
+    isAdmin: userRole === 'admin',
+    isManager: userRole === 'manager',
     isUser: userRole === 'user'
   };
 };
