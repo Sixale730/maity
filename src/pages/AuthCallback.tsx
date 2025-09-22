@@ -47,7 +47,10 @@ export default function AuthCallback() {
       sessionStorage.removeItem("inviteToken");
       localStorage.removeItem("companyId");
 
-      // 3) Decidir por fase
+      // 3) Verificar returnTo antes de decidir por fase
+      const returnTo = url.searchParams.get("returnTo");
+
+      // 4) Decidir por fase
       const { data, error } = await supabase.rpc("my_phase");
       if (error) { console.error("[AuthCb] my_phase error:", error); hasRoutedRef.current = true; navigate("/auth", { replace: true }); return; }
 
@@ -57,6 +60,13 @@ export default function AuthCallback() {
           : String((data as any)?.phase ?? (Array.isArray(data) ? (data[0] as any)?.phase : "")).toUpperCase();
 
       hasRoutedRef.current = true;
+
+      // Si hay returnTo y el usuario está activo, ir al returnTo
+      if (phase === "ACTIVE" && returnTo && returnTo.startsWith('/')) {
+        navigate(returnTo, { replace: true });
+        return;
+      }
+
       if (phase === "ACTIVE") { navigate("/dashboard", { replace: true }); return; }
       if (phase === "REGISTRATION") { navigate("/registration", { replace: true }); return; }
       // NO_COMPANY (u otro) ? pending

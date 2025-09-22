@@ -20,7 +20,9 @@ const ProtectedRoute = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           if (pathname !== '/auth') {
-            navigate('/auth', { replace: true });
+            // Preservar la URL actual como returnTo
+            const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
+            navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
           }
           if (!cancelled) setState('deny');
           return;
@@ -30,7 +32,8 @@ const ProtectedRoute = () => {
         if (error) {
           console.error('[ProtectedRoute] my_phase error:', error);
           if (pathname !== '/auth') {
-            navigate('/auth', { replace: true });
+            const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
+            navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
           }
           if (!cancelled) setState('deny');
           return;
@@ -63,7 +66,8 @@ const ProtectedRoute = () => {
       } catch (err) {
         console.error('[ProtectedRoute] general error:', err);
         if (pathname !== '/auth') {
-          navigate('/auth', { replace: true });
+          const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
+          navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
         }
         if (!cancelled) setState('deny');
       }

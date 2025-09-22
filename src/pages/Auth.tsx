@@ -150,7 +150,11 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         });
 
-        navigate('/callback', { replace: true });
+        // Preservar returnTo en la navegación al callback
+        const callbackUrl = returnTo
+          ? `/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
+          : '/auth/callback';
+        navigate(callbackUrl, { replace: true });
 
         return;
 
