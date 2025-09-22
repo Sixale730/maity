@@ -17,11 +17,16 @@ const ProtectedRoute = () => {
     const resolveAccess = async () => {
       setState('loading');
       try {
+        console.log("[ProtectedRoute] Checking access for:", pathname);
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("[ProtectedRoute] Session:", !!session, session?.user?.email);
+
         if (!session) {
+          console.log("[ProtectedRoute] No session, redirecting to auth");
           if (pathname !== '/auth') {
             // Preservar la URL actual como returnTo
             const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
+            console.log("[ProtectedRoute] Redirecting to auth with returnTo:", returnTo);
             navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
           }
           if (!cancelled) setState('deny');
@@ -46,8 +51,10 @@ const ProtectedRoute = () => {
               (Array.isArray(data) ? (data[0] as any)?.phase : undefined);
 
         const phase: Phase = String(raw || '').toUpperCase();
+        console.log("[ProtectedRoute] User phase:", phase, "for path:", pathname);
 
         if (phase === 'ACTIVE') {
+          console.log("[ProtectedRoute] Access granted");
           if (!cancelled) setState('allow');
           return;
         }

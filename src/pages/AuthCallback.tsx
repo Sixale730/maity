@@ -31,8 +31,19 @@ export default function AuthCallback() {
         }
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { hasRoutedRef.current = true; navigate("/auth", { replace: true }); return; }
+      // Pequeño delay para asegurar que la sesión esté completamente establecida
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Refrescar la sesión para asegurar que esté válida
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      console.log("[AuthCb] Session after refresh:", !!session, session?.user?.email, sessionError);
+
+      if (!session) {
+        console.error("[AuthCb] No session found after refresh");
+        hasRoutedRef.current = true;
+        navigate("/auth", { replace: true });
+        return;
+      }
 
       // 1) Procesar invitaci?n s?lo si existe
       const raw = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken") ?? "";
@@ -59,17 +70,29 @@ export default function AuthCallback() {
           ? data.toUpperCase()
           : String((data as any)?.phase ?? (Array.isArray(data) ? (data[0] as any)?.phase : "")).toUpperCase();
 
+      console.log("[AuthCb] User phase:", phase, "returnTo:", returnTo);
+
       hasRoutedRef.current = true;
 
       // Si hay returnTo y el usuario está activo, ir al returnTo
       if (phase === "ACTIVE" && returnTo && returnTo.startsWith('/')) {
+        console.log("[AuthCb] Redirecting to returnTo:", returnTo);
         navigate(returnTo, { replace: true });
         return;
       }
 
-      if (phase === "ACTIVE") { navigate("/dashboard", { replace: true }); return; }
-      if (phase === "REGISTRATION") { navigate("/registration", { replace: true }); return; }
+      if (phase === "ACTIVE") {
+        console.log("[AuthCb] Redirecting to dashboard");
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+      if (phase === "REGISTRATION") {
+        console.log("[AuthCb] Redirecting to registration");
+        navigate("/registration", { replace: true });
+        return;
+      }
       // NO_COMPANY (u otro) ? pending
+      console.log("[AuthCb] Redirecting to pending");
       navigate("/pending", { replace: true });
     })();
   }, [navigate]);
