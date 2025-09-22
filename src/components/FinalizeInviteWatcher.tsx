@@ -24,18 +24,29 @@ export default function FinalizeInviteWatcher() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) return;
 
+    // Solo ejecutar si hay un invite token en la URL o localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteFromUrl = urlParams.get('invite');
+    const inviteFromStorage = localStorage.getItem('inviteToken');
+
+    if (!inviteFromUrl && !inviteFromStorage) {
+      console.log("[FinalizeInviteWatcher] No invite token found, skipping");
+      return;
+    }
+
     // De-dupe por sesión (id de usuario + expiración de la sesión)
     const key = `invfin:${session.user.id}:${session.expires_at}`;
     if (sessionStorage.getItem(key) === "1") return;
 
     inFlight.current = true;
     try {
+      console.log("[FinalizeInviteWatcher] Processing invite token");
       const r = await finalizeInvite(session.access_token);
       // Marcamos como hecho independientemente del resultado, para no spamear.
       // (El endpoint es idempotente; si vuelves a usar un link más tarde, será otra sesión o se refrescará el token.)
       sessionStorage.setItem(key, "1");
       if (!r.ok && !r.redirected) {
-        // opcional: console.warn("finalize-invite no completó:", r);
+        console.warn("[FinalizeInviteWatcher] finalize-invite no completó:", r);
       }
     } finally {
       inFlight.current = false;

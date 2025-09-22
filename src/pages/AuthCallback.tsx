@@ -34,23 +34,25 @@ export default function AuthCallback() {
       // Pequeño delay para asegurar que la sesión esté completamente establecida
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Refrescar la sesión para asegurar que esté válida
-      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
-      console.log("[AuthCb] Session after refresh:", !!session, session?.user?.email, sessionError);
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("[AuthCb] Session found:", !!session, session?.user?.email);
 
       if (!session) {
-        console.error("[AuthCb] No session found after refresh");
+        console.error("[AuthCb] No session found after exchange");
         hasRoutedRef.current = true;
         navigate("/auth", { replace: true });
         return;
       }
 
-      // 1) Procesar invitaci?n s?lo si existe
+      // 1) Procesar invitación sólo si existe
       const raw = url.searchParams.get("invite") ?? localStorage.getItem("inviteToken") ?? "";
       const invite = decodeURIComponent(raw).trim();
       if (invite.length > 0) {
+        console.log("[AuthCb] Processing invite token");
         const { error } = await supabase.rpc("accept_invite", { p_invite_token: invite });
         if (error) console.error("[accept_invite]", error);
+      } else {
+        console.log("[AuthCb] No invite token to process");
       }
 
       // 2) Limpiar siempre
@@ -63,7 +65,13 @@ export default function AuthCallback() {
 
       // 4) Decidir por fase
       const { data, error } = await supabase.rpc("my_phase");
-      if (error) { console.error("[AuthCb] my_phase error:", error); hasRoutedRef.current = true; navigate("/auth", { replace: true }); return; }
+      if (error) {
+        console.error("[AuthCb] my_phase error:", error);
+        hasRoutedRef.current = true;
+        // Si hay error en my_phase pero tenemos sesión, ir a pending en lugar de auth
+        navigate("/pending", { replace: true });
+        return;
+      }
 
       const phase =
         typeof data === "string"

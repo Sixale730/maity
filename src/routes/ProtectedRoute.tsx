@@ -36,9 +36,9 @@ const ProtectedRoute = () => {
         const { data, error } = await supabase.rpc('my_phase');
         if (error) {
           console.error('[ProtectedRoute] my_phase error:', error);
-          if (pathname !== '/auth') {
-            const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
-            navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+          // Si hay error en my_phase pero tenemos sesión válida, ir a pending
+          if (pathname !== '/pending') {
+            navigate('/pending', { replace: true });
           }
           if (!cancelled) setState('deny');
           return;
