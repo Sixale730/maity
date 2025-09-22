@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button } from "@/components/ui/button";
 
@@ -21,8 +21,6 @@ import { getAppUrl } from "@/lib/appUrl";
 import { useNavigate } from "react-router-dom";
 
 import MaityLogo from "@/components/MaityLogo";
-
-import { buildRedirectTo } from '@/lib/auth'; // o ruta relativa
 
 // Missing type and utility definitions
 const getErrorMessage = (error: any): string => {
@@ -152,6 +150,10 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         });
 
+        navigate('/callback', { replace: true });
+
+        return;
+
       } else {
 
 
@@ -208,15 +210,9 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
     setLoading(true);
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const redirectTarget = new URL('/callback', baseOrigin).toString();
 
-    const returnTo  = urlParams.get('returnTo') || urlParams.get('returnUrl');
-
-    const redirectTarget = buildRedirectTo(returnTo);
-
-
-
-    console.debug('[AUTH] provider=', provider, { returnTo, redirectTarget });
+    console.debug('[AUTH/OAuth] redirectTarget=', redirectTarget);
 
     try {
 

@@ -1,4 +1,5 @@
 const FALLBACK_ORIGIN = "http://localhost:8080";
+const CANONICAL_ORIGIN = "https://www.maity.com.mx";
 
 export const resolveBaseOrigin = (appUrl?: string): string => {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -77,4 +78,28 @@ const normalizeFallback = (fallback: string, baseOrigin: string) => {
     console.warn('[urlHelpers] Fallback invalido, usando origen base', { fallback, baseOrigin, error });
     return new URL('/', baseOrigin).toString();
   }
+};
+
+export const isCanonicalUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.origin === CANONICAL_ORIGIN;
+  } catch (error) {
+    console.warn('[urlHelpers] URL inválida para validación canónica', { url, error });
+    return false;
+  }
+};
+
+export const toCanonicalUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    return `${CANONICAL_ORIGIN}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+  } catch (error) {
+    console.warn('[urlHelpers] No se pudo convertir a URL canónica', { url, error });
+    return CANONICAL_ORIGIN;
+  }
+};
+
+export const getCanonicalOrigin = (): string => {
+  return CANONICAL_ORIGIN;
 };
