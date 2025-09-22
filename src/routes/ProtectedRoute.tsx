@@ -33,6 +33,19 @@ const ProtectedRoute = () => {
           return;
         }
 
+        // Primero verificar roles - si es admin/manager, permitir acceso directo
+        const { data: rolesData, error: rolesError } = await supabase.rpc("my_roles");
+        if (!rolesError && rolesData && Array.isArray(rolesData)) {
+          console.log("[ProtectedRoute] User roles:", rolesData);
+
+          if (rolesData.includes('admin') || rolesData.includes('manager')) {
+            console.log("[ProtectedRoute] User has admin/manager role - access granted");
+            if (!cancelled) setState('allow');
+            return;
+          }
+        }
+
+        // Si no es admin/manager, verificar fase
         const { data, error } = await supabase.rpc('my_phase');
         if (error) {
           console.error('[ProtectedRoute] my_phase error:', error);
