@@ -63,6 +63,9 @@ export default function AuthCallback() {
         return;
       }
 
+      // Ensure user exists in the database
+      await supabase.rpc('ensure_user');
+
       // 1) Procesar invitación via API (si hay cookie)
       console.log("[AuthCb] Checking for invite cookie...");
 

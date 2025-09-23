@@ -28,7 +28,6 @@ function clearInviteCookie(res) {
 }
 
 export default async function handler(req, res) {
-  // Preflight CORS
   if (req.method === 'OPTIONS') {
     setCors(req, res);
     return res.status(204).end();
@@ -52,8 +51,8 @@ export default async function handler(req, res) {
     // 2) Cookie de invitación (HttpOnly)
     const cookies = parse(req.headers.cookie || '');
     const inviteToken = cookies.invite_token;
+
     if (!inviteToken) {
-      // flujo normal: no hay invitación pendiente
       return res.status(200).json({ success: true, note: 'NO_INVITE_COOKIE', redirect: '/dashboard' });
     }
 
@@ -65,90 +64,94 @@ export default async function handler(req, res) {
       .eq('token', inviteToken)
       .single();
 
-    // Siempre limpiar la cookie de invite, tenga éxito o no
+    // Limpia la cookie SIEMPRE
     clearInviteCookie(res);
 
-    if (inviteErr || !invite) {
-      return res.status(400).json({ error: 'INVALID_INVITE' });
-    }
-
-    if (invite.is_revoked) {
-      return res.status(400).json({ error: 'INVITE_REVOKED' });
-    }
-
+    if (inviteErr || !invite) return res.status(400).json({ error: 'INVALID_INVITE' });
+    if (invite.is_revoked) return res.status(400).json({ error: 'INVITE_REVOKED' });
     if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
       return res.status(400).json({ error: 'INVITE_EXPIRED' });
     }
-
     if (invite.max_uses && invite.used_count >= invite.max_uses) {
       return res.status(400).json({ error: 'INVITE_EXHAUSTED' });
     }
 
-    // 4) Determinar rol según audience
-    let roleToAssign = 'user'; // default
-    if (invite.audience === 'admin') {
-      roleToAssign = 'admin';
-    } else if (invite.audience === 'manager') {
-      roleToAssign = 'manager';
-    }
+    // 4) Determinar rol según audience (links viejos ADMIN/USER)
+    // ADMIN -> manager; USER -> user; también acepta 'manager'/'admin' por si ya migraste
+    const aud = String(invite.audience || '').toLowerCase();
+    let roleToAssign = 'user';
+    if (aud === 'admin') roleToAssign = 'manager';
+    else if (aud === 'manager') roleToAssign = 'manager';
+    else if (aud === 'user') roleToAssign = 'user';
 
-    // 5) Vincular usuario con empresa
-    const { error: userUpdateErr } = await admin
+    // 5) Upsert de users (por auth_id) y obtener users.id para user_roles
+    const nowIso = new Date().toISOString();
+    const { error: userUpErr } = await admin
       .schema('maity')
       .from('users')
-      .upsert({
-        auth_id: authId,
-        email: userResp.user.email,
-        company_id: invite.company_id,
-        registration_form_completed: false, // Siempre false inicialmente
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'auth_id',
-        ignoreDuplicates: false
-      });
-
-    if (userUpdateErr) {
-      console.error('[finalize] User update error:', userUpdateErr);
+      .upsert(
+        {
+          auth_id: authId,
+          email: userResp.user.email,
+          company_id: invite.company_id,
+          registration_form_completed: false,
+          created_at: nowIso,
+          updated_at: nowIso
+        },
+        { onConflict: 'auth_id', ignoreDuplicates: false }
+      );
+    if (userUpErr) {
+      console.error('[finalize] User upsert error:', userUpErr);
       return res.status(500).json({ error: 'USER_UPDATE_FAILED' });
     }
 
-    // 6) Asignar rol al usuario
+    // Obtener users.id (PK de negocio) para insertar en user_roles
+    const { data: userRow, error: getUserErr } = await admin
+      .schema('maity')
+      .from('users')
+      .select('id')
+      .eq('auth_id', authId)
+      .single();
+    if (getUserErr || !userRow?.id) {
+      console.error('[finalize] Get users.id error:', getUserErr);
+      return res.status(500).json({ error: 'USER_LOOKUP_FAILED' });
+    }
+
+    // 6) Asignar rol (upsert por clave única user_id,role)
     const { error: roleErr } = await admin
       .schema('maity')
       .from('user_roles')
-      .upsert({
-        user_id: authId,
-        role: roleToAssign,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id',
-        ignoreDuplicates: false
-      });
-
+      .upsert(
+        {
+          user_id: userRow.id,
+          role: roleToAssign,
+          created_at: nowIso
+        },
+        { onConflict: 'user_id,role', ignoreDuplicates: false }
+      );
     if (roleErr) {
       console.error('[finalize] Role assignment error:', roleErr);
       return res.status(500).json({ error: 'ROLE_ASSIGNMENT_FAILED' });
     }
 
     // 7) Incrementar contador de uso del invite
-    await admin
+    const { error: invUpdErr } = await admin
       .schema('maity')
       .from('invite_links')
-      .update({
-        used_count: invite.used_count + 1,
-        updated_at: new Date().toISOString()
-      })
+      .update({ used_count: (invite.used_count || 0) + 1, updated_at: nowIso })
       .eq('id', invite.id);
+    if (invUpdErr) {
+      console.error('[finalize] Invite update error:', invUpdErr);
+      // No short-circuit: ya se asignó company y rol; solo log
+    }
 
-    // 8) Respuesta exitosa (sin redirect, el frontend decide)
+    // 8) Respuesta (frontend decide redirect)
     return res.status(200).json({
       success: true,
       message: 'Invite processed successfully',
       company_id: invite.company_id,
       role_assigned: roleToAssign,
-      user_id: authId
+      user_id: userRow.id
     });
   } catch (e) {
     console.error('[finalize] INTERNAL', e);
