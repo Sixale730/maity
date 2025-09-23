@@ -1,5 +1,12 @@
 export const env = {
-  supabaseUrl: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  // Supabase Configuration
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+
+  // ElevenLabs Configuration
+  elevenLabsApiKey: import.meta.env.VITE_ELEVENLABS_API_KEY,
+  elevenLabsAgentId: import.meta.env.VITE_ELEVENLABS_AGENT_ID,
+
+  // App Configuration
+  appUrl: import.meta.env.VITE_APP_URL || 'http://localhost:8080',
 };

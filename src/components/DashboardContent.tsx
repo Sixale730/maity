@@ -1,5 +1,5 @@
 import React from "react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { UserRole, UserProfile } from "@/contexts/UserContext";
 import { PlatformAdminDashboard } from "./dashboards/PlatformAdminDashboard";
 import { UserDashboard } from "./dashboards/UserDashboard";
 import TeamDashboard from "./dashboards/TeamDashboard";
@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { OrganizationsManager } from "./OrganizationsManager";
+import { CoachPage } from "./coach/CoachPage";
 import { 
   BarChart, 
   Bar, 
@@ -228,79 +229,99 @@ function OrgAdminDashboard({ userName, companyId }: { userName?: string; company
   );
 }
 
-export function DashboardContent() {
-  const { userRole, userProfile, loading, error } = useUserRole();
+interface DashboardContentProps {
+  userRole: UserRole;
+  userProfile: UserProfile | null;
+}
+
+export function DashboardContent({ userRole, userProfile }: DashboardContentProps) {
   const { t, language } = useLanguage();
-  const location = useLocation();
 
   console.log('DashboardContent rendering, current language:', language);
 
-  if (loading) {
-    return (
-      <main className="flex-1 p-6 space-y-6">
-        <div className="flex items-center gap-4 border-b border-border pb-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
-            <p className="text-muted-foreground">{t('dashboard.loading')}</p>
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-[150px]" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-[100px]" />
-                <Skeleton className="h-3 w-[200px] mt-2" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </main>
-    );
-  }
+  // Default dashboard component based on role
+  const getDefaultDashboard = () => {
+    if (userRole === 'admin') {
+      return <PlatformAdminDashboard />;
+    } else if (userRole === 'manager') {
+      return (
+        <OrgAdminDashboard
+          userName={userProfile?.name}
+          companyId={userProfile?.company_id}
+        />
+      );
+    } else {
+      return <UserDashboard userName={userProfile?.name} />;
+    }
+  };
 
-  if (error) {
-    return (
-      <main className="flex-1 p-6 space-y-6">
-        <div className="flex items-center gap-4 border-b border-border pb-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
-            <p className="text-destructive">{error}</p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  // Check if we're on the team route for manager
-  if (location.pathname === '/dashboard/team' && userRole === 'manager') {
-    return (
-      <main className="flex-1">
-        <TeamDashboard />
-      </main>
-    );
-  }
-
-  // Check if we're on the organizations route for admin
-  if (location.pathname === '/dashboard/organizations' && userRole === 'admin') {
-    return <OrganizationsManager />;
-  }
-
-  // Render dashboard based on user role
-  if (userRole === 'admin') {
-    return <PlatformAdminDashboard />;
-  } else if (userRole === 'manager') {
-    return (
-      <OrgAdminDashboard 
-        userName={userProfile?.name} 
-        companyId={userProfile?.company_id} 
+  return (
+    <Routes>
+      {/* Default dashboard route */}
+      <Route
+        index
+        element={getDefaultDashboard()}
       />
-    );
-  } else {
-    return <UserDashboard userName={userProfile?.name} />;  
-  }
+
+      {/* Coach route - available for all roles */}
+      <Route
+        path="coach"
+        element={<CoachPage />}
+      />
+
+      {/* Team dashboard - only for managers */}
+      {userRole === 'manager' && (
+        <Route
+          path="team"
+          element={
+            <main className="flex-1">
+              <TeamDashboard />
+            </main>
+          }
+        />
+      )}
+
+      {/* Organizations - only for admins */}
+      {userRole === 'admin' && (
+        <Route
+          path="organizations"
+          element={<OrganizationsManager />}
+        />
+      )}
+
+      {/* Other admin routes */}
+      {userRole === 'admin' && (
+        <>
+          <Route path="analytics" element={<div className="p-6">Analytics Dashboard</div>} />
+          <Route path="users" element={<div className="p-6">Users Management</div>} />
+          <Route path="reports" element={<div className="p-6">Reports Dashboard</div>} />
+          <Route path="trends" element={<div className="p-6">Trends Dashboard</div>} />
+          <Route path="settings" element={<div className="p-6">Settings</div>} />
+        </>
+      )}
+
+      {/* Manager routes */}
+      {userRole === 'manager' && (
+        <>
+          <Route path="planes" element={<div className="p-6">Plans Management</div>} />
+          <Route path="documentos" element={<div className="p-6">Documents</div>} />
+          <Route path="settings" element={<div className="p-6">Settings</div>} />
+        </>
+      )}
+
+      {/* User routes */}
+      {userRole === 'user' && (
+        <>
+          <Route path="plan" element={<div className="p-6">My Plan</div>} />
+          <Route path="logros" element={<div className="p-6">Achievements</div>} />
+        </>
+      )}
+
+      {/* Fallback to default dashboard */}
+      <Route
+        path="*"
+        element={getDefaultDashboard()}
+      />
+    </Routes>
+  );
 }

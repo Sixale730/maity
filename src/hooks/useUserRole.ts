@@ -13,18 +13,38 @@ export interface UserProfile {
   role?: string;
 }
 
+// Simple cache to avoid unnecessary API calls
+let roleCache: { role: UserRole; profile: UserProfile | null; timestamp: number } | null = null;
+const CACHE_DURATION = 30000; // 30 seconds
+
 export const useUserRole = () => {
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize loading based on cache availability
+  const hasValidCache = roleCache && (Date.now() - roleCache.timestamp) < CACHE_DURATION;
+
+  const [userRole, setUserRole] = useState<UserRole>(hasValidCache ? roleCache.role : null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(hasValidCache ? roleCache.profile : null);
+  const [loading, setLoading] = useState(!hasValidCache);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const appUrl = getAppUrl();
 
-  const getUserRole = async () => {
+  const getUserRole = async (skipLoading = false) => {
     try {
-      setLoading(true);
+      // Check cache first
+      const now = Date.now();
+      if (roleCache && (now - roleCache.timestamp) < CACHE_DURATION) {
+        console.log('[useUserRole] Using cached data');
+        setUserRole(roleCache.role);
+        setUserProfile(roleCache.profile);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      if (!skipLoading) {
+        setLoading(true);
+      }
       setError(null);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -58,6 +78,13 @@ export const useUserRole = () => {
         };
 
         setUserProfile(basicProfile);
+
+        // Update cache for admin/manager
+        roleCache = {
+          role: (role as UserRole) || 'user',
+          profile: basicProfile,
+          timestamp: Date.now()
+        };
         return;
       }
 
@@ -94,11 +121,22 @@ export const useUserRole = () => {
 
       setUserProfile(basicProfile);
 
+      // Update cache
+      roleCache = {
+        role: (role as UserRole) || 'user',
+        profile: basicProfile,
+        timestamp: Date.now()
+      };
+
     } catch (err) {
       console.error('Error in getUserRole:', err);
       setError('Error al cargar datos del usuario');
+      // Clear cache on error
+      roleCache = null;
     } finally {
-      setLoading(false);
+      if (!skipLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -108,15 +146,21 @@ export const useUserRole = () => {
     // Listen for auth changes and revalidate status
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        // Clear cache on auth changes
+        roleCache = null;
         setTimeout(() => {
           getUserRole();
         }, 0);
       }
     });
 
-    // Revalidate status on window focus (when user returns to tab)
+    // Revalidate status on window focus (when user returns to tab) - but less frequently
     const handleWindowFocus = () => {
-      getUserRole();
+      // Only revalidate if cache is older than 2 minutes
+      const now = Date.now();
+      if (!roleCache || (now - roleCache.timestamp) > 120000) {
+        getUserRole(true); // Skip loading state for focus revalidation
+      }
     };
 
     window.addEventListener('focus', handleWindowFocus);
@@ -127,12 +171,22 @@ export const useUserRole = () => {
     };
   }, []);
 
+  const clearCache = () => {
+    roleCache = null;
+  };
+
+  const refreshRole = () => {
+    clearCache();
+    return getUserRole();
+  };
+
   return {
     userRole,
     userProfile,
     loading,
     error,
-    refreshRole: getUserRole,
+    refreshRole,
+    clearCache,
     isAdmin: userRole === 'admin',
     isManager: userRole === 'manager',
     isUser: userRole === 'user'

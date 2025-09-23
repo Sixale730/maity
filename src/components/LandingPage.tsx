@@ -92,7 +92,7 @@ const LandingPage = () => {
               {t('hero.badge')}
             </Badge>
             <h1 className="font-geist font-bold text-4xl lg:text-6xl text-foreground mb-6 leading-tight">
-              <MaityLogo variant="symbol" size="xl" className="inline-block mr-2" /> {t('hero.title_part1')}{" "}
+              <MaityLogo variant="full" size="xl" className="inline-block mr-2" /> {t('hero.title_part1')}{" "}
               <span className="text-primary">{t('hero.title_part2')}</span>
             </h1>
             <p className="font-inter text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -117,8 +117,10 @@ const LandingPage = () => {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="font-geist font-bold text-3xl lg:text-4xl text-foreground mb-4">
-              {t('features.title')} <MaityLogo variant="symbol" size="sm" className="inline-block" />?
+            <h2 className="font-geist font-bold text-3xl lg:text-4xl text-foreground mb-4 flex items-center justify-center gap-2">
+              <span>{t('features.title')}</span>
+              <MaityLogo variant="full" size="sm" />
+              <span>?</span>
             </h2>
             <p className="font-inter text-lg text-muted-foreground max-w-2xl mx-auto">
               {t('features.description')}

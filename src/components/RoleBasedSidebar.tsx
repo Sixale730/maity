@@ -1,10 +1,10 @@
 import React from "react";
-import { 
-  BarChart3, 
-  Home, 
-  Settings, 
-  Users, 
-  PieChart, 
+import {
+  BarChart3,
+  Home,
+  Settings,
+  Users,
+  PieChart,
   TrendingUp,
   LogOut,
   Building,
@@ -12,11 +12,12 @@ import {
   Target,
   Calendar,
   FileText,
-  Trophy
+  Trophy,
+  MessageCircle
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/hooks/useUserRole";
+import { UserRole } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
 import LanguageSelector from "./LanguageSelector";
@@ -37,6 +38,7 @@ import {
 const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
+    { title: "nav.coach", url: "/dashboard/coach", icon: MessageCircle },
   ];
 
   if (role === 'admin') {

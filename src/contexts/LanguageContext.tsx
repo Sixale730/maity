@@ -14,7 +14,7 @@ const translations = {
   es: {
     // Navigation
     'nav.features': 'Características',
-    'nav.success_cases': 'Casos de �?xito',
+    'nav.success_cases': 'Casos de Éxito',
     'nav.login': 'Iniciar Sesión',
     'nav.start_free': 'Empezar Gratis',
     'nav.navigation': 'Navegación',
@@ -111,6 +111,7 @@ const translations = {
     
     // Navigation
     'nav.dashboard': 'Dashboard',
+    'nav.coach': 'Coach',
     'nav.analytics': 'Analytics',
     'nav.organizations': 'Organizaciones',
     'nav.users': 'Usuarios',
@@ -154,6 +155,28 @@ const translations = {
     'dashboard.team.upload_error': 'Error en la carga',
     'dashboard.team.template_downloaded': 'Plantilla descargada',
     'dashboard.team.csv_error': 'Por favor selecciona un archivo CSV válido',
+
+    // Coach
+    'coach.title': 'Coach IA',
+    'coach.subtitle': 'Tu mentor personal para crecimiento profesional',
+    'coach.ai_coach': 'Coach de Inteligencia Artificial',
+    'coach.description': 'Conversa con tu coach personal powered by AI para obtener mentoría personalizada',
+    'coach.status.ready': 'Listo para conversar',
+    'coach.status.connecting': 'Conectando...',
+    'coach.status.listening': 'Escuchando...',
+    'coach.status.thinking': 'Procesando...',
+    'coach.status.speaking': 'Respondiendo...',
+    'coach.start_listening': 'Iniciar Conversación',
+    'coach.stop_listening': 'Detener',
+    'coach.mute': 'Silenciar',
+    'coach.unmute': 'Activar Audio',
+    'coach.instructions': 'Escribe tu consulta y obtén coaching personalizado en tiempo real',
+    'coach.error.no_api_key': 'Modo demo - La integración completa de voz requiere configuración',
+    'coach.new_conversation': 'Nueva Conversación',
+    'coach.voice_mode': 'Modo Voz (Próximamente)',
+    'coach.placeholder': 'Escribe tu consulta de coaching...',
+    'coach.thinking': 'Tu coach está pensando...',
+    'coach.specialties': 'Tu coach inteligente está listo para ayudarte con liderazgo, productividad y desarrollo profesional',
   },
   en: {
     // Navigation
@@ -264,6 +287,7 @@ const translations = {
     
     // Navigation
     'nav.dashboard': 'Dashboard',
+    'nav.coach': 'Coach',
     'nav.analytics': 'Analytics',
     'nav.organizations': 'Organizations',
     'nav.users': 'Users',
@@ -313,6 +337,28 @@ const translations = {
     'dashboard.team.upload_error': 'Upload error',
     'dashboard.team.template_downloaded': 'Template downloaded',
     'dashboard.team.csv_error': 'Please select a valid CSV file',
+
+    // Coach
+    'coach.title': 'AI Coach',
+    'coach.subtitle': 'Your personal mentor for professional growth',
+    'coach.ai_coach': 'Artificial Intelligence Coach',
+    'coach.description': 'Chat with your AI-powered personal coach for personalized mentoring',
+    'coach.status.ready': 'Ready to chat',
+    'coach.status.connecting': 'Connecting...',
+    'coach.status.listening': 'Listening...',
+    'coach.status.thinking': 'Processing...',
+    'coach.status.speaking': 'Responding...',
+    'coach.start_listening': 'Start Conversation',
+    'coach.stop_listening': 'Stop',
+    'coach.mute': 'Mute',
+    'coach.unmute': 'Unmute',
+    'coach.instructions': 'Write your query and get personalized coaching in real time',
+    'coach.error.no_api_key': 'Demo mode - Full voice integration requires configuration',
+    'coach.new_conversation': 'New Conversation',
+    'coach.voice_mode': 'Voice Mode (Coming Soon)',
+    'coach.placeholder': 'Write your coaching query...',
+    'coach.thinking': 'Your coach is thinking...',
+    'coach.specialties': 'Your intelligent coach is ready to help you with leadership, productivity and professional development',
   }
 };
 
