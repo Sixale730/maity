@@ -11,11 +11,11 @@ const Pending = () => {
       <Card className="w-full max-w-lg text-center">
         <CardHeader>
           <MaityLogo variant="full" size="md" className="mx-auto mb-4" />
-          <CardTitle className="text-2xl font-geist">Estamos activando tu cuenta</CardTitle>
+          <CardTitle className="text-2xl font-geist">Cuenta pendiente de activación</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground font-inter">
-            Nuestro equipo está revisando tu información. Te avisaremos por correo electrónico cuando tu cuenta esté lista.
+            Para activar tu cuenta, necesitas el enlace de invitación de tu empresa. Contacta a tu administrador para obtener el enlace y completar la activación.
           </p>
           <Button variant="outline" onClick={() => navigate('/', { replace: true })} className="font-inter">
             Volver al inicio
