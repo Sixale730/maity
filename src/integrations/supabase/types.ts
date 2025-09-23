@@ -402,7 +402,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "platform_admin" | "org_admin" | "user"
+      app_role: "admin" | "manager" | "user"
       assign_state: "pending" | "sent" | "answered" | "graded" | "missed"
       attendance_outcome: "SHOW" | "NO_SHOW" | "LATE" | "CANCELLED"
       grade_scale: "na" | "fail" | "pass" | "good" | "excellent"
@@ -550,7 +550,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["platform_admin", "org_admin", "user"],
+      app_role: ["admin", "manager", "user"],
       assign_state: ["pending", "sent", "answered", "graded", "missed"],
       attendance_outcome: ["SHOW", "NO_SHOW", "LATE", "CANCELLED"],
       grade_scale: ["na", "fail", "pass", "good", "excellent"],

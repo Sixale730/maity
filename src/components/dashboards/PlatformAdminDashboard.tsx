@@ -35,7 +35,7 @@ const chartConfig = {
 
 export function PlatformAdminDashboard() {
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
-    useDashboardDataByRole('platform_admin');
+    useDashboardDataByRole('admin');
 
   if (loading) {
     return (

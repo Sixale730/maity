@@ -39,7 +39,7 @@ const getNavigationByRole = (role: UserRole) => {
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
   ];
 
-  if (role === 'platform_admin') {
+  if (role === 'admin') {
     return [
       ...baseItems,
       { title: "nav.analytics", url: "/dashboard/analytics", icon: BarChart3 },
@@ -51,7 +51,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.documents", url: "/dashboard/documentos", icon: FileText },
       { title: "nav.settings", url: "/dashboard/settings", icon: Settings },
     ];
-  } else if (role === 'org_admin') {
+  } else if (role === 'manager') {
     return [
       ...baseItems,
       { title: "nav.my_team", url: "/dashboard/team", icon: Users },
@@ -92,8 +92,8 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'platform_admin': return t('roles.platform_admin');
-      case 'org_admin': return t('roles.org_admin');
+      case 'admin': return t('roles.admin');
+      case 'manager': return t('roles.manager');
       case 'user': return t('roles.user');
       default: return '';
     }

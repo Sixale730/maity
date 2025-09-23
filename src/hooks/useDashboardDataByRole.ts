@@ -45,7 +45,7 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
 
   // Sample data generators based on role
   const generateDataByRole = (role: UserRole): DashboardData => {
-    if (role === 'platform_admin') {
+    if (role === 'admin') {
       return {
         monthlyData: [
           { month: "Jun", sessions: 120, completed: 89, mood: 7.2 },
@@ -75,7 +75,7 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
           avgMood: 7.7
         }
       };
-    } else if (role === 'org_admin') {
+    } else if (role === 'manager') {
       return {
         monthlyData: [
           { month: "Jun", sessions: 24, completed: 18, mood: 7.5 },
