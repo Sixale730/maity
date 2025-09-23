@@ -48,10 +48,10 @@ const Onboarding = () => {
         return;
       }
 
-      // Check user phase instead of get_user_info
-      const { data: phase } = await supabase.rpc('my_phase');
+      // Check user status instead of get_user_info
+      const { data: statusData } = await supabase.rpc('my_status');
 
-      if (phase !== 'REGISTRATION') {
+      if (statusData?.[0]?.registration_form_completed) {
         navigate('/dashboard');
         return;
       }
