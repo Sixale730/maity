@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'USER_LOOKUP_FAILED' });
     }
 
-    // 6) Asignar rol (upsert por clave única user_id,role)
+    // 6) Asignar rol (upsert por clave única user_id)
     const { error: roleErr } = await admin
       .schema('maity')
       .from('user_roles')
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
           role: roleToAssign,
           created_at: nowIso
         },
-        { onConflict: 'user_id,role', ignoreDuplicates: false }
+        { onConflict: 'user_id', ignoreDuplicates: false }
       );
     if (roleErr) {
       console.error('[finalize] Role assignment error:', roleErr);
