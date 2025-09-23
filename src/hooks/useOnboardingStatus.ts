@@ -52,8 +52,8 @@ export const useOnboardingStatus = () => {
       // For now, assume onboarding is completed if user has active status
       // This will be enhanced when we have proper onboarding_completed_at field access
       setStatus({
-        isCompleted: statusResult === 'ACTIVE',
-        completedAt: statusResult === 'ACTIVE' ? new Date().toISOString() : null,
+        isCompleted: statusResult?.[0]?.registration_form_completed || false,
+        completedAt: statusResult?.[0]?.registration_form_completed ? new Date().toISOString() : null,
         loading: false,
         error: null
       });

@@ -61,21 +61,21 @@ export const useUserRole = () => {
         return;
       }
 
-      // Para usuarios regulares, verificar fase
-      const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
+      // Para usuarios regulares, verificar fase - use my_status instead
+      const { data: statusData } = await supabase.rpc('my_status');
 
-      if (phaseError) {
-        console.error('[useUserRole] my_phase error:', phaseError);
+      if (!statusData) {
+        console.error('[useUserRole] my_status error: no data returned');
         setError('Error al verificar el estado del usuario');
         return;
       }
 
-      const phase = String(phaseData || '').toUpperCase();
-      console.log('[useUserRole] User phase:', phase);
+      const hasCompany = statusData?.[0]?.company_id;
+      console.log('[useUserRole] User has company:', hasCompany);
 
-      // Solo continuar si el usuario está ACTIVE
-      if (phase !== 'ACTIVE') {
-        console.log('[useUserRole] User not active, skipping role fetch');
+      // Solo continuar si el usuario tiene company_id
+      if (!hasCompany) {
+        console.log('[useUserRole] User has no company, skipping role fetch');
         setUserRole(null);
         setUserProfile(null);
         return;
