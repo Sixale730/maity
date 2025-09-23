@@ -12,7 +12,8 @@
       "Bash(findstr:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm run build:dev:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//c/Users/alfon/OneDrive/Imágenes/Capturas de pantalla/**)"
     ],
     "deny": [],
     "ask": []
