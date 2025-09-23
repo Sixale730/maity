@@ -4,8 +4,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, MessageCircle, Loader2, Phone, PhoneOff, Eye, EyeOff } from 'lucide-react';
+import { Send, MessageCircle, Loader2, Phone, PhoneOff, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ElevenLabsConvAI } from './ElevenLabsConvAI';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Message {
   id: string;
@@ -33,6 +35,7 @@ export function CoachPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [showTranscript, setShowTranscript] = useState(true);
+  const [activeTab, setActiveTab] = useState('elevenlabs');
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -228,68 +231,105 @@ export function CoachPage() {
           </div>
         </div>
 
-        {/* Voice Controls */}
+        {/* Voice Controls with Tabs */}
         <div className="max-w-4xl mx-auto mb-6">
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex gap-2">
-                  <Button
-                    onClick={startCall}
-                    disabled={isCallActive}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Iniciar Llamada
-                  </Button>
-                  <Button
-                    onClick={endCall}
-                    disabled={!isCallActive}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    <PhoneOff className="w-4 h-4 mr-2" />
-                    Terminar Llamada
-                  </Button>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="bg-white/10 border-white/20">
+              <TabsTrigger value="elevenlabs" className="data-[state=active]:bg-white/20">
+                <Sparkles className="w-4 h-4 mr-2" />
+                ElevenLabs AI
+              </TabsTrigger>
+              <TabsTrigger value="browser" className="data-[state=active]:bg-white/20">
+                <Phone className="w-4 h-4 mr-2" />
+                Navegador Nativo
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="elevenlabs" className="mt-4">
+              <ElevenLabsConvAI
+                onMessageReceived={(text, sender) => {
+                  const newMessage: Message = {
+                    id: Date.now().toString(),
+                    text,
+                    sender,
+                    timestamp: new Date()
+                  };
+                  setMessages(prev => [...prev, newMessage]);
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="browser" className="mt-4">
+              <Card className="bg-white/10 backdrop-blur-lg border-white/20 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={startCall}
+                        disabled={isCallActive}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Iniciar Llamada
+                      </Button>
+                      <Button
+                        onClick={endCall}
+                        disabled={!isCallActive}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        <PhoneOff className="w-4 h-4 mr-2" />
+                        Terminar Llamada
+                      </Button>
+                    </div>
+
+                    {isCallActive && (
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${
+                          isSpeaking ? 'bg-blue-400 animate-pulse' :
+                          isListening ? 'bg-green-400 animate-pulse' :
+                          'bg-yellow-400'
+                        }`} />
+                        <span className="text-white text-sm">
+                          {isSpeaking ? 'Coach hablando...' :
+                           isListening ? 'Escuchando...' :
+                           'En llamada'
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {isCallActive && (
+                    <Button
+                      onClick={() => setShowTranscript(!showTranscript)}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                    >
+                      {showTranscript ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
+                      {showTranscript ? 'Ocultar' : 'Mostrar'} Transcripción
+                    </Button>
+                  )}
                 </div>
 
-                {isCallActive && (
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      isSpeaking ? 'bg-blue-400 animate-pulse' :
-                      isListening ? 'bg-green-400 animate-pulse' :
-                      'bg-yellow-400'
-                    }`} />
-                    <span className="text-white text-sm">
-                      {isSpeaking ? 'Coach hablando...' :
-                       isListening ? 'Escuchando...' :
-                       'En llamada'
-                      }
-                    </span>
+                {/* Transcript */}
+                {isCallActive && showTranscript && transcript && (
+                  <div className="mt-4 p-3 bg-black/20 rounded-lg border border-white/10">
+                    <div className="text-white/60 text-xs mb-1">Transcripción en tiempo real:</div>
+                    <div className="text-white text-sm">"{transcript}"</div>
                   </div>
                 )}
-              </div>
 
-              {isCallActive && (
-                <Button
-                  onClick={() => setShowTranscript(!showTranscript)}
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                >
-                  {showTranscript ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                  {showTranscript ? 'Ocultar' : 'Mostrar'} Transcripción
-                </Button>
-              )}
-            </div>
-
-            {/* Transcript */}
-            {isCallActive && showTranscript && transcript && (
-              <div className="mt-4 p-3 bg-black/20 rounded-lg border border-white/10">
-                <div className="text-white/60 text-xs mb-1">Transcripción en tiempo real:</div>
-                <div className="text-white text-sm">"{transcript}"</div>
-              </div>
-            )}
-          </Card>
+                {/* Instructions for browser */}
+                {!isCallActive && (
+                  <div className="mt-4 text-white/60 text-sm">
+                    <p>🎤 Usa el reconocimiento de voz nativo del navegador</p>
+                    <p>🔊 Síntesis de voz con las voces del sistema</p>
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Chat Interface */}
