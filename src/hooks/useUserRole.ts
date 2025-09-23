@@ -49,15 +49,11 @@ export const useUserRole = () => {
         console.log('[useUserRole] User is admin/manager, proceeding regardless of phase');
         setUserRole((role as UserRole) || 'user');
 
-        // Get user info to get company_id and other data
-        const { data: userInfo } = await supabase.rpc('get_user_info');
-
-        // Create a profile from user info data
+        // Create a profile from basic user data
         const basicProfile: UserProfile = {
           id: user.id,
           auth_id: user.id,
-          name: userInfo?.[0]?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
-          company_id: userInfo?.[0]?.company_id,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
           role: role || 'user'
         };
 
@@ -88,15 +84,11 @@ export const useUserRole = () => {
       // Para usuarios regulares que llegaron aquí (fase ACTIVE)
       setUserRole((role as UserRole) || 'user');
 
-      // Get user info to get company_id and other data
-      const { data: userInfo } = await supabase.rpc('get_user_info');
-
-      // Create a profile from user info data
+      // Create a profile from basic user data
       const basicProfile: UserProfile = {
         id: user.id,
         auth_id: user.id,
-        name: userInfo?.[0]?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
-        company_id: userInfo?.[0]?.company_id,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
         role: role || 'user'
       };
 

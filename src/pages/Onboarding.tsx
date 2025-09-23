@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-type UserInfo = Database['public']['Functions']['get_user_info']['Returns'][number];
+// Removed UserInfo type as get_user_info is no longer used
 
 declare global {
   interface Window {
@@ -48,15 +48,10 @@ const Onboarding = () => {
         return;
       }
 
-      const { data: userInfoResponse } = await supabase.rpc('get_user_info');
-      const userInfo = userInfoResponse?.[0] as UserInfo | undefined;
+      // Check user phase instead of get_user_info
+      const { data: phase } = await supabase.rpc('my_phase');
 
-      if (!userInfo || !userInfo.company_id) {
-        navigate('/invitation-required');
-        return;
-      }
-
-      if (userInfo.registration_form_completed) {
+      if (phase !== 'REGISTRATION') {
         navigate('/dashboard');
         return;
       }
