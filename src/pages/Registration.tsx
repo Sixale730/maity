@@ -49,29 +49,24 @@ const Registration: React.FC = () => {
       setAuthId(session.user.id);
 
       // 2) Verificar fase actual del usuario
-      const { data: phaseData, error: phaseError } = await supabase.rpc("my_phase");
+      const { data: statusData } = await supabase.rpc('my_status');
 
-      if (phaseError) {
-        console.error("[registration] my_phase error", phaseError);
+      if (!statusData) {
+        console.error("[registration] my_status returned no data");
         navigate("/user-status-error", { replace: true });
         return;
       }
 
-      const phase = String(phaseData || "").toUpperCase();
-      console.log("[registration] User phase:", phase);
+      const userStatus = statusData[0];
+      console.log("[registration] User status:", userStatus);
 
-      if (phase === "ACTIVE") {
+      if (userStatus.registration_form_completed) {
         navigate("/dashboard", { replace: true });
         return;
       }
 
-      if (phase === "NO_COMPANY") {
+      if (!userStatus.company_id) {
         navigate("/pending", { replace: true });
-        return;
-      }
-
-      if (phase !== "REGISTRATION") {
-        navigate("/user-status-error", { replace: true });
         return;
       }
 

@@ -82,9 +82,46 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      users: {
+        Row: {
+          auth_id: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string | null
+          registration_form_completed: boolean | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auth_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          registration_form_completed?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auth_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          registration_form_completed?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      accept_invite_and_assign: {
+        Args: { p_auth_id: string; p_token: string }
+        Returns: {
+          assigned: boolean
+          audience: string
+          redirect: string
+        }[]
+      }
       assign_company_simple: {
         Args: { company_slug: string; user_auth_id: string }
         Returns: Json
@@ -125,6 +162,10 @@ export type Database = {
         Args: { company_id: string }
         Returns: undefined
       }
+      ensure_user: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_companies: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -161,6 +202,17 @@ export type Database = {
           timezone: string
         }[]
       }
+      get_company_invite_links: {
+        Args: { company_id: string }
+        Returns: {
+          audience: string
+          expires_at: string
+          is_active: boolean
+          max_uses: number
+          token: string
+          used_count: number
+        }[]
+      }
       get_user_company_id: {
         Args: { user_auth_id?: string }
         Returns: string
@@ -175,24 +227,9 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_user_info: {
-        Args: { user_auth_id?: string }
-        Returns: {
-          auth_id: string
-          company_id: string
-          company_name: string
-          company_slug: string
-          email: string
-          name: string
-          onboarding_completed_at: string
-          registration_form_completed: boolean
-          status: string
-          user_id: string
-        }[]
-      }
       get_user_role: {
-        Args: { user_auth_id?: string }
-        Returns: Database["public"]["Enums"]["app_role"]
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -340,9 +377,20 @@ export type Database = {
           similarity: number
         }[]
       }
-      my_status: {
+      my_phase: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      my_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      my_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_id: string
+          registration_form_completed: boolean
+        }[]
       }
       provision_user: {
         Args: Record<PropertyKey, never>

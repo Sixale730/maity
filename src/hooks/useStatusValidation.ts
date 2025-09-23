@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,8 +20,8 @@ export const useStatusValidation = () => {
         return false;
       }
 
-      const { data: status } = await supabase.rpc('my_status');
-      if (status !== 'ACTIVE') {
+      const { data: statusData } = await supabase.rpc('my_status');
+      if (!statusData?.[0]?.company_id) {
         redirectToAuth();
         return false;
       }

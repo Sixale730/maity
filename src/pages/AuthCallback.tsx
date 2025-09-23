@@ -41,7 +41,7 @@ export default function AuthCallback() {
 
       const code = url.searchParams.get("code");
       if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession({ code });
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
           console.error("[AuthCb] exchangeCodeForSession error:", exchangeError);
           hasRoutedRef.current = true;
