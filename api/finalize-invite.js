@@ -1,9 +1,11 @@
 // api/finalize-invite.js
 import { createClient } from '@supabase/supabase-js';
 import { parse } from 'cookie';
-import { env } from '../src/lib/env.js';
 
-const admin = createClient(env.supabaseUrl, env.supabaseServiceKey);
+const admin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const RAW_ORIGINS =
   process.env.CORS_ORIGINS ||
