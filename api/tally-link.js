@@ -11,7 +11,15 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 function setCors(req, res) {
   const allowed = (process.env.CORS_ORIGINS || 'https://maity.com.mx,https://www.maity.com.mx').split(',');
   const origin = req.headers.origin;
-  if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  console.log('[tally-link] CORS debug:', { origin, allowed });
+
+  if (allowed.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Temporal: permitir todos los orígenes para debug
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
