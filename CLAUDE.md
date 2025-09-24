@@ -17,6 +17,9 @@ Maity is a mental wellness platform built with React/TypeScript that provides ro
 # Development server
 npm run dev
 
+# Local API development (Vercel dev server)
+npm run dev:api
+
 # Build for production
 npm run build
 
@@ -53,7 +56,9 @@ src/
 
 api/
 ├── accept-invite.js         # Process invitation links (sets cookie)
-└── finalize-invite.js       # Link user to company (consumes cookie)
+├── finalize-invite.js       # Link user to company (consumes cookie)
+├── tally-link.js           # Generate Tally form URLs with OTK tokens
+└── tally-webhook.js        # Handle Tally form submissions
 
 supabase/migrations/         # Database schema and functions
 ```
@@ -62,11 +67,14 @@ supabase/migrations/         # Database schema and functions
 **ALWAYS use centralized `src/lib/env.ts` instead of direct `process.env` access**
 
 Required variables:
-- `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_ANON_KEY` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_URL` / `VITE_SUPABASE_URL`
+- `SUPABASE_ANON_KEY` / `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-side only)
 - `CORS_ORIGINS` (API endpoints)
 - `COOKIE_DOMAIN` (invite system)
+- `VITE_API_URL` (local development API endpoint)
+- `TALLY_FORM_URL` (Tally form integration)
+- `TALLY_WEBHOOK_SECRET` (Tally webhook validation)
 
 ## Authentication & Authorization
 
@@ -103,17 +111,21 @@ Required variables:
 - `my_roles()`: Returns array of user roles
 - `get_user_role()`: Returns primary user role
 - `get_user_info()`: Returns user profile data
+- `otk(p_auth_id, p_ttl_minutes)`: Generates one-time tokens for Tally form integration
 
 ## Code Conventions
 
 ### Environment Variables
 ```typescript
-// ❌ DON'T
+// ❌ DON'T (Frontend)
 const url = process.env.SUPABASE_URL;
 
-// ✅ DO
+// ✅ DO (Frontend)
 import { env } from '@/lib/env';
 const url = env.supabaseUrl;
+
+// ✅ OK (API endpoints)
+const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 ```
 
 ### Role Checking
@@ -145,10 +157,10 @@ const { data: phase } = await supabase.rpc('my_phase');
 - Automatic HTTPS redirect in production
 - Development bypasses canonical validation
 
-### Removed Features
-- **OTK/Token system**: Completely removed from registration flow
-- **AuthCompany.tsx**: Deleted, functionality moved to invite system
-- **Direct role assignment**: Now handled via invitation system
+### Registration & Tally Integration
+- **OTK/Token system**: Used for Tally form integration and validation
+- **Tally Forms**: Registration completion handled via external Tally forms
+- **Webhook Integration**: Form submissions processed via tally-webhook.js
 
 ### Security
 - HttpOnly cookies for invite tokens
@@ -187,11 +199,31 @@ const { data: phase } = await supabase.rpc('my_phase');
 - Role transitions require page refresh in some cases
 - Complex phase/role logic requires careful testing
 - Database migrations must be applied manually
+- CORS issues in development resolved by using local Vercel dev server
+- OTK function requires service_role permissions for proper token generation
 
 ## Development Workflow
+
+### Local Development Setup
+```bash
+# Terminal 1 - Start API server
+npm run dev:api
+
+# Terminal 2 - Start frontend
+npm run dev
+```
+
+### Best Practices
 1. Always use the todo list tool for tracking complex tasks
 2. Read existing code before making changes
 3. Follow established patterns for new features
 4. Test authentication flows thoroughly
 5. Use centralized environment variables
 6. Prefer editing existing files over creating new ones
+7. Test CORS-sensitive features in production or with local Vercel dev server
+
+### API Development Notes
+- API endpoints must use `process.env` directly, not `src/lib/env.ts`
+- Use fallbacks for environment variables: `process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL`
+- OTK generation requires `admin.rpc()` with service_role permissions
+- CORS headers must be set for all API endpoints
