@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { buildTallyEmbedUrl } from "@/lib/tally";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,27 +10,15 @@ import { Loader2, ArrowLeft } from "lucide-react";
  * NOTAS IMPORTANTES:
  * - La fase del usuario se valida vía RPC my_phase().
  * - El usuario debe tener company_id asignado en maity.users; si no, se redirige a /pending.
- * - El formulario de Tally recibe auth_id y company info como hidden fields.
+ * - Se genera un link especial de Tally con OTK y hidden fields.
  */
-
-type Company = {
-  id: string;
-  name: string;
-  plan: string | null;
-  timezone: string | null;
-  is_active: boolean;
-  created_at: string;
-};
-
-const TALLY_FORM_ID = import.meta.env.VITE_TALLY_FORM_ID || "wQGAyA";
 
 const Registration: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [company, setCompany] = useState<Company | null>(null);
-  const [authId, setAuthId] = useState<string>("");
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     void init();
@@ -46,8 +33,6 @@ const Registration: React.FC = () => {
         navigate(`/auth?returnTo=${returnTo}`);
         return;
       }
-      setAuthId(session.user.id);
-
       // 2) Verificar fase actual del usuario
       const { data: statusData } = await supabase.rpc('my_status');
 
@@ -70,53 +55,45 @@ const Registration: React.FC = () => {
         return;
       }
 
-      // 3) Traer info de usuario (propia fila) para validar company y estado del formulario
-      const { data: me, error: meErr } = await supabase
-        .from("users")
-        .select("company_id, registration_form_completed")
-        .eq("auth_id", session.user.id)
-        .single();
+      // 3) Generar link de Tally con OTK
+      setRedirecting(true);
 
-      if (meErr || !me) {
-        console.error("[registration] meErr", meErr);
-        toast({
-          title: "Error",
-          description: "No se pudo obtener tu perfil.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      if (!me.company_id) {
-        navigate("/pending", { replace: true });
-        return;
-      }
-
-      if (me.registration_form_completed) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-
-      // 4) Traer datos de la empresa
-      const { data: companyRows, error: compErr } = await supabase.rpc("get_company_by_id", {
-        company_id: me.company_id,
+      const response = await fetch('/api/tally-link', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (compErr || !companyRows || companyRows.length === 0) {
-        console.error("[registration] company error", compErr);
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("[registration] Failed to generate Tally link:", error);
+
+        if (error.error === 'ALREADY_COMPLETED') {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        if (error.error === 'NO_COMPANY') {
+          navigate("/pending", { replace: true });
+          return;
+        }
+
         toast({
-          title: "Empresa no encontrada o inactiva",
-          description: "Contacta a tu administrador.",
+          title: "Error",
+          description: "No se pudo generar el enlace al formulario.",
           variant: "destructive",
         });
         navigate("/");
         return;
       }
 
-      const companyRecord = companyRows[0] as Company;
-      setCompany(companyRecord);
-      console.log('[Registration] Company loaded:', companyRecord);
+      const { url: tallyUrl } = await response.json();
+      console.log('[Registration] Redirecting to Tally form...');
+
+      // Redirect to Tally form
+      window.location.href = tallyUrl;
     } catch (error) {
       console.error("[registration] init error", error);
       toast({
@@ -130,97 +107,41 @@ const Registration: React.FC = () => {
     }
   };
 
-  const iframeSrc = useMemo(() => {
-    console.log('[Registration] Building iframe src with:', {
-      authId,
-      companyId: company?.id,
-      companyName: company?.name,
-      tallyFormId: TALLY_FORM_ID
-    });
-
-    if (!authId || !company?.id) {
-      console.log('[Registration] Missing required data for iframe');
-      return "";
-    }
-    if (typeof window === 'undefined') return "";
-
-    const url = buildTallyEmbedUrl(
-      TALLY_FORM_ID,
-      {
-        auth_id: authId,
-        company_id: company.id,
-        company_name: company.name || "",
-      },
-      { redirectTo: `${window.location.origin}/onboarding/success` }
-    );
-
-    console.log('[Registration] Built Tally URL:', url);
-    return url;
-  }, [authId, company]);
-
   const handleBackToHome = () => navigate("/");
 
-  if (loading) {
+  if (loading || redirecting) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Verificando datos...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-
-  if (!company) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Empresa no encontrada</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground mb-6">
-              La empresa especificada no existe o no está activa.
+            <p className="text-muted-foreground">
+              {redirecting ? "Redirigiendo al formulario..." : "Verificando datos..."}
             </p>
-            <Button onClick={handleBackToHome} variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al inicio
-            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  // This shouldn't normally be shown as we redirect to Tally
   return (
-    <>
-      <style>
-        {`
-          html, body, #root { height: 100%; }
-          body { margin: 0; overflow: hidden; }
-          iframe { position: fixed; inset: 0; border: 0; width: 100%; height: 100%; }
-        `}
-      </style>
-
-      {!iframeSrc ? (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Cargando formulario…</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Loader2 className="h-5 w-5 animate-spin inline-block mr-2" />
-              Espera un momento…
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <iframe title="Registro / Diagnóstico" src={iframeSrc} />
-      )}
-    </>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Preparando formulario</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground mb-6">
+            Serás redirigido al formulario de registro en un momento...
+          </p>
+          <Button onClick={handleBackToHome} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver al inicio
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
