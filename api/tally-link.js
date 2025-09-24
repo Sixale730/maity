@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       url.searchParams.set('hidden[email]', user.email || '');
 
       // UI opcional de Tally
-      url.searchParams.set('alignLeft', '1');
+      // url.searchParams.set('alignLeft', '1');  // Comentado: causaba que se pegue a la izquierda
       url.searchParams.set('hideTitle', '1');
       url.searchParams.set('transparentBackground', '1');
 
