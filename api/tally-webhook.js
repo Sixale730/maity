@@ -1,106 +1,85 @@
-// api/tally-webhook.js
+// pages/api/tally-link.ts
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY
-);
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const ANON_KEY = process.env.SUPABASE_ANON_KEY!;                 // para llamar RPC con JWT de usuario
+const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;     // para leer maity.users/companies
+const TALLY_FORM_URL = process.env.TALLY_FORM_URL!;
 
-const WEBHOOK_SECRET = process.env.TALLY_WEBHOOK_SECRET || 'f88c5139-5bc6-42e7-aee2-4fab8ead044b';
+// Cliente admin (RLS bypass) para leer tus tablas
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+// CORS helper
+function setCors(req, res) {
+  const allowed = (process.env.CORS_ORIGINS || 'http://localhost:8080,https://maity.com.mx,https://www.maity.com.mx').split(',');
+  const origin = req.headers.origin;
+  if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
-  }
+  setCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
 
   try {
-    // Verify webhook secret
-    const secret = req.query?.secret;
-    if (!WEBHOOK_SECRET || secret !== WEBHOOK_SECRET) {
-      console.log('[tally-webhook] Invalid secret:', secret);
-      return res.status(401).json({ error: 'UNAUTHORIZED' });
-    }
+    // 1) JWT del usuario (lo manda tu front en Authorization: Bearer <token>)
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'UNAUTHORIZED' });
+    const userJwt = auth.slice(7);
 
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    console.log('[tally-webhook] Received webhook:', {
-      eventId: body?.eventId,
-      eventType: body?.eventType,
-      createdAt: body?.createdAt
+    // 2) Con ese JWT crea un cliente "de usuario" para que public.otk vea auth.uid()
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${userJwt}` } },
     });
 
-    // Extract hidden fields from Tally webhook
-    // Tally sends them in data.fields array or data.hidden
-    const fields = body?.data?.fields || [];
-    const hiddenData = body?.data?.hidden || {};
+    // (opcional) validar usuario por si quieres checar claims
+    const { data: { user }, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !user) return res.status(401).json({ error: 'INVALID_TOKEN' });
+    const authId = user.id;
 
-    // Try to get values from fields array first
-    let authId = null;
-    let otk = null;
-
-    // Check fields array
-    for (const field of fields) {
-      if (field.key === 'auth_id' || field.label === 'auth_id') {
-        authId = field.value;
-      }
-      if (field.key === 'otk' || field.label === 'otk') {
-        otk = field.value;
-      }
-    }
-
-    // Fallback to hidden data
-    authId = authId || hiddenData.auth_id || hiddenData.user_id;
-    otk = otk || hiddenData.otk || hiddenData.token;
-
-    console.log('[tally-webhook] Extracted data:', { authId, hasOtk: !!otk });
-
-    if (!authId || !otk) {
-      console.error('[tally-webhook] Missing required fields');
-      return res.status(400).json({ error: 'MISSING_FIELDS' });
-    }
-
-    // Verify token is valid
-    const { data: userData, error: userError } = await supabase
+    // 3) Lee tu usuario/empresa en esquema maity con admin
+    const { data: u, error: uErr } = await admin
+      .schema('maity')
       .from('users')
-      .select('id, registration_form_completed, onboarding_token, onboarding_token_expires_at')
+      .select('id, company_id, registration_form_completed')
       .eq('auth_id', authId)
-      .eq('onboarding_token', otk)
+      .single();
+    if (uErr || !u) return res.status(404).json({ error: 'USER_NOT_FOUND' });
+    if (u.registration_form_completed) return res.status(400).json({ error: 'ALREADY_COMPLETED' });
+
+    const { data: co } = await admin
+      .schema('maity')
+      .from('companies')
+      .select('name')
+      .eq('id', u.company_id)
       .single();
 
-    if (userError || !userData) {
-      console.error('[tally-webhook] Invalid token or user not found:', userError);
-      return res.status(400).json({ error: 'INVALID_TOKEN' });
+    // 4) 🔑 Genera OTK con tu wrapper público (usa auth.uid() del JWT)
+    const { data: otkData, error: otkErr } = await userClient.rpc('otk', { p_ttl_minutes: 120 });
+    if (otkErr || !otkData?.[0]?.token) {
+      console.error('[tally-link] RPC public.otk error:', otkErr, otkData);
+      return res.status(500).json({ error: 'OTK_GENERATION_FAILED' });
     }
+    const { token, expires_at } = otkData[0];
 
-    // Check if token is expired
-    if (userData.onboarding_token_expires_at) {
-      const expiresAt = new Date(userData.onboarding_token_expires_at).getTime();
-      if (expiresAt < Date.now()) {
-        console.error('[tally-webhook] Token expired');
-        return res.status(400).json({ error: 'TOKEN_EXPIRED' });
-      }
-    }
+    // 5) Construye la URL de Tally con hidden fields
+    const url = new URL(TALLY_FORM_URL);
+    url.searchParams.set('hidden[auth_id]', authId);
+    url.searchParams.set('hidden[otk]', token);
+    url.searchParams.set('hidden[company_id]', u.company_id || '');
+    url.searchParams.set('hidden[company_name]', co?.name || '');
+    url.searchParams.set('hidden[email]', user.email || '');
+    // UI opcional
+    url.searchParams.set('alignLeft', '1');
+    url.searchParams.set('hideTitle', '1');
+    url.searchParams.set('transparentBackground', '1');
 
-    // Mark registration as completed
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        registration_form_completed: true,
-        onboarding_completed_at: new Date().toISOString(),
-        onboarding_token: null,
-        onboarding_token_expires_at: null
-      })
-      .eq('id', userData.id);
-
-    if (updateError) {
-      console.error('[tally-webhook] Update failed:', updateError);
-      return res.status(500).json({ error: 'UPDATE_FAILED' });
-    }
-
-    console.log('[tally-webhook] Successfully marked registration as completed for user:', userData.id);
-    return res.status(200).json({ success: true });
-
-  } catch (error) {
-    console.error('[tally-webhook] Error:', error);
-    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    return res.status(200).json({ url: url.toString(), expires_at });
+  } catch (e) {
+    console.error('[tally-link] INTERNAL', e);
+    return res.status(500).json({ error: 'INTERNAL' });
   }
 }
