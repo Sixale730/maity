@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { env } from "@/lib/env";
 
 /**
  * NOTAS IMPORTANTES:
@@ -58,7 +59,7 @@ const Registration: React.FC = () => {
       // 3) Generar link de Tally con OTK
       setRedirecting(true);
 
-      const response = await fetch('/api/tally-link', {
+      const response = await fetch(`${env.apiUrl}/api/tally-link`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

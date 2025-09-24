@@ -3,8 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 const TALLY_FORM_URL = process.env.TALLY_FORM_URL || 'https://tally.so/r/wQGAyA';
@@ -74,7 +74,8 @@ export default async function handler(req, res) {
 
     // Generate OTK using the RPC function
     const { data: otkData, error: otkError } = await supabase.rpc('otk', {
-      p_auth_id: authId
+      p_auth_id: authId,
+      p_ttl_minutes: 120
     });
 
     if (otkError || !otkData || !otkData[0]) {

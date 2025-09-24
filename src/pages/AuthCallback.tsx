@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { env } from "@/lib/env";
 
 // Helper function to call finalize-invite API
 const finalizeInvite = async (accessToken: string) => {
-  const response = await fetch('/api/finalize-invite', {
+  const response = await fetch(`${env.apiUrl}/api/finalize-invite`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
