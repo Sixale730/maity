@@ -1,25 +1,12 @@
 // api/finalize-invite.js
 import { createClient } from '@supabase/supabase-js';
 import { parse } from 'cookie';
+import { setCors } from '../lib/cors.js';
 
 const admin = createClient(
   process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
-const RAW_ORIGINS =
-  process.env.CORS_ORIGINS ||
-  'https://www.maity.com.mx,https://maity.com.mx,https://api.maity.com.mx,http://localhost:5173,http://localhost:8080';
-const ALLOWED = new Set(RAW_ORIGINS.split(',').map(s => s.trim()).filter(Boolean));
-
-function setCors(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type');
-}
 
 function clearInviteCookie(res) {
   const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.maity.com.mx';
@@ -30,12 +17,7 @@ function clearInviteCookie(res) {
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    setCors(req, res);
-    return res.status(204).end();
-  }
-
-  setCors(req, res);
+  if (setCors(req, res)) return; // ya respondimos OPTIONS
   res.setHeader('Cache-Control', 'no-store');
 
   try {

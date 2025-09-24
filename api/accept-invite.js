@@ -1,5 +1,6 @@
 // api/accept-invite.js
 import { createClient } from '@supabase/supabase-js';
+import { setCors } from '../lib/cors.js';
 
 const admin = createClient(
   process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,

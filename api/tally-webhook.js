@@ -1,26 +1,17 @@
-// pages/api/tally-link.ts
+// pages/api/tally-webhook.ts
 import { createClient } from '@supabase/supabase-js';
+import { setCors } from '../lib/cors.js';
 
-const SUPABASE_URL   = process.env.SUPABASE_URL!;
-const ANON_KEY       = process.env.SUPABASE_ANON_KEY!;             // para leer el user del JWT
-const SERVICE_ROLE   = process.env.SUPABASE_SERVICE_ROLE_KEY!;     // admin para RPC/tablas
-const TALLY_FORM_URL = process.env.TALLY_FORM_URL!;
+const SUPABASE_URL   = process.env.SUPABASE_URL;
+const ANON_KEY       = process.env.SUPABASE_ANON_KEY;             // para leer el user del JWT
+const SERVICE_ROLE   = process.env.SUPABASE_SERVICE_ROLE_KEY;     // admin para RPC/tablas
+const TALLY_FORM_URL = process.env.TALLY_FORM_URL;
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-function setCors(req, res) {
-  const allowed = (process.env.CORS_ORIGINS || 'https://maity.com.mx,https://www.maity.com.mx').split(',');
-  const origin = req.headers.origin;
-  if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-}
-
 export default async function handler(req, res) {
-  setCors(req, res);
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST')   return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
+  if (setCors(req, res)) return; // ya respondimos OPTIONS
+  if (req.method !== 'POST') return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
 
   try {
     // 1) JWT del usuario
