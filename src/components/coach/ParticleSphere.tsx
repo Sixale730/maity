@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { MAITY_COLORS } from '@/lib/colors';
 
 interface ParticleSphereProps {
   isListening: boolean;
@@ -23,7 +24,17 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
     constructor() {
       this.theta = Math.random() * Math.PI * 2;
       this.phi = Math.acos(Math.random() * 2 - 1);
-      this.baseRadius = 120;
+      // Responsive radius based on screen size
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth < 1024;
+
+      if (isMobile) {
+        this.baseRadius = 75;
+      } else if (isTablet) {
+        this.baseRadius = 90;
+      } else {
+        this.baseRadius = 120;
+      }
       this.pulseOffset = Math.random() * Math.PI * 2;
       this.x = 0;
       this.y = 0;
@@ -32,17 +43,25 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
     }
 
     updatePosition(time: number) {
-      const pulseFactor = isListening ? 1 + Math.sin(time * 0.003 + this.pulseOffset) * 0.15 : 1;
+      let pulseFactor = 1;
+
+      if (isSpeaking) {
+        // Cuando habla: movimiento visible pero suave
+        pulseFactor = 1 + Math.sin(time * 0.004 + this.pulseOffset) * 0.2;
+        this.theta += 0.003 + Math.sin(time * 0.002) * 0.002;
+        this.phi += Math.sin(time * 0.0015 + this.pulseOffset) * 0.004;
+      } else if (isListening) {
+        // Cuando escucha: animación suave de suspensión
+        pulseFactor = 1 + Math.sin(time * 0.002 + this.pulseOffset) * 0.08;
+        this.theta += 0.0005;
+        this.phi += Math.sin(time * 0.0008) * 0.002;
+      }
+
       const radius = this.baseRadius * pulseFactor;
 
       this.x = radius * Math.sin(this.phi) * Math.cos(this.theta);
       this.y = radius * Math.sin(this.phi) * Math.sin(this.theta);
       this.z = radius * Math.cos(this.phi);
-
-      if (isListening && !isSpeaking) {
-        this.theta += 0.002;
-        this.phi += Math.sin(time * 0.001) * 0.001;
-      }
     }
   }
 
@@ -54,17 +73,30 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
     if (!ctx) return;
 
     const setCanvasSize = () => {
-      canvas.width = 400;
-      canvas.height = 400;
+      // Responsive canvas size
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth < 1024;
+
+      if (isMobile) {
+        canvas.width = 250;
+        canvas.height = 250;
+      } else if (isTablet) {
+        canvas.width = 300;
+        canvas.height = 300;
+      } else {
+        canvas.width = 400;
+        canvas.height = 400;
+      }
     };
     setCanvasSize();
 
-    // Create particles
-    const particleCount = 300;
+    // Create particles - fewer on mobile for better performance
+    const isMobile = window.innerWidth < 640;
+    const particleCount = isMobile ? 150 : 300;
     particlesRef.current = Array.from({ length: particleCount }, () => new Particle());
 
     const render = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillStyle = MAITY_COLORS.blackAlpha(0.1);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
@@ -85,19 +117,19 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
         const size = Math.max(0.5, 3 * scale);
         const opacity = Math.min(1, Math.max(0.2, scale));
 
-        // Color changes based on state
+        // Color changes based on state using official Maity palette
         let color: string;
         if (isSpeaking) {
-          // Green glow when agent is speaking
-          const green = Math.floor(150 + Math.sin(timeRef.current * 0.005) * 50);
-          color = `rgba(34, ${green}, 94, ${opacity})`;
+          // Azul vibrante cuando el agente está hablando
+          const pulse = Math.sin(timeRef.current * 0.005) * 0.3;
+          color = MAITY_COLORS.secondaryAlpha(opacity * (0.8 + pulse));
         } else if (isListening) {
-          // Brighter green when listening
-          const green = Math.floor(180 + Math.sin(timeRef.current * 0.004) * 40);
-          color = `rgba(34, ${green}, 94, ${opacity})`;
+          // Verde brillante cuando está escuchando
+          const pulse = Math.sin(timeRef.current * 0.004) * 0.4;
+          color = MAITY_COLORS.primaryAlpha(opacity * (0.9 + pulse));
         } else {
-          // Dimmer green when idle
-          color = `rgba(34, 150, 94, ${opacity * 0.5})`;
+          // Gris claro cuando está inactivo
+          color = MAITY_COLORS.lightGrayAlpha(opacity * 0.6);
         }
 
         // Draw particle
@@ -110,13 +142,26 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
         if (scale > 0.8) {
           ctx.beginPath();
           ctx.arc(x2d, y2d, size * 2, 0, Math.PI * 2);
-          ctx.fillStyle = color.replace(/[\d.]+\)$/, '0.1)');
+          let glowColor: string;
+          if (isSpeaking) {
+            glowColor = MAITY_COLORS.secondaryAlpha(0.1);
+          } else if (isListening) {
+            glowColor = MAITY_COLORS.primaryAlpha(0.15);
+          } else {
+            glowColor = MAITY_COLORS.lightGrayAlpha(0.05);
+          }
+          ctx.fillStyle = glowColor;
           ctx.fill();
         }
       });
 
-      if (isListening && !isSpeaking) {
-        timeRef.current += 16;
+      // Siempre avanza el tiempo para animaciones con velocidades ajustadas
+      if (isSpeaking) {
+        timeRef.current += 12; // Moderado cuando habla - más lento que antes
+      } else if (isListening) {
+        timeRef.current += 8;  // Suave cuando escucha
+      } else {
+        timeRef.current += 4;  // Muy lento cuando está inactivo
       }
 
       animationRef.current = requestAnimationFrame(render);
@@ -137,12 +182,21 @@ export function ParticleSphere({ isListening, isSpeaking }: ParticleSphereProps)
         ref={canvasRef}
         className="rounded-full"
         style={{
-          filter: isListening ? 'drop-shadow(0 0 30px rgba(34, 197, 94, 0.5))' : 'none',
+          filter: isSpeaking
+            ? `drop-shadow(0 0 40px ${MAITY_COLORS.secondary}80)`
+            : isListening
+            ? `drop-shadow(0 0 30px ${MAITY_COLORS.primary}80)`
+            : 'none',
           transition: 'filter 0.3s ease'
         }}
       />
-      {isListening && (
-        <div className="absolute inset-0 rounded-full bg-green-500/5 blur-3xl animate-pulse" />
+      {(isListening || isSpeaking) && (
+        <div
+          className="absolute inset-0 rounded-full blur-3xl animate-pulse"
+          style={{
+            backgroundColor: isSpeaking ? `${MAITY_COLORS.secondary}10` : `${MAITY_COLORS.primary}10`
+          }}
+        />
       )}
     </div>
   );
