@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { env } from "@/lib/env";
+import { MaityLogo } from "@/components/MaityLogo";
 
 // Helper function to call finalize-invite API
 const finalizeInvite = async (accessToken: string) => {
@@ -163,6 +164,28 @@ export default function AuthCallback() {
     })();
   }, [navigate]);
 
-  return <p>Procesando inicio de sesi?n.</p>;
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-center">
+        {/* Spinner */}
+        <div className="relative mb-6">
+          <div className="w-12 h-12 rounded-full border-4 border-gray-700 border-t-[#1bea9a] animate-spin mx-auto"></div>
+
+          {/* Logo/Símbolo de Maity dentro del spinner */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <MaityLogo variant="symbol" size="sm" className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Texto */}
+        <h2 className="text-xl font-semibold text-white mb-2">
+          Procesando inicio de sesión
+        </h2>
+        <p className="text-gray-400 text-sm">
+          Configurando tu cuenta...
+        </p>
+      </div>
+    </div>
+  );
 }
 
