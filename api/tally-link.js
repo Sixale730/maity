@@ -78,16 +78,23 @@ export default async function handler(req, res) {
     let urlStr;
     try {
       const url = new URL(TALLY_FORM_URL);
-      url.searchParams.set('hidden[auth_id]', authId);
-      url.searchParams.set('hidden[otk]', token);
-      url.searchParams.set('hidden[email]', user.email || '');
 
-      // UI opcional de Tally
-      // url.searchParams.set('alignLeft', '1');  // Comentado: causaba que se pegue a la izquierda
-      url.searchParams.set('hideTitle', '1');
-      url.searchParams.set('transparentBackground', '1');
+      // Cambiar a formato directo sin brackets
+      url.searchParams.set('auth_id', authId);
+      url.searchParams.set('otk', token);
+      url.searchParams.set('email', user.email || '');
 
       urlStr = url.toString();
+
+      // Logs para debugging
+      console.log('[tally-link] Generated URL:', urlStr);
+      console.log('[tally-link] Hidden fields sent:', {
+        auth_id: authId,
+        otk: token,
+        email: user.email || '',
+        expires_at,
+        user_id: u.id
+      });
     } catch (e) {
       console.error('[tally-link] URL_BUILD_FAILED', e, { TALLY_FORM_URL });
       return res.status(500).json({ error: 'URL_BUILD_FAILED' });

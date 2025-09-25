@@ -14,8 +14,7 @@
       "Bash(npm run build:dev:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Read(//c/Users/alfon/OneDrive/Imágenes/Capturas de pantalla/**)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "WebFetch(domain:tally.so)"
     ],
     "deny": [],
     "ask": []

@@ -38,9 +38,59 @@ export default async function handler(req, res) {
     const data       = body?.data || body;
     const responseId = data?.responseId || data?.response_id || null;
 
+    // Debug logs para el payload completo
+    console.log('[tally-webhook] Received payload:', {
+      eventId,
+      formId,
+      responseId,
+      dataKeys: Object.keys(data || {}),
+      bodyKeys: Object.keys(body || {}),
+      rawData: data
+    });
+
     const hidden = data?.hidden || data?.hiddenFields || {};
-    const authId = hidden.auth_id || hidden.user_id || null;
-    const otk    = hidden.otk || hidden.token || null;
+
+    // Múltiples fallbacks para diferentes formatos de campos
+    const authId =
+      hidden.auth_id ||
+      hidden.user_id ||
+      data.auth_id ||
+      data.user_id ||
+      data['hidden[auth_id]'] ||
+      data['hidden[user_id]'] ||
+      null;
+
+    const otk =
+      hidden.otk ||
+      hidden.token ||
+      data.otk ||
+      data.token ||
+      data['hidden[otk]'] ||
+      data['hidden[token]'] ||
+      null;
+
+    const email =
+      hidden.email ||
+      data.email ||
+      data['hidden[email]'] ||
+      null;
+
+    console.log('[tally-webhook] Extracted fields:', {
+      authId,
+      otk,
+      email,
+      hiddenKeys: Object.keys(hidden || {}),
+      hiddenData: hidden,
+      allDataKeys: Object.keys(data || {}),
+      searchedPaths: {
+        'hidden.auth_id': hidden.auth_id,
+        'data.auth_id': data.auth_id,
+        "data['hidden[auth_id]']": data['hidden[auth_id]'],
+        'hidden.otk': hidden.otk,
+        'data.otk': data.otk,
+        "data['hidden[otk]']": data['hidden[otk]']
+      }
+    });
 
     // 3) Guardar EVENTO (idempotente)
     const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || null;
@@ -60,7 +110,13 @@ export default async function handler(req, res) {
 
     // 4) Validaciones mínimas
     if (!authId || !otk) {
-      console.error('[webhook] MISSING_HIDDEN_FIELDS', { hidden });
+      console.error('[webhook] MISSING_HIDDEN_FIELDS', {
+        authId,
+        otk,
+        hidden,
+        dataKeys: Object.keys(data || {}),
+        fullPayload: body
+      });
       return res.status(400).json({ error: 'MISSING_HIDDEN_FIELDS' });
     }
 
