@@ -116,9 +116,6 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            {t('dashboard.user.progress_badge')}
-          </Badge>
           <LanguageSelector />
         </div>
       </div>
