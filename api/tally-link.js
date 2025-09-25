@@ -48,21 +48,12 @@ export default async function handler(req, res) {
     const { data: u, error: uErr } = await admin
       .schema('maity')
       .from('users')
-      .select('id, company_id, registration_form_completed')
+      .select('id, registration_form_completed')
       .eq('auth_id', authId)
       .single();
 
     if (uErr || !u)                    return res.status(404).json({ error: 'USER_NOT_FOUND' });
     if (u.registration_form_completed) return res.status(400).json({ error: 'ALREADY_COMPLETED' });
-    if (!u.company_id)                 return res.status(400).json({ error: 'NO_COMPANY' });
-
-    const { data: co, error: cErr } = await admin
-      .schema('maity')
-      .from('companies')
-      .select('name')
-      .eq('id', u.company_id)
-      .single();
-    if (cErr) console.warn('[tally-link] ADMIN_QUERY_COMPANY_WARN', cErr);
 
     // 4) Emitir OTK SOLO desde backend (RPC backend-only: public.otk(text,int))
     const { data: otkData, error: otkErr } = await admin.rpc('otk', {
@@ -89,8 +80,6 @@ export default async function handler(req, res) {
       const url = new URL(TALLY_FORM_URL);
       url.searchParams.set('hidden[auth_id]', authId);
       url.searchParams.set('hidden[otk]', token);
-      url.searchParams.set('hidden[company_id]', u.company_id);
-      url.searchParams.set('hidden[company_name]', co?.name || '');
       url.searchParams.set('hidden[email]', user.email || '');
 
       // UI opcional de Tally
