@@ -17,6 +17,7 @@ import {
   Cell
 } from "recharts";
 import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
+import { supabase } from "@/integrations/supabase/client";
 
 const chartConfig = {
   sessions: {
@@ -34,8 +35,35 @@ const chartConfig = {
 };
 
 export function PlatformAdminDashboard() {
-  const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
+  const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('admin');
+
+  const [additionalStats, setAdditionalStats] = React.useState({
+    totalUsers: 0,
+    totalCompanies: 0,
+    completedSessions: 0
+  });
+
+  React.useEffect(() => {
+    const fetchAdditionalStats = async () => {
+      try {
+        const response = await supabase.rpc('get_admin_dashboard_stats');
+        if (response.data) {
+          setAdditionalStats({
+            totalUsers: response.data.totalUsers || 0,
+            totalCompanies: response.data.totalCompanies || 0,
+            completedSessions: response.data.completedSessions || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching additional stats:', error);
+      }
+    };
+
+    if (!loading) {
+      fetchAdditionalStats();
+    }
+  }, [loading]);
 
   if (loading) {
     return (
@@ -86,30 +114,30 @@ export function PlatformAdminDashboard() {
         
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Sesiones Activas</CardTitle>
-            <span className="text-2xl">⚡</span>
+            <CardTitle className="text-sm font-medium text-green-900">Total Usuarios</CardTitle>
+            <span className="text-2xl">👥</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{dashboardStats.activeSessions}</div>
+            <div className="text-2xl font-bold text-green-900">{additionalStats.totalUsers}</div>
             <p className="text-xs text-green-700">
-              En tiempo real
+              Usuarios registrados
             </p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Eficiencia Global</CardTitle>
-            <span className="text-2xl">📈</span>
+            <CardTitle className="text-sm font-medium text-purple-900">Empresas Activas</CardTitle>
+            <span className="text-2xl">🏢</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{dashboardStats.completionRate}%</div>
+            <div className="text-2xl font-bold text-purple-900">{additionalStats.totalCompanies}</div>
             <p className="text-xs text-purple-700">
-              Tasa de completado
+              Organizaciones
             </p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-orange-900">Satisfacción Global</CardTitle>
@@ -118,7 +146,7 @@ export function PlatformAdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold text-orange-900">{dashboardStats.avgMood}</div>
             <p className="text-xs text-orange-700">
-              Humor promedio
+              Humor promedio (1-5)
             </p>
           </CardContent>
         </Card>

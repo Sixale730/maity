@@ -18,6 +18,8 @@ type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns
 
 type Company = SupabaseCompany & {
   registration_url?: string;
+  user_invite_token?: string;
+  manager_invite_token?: string;
 };
 
 export function OrganizationsManager() {
@@ -31,7 +33,7 @@ export function OrganizationsManager() {
 
   const fetchCompanies = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc("get_companies");
+      const { data, error } = await supabase.rpc("get_companies_with_invite_tokens");
 
       if (error) throw error;
 
@@ -226,52 +228,61 @@ export function OrganizationsManager() {
                   <TableHead>Nombre</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Zona Horaria</TableHead>
-                  <TableHead>Link de Registro</TableHead>
+                  <TableHead>Links de Invitación</TableHead>
                   <TableHead>Creado</TableHead>
                   <TableHead className="w-[100px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((company) => (
-                  <TableRow key={company.id}>
-                    <TableCell className="font-medium">{company.name}</TableCell>
-                    <TableCell>
+                {companies.map((company, index) => (
+                  <TableRow
+                    key={company.id}
+                    className="border-b-2 hover:bg-muted/30"
+                  >
+                    <TableCell className="font-medium py-4">{company.name}</TableCell>
+                    <TableCell className="py-4">
                       <Badge variant="secondary">{company.plan}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <Badge variant={company.is_active ? "default" : "destructive"}>
                         {company.is_active ? "Activa" : "Inactiva"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{company.timezone}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <div className="flex flex-col gap-2">
-                        <code className="text-xs break-all bg-muted px-2 py-1 rounded">
-                          {company.registration_url}
-                        </code>
-                        <div className="flex gap-2">
+                        {company.user_invite_token && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => copyToClipboard(company.registration_url ?? "")}
+                            className="w-full justify-start"
+                            onClick={() => copyToClipboard(`https://api.maity.com.mx/api/accept-invite?invite=${company.user_invite_token}`)}
                           >
-                            <Copy className="h-4 w-4 mr-1" /> Copiar
+                            <Copy className="h-4 w-4 mr-2" />
+                            👤 Copiar Link Usuario
                           </Button>
+                        )}
+
+                        {company.manager_invite_token && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(company.registration_url ?? "", "_blank")}
+                            className="w-full justify-start"
+                            onClick={() => copyToClipboard(`https://api.maity.com.mx/api/accept-invite?invite=${company.manager_invite_token}`)}
                           >
-                            <ExternalLink className="h-4 w-4 mr-1" /> Abrir
+                            <Copy className="h-4 w-4 mr-2" />
+                            👑 Copiar Link Manager
                           </Button>
-                        </div>
+                        )}
+
+                        {!company.user_invite_token && !company.manager_invite_token && (
+                          <p className="text-xs text-muted-foreground">No hay tokens de invitación</p>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       {new Date(company.created_at).toLocaleDateString("es-ES")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button

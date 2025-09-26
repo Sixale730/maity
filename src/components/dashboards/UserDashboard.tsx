@@ -25,6 +25,7 @@ import {
   Radar
 } from "recharts";
 import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
+import { useFormResponses } from "@/hooks/useFormResponses";
 
 const chartConfig = {
   sessions: {
@@ -47,6 +48,22 @@ const chartConfig = {
     label: "Evaluación Coach",
     color: "hsl(var(--chart-2))",
   },
+  claridad: {
+    label: "Claridad",
+    color: "#485df4", // Azul oficial
+  },
+  estructura: {
+    label: "Estructura",
+    color: "#1bea9a", // Verde oficial
+  },
+  inspiracion: {
+    label: "Inspiración y Confianza",
+    color: "#ff0050", // Rojo/Rosa oficial
+  },
+  influencia: {
+    label: "Influencia",
+    color: "#e7e7e9", // Gris claro oficial
+  },
 };
 
 interface UserDashboardProps {
@@ -55,38 +72,18 @@ interface UserDashboardProps {
 
 export function UserDashboard({ userName }: UserDashboardProps) {
   const { t } = useLanguage();
-  const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
+  const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('user');
+  const { radarData, competencyBars, loading: formLoading, error: formError } = useFormResponses();
 
-  // Datos para el gráfico radar 360
-  const radarData = [
-    {
-      competencia: t('dashboard.user.clarity'),
-      usuario: 85,
-      coach: 75,
-      fullMark: 100,
-    },
-    {
-      competencia: t('dashboard.user.structure'),
-      usuario: 70,
-      coach: 80,
-      fullMark: 100,
-    },
-    {
-      competencia: t('dashboard.user.emotional_alignment'),
-      usuario: 90,
-      coach: 85,
-      fullMark: 100,
-    },
-    {
-      competencia: t('dashboard.user.action_influence'),
-      usuario: 65,
-      coach: 70,
-      fullMark: 100,
-    },
-  ];
+  // Use radar data directly (no translation needed for generic area names)
+  const translatedRadarData = radarData;
 
-  if (loading) {
+  console.log('Radar data:', radarData);
+  console.log('Translated radar data:', translatedRadarData);
+  console.log('Competency bars:', competencyBars);
+
+  if (loading || formLoading) {
     return (
       <main className="flex-1 p-6 space-y-6">
         <div className="flex items-center gap-4 border-b border-border pb-4">
@@ -179,75 +176,68 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       {/* Gráfico Principal - Evaluación 360° */}
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">{t('dashboard.user.radar_title')}</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">Autoevaluación 360°</CardTitle>
           <CardDescription className="text-center">
-            {t('dashboard.user.radar_description')}
+            Evaluación integral de competencias clave de liderazgo
+            {formError && !formError.includes('mostrando datos de ejemplo') && (
+              <div className="text-sm text-orange-600 mt-2">
+                ⚠️ {formError}
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center p-8">
-          <ChartContainer config={chartConfig} className="h-[650px] w-full max-w-4xl">
+          <ChartContainer config={chartConfig} className="h-[700px] w-full max-w-5xl">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart 
-                data={radarData} 
-                margin={{ top: 60, right: 150, bottom: 60, left: 150 }}
-                cx="50%" 
+              <RadarChart
+                data={translatedRadarData}
+                margin={{ top: 80, right: 180, bottom: 80, left: 180 }}
+                cx="50%"
                 cy="50%"
               >
-                <PolarGrid 
-                  stroke="hsl(var(--muted-foreground))" 
-                  strokeDasharray="2 2"
+                <PolarGrid
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeDasharray="3 3"
                   strokeWidth={1.5}
                   gridType="polygon"
+                  fill="none"
+                  strokeOpacity={0.6}
                 />
-                <PolarAngleAxis 
-                  dataKey="competencia" 
-                  tick={{ 
-                    fontSize: 15, 
+                <PolarAngleAxis
+                  dataKey="competencia"
+                  tick={{
+                    fontSize: 13,
                     fontWeight: 600,
                     textAnchor: 'middle',
                     dominantBaseline: 'middle'
                   }}
                   className="fill-foreground"
                   tickFormatter={(value) => value}
-                  radius={130}
+                  radius={140}
                 />
-                <PolarRadiusAxis 
-                  domain={[0, 100]} 
-                  tick={{ 
-                    fontSize: 11,
+                <PolarRadiusAxis
+                  domain={[0, 100]}
+                  tick={{
+                    fontSize: 10,
                     fontWeight: 500
                   }}
                   tickCount={5}
-                  angle={45}
+                  angle={18}
                   className="fill-muted-foreground"
                   axisLine={false}
                 />
                 <Radar
-                  name={t('dashboard.user.my_evaluation')}
+                  name="Mi Autoevaluación"
                   dataKey="usuario"
-                  stroke="hsl(var(--primary))"
-                  fill="hsl(var(--primary))"
-                  fillOpacity={0.25}
-                  strokeWidth={4}
-                  dot={{ 
-                    fill: "hsl(var(--primary))", 
-                    strokeWidth: 3, 
-                    stroke: "white",
-                    r: 8 
-                  }}
-                />
-                <Radar
-                  name={t('dashboard.user.coach_evaluation')}
-                  dataKey="coach"
-                  stroke="hsl(var(--chart-2))"
-                  fill="hsl(var(--chart-2))"
+                  stroke="#485df4"
+                  fill="#485df4"
                   fillOpacity={0.15}
                   strokeWidth={4}
-                  dot={{ 
-                    fill: "hsl(var(--chart-2))", 
-                    strokeWidth: 3, 
-                    stroke: "white",
-                    r: 8 
+                  dot={{
+                    fill: "#485df4",
+                    strokeWidth: 3,
+                    stroke: "hsl(var(--background))",
+                    r: 8
                   }}
                 />
                 <ChartTooltip 
@@ -265,6 +255,109 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </ChartContainer>
         </CardContent>
       </Card>
+
+      {/* Individual Competency Bar Charts */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Claridad Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Claridad</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.claridad} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#485df4" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Estructura Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Estructura</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.estructura} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#1bea9a" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Inspiración y Confianza Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Inspiración y Confianza</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.inspiracion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#ff0050" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Influencia Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Influencia</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.influencia} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#e7e7e9" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Personal Progress Charts */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
