@@ -116,7 +116,7 @@ export default async function handler(req, res) {
     const { data: evaluation, error: fetchError } = await supabase
       .schema('maity')
       .from('evaluations')
-      .select('id, status, user_id, session_id')
+      .select('request_id, status, user_id, session_id')
       .eq('request_id', request_id)
       .maybeSingle();
 
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
     }
 
     console.log('[evaluations/complete] ✅ Evaluation found', {
-      id: evaluation.id,
+      request_id: evaluation.request_id,
       currentStatus: evaluation.status,
       user_id: evaluation.user_id,
       session_id: evaluation.session_id || 'none'

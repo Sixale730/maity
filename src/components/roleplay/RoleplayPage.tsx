@@ -380,35 +380,54 @@ export function RoleplayPage() {
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
-      // Solo intentar enviar a n8n si tenemos una URL válida
-      if (n8nWebhookUrl && !n8nWebhookUrl.includes('webhook.site')) {
+      // Enviar a n8n webhook si está configurado
+      if (n8nWebhookUrl && n8nWebhookUrl.length > 0) {
+        const webhookPayload = {
+          request_id: requestId,
+          session_id: sessionToLink || null,
+          transcript: transcript,
+          metadata: {
+            user_id: userId,
+            profile: questionnaireData?.practiceStartProfile,
+            scenario: currentScenario?.scenarioName,
+            difficulty: currentScenario?.difficultyLevel,
+            duration_seconds: duration
+          }
+        };
+
+        console.log('📤 [RoleplayPage] Enviando a n8n webhook:', {
+          url: n8nWebhookUrl,
+          payload: webhookPayload
+        });
+
         fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            request_id: requestId,
-            session_id: currentSessionId,
-            transcript: transcript,
-            metadata: {
-              user_id: userId,
-              profile: questionnaireData?.practiceStartProfile,
-              scenario: currentScenario?.scenarioName,
-              difficulty: currentScenario?.difficultyLevel,
-              duration_seconds: duration
-            }
-          })
+          body: JSON.stringify(webhookPayload)
         }).then(response => {
+          console.log('📨 [RoleplayPage] Respuesta de n8n:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+          });
+
           if (response.ok) {
             console.log('✅ [RoleplayPage] Transcript enviado a n8n exitosamente');
           } else {
-            console.error('❌ [RoleplayPage] Error al enviar a n8n:', response.status);
+            console.error('❌ [RoleplayPage] Error al enviar a n8n:', response.status, response.statusText);
+          }
+
+          return response.text();
+        }).then(text => {
+          if (text) {
+            console.log('📝 [RoleplayPage] Respuesta de n8n body:', text);
           }
         }).catch(error => {
           console.error('❌ [RoleplayPage] Error de red al enviar a n8n:', error);
           console.log('ℹ️ [RoleplayPage] Continuando sin n8n. La evaluación quedará pendiente.');
         });
       } else {
-        console.log('⚠️ [RoleplayPage] n8n webhook no configurado. La evaluación quedará pendiente hasta que n8n la procese.');
+        console.log('⚠️ [RoleplayPage] n8n webhook no configurado o usando placeholder. La evaluación quedará pendiente.');
       }
 
       // 4. Por ahora mostrar resultados temporales mientras se procesa

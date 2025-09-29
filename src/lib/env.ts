@@ -24,8 +24,9 @@ export const env = {
     : 'https://api.maity.com.mx',
 
   // n8n Webhook Configuration for Voice Evaluations
-  // TODO: Actualizar con la URL real del webhook de n8n cuando esté disponible
-  n8nWebhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://webhook.site/unique-id',
+  // Para testing: Visita https://webhook.site para obtener una URL temporal
+  // En producción: Actualiza VITE_N8N_WEBHOOK_URL con tu URL de n8n
+  n8nWebhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || '',
 
   // Environment flags
   isDevelopment,

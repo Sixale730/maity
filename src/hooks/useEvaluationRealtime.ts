@@ -3,9 +3,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Evaluation {
-  id: string;
+  request_id: string; // Ahora es la primary key
   user_id: string;
-  request_id: string;
   session_id: string | null;
   status: 'pending' | 'processing' | 'complete' | 'error';
   result: Record<string, any> | null;
@@ -84,7 +83,7 @@ export function useEvaluationRealtime({
         }
 
         console.log('[useEvaluationRealtime] ✅ Initial evaluation fetched:', {
-          id: initialData.id,
+          request_id: initialData.request_id,
           status: initialData.status,
           hasResult: !!initialData.result,
           created_at: initialData.created_at
@@ -237,8 +236,8 @@ export async function createEvaluation(
   }
 
   console.log('[createEvaluation] ✅ Evaluation created successfully via RPC:', {
-    id: data.id,
     request_id: data.request_id,
+    user_id: data.user_id,
     session_id: data.session_id,
     status: data.status,
     created_at: data.created_at
