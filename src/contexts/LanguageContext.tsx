@@ -111,6 +111,7 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
+    'nav.roleplay': 'Roleplay',
     'nav.analytics': 'Analytics',
     'nav.organizations': 'Organizaciones',
     'nav.users': 'Usuarios',
@@ -286,6 +287,7 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
+    'nav.roleplay': 'Roleplay',
     'nav.analytics': 'Analytics',
     'nav.organizations': 'Organizations',
     'nav.users': 'Users',

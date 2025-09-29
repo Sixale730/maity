@@ -112,6 +112,31 @@ Required variables:
 - `get_user_role()`: Returns primary user role
 - `get_user_info()`: Returns user profile data
 - `otk(p_auth_id, p_ttl_minutes)`: Generates one-time tokens for Tally form integration
+- `create_evaluation(p_request_id, p_user_id, p_session_id)`: Creates evaluation records for voice transcript processing
+
+### Important RPC Pattern
+⚠️ **ALWAYS use RPC functions for operations that require special permissions or bypass RLS**. Direct table operations from the frontend will fail with permission errors.
+
+**CRITICAL**: Functions in `maity` schema MUST have a PUBLIC wrapper function to be accessible from the Supabase client:
+```sql
+-- Step 1: Create function in maity schema
+CREATE FUNCTION maity.my_function(...) RETURNS ... AS $$ ... $$ SECURITY DEFINER;
+
+-- Step 2: Create PUBLIC wrapper (REQUIRED!)
+CREATE FUNCTION public.my_function(...) RETURNS ... AS $$
+BEGIN
+  RETURN maity.my_function(...);
+END;
+$$ SECURITY DEFINER;
+
+-- Step 3: Grant permissions
+GRANT EXECUTE ON FUNCTION public.my_function TO authenticated;
+```
+
+Common patterns:
+- Creating records in restricted tables → Use RPC wrapper function
+- Complex operations with multiple table updates → Use RPC transaction
+- Operations requiring service role permissions → Use RPC with SECURITY DEFINER
 
 ## Code Conventions
 

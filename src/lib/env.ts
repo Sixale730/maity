@@ -10,6 +10,10 @@ export const env = {
   elevenLabsApiKey: import.meta.env.VITE_ELEVENLABS_API_KEY,
   elevenLabsAgentId: import.meta.env.VITE_ELEVENLABS_AGENT_ID,
 
+  // ElevenLabs Test Configuration for Roleplay
+  elevenLabsApiKeyTest: import.meta.env.VITE_ELEVENLABS_API_KEY_TEST,
+  elevenLabsAgentIdTest: import.meta.env.VITE_ELEVENLABS_AGENT_ID_TEST,
+
   // App Configuration
   appUrl: import.meta.env.VITE_APP_URL || 'http://localhost:8080',
 
@@ -18,6 +22,10 @@ export const env = {
   apiUrl: isDevelopment
     ? (import.meta.env.VITE_API_URL || 'https://api.maity.com.mx')
     : 'https://api.maity.com.mx',
+
+  // n8n Webhook Configuration for Voice Evaluations
+  // TODO: Actualizar con la URL real del webhook de n8n cuando esté disponible
+  n8nWebhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://webhook.site/unique-id',
 
   // Environment flags
   isDevelopment,

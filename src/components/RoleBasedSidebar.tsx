@@ -13,7 +13,8 @@ import {
   Calendar,
   FileText,
   Trophy,
-  MessageCircle
+  MessageCircle,
+  Headphones
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
     { title: "nav.coach", url: "/dashboard/coach", icon: MessageCircle },
+    { title: "nav.roleplay", url: "/dashboard/roleplay", icon: Headphones },
   ];
 
   if (role === 'admin') {

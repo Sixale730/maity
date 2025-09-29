@@ -13,6 +13,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { OrganizationsManager } from "./OrganizationsManager";
 import { CoachPage } from "./coach/CoachPage";
+import { RoleplayPage } from "./roleplay/RoleplayPage";
 import { 
   BarChart, 
   Bar, 
@@ -267,6 +268,12 @@ export function DashboardContent({ userRole, userProfile }: DashboardContentProp
       <Route
         path="coach"
         element={<CoachPage />}
+      />
+
+      {/* Roleplay route - available for all roles */}
+      <Route
+        path="roleplay"
+        element={<RoleplayPage />}
       />
 
       {/* Team dashboard - only for managers */}

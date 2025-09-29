@@ -77,6 +77,8 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   const [loading, setLoading] = useState(false);
 
+  const [showPasswordWarning, setShowPasswordWarning] = useState(false);
+
   const { toast } = useToast();
 
   const appUrl = getAppUrl();
@@ -95,6 +97,41 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   };
 
+
+  // Validar espacios en contraseña al pegar
+  const handlePasswordPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+
+    if (pastedText.includes(' ')) {
+      setShowPasswordWarning(true);
+      // Quitar espacios del texto pegado
+      const cleanedText = pastedText.replace(/\s/g, '');
+      setPassword(cleanedText);
+
+      toast({
+        title: 'Espacios detectados',
+        description: 'Tu contraseña parece contener espacios al principio o al final. Asegúrate de que esto es intencional, ya que el sistema distingue entre espacios y caracteres. Si copiste y pegaste tu contraseña, por favor, comprueba que no incluiste espacios accidentales.',
+        variant: 'default',
+      });
+    } else {
+      setPassword(pastedText);
+    }
+  };
+
+  // Validar espacios al escribir
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.includes(' ') && !showPasswordWarning) {
+      setShowPasswordWarning(true);
+      toast({
+        title: 'Espacios detectados',
+        description: 'Tu contraseña contiene espacios. Asegúrate de que esto es intencional.',
+        variant: 'default',
+      });
+    }
+    setPassword(value);
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
 
@@ -179,14 +216,30 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         console.log('[DEBUG] handleEmailAuth:signUpSuccess', { userEmail: email, redirectTarget });
 
-
-        toast({
-
-          title: 'Cuenta creada!',
-
-          description: 'Revisa tu correo para confirmar tu cuenta.',
-
+        // Auto-login después del registro
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
+
+        if (loginError) {
+          toast({
+            title: 'Cuenta creada!',
+            description: 'Por favor inicia sesión con tu nueva cuenta.',
+          });
+          setIsLogin(true);
+        } else {
+          toast({
+            title: 'Bienvenido!',
+            description: 'Tu cuenta ha sido creada exitosamente.',
+          });
+
+          // Navegar al callback para proceso de onboarding
+          const callbackUrl = returnTo
+            ? `/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
+            : '/auth/callback';
+          navigate(callbackUrl, { replace: true });
+        }
 
       }
 
@@ -409,21 +462,14 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
               <Label htmlFor="password" className="font-inter">Contraseña</Label>
 
               <Input
-
                 id="password"
-
                 type="password"
-
                 placeholder="********"
-
                 value={password}
-
-                onChange={(e) => setPassword(e.target.value)}
-
+                onChange={handlePasswordChange}
+                onPaste={handlePasswordPaste}
                 required
-
                 className="font-inter"
-
               />
 
             </div>
