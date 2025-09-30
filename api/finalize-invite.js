@@ -68,28 +68,38 @@ export default async function handler(req, res) {
     else if (aud === 'manager') roleToAssign = 'manager';
     else if (aud === 'user') roleToAssign = 'user';
 
-    // 5) Check if user exists to preserve existing name
+    // 5) Check if user exists to preserve ALL existing data
     const { data: existingUser } = await admin
       .schema('maity')
       .from('users')
-      .select('name')
+      .select('name, registration_form_completed')
       .eq('auth_id', authId)
       .single();
 
     // 5) Upsert de users (por auth_id) y obtener users.id para user_roles
     const nowIso = new Date().toISOString();
+
+    // Build upsert data preserving existing fields
     const upsertData = {
       auth_id: authId,
       email: userResp.user.email,
       company_id: invite.company_id,
-      registration_form_completed: false,
-      created_at: nowIso,
       updated_at: nowIso
     };
 
-    // Preserve existing name if user already exists
-    if (existingUser?.name) {
-      upsertData.name = existingUser.name;
+    // If it's a new user, set defaults
+    if (!existingUser) {
+      upsertData.registration_form_completed = false;
+      upsertData.created_at = nowIso;
+      upsertData.name = ''; // Set empty string for new users
+    } else {
+      // Preserve existing user data
+      if (existingUser.name !== undefined && existingUser.name !== null) {
+        upsertData.name = existingUser.name;
+      }
+      if (existingUser.registration_form_completed !== undefined) {
+        upsertData.registration_form_completed = existingUser.registration_form_completed;
+      }
     }
 
     const { error: userUpErr } = await admin
