@@ -313,7 +313,15 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           <div className="flex justify-center mb-4">
 
-            <MaityLogo variant="full" size="lg" />
+            {isLogin ? (
+              <MaityLogo variant="full" size="lg" />
+            ) : (
+              <img
+                src="/lovable-uploads/maity_logo_rojo.png"
+                alt="Maity Logo"
+                className="h-12 w-auto"
+              />
+            )}
 
           </div>
 
