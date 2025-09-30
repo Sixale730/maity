@@ -22,10 +22,10 @@ This document describes how to configure n8n to process voice transcripts and PO
 
 ### URL
 ```
-POST https://api.maity.com.mx/api/evaluations-{request_id}-complete
+POST https://api.maity.com.mx/api/evaluation-complete
 ```
 
-Replace `{request_id}` with the actual UUID.
+The `request_id` is now passed in the request body, not in the URL.
 
 ### Required Header
 ```
@@ -39,6 +39,7 @@ X-N8N-Secret: your-secret-value
 #### Successful Evaluation
 ```json
 {
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "complete",
   "result": {
     "score": 85,
@@ -57,6 +58,7 @@ X-N8N-Secret: your-secret-value
 #### Failed Evaluation (Error)
 ```json
 {
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "error",
   "error_message": "LLM rate limit exceeded. Please try again later."
 }
@@ -135,7 +137,7 @@ Transcript:
 ### 3. HTTP Request Node
 
 **Method**: `POST`
-**URL**: `https://api.maity.com.mx/api/evaluations-{{$json["request_id"]}}-complete`
+**URL**: `https://api.maity.com.mx/api/evaluation-complete`
 
 ⚠️ **IMPORTANT**: Use `{{$json["request_id"]}}` from the webhook payload (not from LLM output). If your LLM node doesn't preserve the request_id, add a **Set Node** before the HTTP Request to merge:
 ```javascript
@@ -163,6 +165,7 @@ Transcript:
 **Body** (JSON):
 ```json
 {
+  "request_id": {{$json["request_id"]}},
   "status": "complete",
   "result": {
     "score": {{$json["score"]}},
@@ -176,10 +179,11 @@ Transcript:
 
 **Example curl command** (for testing):
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluations-abc123-complete" \
+curl -X POST "https://api.maity.com.mx/api/evaluation-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "complete",
     "result": {
       "score": 85,
@@ -407,7 +411,7 @@ sequenceDiagram
     Frontend->>Realtime: Subscribe to updates (filter: request_id)
     Frontend->>n8n: POST webhook (request_id + transcript)
     n8n->>n8n: Process transcript with LLM
-    n8n->>Backend: POST /api/evaluations-{request_id}-complete
+    n8n->>Backend: POST /api/evaluation-complete (with request_id in body)
     Backend->>Backend: Validate X-N8N-Secret
     Backend->>Database: UPDATE maity.evaluations SET status='complete', result=...
     Database->>Realtime: Broadcast UPDATE event
@@ -431,7 +435,7 @@ sequenceDiagram
     Frontend->>Realtime: Subscribe to updates (filter: request_id)
     Frontend->>n8n: POST webhook (request_id + session_id + transcript)
     n8n->>n8n: Process transcript with LLM
-    n8n->>Backend: POST /api/evaluations-{request_id}-complete (with result)
+    n8n->>Backend: POST /api/evaluation-complete (with request_id in body) (with result)
     Backend->>Backend: Validate X-N8N-Secret
     Backend->>Database: UPDATE evaluations SET status='complete', result=...
     Note over Backend,Database: Optional: Also update voice_sessions.processed_feedback
@@ -489,10 +493,11 @@ sequenceDiagram
 
 **Basic test with minimal payload:**
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-446655440000-complete" \
+curl -X POST "https://api.maity.com.mx/api/evaluation-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "complete",
     "result": {
       "score": 90,
@@ -503,10 +508,11 @@ curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-4
 
 **Full payload with all fields:**
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-446655440000-complete" \
+curl -X POST "https://api.maity.com.mx/api/evaluation-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "complete",
     "result": {
       "score": 85,
@@ -542,10 +548,11 @@ curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-4
 
 **Error status test:**
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-446655440000-complete" \
+curl -X POST "https://api.maity.com.mx/api/evaluation-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "error",
     "error_message": "LLM rate limit exceeded. Please try again in 60 seconds."
   }'

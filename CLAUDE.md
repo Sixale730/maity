@@ -55,12 +55,12 @@ src/
 └── integrations/supabase/   # Supabase client config
 
 api/
-├── accept-invite.js                      # Process invitation links (sets cookie)
-├── finalize-invite.js                    # Link user to company (consumes cookie)
-├── tally-link.js                        # Generate Tally form URLs with OTK tokens
-├── tally-webhook.js                     # Handle Tally form submissions
-├── evaluations-[request_id]-complete.js # Update evaluation results from n8n
-└── elevenlabs-signed-url.js            # Generate signed URLs for ElevenLabs voice agent
+├── accept-invite.js             # Process invitation links (sets cookie)
+├── finalize-invite.js           # Link user to company (consumes cookie)
+├── tally-link.js                # Generate Tally form URLs with OTK tokens
+├── tally-webhook.js             # Handle Tally form submissions
+├── evaluation-complete.js       # Update evaluation results from n8n (POST with request_id in body)
+└── elevenlabs-signed-url.js    # Generate signed URLs for ElevenLabs voice agent
 
 supabase/migrations/         # Database schema and functions
 ```
@@ -209,12 +209,13 @@ The platform includes a voice roleplay evaluation system that integrates ElevenL
    - Processes transcript with LLM chain
    - POSTs results back to API endpoint
 
-3. **Backend Update** (`/api/evaluations-{request_id}-complete`):
+3. **Backend Update** (`/api/evaluation-complete`):
    ```bash
-   curl -X POST https://api.maity.com.mx/api/evaluations-{request_id}-complete \
+   curl -X POST https://api.maity.com.mx/api/evaluation-complete \
      -H "Content-Type: application/json" \
      -H "X-N8N-Secret: your-secret-here" \
      -d '{
+       "request_id": "550e8400-e29b-41d4-a716-446655440000",
        "status": "complete",
        "result": {
          "score": 85,

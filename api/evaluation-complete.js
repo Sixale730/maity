@@ -9,10 +9,25 @@ const CORS_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(o => o.trim
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 /**
- * POST /api/evaluations/:request_id/complete
+ * POST /api/evaluation-complete
  *
  * Called by n8n to update evaluation results after processing transcript.
  * Validates secret header and enforces idempotent updates.
+ *
+ * Example curl:
+ * ```bash
+ * curl -X POST https://api.maity.com.mx/api/evaluation-complete \
+ *   -H "Content-Type: application/json" \
+ *   -H "X-N8N-Secret: your-secret-here" \
+ *   -d '{
+ *     "request_id": "abc-123-def-456",
+ *     "status": "complete",
+ *     "result": {
+ *       "score": 85,
+ *       "feedback": "Great communication skills"
+ *     }
+ *   }'
+ * ```
  */
 export default async function handler(req, res) {
   const startTime = Date.now();
@@ -76,17 +91,15 @@ export default async function handler(req, res) {
 
   console.log('[evaluations/complete] ✅ Secret validated');
 
-  // Extract request_id from URL path
-  const { request_id } = req.query;
+  // Parse body - request_id now comes in the body
+  const { request_id, status, result, error_message } = req.body || {};
+
   if (!request_id) {
-    console.error('[evaluations/complete] ❌ Missing request_id in URL');
-    return res.status(400).json({ error: 'MISSING_REQUEST_ID' });
+    console.error('[evaluations/complete] ❌ Missing request_id in body');
+    return res.status(400).json({ error: 'MISSING_REQUEST_ID', message: 'request_id must be provided in the request body' });
   }
 
   console.log('[evaluations/complete] 📝 Request ID:', request_id);
-
-  // Parse body
-  const { status, result, error_message } = req.body || {};
   console.log('[evaluations/complete] 📦 Payload received', {
     status,
     hasResult: !!result,
