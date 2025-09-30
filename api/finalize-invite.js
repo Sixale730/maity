@@ -91,12 +91,14 @@ export default async function handler(req, res) {
     if (!existingUser) {
       upsertData.registration_form_completed = false;
       upsertData.created_at = nowIso;
-      upsertData.name = ''; // Set empty string for new users
+      // Don't set name at all for new users - let them keep their existing name
     } else {
-      // Preserve existing user data
-      if (existingUser.name !== undefined && existingUser.name !== null) {
+      // Preserve existing user data - only update if we have a non-empty value
+      if (existingUser.name !== undefined && existingUser.name !== null && existingUser.name !== '') {
         upsertData.name = existingUser.name;
       }
+      // Otherwise don't include name in the upsert, which will preserve the existing value
+
       if (existingUser.registration_form_completed !== undefined) {
         upsertData.registration_form_completed = existingUser.registration_form_completed;
       }

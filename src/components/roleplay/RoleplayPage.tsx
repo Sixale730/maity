@@ -4,10 +4,13 @@ import { RoleplayVoiceAssistant } from './RoleplayVoiceAssistant';
 import { PrePracticeQuestionnaire } from './PrePracticeQuestionnaire';
 import { ScenarioInstructions } from './ScenarioInstructions';
 import { SessionResults } from './SessionResults';
+import { RoleplayRoadmap } from './RoleplayRoadmap';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
 import { env } from '@/lib/env';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Map, Mic } from 'lucide-react';
 
 export function RoleplayPage() {
   const { toast } = useToast();
@@ -292,12 +295,20 @@ export function RoleplayPage() {
     }
   };
 
-  const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string) => {
+  const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string, messages?: Array<{
+    id: string;
+    timestamp: Date;
+    source: 'user' | 'ai';
+    message: string;
+  }>) => {
     console.log('🎯 [RoleplayPage] handleSessionEnd iniciado:', {
       transcriptLength: transcript.length,
       duration,
       sessionId: currentSessionId,
       voiceAssistantSessionId,
+      messagesCount: messages?.length || 0,
+      userMessages: messages?.filter(m => m.source === 'user').length || 0,
+      aiMessages: messages?.filter(m => m.source === 'ai').length || 0,
       userId
     });
 
@@ -398,12 +409,16 @@ export function RoleplayPage() {
           request_id: requestId,
           session_id: sessionToLink || null,
           transcript: transcript,
+          messages: messages || [], // Array de mensajes individuales de la conversación
           metadata: {
             user_id: userId,
             profile: questionnaireData?.practiceStartProfile,
             scenario: currentScenario?.scenarioName,
             difficulty: currentScenario?.difficultyLevel,
-            duration_seconds: duration
+            duration_seconds: duration,
+            message_count: messages?.length || 0,
+            user_message_count: messages?.filter(m => m.source === 'user').length || 0,
+            ai_message_count: messages?.filter(m => m.source === 'ai').length || 0
           }
         };
 
@@ -569,9 +584,43 @@ export function RoleplayPage() {
             </div>
           </div>
 
-          {/* Main Content Area - Two Columns */}
+          {/* Main Content Area */}
           <div className="flex-1 flex gap-4 px-4 overflow-hidden">
-            {questionnaireData && currentScenario ? (
+            {!questionnaireData ? (
+              // Show tabs with roadmap and start button when no questionnaire data
+              <Tabs defaultValue="start" className="flex-1 flex flex-col">
+                <TabsList className="mx-auto mb-4 bg-white/10">
+                  <TabsTrigger value="start" className="text-white data-[state=active]:bg-white/20">
+                    <Mic className="w-4 h-4 mr-2" />
+                    Iniciar Práctica
+                  </TabsTrigger>
+                  <TabsTrigger value="roadmap" className="text-white data-[state=active]:bg-white/20">
+                    <Map className="w-4 h-4 mr-2" />
+                    Mi Progreso
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="start" className="flex-1 overflow-auto flex items-center justify-center">
+                  <div className="text-center text-white max-w-2xl px-4">
+                    <h2 className="text-3xl font-bold mb-4">Bienvenido al Roleplay de Ventas</h2>
+                    <p className="text-lg mb-8 text-white/80">
+                      Practica tus habilidades de venta con diferentes perfiles ejecutivos.
+                      Completa el cuestionario inicial para comenzar tu sesión personalizada.
+                    </p>
+                    <button
+                      onClick={() => setShowQuestionnaire(true)}
+                      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transform transition hover:scale-105"
+                    >
+                      Comenzar Práctica
+                    </button>
+                  </div>
+                </TabsContent>
+                <TabsContent value="roadmap" className="flex-1 overflow-auto">
+                  <div className="max-w-6xl mx-auto pb-8">
+                    <RoleplayRoadmap userId={userId} />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            ) : questionnaireData && currentScenario ? (
               <>
                 {/* Left Column - Instructions */}
                 <div className="w-1/3 overflow-y-auto">
@@ -614,14 +663,11 @@ export function RoleplayPage() {
                 </div>
               </>
             ) : (
+              // Loading state when questionnaire data exists but scenario is not ready
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-white">
                   <p className="text-xl mb-4">Preparando tu sesión de práctica...</p>
-                  <p className="text-white/70">
-                    {!questionnaireData
-                      ? 'Por favor completa el cuestionario inicial'
-                      : 'Cargando escenario...'}
-                  </p>
+                  <p className="text-white/70">Cargando escenario...</p>
                 </div>
               </div>
             )}

@@ -23,7 +23,21 @@ import InvitationRequired from "./pages/InvitationRequired";
 import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
 import Roleplay from "./pages/Roleplay";
+import RoleplayProgress from "./pages/RoleplayProgress";
 import AppLayout from "./layouts/AppLayout";
+import Coach from "./pages/Coach";
+import Sessions from "./pages/Sessions";
+import Organizations from "./pages/Organizations";
+import Team from "./pages/Team";
+import Analytics from "./pages/Analytics";
+import Users from "./pages/Users";
+import Reports from "./pages/Reports";
+import Trends from "./pages/Trends";
+import Plans from "./pages/Plans";
+import Plan from "./pages/Plan";
+import Documents from "./pages/Documents";
+import Settings from "./pages/Settings";
+import Achievements from "./pages/Achievements";
 
 
 const queryClient = new QueryClient();
@@ -50,8 +64,22 @@ const App = () => (
             <Route path="/user-status-error" element={<UserStatusError />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
-                <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/coach" element={<Coach />} />
                 <Route path="/roleplay" element={<Roleplay />} />
+                <Route path="/progress" element={<RoleplayProgress />} />
+                <Route path="/sessions" element={<Sessions />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/organizations" element={<Organizations />} />
+                <Route path="/usuarios" element={<Users />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/trends" element={<Trends />} />
+                <Route path="/planes" element={<Plans />} />
+                <Route path="/plan" element={<Plan />} />
+                <Route path="/documentos" element={<Documents />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/logros" element={<Achievements />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

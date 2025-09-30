@@ -290,3 +290,4 @@ npm run dev
 - Use fallbacks for environment variables: `process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL`
 - OTK generation requires `admin.rpc()` with service_role permissions
 - CORS headers must be set for all API endpoints
+- Usa siempre rutas propias

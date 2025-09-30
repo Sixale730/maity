@@ -14,7 +14,12 @@ interface RoleplayVoiceAssistantProps {
   scenarioName?: string;
   sessionId?: string;
   onSessionStart?: () => Promise<string | null>;
-  onSessionEnd?: (transcript: string, duration: number) => void;
+  onSessionEnd?: (transcript: string, duration: number, sessionId?: string, messages?: Array<{
+    id: string;
+    timestamp: Date;
+    source: 'user' | 'ai';
+    message: string;
+  }>) => void;
   // Información adicional del perfil y escenario
   profileDescription?: string;
   profileKeyFocus?: string;
@@ -462,8 +467,8 @@ export function RoleplayVoiceAssistant({
           duration
         });
         if (onSessionEnd) {
-          // Pasar el sessionId como tercer parámetro
-          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined);
+          // Pasar el sessionId y los mensajes como parámetros adicionales
+          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
         } else {
           console.error('❌ [RoleplayVoiceAssistant] No hay onSessionEnd callback!');
         }

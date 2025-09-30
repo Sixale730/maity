@@ -15,7 +15,8 @@ import {
   Trophy,
   MessageCircle,
   Headphones,
-  History
+  History,
+  Map
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,37 +41,38 @@ import {
 const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
-    { title: "nav.coach", url: "/dashboard/coach", icon: MessageCircle },
+    { title: "nav.coach", url: "/coach", icon: MessageCircle },
     { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
-    { title: "nav.sessions", url: "/dashboard/sessions", icon: History },
+    { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+    { title: "nav.sessions", url: "/sessions", icon: History },
   ];
 
   if (role === 'admin') {
     return [
       ...baseItems,
-      { title: "nav.analytics", url: "/dashboard/analytics", icon: BarChart3 },
-      { title: "nav.organizations", url: "/dashboard/organizations", icon: Building },
-      { title: "nav.users", url: "/dashboard/usuarios", icon: Users },
-      { title: "nav.reports", url: "/dashboard/reports", icon: PieChart },
-      { title: "nav.trends", url: "/dashboard/trends", icon: TrendingUp },
-      { title: "nav.plans", url: "/dashboard/planes", icon: Settings },
-      { title: "nav.documents", url: "/dashboard/documentos", icon: FileText },
-      { title: "nav.settings", url: "/dashboard/settings", icon: Settings },
+      { title: "nav.analytics", url: "/analytics", icon: BarChart3 },
+      { title: "nav.organizations", url: "/organizations", icon: Building },
+      { title: "nav.users", url: "/usuarios", icon: Users },
+      { title: "nav.reports", url: "/reports", icon: PieChart },
+      { title: "nav.trends", url: "/trends", icon: TrendingUp },
+      { title: "nav.plans", url: "/planes", icon: Settings },
+      { title: "nav.documents", url: "/documentos", icon: FileText },
+      { title: "nav.settings", url: "/settings", icon: Settings },
     ];
   } else if (role === 'manager') {
     return [
       ...baseItems,
-      { title: "nav.my_team", url: "/dashboard/team", icon: Users },
-      { title: "nav.plans", url: "/dashboard/planes", icon: Target },
-      { title: "nav.documents", url: "/dashboard/documentos", icon: FileText },
-      { title: "nav.settings", url: "/dashboard/settings", icon: Settings },
+      { title: "nav.my_team", url: "/team", icon: Users },
+      { title: "nav.plans", url: "/planes", icon: Target },
+      { title: "nav.documents", url: "/documentos", icon: FileText },
+      { title: "nav.settings", url: "/settings", icon: Settings },
     ];
   } else {
     // 'user' role
     return [
       ...baseItems,
-      { title: "nav.plan", url: "/dashboard/plan", icon: Target },
-      { title: "nav.achievements", url: "/dashboard/logros", icon: Trophy },
+      { title: "nav.plan", url: "/plan", icon: Target },
+      { title: "nav.achievements", url: "/logros", icon: Trophy },
     ];
   }
 };
