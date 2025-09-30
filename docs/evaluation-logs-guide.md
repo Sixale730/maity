@@ -71,7 +71,7 @@ Sending POST to backend...
 When n8n POSTs the result, the backend logs:
 
 ```
-[evaluations/complete] 🚀 Request received { method: 'POST', url: '/api/evaluations/550e8400-.../complete', headers: { ... } }
+[evaluations/complete] 🚀 Request received { method: 'POST', url: '/api/evaluations-550e8400-...-complete', headers: { ... } }
 [evaluations/complete] 🌐 CORS check { origin: 'https://your-n8n.com', allowed: true, configuredOrigins: [...] }
 [evaluations/complete] ✅ Environment validated
 [evaluations/complete] ✅ Secret validated
@@ -212,7 +212,7 @@ supabase_realtime  | maity      | evaluations
 ### Test backend endpoint manually
 
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluations/550e8400-e29b-41d4-a716-446655440000/complete" \
+curl -X POST "https://api.maity.com.mx/api/evaluations-550e8400-e29b-41d4-a716-446655440000-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{

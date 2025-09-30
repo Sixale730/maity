@@ -55,10 +55,12 @@ src/
 └── integrations/supabase/   # Supabase client config
 
 api/
-├── accept-invite.js         # Process invitation links (sets cookie)
-├── finalize-invite.js       # Link user to company (consumes cookie)
-├── tally-link.js           # Generate Tally form URLs with OTK tokens
-└── tally-webhook.js        # Handle Tally form submissions
+├── accept-invite.js                      # Process invitation links (sets cookie)
+├── finalize-invite.js                    # Link user to company (consumes cookie)
+├── tally-link.js                        # Generate Tally form URLs with OTK tokens
+├── tally-webhook.js                     # Handle Tally form submissions
+├── evaluations-[request_id]-complete.js # Update evaluation results from n8n
+└── elevenlabs-signed-url.js            # Generate signed URLs for ElevenLabs voice agent
 
 supabase/migrations/         # Database schema and functions
 ```
@@ -192,6 +194,41 @@ const { data: phase } = await supabase.rpc('my_phase');
 - CORS validation on all API endpoints
 - Service role key only for server-side operations
 - No sensitive data in client-side code
+
+### Voice Evaluation System
+The platform includes a voice roleplay evaluation system that integrates ElevenLabs for voice AI and n8n for transcript processing:
+
+1. **Frontend Flow**:
+   - User starts voice practice session → Creates `voice_session` record
+   - Conversation with ElevenLabs agent → Real-time transcription
+   - Session ends → Creates `evaluation` record with `pending` status
+   - Sends webhook to n8n with `request_id` and transcript
+
+2. **n8n Processing**:
+   - Receives webhook at configured URL
+   - Processes transcript with LLM chain
+   - POSTs results back to API endpoint
+
+3. **Backend Update** (`/api/evaluations-{request_id}-complete`):
+   ```bash
+   curl -X POST https://api.maity.com.mx/api/evaluations-{request_id}-complete \
+     -H "Content-Type: application/json" \
+     -H "X-N8N-Secret: your-secret-here" \
+     -d '{
+       "status": "complete",
+       "result": {
+         "score": 85,
+         "feedback": "Great communication",
+         "areas": {"clarity": 90, "confidence": 80}
+       }
+     }'
+   ```
+
+4. **Environment Variables Required**:
+   - `VITE_N8N_WEBHOOK_URL`: n8n webhook endpoint
+   - `N8N_BACKEND_SECRET`: Secret for n8n authentication
+   - `VITE_ELEVENLABS_API_KEY_TEST`: ElevenLabs API key
+   - `VITE_ELEVENLABS_AGENT_ID_TEST`: ElevenLabs agent ID
 
 ## Common Operations
 
