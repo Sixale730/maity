@@ -106,7 +106,9 @@ export function RoleplayVoiceAssistant({
     }
   };
 
-  // Función para enviar transcripción al webhook
+  // DEPRECATED: El webhook ahora se envía desde RoleplayPage con request_id
+  // Esta función se mantiene comentada por si se necesita en el futuro
+  /*
   const sendTranscriptionToWebhook = async (transcript: string, duration: number) => {
     try {
       const payload = {
@@ -156,6 +158,7 @@ export function RoleplayVoiceAssistant({
       console.error('❌ Error enviando transcripción:', error);
     }
   };
+  */
 
   // Request microphone permission
   const requestMicrophonePermission = async () => {
@@ -332,10 +335,10 @@ export function RoleplayVoiceAssistant({
       // Mostrar estado de procesamiento
       setIsProcessing(true);
 
-      // Enviar transcripción al webhook
-      await sendTranscriptionToWebhook(fullTranscriptRef.current, duration);
+      // NO enviar webhook aquí - se envía desde RoleplayPage con request_id
+      // await sendTranscriptionToWebhook(fullTranscriptRef.current, duration);
 
-      // Esperar 3 segundos (simulando procesamiento)
+      // Esperar 1 segundo para UX
       setTimeout(() => {
         setIsProcessing(false);
         // Llamar callback con transcripción y duración

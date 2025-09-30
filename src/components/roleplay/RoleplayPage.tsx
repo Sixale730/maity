@@ -395,20 +395,36 @@ export function RoleplayPage() {
           }
         };
 
+        const bodyString = JSON.stringify(webhookPayload);
+
         console.log('📤 [RoleplayPage] Enviando a n8n webhook:', {
           url: n8nWebhookUrl,
-          payload: webhookPayload
+          payload: webhookPayload,
+          bodyString: bodyString,
+          requestIdInPayload: webhookPayload.request_id,
+          requestIdType: typeof webhookPayload.request_id
         });
+
+        // LOG CRÍTICO: Verificar request_id justo antes de enviar
+        console.log('🔴 [CRITICAL] request_id being sent to webhook:', webhookPayload.request_id);
+        console.log('🔴 [CRITICAL] Full webhook payload:', JSON.stringify(webhookPayload, null, 2));
 
         fetch(n8nWebhookUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(webhookPayload)
-        }).then(response => {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: bodyString
+        }).then(async response => {
+          const responseText = await response.text();
+
           console.log('📨 [RoleplayPage] Respuesta de n8n:', {
             status: response.status,
             statusText: response.statusText,
-            ok: response.ok
+            ok: response.ok,
+            headers: Object.fromEntries(response.headers.entries()),
+            bodyText: responseText
           });
 
           if (response.ok) {
@@ -417,10 +433,12 @@ export function RoleplayPage() {
             console.error('❌ [RoleplayPage] Error al enviar a n8n:', response.status, response.statusText);
           }
 
-          return response.text();
-        }).then(text => {
-          if (text) {
-            console.log('📝 [RoleplayPage] Respuesta de n8n body:', text);
+          // Intenta parsear la respuesta como JSON
+          try {
+            const responseJson = JSON.parse(responseText);
+            console.log('📝 [RoleplayPage] Respuesta de n8n (JSON):', responseJson);
+          } catch (e) {
+            console.log('📝 [RoleplayPage] Respuesta de n8n (text):', responseText);
           }
         }).catch(error => {
           console.error('❌ [RoleplayPage] Error de red al enviar a n8n:', error);
