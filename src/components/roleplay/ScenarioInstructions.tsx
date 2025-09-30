@@ -174,38 +174,40 @@ export function ScenarioInstructions({
   const estimatedTime = scenarioOrder === 1 ? 3 : scenarioOrder <= 3 ? 5 : 7;
 
   return (
-    <Card className="bg-gray-900/50 border-gray-800 p-6 mb-6">
-      <div className="space-y-4">
+    <Card className="bg-gray-900/50 border-gray-800 p-4 h-full">
+      <div className="space-y-3 h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-500/10 rounded-lg">
               <Info className="h-5 w-5 text-blue-400" />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-white">
                 Escenario {scenarioOrder}: {instructions.title}
               </h3>
-              <p className="text-sm text-gray-400">
-                Perfil {profile} • Score mínimo: {minScoreToPass}%
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-400">
+                  Perfil {profile} • Score: {minScoreToPass}%
+                </p>
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <Clock className="h-3 w-3" />
+                  <span>{estimatedTime}-{estimatedTime + 2} min</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Clock className="h-4 w-4" />
-            <span>{estimatedTime}-{estimatedTime + 2} min</span>
           </div>
         </div>
 
         {/* Objetivos */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-300">
             <Target className="h-4 w-4 text-green-400" />
-            <span>Objetivos del Escenario</span>
+            <span>Objetivos</span>
           </div>
-          <ul className="space-y-1 ml-6">
+          <ul className="space-y-1 ml-5">
             {instructions.objectives.map((objective, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-gray-400">
+              <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
                 <CheckCircle className="h-3 w-3 text-green-400 mt-0.5 flex-shrink-0" />
                 <span>{objective}</span>
               </li>
@@ -214,14 +216,14 @@ export function ScenarioInstructions({
         </div>
 
         {/* Tips específicos del perfil */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+        <div className="space-y-2 flex-1">
+          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-300">
             <Info className="h-4 w-4 text-blue-400" />
             <span>Tips para {profile}</span>
           </div>
-          <ul className="space-y-1 ml-6">
+          <ul className="space-y-1 ml-5">
             {instructions.tips[profile].map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-gray-400">
+              <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
                 <span className="text-blue-400">•</span>
                 <span>{tip}</span>
               </li>
@@ -230,10 +232,9 @@ export function ScenarioInstructions({
         </div>
 
         {/* Recordatorio */}
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mt-auto">
           <p className="text-xs text-yellow-400">
-            💡 Recuerda: El agente evaluará tu comunicación, técnica de ventas y conocimiento del producto.
-            Mantén un tono profesional y escucha activamente las respuestas del {profile}.
+            💡 El agente evaluará tu comunicación y técnica de ventas. Mantén un tono profesional y escucha activamente.
           </p>
         </div>
       </div>

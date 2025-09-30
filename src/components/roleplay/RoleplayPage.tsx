@@ -552,15 +552,15 @@ export function RoleplayPage() {
       />
 
       {/* Contenido principal */}
-      <div className="flex-1 min-h-screen bg-black">
-        <main className="w-full">
+      <div className="flex-1 h-screen bg-black overflow-hidden flex flex-col">
+        <main className="w-full h-full flex flex-col">
           {/* Header */}
-          <div className="p-6">
-            <div className="flex items-center gap-4">
+          <div className="p-4 pb-2">
+            <div className="flex items-center gap-3">
               <SidebarTrigger className="text-white hover:bg-white/10" />
               <div>
-                <h1 className="text-3xl font-bold text-white">Roleplay de Ventas</h1>
-                <p className="text-white/70">
+                <h1 className="text-2xl font-bold text-white">Roleplay de Ventas</h1>
+                <p className="text-sm text-white/70">
                   {questionnaireData && currentScenario
                     ? `${questionnaireData.practiceStartProfile} - Escenario ${currentScenario.scenarioOrder}: ${currentScenario.scenarioName}`
                     : 'Practica tus habilidades de venta'}
@@ -569,57 +569,60 @@ export function RoleplayPage() {
             </div>
           </div>
 
-          {/* Scenario Instructions */}
-          {currentScenario && questionnaireData && (
-            <div className="px-6 max-w-4xl mx-auto">
-              <ScenarioInstructions
-                scenarioName={currentScenario.scenarioName}
-                scenarioCode={currentScenario.scenarioCode}
-                profile={questionnaireData.practiceStartProfile}
-                scenarioOrder={currentScenario.scenarioOrder}
-                minScoreToPass={currentScenario.minScoreToPass}
-              />
-            </div>
-          )}
-
-          {/* Main Content - Voice Roleplay */}
-          <div className="flex items-center justify-center min-h-[calc(100vh-350px)]">
+          {/* Main Content Area - Two Columns */}
+          <div className="flex-1 flex gap-4 px-4 overflow-hidden">
             {questionnaireData && currentScenario ? (
               <>
-                {console.log('📤 Pasando props a RoleplayVoiceAssistant:', {
-                  userName,
-                  userId,
-                  selectedProfile: questionnaireData.practiceStartProfile,
-                  scenarioName: currentScenario.scenarioName,
-                  difficultyLevel: currentScenario.difficultyLevel
-                })}
-              <RoleplayVoiceAssistant
-                selectedProfile={questionnaireData.practiceStartProfile}
-                questionnaireId={questionnaireData.questionnaireId}
-                userName={userName}
-                userId={userId}
-                scenarioCode={currentScenario.scenarioCode}
-                scenarioName={currentScenario.scenarioName}
-                sessionId={currentSessionId || undefined}
-                onSessionStart={handleSessionStart}
-                onSessionEnd={handleSessionEnd}
-                // Información adicional del perfil y dificultad
-                profileDescription={currentScenario.profileDescription}
-                profileKeyFocus={currentScenario.profileKeyFocus}
-                profileCommunicationStyle={currentScenario.profileCommunicationStyle}
-                difficultyLevel={currentScenario.difficultyLevel}
-                difficultyName={currentScenario.difficultyName}
-                difficultyMood={currentScenario.difficultyMood}
-              />
+                {/* Left Column - Instructions */}
+                <div className="w-1/3 overflow-y-auto">
+                  <ScenarioInstructions
+                    scenarioName={currentScenario.scenarioName}
+                    scenarioCode={currentScenario.scenarioCode}
+                    profile={questionnaireData.practiceStartProfile}
+                    scenarioOrder={currentScenario.scenarioOrder}
+                    minScoreToPass={currentScenario.minScoreToPass}
+                  />
+                </div>
+
+                {/* Right Column - Voice Assistant */}
+                <div className="flex-1 flex items-center justify-center">
+                  {console.log('📤 Pasando props a RoleplayVoiceAssistant:', {
+                    userName,
+                    userId,
+                    selectedProfile: questionnaireData.practiceStartProfile,
+                    scenarioName: currentScenario.scenarioName,
+                    difficultyLevel: currentScenario.difficultyLevel
+                  })}
+                  <RoleplayVoiceAssistant
+                    selectedProfile={questionnaireData.practiceStartProfile}
+                    questionnaireId={questionnaireData.questionnaireId}
+                    userName={userName}
+                    userId={userId}
+                    scenarioCode={currentScenario.scenarioCode}
+                    scenarioName={currentScenario.scenarioName}
+                    sessionId={currentSessionId || undefined}
+                    onSessionStart={handleSessionStart}
+                    onSessionEnd={handleSessionEnd}
+                    // Información adicional del perfil y dificultad
+                    profileDescription={currentScenario.profileDescription}
+                    profileKeyFocus={currentScenario.profileKeyFocus}
+                    profileCommunicationStyle={currentScenario.profileCommunicationStyle}
+                    difficultyLevel={currentScenario.difficultyLevel}
+                    difficultyName={currentScenario.difficultyName}
+                    difficultyMood={currentScenario.difficultyMood}
+                  />
+                </div>
               </>
             ) : (
-              <div className="text-center text-white">
-                <p className="text-xl mb-4">Preparando tu sesión de práctica...</p>
-                <p className="text-white/70">
-                  {!questionnaireData
-                    ? 'Por favor completa el cuestionario inicial'
-                    : 'Cargando escenario...'}
-                </p>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <p className="text-xl mb-4">Preparando tu sesión de práctica...</p>
+                  <p className="text-white/70">
+                    {!questionnaireData
+                      ? 'Por favor completa el cuestionario inicial'
+                      : 'Cargando escenario...'}
+                  </p>
+                </div>
               </div>
             )}
           </div>

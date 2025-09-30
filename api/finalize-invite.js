@@ -68,22 +68,34 @@ export default async function handler(req, res) {
     else if (aud === 'manager') roleToAssign = 'manager';
     else if (aud === 'user') roleToAssign = 'user';
 
+    // 5) Check if user exists to preserve existing name
+    const { data: existingUser } = await admin
+      .schema('maity')
+      .from('users')
+      .select('name')
+      .eq('auth_id', authId)
+      .single();
+
     // 5) Upsert de users (por auth_id) y obtener users.id para user_roles
     const nowIso = new Date().toISOString();
+    const upsertData = {
+      auth_id: authId,
+      email: userResp.user.email,
+      company_id: invite.company_id,
+      registration_form_completed: false,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    // Preserve existing name if user already exists
+    if (existingUser?.name) {
+      upsertData.name = existingUser.name;
+    }
+
     const { error: userUpErr } = await admin
       .schema('maity')
       .from('users')
-      .upsert(
-        {
-          auth_id: authId,
-          email: userResp.user.email,
-          company_id: invite.company_id,
-          registration_form_completed: false,
-          created_at: nowIso,
-          updated_at: nowIso
-        },
-        { onConflict: 'auth_id', ignoreDuplicates: false }
-      );
+      .upsert(upsertData, { onConflict: 'auth_id', ignoreDuplicates: false });
     if (userUpErr) {
       console.error('[finalize] User upsert error:', userUpErr);
       return res.status(500).json({ error: 'USER_UPDATE_FAILED' });

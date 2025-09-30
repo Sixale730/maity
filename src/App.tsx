@@ -22,6 +22,8 @@ import InvitationConflict from "./pages/InvitationConflict";
 import InvitationRequired from "./pages/InvitationRequired";
 import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
+import Roleplay from "./pages/Roleplay";
+import AppLayout from "./layouts/AppLayout";
 
 
 const queryClient = new QueryClient();
@@ -47,8 +49,10 @@ const App = () => (
             <Route path="/invitation-required" element={<InvitationRequired />} />
             <Route path="/user-status-error" element={<UserStatusError />} />
             <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard/*" element={<Dashboard />} />
-              <Route path="/roleplay" element={<Dashboard />} />
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/roleplay" element={<Roleplay />} />
+              </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

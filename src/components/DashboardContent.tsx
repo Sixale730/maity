@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { OrganizationsManager } from "./OrganizationsManager";
 import { CoachPage } from "./coach/CoachPage";
 import { RoleplayPage } from "./roleplay/RoleplayPage";
+import { SessionsHistory } from "./SessionsHistory";
 import { 
   BarChart, 
   Bar, 
@@ -274,6 +275,12 @@ export function DashboardContent({ userRole, userProfile }: DashboardContentProp
       <Route
         path="roleplay"
         element={<RoleplayPage />}
+      />
+
+      {/* Sessions History route - available for all roles */}
+      <Route
+        path="sessions"
+        element={<SessionsHistory />}
       />
 
       {/* Team dashboard - only for managers */}

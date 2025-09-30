@@ -1,63 +1,32 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
+import React from "react";
 import { DashboardContent } from "@/components/DashboardContent";
 import { useUser } from "@/contexts/UserContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
-  const { userRole, userProfile, loading, error } = useUser();
-  const { t } = useLanguage();
-  const navigate = useNavigate();
+  const { userRole, userProfile, loading } = useUser();
 
-  // Only redirect if there's an authentication error (no user session)
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!loading) {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-          console.log('🚫 Dashboard: No authenticated user, redirecting to auth');
-          navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
-          return;
-        }
-
-        // If we have a user but no profile, it means they're not ACTIVE
-        // Let ProtectedRoute handle the redirect to appropriate page
-        if (!userProfile && !error) {
-          console.log('ℹ️ Dashboard: User not ACTIVE, letting ProtectedRoute handle redirect');
-        }
-      }
-    };
-
-    checkAuth();
-  }, [loading, error, userProfile, navigate]);
-
+  // Show loading spinner in content area while data loads
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">{t('dashboard.loading')}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </div>
     );
   }
 
-  if (error || !userProfile) {
-    return null; // Will redirect to auth
+  if (!userProfile) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">No se pudo cargar el perfil de usuario</p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <RoleBasedSidebar userRole={userRole} userName={userProfile?.name} />
-        <DashboardContent userRole={userRole} userProfile={userProfile} />
-      </div>
-    </SidebarProvider>
-  );
+  return <DashboardContent userRole={userRole} userProfile={userProfile} />;
 };
 
 export default Dashboard;

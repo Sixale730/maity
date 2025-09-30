@@ -104,15 +104,14 @@ const ProtectedRoute = () => {
     };
   }, [navigate, pathname]);
 
-  if (state === 'loading') {
-    return <p>Loading...</p>;
-  }
-
-  if (state === 'allow') {
+  // Always render the outlet to allow the layout to show
+  // The individual pages will handle their own loading states
+  if (state === 'loading' || state === 'allow') {
     return <Outlet />;
   }
 
-  return <p>Loading...</p>;
+  // Only return null if explicitly denied (will redirect)
+  return null;
 };
 
 export default ProtectedRoute;
