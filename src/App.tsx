@@ -48,6 +48,7 @@ const App = () => (
             <Route path="/user-status-error" element={<UserStatusError />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="/roleplay" element={<Dashboard />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
