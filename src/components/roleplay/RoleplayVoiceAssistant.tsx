@@ -80,6 +80,9 @@ export function RoleplayVoiceAssistant({
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const fullTranscriptRef = useRef<string>('');
 
+  // Estado para rastrear si la conexión es segura
+  const [isConnectionStable, setIsConnectionStable] = useState(false);
+
   // Ref para el scroll del chat
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -205,11 +208,25 @@ export function RoleplayVoiceAssistant({
     }
   };
 
-  // State para la sesión actual
+  // State para la sesión actual - actualizar cuando cambie el prop
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
+
+  // Actualizar currentSessionId cuando cambie el prop sessionId
+  React.useEffect(() => {
+    if (sessionId && sessionId !== currentSessionId) {
+      console.log('📝 [RoleplayVoiceAssistant] Actualizando sessionId desde props:', sessionId);
+      setCurrentSessionId(sessionId);
+    }
+  }, [sessionId]);
 
   // Start conversation
   const startConversation = async () => {
+    console.log('🚀 [RoleplayVoiceAssistant] startConversation iniciado', {
+      hasOnSessionStart: !!onSessionStart,
+      currentSessionId,
+      sessionIdFromProps: sessionId
+    });
+
     setIsConnecting(true);
     setError(null);
 
@@ -231,6 +248,12 @@ export function RoleplayVoiceAssistant({
       } else {
         console.warn('⚠️ [RoleplayVoiceAssistant] No se pudo crear sesión, continuando sin ella');
       }
+    } else {
+      console.log('⚠️ [RoleplayVoiceAssistant] No se creará sesión:', {
+        hasOnSessionStart: !!onSessionStart,
+        currentSessionId,
+        skipReason: !onSessionStart ? 'No hay onSessionStart' : 'Ya existe currentSessionId'
+      });
     }
 
     // Get signed URL
@@ -273,19 +296,83 @@ export function RoleplayVoiceAssistant({
         signedUrl: signedUrl,
         dynamicVariables: dynamicVars,
         onConnect: () => {
-          console.log('Connected to Roleplay Agent');
+          console.log('✅ Connected to Roleplay Agent');
           setIsConnected(true);
           setIsConnecting(false);
           setError(null);
           setSessionStartTime(new Date());
+
+          // Marcar la conexión como estable después de un breve retraso
+          setTimeout(() => {
+            setIsConnectionStable(true);
+            console.log('✅ Connection is now stable');
+          }, 1000);
         },
-        onDisconnect: () => {
-          console.log('Disconnected from Roleplay Agent');
+        onDisconnect: (error?: any) => {
+          console.log('🔌 Disconnected from Roleplay Agent', error);
           setIsConnected(false);
+          setIsSpeaking(false);
+          setIsConnectionStable(false);
+
+          // Calcular duración de la sesión para diagnosticar
+          const sessionDuration = sessionStartTime
+            ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+            : 0;
+
+          console.log(`📊 Sesión terminada después de ${sessionDuration} segundos`);
+
+          // Solo mostrar error si no fue una desconexión intencional
+          if (error && !isProcessing) {
+            console.error('❌ Unexpected disconnect:', error);
+
+            // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
+            if (sessionDuration > 0 && sessionDuration < 20) {
+              setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
+            } else {
+              setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
+            }
+          }
         },
         onError: (error) => {
-          console.error('Conversation error:', error);
-          setError('Error en la conversación');
+          console.error('❌ Conversation error:', error);
+
+          // Manejo específico para errores de cuota/límites
+          if (error?.message?.includes('quota') ||
+              error?.message?.includes('limit') ||
+              error?.message?.includes('rate') ||
+              error?.message?.includes('429') ||
+              error?.message?.includes('insufficient')) {
+            console.error('⚠️ Límite de ElevenLabs alcanzado');
+            setError('Se ha alcanzado el límite de uso de ElevenLabs. Por favor, intenta más tarde o contacta al administrador.');
+          }
+          // Manejo específico para errores de WebSocket
+          else if (error?.message?.includes('WebSocket') || error?.message?.includes('CLOSING') || error?.message?.includes('CLOSED')) {
+            console.log('🔄 WebSocket error detected, cleaning up...');
+
+            // Si la sesión se cortó muy rápido, probablemente es límite de cuota
+            const sessionDuration = sessionStartTime
+              ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+              : 0;
+
+            if (sessionDuration < 30) {
+              setError('La sesión se terminó prematuramente. Posible límite de cuota alcanzado.');
+            } else {
+              setError('Conexión perdida. Por favor, reinicia la práctica.');
+            }
+
+            // Limpiar la conexión actual
+            if (conversation) {
+              try {
+                conversation.endSession().catch(e => console.log('Session already ended'));
+              } catch (e) {
+                console.log('Session cleanup error:', e);
+              }
+            }
+            setConversation(null);
+          } else {
+            setError('Error en la conversación. Verifica tu conexión y límites de uso.');
+          }
+
           setIsConnecting(false);
           setIsConnected(false);
         },
@@ -307,6 +394,24 @@ export function RoleplayVoiceAssistant({
         },
         onStatusChange: ({ status }) => {
           console.log('📊 Status changed to:', status);
+
+          // Manejar cambios de estado problemáticos
+          if (status === 'disconnecting' || status === 'disconnected') {
+            console.warn('⚠️ Connection status:', status);
+
+            // Si se desconecta inesperadamente durante una sesión activa
+            if (isConnected && !isProcessing && status === 'disconnected') {
+              console.error('❌ Unexpected disconnection during active session');
+              setIsConnected(false);
+              setConversation(null);
+              setError('La sesión se desconectó. Por favor, reinicia la práctica.');
+            }
+          }
+
+          // Log adicional para debugging
+          if (status === 'error') {
+            console.error('❌ Status error detected');
+          }
         }
       });
 
@@ -321,19 +426,27 @@ export function RoleplayVoiceAssistant({
   // End conversation
   const endConversation = async () => {
     if (conversation) {
+      // Marcar que estamos procesando para evitar errores de desconexión
+      setIsProcessing(true);
+
       // Calcular duración
       const duration = sessionStartTime
         ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
         : 0;
 
-      // Terminar sesión de ElevenLabs
-      await conversation.endSession();
+      try {
+        // Terminar sesión de ElevenLabs de forma segura
+        console.log('🛑 Terminando sesión de ElevenLabs...');
+        await conversation.endSession();
+        console.log('✅ Sesión terminada correctamente');
+      } catch (error) {
+        console.warn('⚠️ Error al terminar sesión (puede ya estar cerrada):', error);
+      }
+
+      // Limpiar estado
       setConversation(null);
       setIsConnected(false);
       setIsSpeaking(false);
-
-      // Mostrar estado de procesamiento
-      setIsProcessing(true);
 
       // NO enviar webhook aquí - se envía desde RoleplayPage con request_id
       // await sendTranscriptionToWebhook(fullTranscriptRef.current, duration);
@@ -342,8 +455,17 @@ export function RoleplayVoiceAssistant({
       setTimeout(() => {
         setIsProcessing(false);
         // Llamar callback con transcripción y duración
+        console.log('📤 [RoleplayVoiceAssistant] Llamando onSessionEnd con:', {
+          hasOnSessionEnd: !!onSessionEnd,
+          currentSessionId,
+          transcriptLength: fullTranscriptRef.current.length,
+          duration
+        });
         if (onSessionEnd) {
-          onSessionEnd(fullTranscriptRef.current, duration);
+          // Pasar el sessionId como tercer parámetro
+          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined);
+        } else {
+          console.error('❌ [RoleplayVoiceAssistant] No hay onSessionEnd callback!');
         }
       }, 3000);
     }

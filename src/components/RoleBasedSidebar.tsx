@@ -40,7 +40,7 @@ const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
     { title: "nav.coach", url: "/dashboard/coach", icon: MessageCircle },
-    { title: "nav.roleplay", url: "/dashboard/roleplay", icon: Headphones },
+    { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
   ];
 
   if (role === 'admin') {

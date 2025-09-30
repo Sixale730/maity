@@ -292,16 +292,25 @@ export function RoleplayPage() {
     }
   };
 
-  const handleSessionEnd = async (transcript: string, duration: number) => {
+  const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string) => {
     console.log('🎯 [RoleplayPage] handleSessionEnd iniciado:', {
       transcriptLength: transcript.length,
       duration,
       sessionId: currentSessionId,
+      voiceAssistantSessionId,
       userId
     });
 
-    if (!currentSessionId || !userId) {
-      console.error('❌ [RoleplayPage] No se puede evaluar sin sessionId o userId');
+    // Usar el sessionId de RoleplayPage o el que viene de RoleplayVoiceAssistant
+    const effectiveSessionId = currentSessionId || voiceAssistantSessionId;
+
+    if (!effectiveSessionId || !userId) {
+      console.error('❌ [RoleplayPage] No se puede evaluar sin sessionId o userId', {
+        currentSessionId,
+        voiceAssistantSessionId,
+        effectiveSessionId,
+        userId
+      });
       toast({
         title: "Error",
         description: "Información de sesión incompleta",
@@ -309,6 +318,8 @@ export function RoleplayPage() {
       });
       return;
     }
+
+    console.log('✅ [RoleplayPage] Usando sessionId:', effectiveSessionId);
 
     setIsEvaluating(true);
 
@@ -327,18 +338,18 @@ export function RoleplayPage() {
 
       // Verificar que la sesión existe y pertenece al usuario
       let sessionCheck = null;
-      if (currentSessionId) {
+      if (effectiveSessionId) {
         const { data, error: sessionError } = await supabase
           .schema('maity')
           .from('voice_sessions')
           .select('id, user_id')
-          .eq('id', currentSessionId)
+          .eq('id', effectiveSessionId)
           .single();
 
         sessionCheck = data;
 
         console.log('🔍 [RoleplayPage] Verificación de voice_session:', {
-          sessionId: currentSessionId,
+          sessionId: effectiveSessionId,
           found: !!sessionCheck,
           sessionUserId: sessionCheck?.user_id,
           currentUserId: userId,
@@ -348,7 +359,7 @@ export function RoleplayPage() {
       }
 
       // Si la sesión no es válida, crear evaluación sin vincular
-      const sessionToLink = currentSessionId && sessionCheck ? currentSessionId : undefined;
+      const sessionToLink = effectiveSessionId && sessionCheck ? effectiveSessionId : undefined;
 
       const { data: evaluationData, error: createError } = await createEvaluation(
         requestId,
@@ -376,7 +387,8 @@ export function RoleplayPage() {
       console.log('📤 [RoleplayPage] Enviando transcript a n8n...', {
         url: n8nWebhookUrl,
         requestId,
-        sessionId: currentSessionId,
+        sessionId: effectiveSessionId,
+        sessionToLink,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
@@ -451,7 +463,7 @@ export function RoleplayPage() {
       // 4. Por ahora mostrar resultados temporales mientras se procesa
       console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras n8n procesa...');
       setSessionResults({
-        sessionId: currentSessionId,
+        sessionId: effectiveSessionId,
         profile: questionnaireData?.practiceStartProfile,
         scenarioName: currentScenario?.scenarioName,
         score: null, // Será actualizado cuando llegue la evaluación
