@@ -291,3 +291,5 @@ npm run dev
 - OTK generation requires `admin.rpc()` with service_role permissions
 - CORS headers must be set for all API endpoints
 - Usa siempre rutas propias
+- No uses el color platino en los diseños, solo para textos o titulos
+- recuerda que cada que recuperes datos de la database debes exponer la funcion rpc a public con un wrapper

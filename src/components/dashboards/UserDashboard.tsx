@@ -176,9 +176,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       {/* Gráfico Principal - Evaluación 360° */}
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">Autoevaluación 360°</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">Radar de Habilidades - Autoevaluación 360°</CardTitle>
           <CardDescription className="text-center">
-            Evaluación integral de competencias clave de liderazgo
+            Evaluación de competencias clave de liderazgo
             {formError && !formError.includes('mostrando datos de ejemplo') && (
               <div className="text-sm text-orange-600 mt-2">
                 ⚠️ {formError}
@@ -187,69 +187,35 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center p-8">
-          <ChartContainer config={chartConfig} className="h-[700px] w-full max-w-5xl">
+          <ChartContainer config={chartConfig} className="h-[400px] w-full max-w-2xl">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart
-                data={translatedRadarData}
-                margin={{ top: 80, right: 180, bottom: 80, left: 180 }}
-                cx="50%"
-                cy="50%"
-              >
+              <RadarChart data={translatedRadarData}>
                 <PolarGrid
                   stroke="hsl(var(--muted-foreground))"
                   strokeDasharray="3 3"
-                  strokeWidth={1.5}
-                  gridType="polygon"
-                  fill="none"
-                  strokeOpacity={0.6}
                 />
                 <PolarAngleAxis
                   dataKey="competencia"
                   tick={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    textAnchor: 'middle',
-                    dominantBaseline: 'middle'
+                    fontSize: 12,
+                    fontWeight: 500
                   }}
-                  className="fill-foreground"
-                  tickFormatter={(value) => value}
-                  radius={140}
                 />
                 <PolarRadiusAxis
                   domain={[0, 100]}
                   tick={{
-                    fontSize: 10,
-                    fontWeight: 500
+                    fontSize: 10
                   }}
-                  tickCount={5}
-                  angle={18}
-                  className="fill-muted-foreground"
-                  axisLine={false}
                 />
                 <Radar
-                  name="Mi Autoevaluación"
+                  name="Mi Evaluación"
                   dataKey="usuario"
-                  stroke="#485df4"
-                  fill="#485df4"
-                  fillOpacity={0.15}
-                  strokeWidth={4}
-                  dot={{
-                    fill: "#485df4",
-                    strokeWidth: 3,
-                    stroke: "hsl(var(--background))",
-                    r: 8
-                  }}
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.3}
+                  strokeWidth={2}
                 />
-                <ChartTooltip 
-                  content={<ChartTooltipContent />}
-                  labelFormatter={(value) => `${value}`}
-                  wrapperStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </RadarChart>
             </ResponsiveContainer>
           </ChartContainer>

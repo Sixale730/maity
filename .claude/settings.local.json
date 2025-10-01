@@ -17,7 +17,9 @@
       "WebFetch(domain:tally.so)",
       "mcp__supabase__list_tables",
       "mcp__supabase__execute_sql",
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__apply_migration",
+      "Read(//c/Users/jagv1/Downloads/**)",
+      "Read(//c/Users/jagv1/OneDrive/Imágenes/Capturas de pantalla/**)"
     ],
     "deny": [],
     "ask": []

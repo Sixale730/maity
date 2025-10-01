@@ -23,7 +23,7 @@ import InvitationRequired from "./pages/InvitationRequired";
 import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
 import Roleplay from "./pages/Roleplay";
-import RoleplayProgress from "./pages/RoleplayProgress";
+import { MyProgress } from "./pages/MyProgress";
 import AppLayout from "./layouts/AppLayout";
 import Coach from "./pages/Coach";
 import Sessions from "./pages/Sessions";
@@ -67,7 +67,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/coach" element={<Coach />} />
                 <Route path="/roleplay" element={<Roleplay />} />
-                <Route path="/progress" element={<RoleplayProgress />} />
+                <Route path="/progress" element={<MyProgress />} />
                 <Route path="/sessions" element={<Sessions />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/organizations" element={<Organizations />} />
