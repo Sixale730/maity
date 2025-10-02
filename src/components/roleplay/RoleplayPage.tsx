@@ -191,19 +191,28 @@ export function RoleplayPage() {
       });
 
       // Verificar si ya respondió el cuestionario alguna vez
-      const { data: existingQuestionnaire } = await supabase
+      const { data: existingQuestionnaire, error: questionnaireError } = await supabase
         .from('voice_pre_practice_questionnaire')
         .select('*')
         .eq('user_id', userData.id)
         .order('answered_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (!existingQuestionnaire) {
+      if (questionnaireError) {
+        console.error('Error fetching questionnaire:', questionnaireError);
+        setShowQuestionnaire(true);
+      } else if (!existingQuestionnaire) {
         // Nunca ha respondido, mostrar cuestionario
         setShowQuestionnaire(true);
       } else {
-        // Ya respondió alguna vez, usar esos datos
+        // Ya respondió alguna vez, usar esos datos del más reciente
+        console.log('📋 Cuestionario encontrado:', {
+          id: existingQuestionnaire.id,
+          answered_at: existingQuestionnaire.answered_at,
+          practice_start_profile: existingQuestionnaire.practice_start_profile
+        });
+
         setQuestionnaireData({
           mostDifficultProfile: existingQuestionnaire.most_difficult_profile,
           practiceStartProfile: existingQuestionnaire.practice_start_profile,

@@ -87,7 +87,15 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
         .eq('voice_scenarios.is_active', true)
         .order('voice_scenarios.order_index');
 
-      if (scenariosError) throw scenariosError;
+      if (scenariosError) {
+        console.error('Error loading scenarios:', scenariosError);
+        throw scenariosError;
+      }
+
+      console.log('📊 Roadmap - Scenarios loaded:', {
+        count: allScenarios?.length || 0,
+        sample: allScenarios?.[0]
+      });
 
       // Cargar las sesiones completadas del usuario
       const { data: userSessions, error: sessionsError } = await supabase
@@ -110,45 +118,78 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
       // Procesar los datos para crear el progreso por escenario
       const progressMap = new Map<string, ScenarioProgress>();
 
-      allScenarios?.forEach(scenario => {
-        const profileScenarioId = scenario.id;
-        const userSessionsForScenario = userSessions?.filter(
-          s => s.profile_scenario_id === profileScenarioId
-        ) || [];
+      allScenarios?.forEach((scenario, index) => {
+        try {
+          // Validar que todas las relaciones existan y tengan las propiedades necesarias
+          if (!scenario?.voice_scenarios?.id ||
+              !scenario?.voice_agent_profiles?.id ||
+              !scenario?.voice_difficulty_levels?.id) {
+            console.warn('📊 Roadmap - Escenario con datos incompletos, omitiendo:', {
+              index,
+              scenarioId: scenario?.id,
+              hasVoiceScenarios: !!scenario?.voice_scenarios,
+              hasVoiceProfiles: !!scenario?.voice_agent_profiles,
+              hasDifficultyLevels: !!scenario?.voice_difficulty_levels
+            });
+            return;
+          }
 
-        const completed = userSessionsForScenario.length > 0;
-        const passed = userSessionsForScenario.some(s => s.passed === true);
-        const bestScore = userSessionsForScenario.reduce((max, s) =>
-          Math.max(max, s.score || 0), 0
-        ) || null;
-        const lastSession = userSessionsForScenario.sort((a, b) =>
-          new Date(b.ended_at).getTime() - new Date(a.ended_at).getTime()
-        )[0];
+          const profileScenarioId = scenario.id;
+          const userSessionsForScenario = userSessions?.filter(
+            s => s.profile_scenario_id === profileScenarioId
+          ) || [];
 
-        progressMap.set(profileScenarioId, {
-          scenarioId: scenario.scenario_id,
-          scenarioName: scenario.voice_scenarios.name,
-          scenarioCode: scenario.voice_scenarios.code,
-          profileId: scenario.profile_id,
-          profileName: scenario.voice_agent_profiles.name,
-          difficultyId: scenario.difficulty_id,
-          difficultyLevel: scenario.voice_difficulty_levels.level,
-          difficultyName: scenario.voice_difficulty_levels.name,
-          completed,
-          passed,
-          bestScore,
-          attempts: userSessionsForScenario.length,
-          lastAttempt: lastSession ? new Date(lastSession.ended_at) : null
-        });
+          const completed = userSessionsForScenario.length > 0;
+          const passed = userSessionsForScenario.some(s => s.passed === true);
+          const bestScore = userSessionsForScenario.reduce((max, s) =>
+            Math.max(max, s.score || 0), 0
+          ) || null;
+          const lastSession = userSessionsForScenario.sort((a, b) =>
+            new Date(b.ended_at).getTime() - new Date(a.ended_at).getTime()
+          )[0];
+
+          progressMap.set(profileScenarioId, {
+            scenarioId: scenario.scenario_id,
+            scenarioName: scenario.voice_scenarios.name,
+            scenarioCode: scenario.voice_scenarios.code,
+            profileId: scenario.profile_id,
+            profileName: scenario.voice_agent_profiles.name,
+            difficultyId: scenario.difficulty_id,
+            difficultyLevel: scenario.voice_difficulty_levels.level,
+            difficultyName: scenario.voice_difficulty_levels.name,
+            completed,
+            passed,
+            bestScore,
+            attempts: userSessionsForScenario.length,
+            lastAttempt: lastSession ? new Date(lastSession.ended_at) : null
+          });
+        } catch (err) {
+          console.error('📊 Roadmap - Error processing scenario:', {
+            index,
+            scenarioId: scenario?.id,
+            error: err
+          });
+        }
       });
 
       const progressArray = Array.from(progressMap.values());
       setScenarioProgress(progressArray);
 
+      console.log('📊 Roadmap - Progress array created:', {
+        totalScenarios: progressArray.length,
+        completedScenarios: progressArray.filter(s => s.completed).length,
+        passedScenarios: progressArray.filter(s => s.passed).length
+      });
+
       // Calcular progreso por perfil
       const profileMap = new Map<string, ProfileProgress>();
 
       progressArray.forEach(scenario => {
+        if (!scenario?.profileId || !scenario?.profileName) {
+          console.warn('📊 Roadmap - Scenario missing profile data:', scenario);
+          return;
+        }
+
         if (!profileMap.has(scenario.profileId)) {
           profileMap.set(scenario.profileId, {
             profileId: scenario.profileId,
@@ -187,10 +228,17 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
           : 0;
       });
 
-      setProfileProgress(Array.from(profileMap.values()));
+      const profileProgressArray = Array.from(profileMap.values());
+      setProfileProgress(profileProgressArray);
+
+      console.log('📊 Roadmap - Profile progress created:', {
+        totalProfiles: profileProgressArray.length,
+        profiles: profileProgressArray.map(p => ({ name: p.profileName, progress: p.progressPercentage }))
+      });
 
     } catch (error) {
-      console.error('Error loading roadmap progress:', error);
+      console.error('📊 Roadmap - Error loading roadmap progress:', error);
+      console.error('📊 Roadmap - Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     } finally {
       setLoading(false);
     }

@@ -396,17 +396,21 @@ export function RoleplayProgress() {
           const activeCard = roleCards.find(card => card.isActive);
           const otherCards = roleCards.filter(card => !card.isActive);
 
-          if (activeCard && roleCards.length === 3) {
+          if (activeCard && roleCards.length === 3 && otherCards.length === 2) {
             // For 3 cards, place active in middle
-            return [otherCards[0], activeCard, otherCards[1]].map((card) => (
-              <HexagonCard key={card.id} card={card} onProfileClick={handleProfileChange} />
-            ));
+            return [otherCards[0], activeCard, otherCards[1]]
+              .filter(card => card !== undefined)
+              .map((card) => (
+                <HexagonCard key={card.id} card={card} onProfileClick={handleProfileChange} />
+              ));
           }
 
-          // Default order if no active card
-          return roleCards.map((card) => (
-            <HexagonCard key={card.id} card={card} onProfileClick={handleProfileChange} />
-          ));
+          // Default order if no active card or not exactly 3 cards
+          return roleCards
+            .filter(card => card !== undefined)
+            .map((card) => (
+              <HexagonCard key={card.id} card={card} onProfileClick={handleProfileChange} />
+            ));
         })()}
       </div>
 
