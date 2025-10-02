@@ -41,8 +41,10 @@ export default async function handler(req, res) {
 
   // CORS headers
   const origin = req.headers.origin || req.headers.referer || '';
-  const allowed = CORS_ORIGINS.some(o => origin.includes(o));
-  console.log('[complete-short-evaluation] 🌐 CORS check', { origin, allowed, configuredOrigins: CORS_ORIGINS });
+  // Allow localhost for development testing
+  const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+  const allowed = isLocalhost || CORS_ORIGINS.some(o => origin.includes(o));
+  console.log('[complete-short-evaluation] 🌐 CORS check', { origin, allowed, isLocalhost, configuredOrigins: CORS_ORIGINS });
 
   if (allowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
