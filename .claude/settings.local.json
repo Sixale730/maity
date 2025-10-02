@@ -19,7 +19,8 @@
       "mcp__supabase__execute_sql",
       "mcp__supabase__apply_migration",
       "Read(//c/Users/jagv1/Downloads/**)",
-      "Read(//c/Users/jagv1/OneDrive/Imágenes/Capturas de pantalla/**)"
+      "Read(//c/Users/jagv1/OneDrive/Imágenes/Capturas de pantalla/**)",
+      "mcp__supabase__list_migrations"
     ],
     "deny": [],
     "ask": []
