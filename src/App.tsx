@@ -27,6 +27,7 @@ import { MyProgress } from "./pages/MyProgress";
 import AppLayout from "./layouts/AppLayout";
 import Coach from "./pages/Coach";
 import Sessions from "./pages/Sessions";
+import SessionResultsPage from "./pages/SessionResultsPage";
 import Organizations from "./pages/Organizations";
 import Team from "./pages/Team";
 import Analytics from "./pages/Analytics";
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/roleplay" element={<Roleplay />} />
                 <Route path="/progress" element={<MyProgress />} />
                 <Route path="/sessions" element={<Sessions />} />
+                <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/organizations" element={<Organizations />} />
                 <Route path="/usuarios" element={<Users />} />

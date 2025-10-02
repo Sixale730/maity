@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,28 +29,29 @@ interface VoiceSession {
 
 export function SessionsHistory() {
   const navigate = useNavigate();
-  const { userProfile } = useUser();
   const [sessions, setSessions] = useState<VoiceSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userProfile?.id) {
-      fetchSessions();
-    }
-  }, [userProfile]);
+    fetchSessions();
+  }, []);
 
   const fetchSessions = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Get the auth user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Usuario no autenticado');
+        return;
+      }
+
+      // Use RPC function to get sessions with all details
       const { data, error: fetchError } = await supabase
-        .schema('maity')
-        .from('voice_sessions')
-        .select('*')
-        .eq('user_id', userProfile?.id)
-        .order('started_at', { ascending: false });
+        .rpc('get_user_sessions_history', { p_auth_id: user.id });
 
       if (fetchError) {
         console.error('Error fetching sessions:', fetchError);
@@ -277,10 +277,7 @@ export function SessionsHistory() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        // TODO: Implementar vista detallada de la sesión
-                        console.log('Ver detalles de sesión:', session.id);
-                      }}
+                      onClick={() => navigate(`/sessions/${session.id}`)}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

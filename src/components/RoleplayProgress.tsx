@@ -266,7 +266,10 @@ export function RoleplayProgress() {
       }
 
       // Check if there's any profile currently active
+      // The active profile should be the one with progress that's not completed (scenarios_completed < 5)
+      // If there are multiple, take the first one (by creation order)
       const activeProgress = userProgress?.find(p => p.scenarios_completed < 5);
+      const activeProfileId = activeProgress?.profile_id;
       const hasActiveProfile = !!activeProgress;
 
       console.log('Has active profile:', hasActiveProfile, 'Active progress:', activeProgress);
@@ -287,7 +290,8 @@ export function RoleplayProgress() {
       // Create cards from profiles
       const cards: RoleCard[] = (profiles || []).map(profile => {
         const progress = userProgress?.find(up => up.profile_id === profile.id);
-        const isActive = !!progress && progress.scenarios_completed < 5;
+        // Only mark as active if this profile's ID matches the active profile ID
+        const isActive = activeProfileId === profile.id;
         const isCompleted = progress?.scenarios_completed >= 5;
         const config = profileConfig[profile.name] || {};
 
