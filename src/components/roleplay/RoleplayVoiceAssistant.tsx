@@ -443,7 +443,7 @@ export function RoleplayVoiceAssistant({
       // NO enviar webhook aquí - se envía desde RoleplayPage con request_id
       // await sendTranscriptionToWebhook(fullTranscriptRef.current, duration);
 
-      // Esperar 1 segundo para UX
+      // Transición rápida a resultados (500ms para cerrar suavemente)
       setTimeout(() => {
         setIsProcessing(false);
         // Llamar callback con transcripción y duración
@@ -459,7 +459,7 @@ export function RoleplayVoiceAssistant({
         } else {
           console.error('❌ [RoleplayVoiceAssistant] No hay onSessionEnd callback!');
         }
-      }, 3000);
+      }, 500);
     }
   };
 

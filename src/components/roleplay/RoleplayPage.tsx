@@ -17,11 +17,13 @@ const MIN_USER_MESSAGES = 15;
 
 export function RoleplayPage() {
   const { toast } = useToast();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [forceN8nEvaluation, setForceN8nEvaluation] = useState(false);
+  const [testMode, setTestMode] = useState(false);
   const [questionnaireData, setQuestionnaireData] = useState<{
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
@@ -63,13 +65,29 @@ export function RoleplayPage() {
   const handleEvaluationComplete = useCallback(async (result: any) => {
     console.log('✅ [RoleplayPage] Evaluación completada:', result);
 
+    // Calcular score si no viene explícito (por si acaso)
+    const evaluationScore = result.score ??
+      (result.clarity !== undefined && result.structure !== undefined &&
+       result.connection !== undefined && result.influence !== undefined
+        ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
+        : 0);
+
+    console.log('📊 [RoleplayPage] Score calculado:', {
+      scoreFromResult: result.score,
+      scoreCalculated: evaluationScore,
+      clarity: result.clarity,
+      structure: result.structure,
+      connection: result.connection,
+      influence: result.influence
+    });
+
     // Actualizar los resultados con la evaluación real
     setSessionResults(prev => ({
       ...prev,
-      score: result.score,
-      passed: result.score >= (currentScenario?.minScoreToPass || 70),
+      score: evaluationScore,
+      passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
       isProcessing: false,
-      evaluation: result
+      evaluation: result  // Pasar el result completo con todos los campos
     }));
 
     // Actualizar voice_session con los resultados
@@ -78,7 +96,7 @@ export function RoleplayPage() {
         .schema('maity')
         .from('voice_sessions')
         .update({
-          score: result.score,
+          score: evaluationScore,
           processed_feedback: result,
           status: 'completed',
           ended_at: new Date().toISOString()
@@ -133,7 +151,10 @@ export function RoleplayPage() {
     try {
       // Obtener usuario actual
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsInitialLoading(false);
+        return;
+      }
 
       // Obtener el ID, nombre, nickname y email del usuario
       const { data: userData } = await supabase
@@ -142,7 +163,10 @@ export function RoleplayPage() {
         .eq('auth_id', user.id)
         .single();
 
-      if (!userData) return;
+      if (!userData) {
+        setIsInitialLoading(false);
+        return;
+      }
 
       setUserId(userData.id);
       // Usar email o nickname si name está vacío
@@ -188,6 +212,8 @@ export function RoleplayPage() {
       }
     } catch (error) {
       console.error('Error checking questionnaire:', error);
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
@@ -516,12 +542,17 @@ export function RoleplayPage() {
         sessionToLink,
         userMessageCount,
         forceN8nEvaluation,
+        testMode,
         bypassedValidation: forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
       if (forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES) {
         console.warn('⚠️ [ADMIN MODE] Enviando a n8n con menos de 15 mensajes (modo admin activado)');
+      }
+
+      if (testMode) {
+        console.warn('🧪 [TEST MODE] Webhook enviado en modo de prueba (test: true)');
       }
 
       // Enviar a n8n webhook si está configurado
@@ -531,6 +562,7 @@ export function RoleplayPage() {
           session_id: sessionToLink || null,
           transcript: transcript,
           messages: messages || [], // Array de mensajes individuales de la conversación
+          test: testMode, // Flag para modo de prueba en n8n
           metadata: {
             user_id: userId,
             profile: questionnaireData?.practiceStartProfile,
@@ -548,15 +580,18 @@ export function RoleplayPage() {
 
         console.log('📤 [RoleplayPage] Enviando a n8n webhook:', {
           url: n8nWebhookUrl,
-          payload: webhookPayload,
-          bodyString: bodyString,
-          requestIdInPayload: webhookPayload.request_id,
-          requestIdType: typeof webhookPayload.request_id
+          requestId: webhookPayload.request_id,
+          testMode: webhookPayload.test,
+          adminBypass: webhookPayload.metadata.admin_bypass,
+          messageCount: webhookPayload.metadata.message_count
         });
 
-        // LOG CRÍTICO: Verificar request_id justo antes de enviar
-        console.log('🔴 [CRITICAL] request_id being sent to webhook:', webhookPayload.request_id);
-        console.log('🔴 [CRITICAL] Full webhook payload:', JSON.stringify(webhookPayload, null, 2));
+        // LOG CRÍTICO: Verificar request_id y test flag justo antes de enviar
+        console.log('🔴 [CRITICAL] Payload details:', {
+          request_id: webhookPayload.request_id,
+          test: webhookPayload.test,
+          admin_bypass: webhookPayload.metadata.admin_bypass
+        });
 
         fetch(n8nWebhookUrl, {
           method: 'POST',
@@ -704,32 +739,61 @@ export function RoleplayPage() {
                 </p>
               </div>
               {isAdmin && (
-                <button
-                  onClick={() => {
-                    setForceN8nEvaluation(!forceN8nEvaluation);
-                    toast({
-                      title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
-                      description: forceN8nEvaluation
-                        ? "Se aplicará validación de 15 mensajes"
-                        : "Se enviará a n8n sin importar el número de mensajes",
-                      variant: "default"
-                    });
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    forceN8nEvaluation
-                      ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                      : 'bg-white/10 hover:bg-white/20 text-white'
-                  }`}
-                >
-                  {forceN8nEvaluation ? '🔓 Modo Admin: ON' : '🔒 Modo Admin: OFF'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setForceN8nEvaluation(!forceN8nEvaluation);
+                      toast({
+                        title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
+                        description: forceN8nEvaluation
+                          ? "Se aplicará validación de 15 mensajes"
+                          : "Se enviará a n8n sin importar el número de mensajes",
+                        variant: "default"
+                      });
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      forceN8nEvaluation
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                    }`}
+                  >
+                    {forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTestMode(!testMode);
+                      toast({
+                        title: testMode ? "Modo Test Desactivado" : "Modo Test Activado",
+                        description: testMode
+                          ? "Webhook normal (test: false)"
+                          : "Webhook de prueba (test: true)",
+                        variant: "default"
+                      });
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      testMode
+                        ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                    }`}
+                  >
+                    {testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
           {/* Main Content Area */}
           <div className="flex-1 flex gap-4 px-4 overflow-hidden">
-            {!questionnaireData ? (
+            {isInitialLoading ? (
+              // Loading state during initial check
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                  <p className="text-xl">Cargando...</p>
+                </div>
+              </div>
+            ) : !questionnaireData ? (
               // Show tabs with roadmap and start button when no questionnaire data
               <Tabs defaultValue="start" className="flex-1 flex flex-col">
                 <TabsList className="mx-auto mb-4 bg-white/10">

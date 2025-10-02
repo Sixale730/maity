@@ -224,23 +224,63 @@ export default async function handler(req, res) {
     if (evaluation.session_id && status === 'complete') {
       console.log('[evaluations/complete] 🔄 Updating associated voice_session:', evaluation.session_id);
 
-      const { error: sessionUpdateError } = await supabase
+      // First, fetch the session to get min_score_to_pass
+      const { data: session, error: sessionFetchError } = await supabase
         .schema('maity')
         .from('voice_sessions')
-        .update({
-          score: result.score || 0,
-          processed_feedback: result,
-          status: 'completed',
-          ended_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', evaluation.session_id);
+        .select('min_score_to_pass, profile_scenario_id, user_id')
+        .eq('id', evaluation.session_id)
+        .maybeSingle();
 
-      if (sessionUpdateError) {
-        console.error('[evaluations/complete] ⚠️ Failed to update voice_session:', sessionUpdateError);
-        // No retornamos error aquí porque la evaluación ya se actualizó correctamente
-      } else {
-        console.log('[evaluations/complete] ✅ Voice session updated successfully');
+      if (sessionFetchError) {
+        console.error('[evaluations/complete] ⚠️ Failed to fetch voice_session:', sessionFetchError);
+      } else if (session) {
+        // Calculate passed status based on min_score_to_pass
+        const minScore = session.min_score_to_pass || 70; // Default to 70 if not set
+        const passed = (result.score || 0) >= minScore;
+
+        console.log('[evaluations/complete] 📊 Pass calculation:', {
+          score: result.score || 0,
+          min_score_to_pass: minScore,
+          passed
+        });
+
+        // Update voice_session with score, passed, and processed_feedback
+        const { error: sessionUpdateError } = await supabase
+          .schema('maity')
+          .from('voice_sessions')
+          .update({
+            score: result.score || 0,
+            passed: passed,
+            processed_feedback: result,
+            status: 'completed',
+            ended_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', evaluation.session_id);
+
+        if (sessionUpdateError) {
+          console.error('[evaluations/complete] ⚠️ Failed to update voice_session:', sessionUpdateError);
+          // No retornamos error aquí porque la evaluación ya se actualizó correctamente
+        } else {
+          console.log('[evaluations/complete] ✅ Voice session updated successfully', { passed });
+
+          // If passed, update user progress
+          if (passed && session.profile_scenario_id && session.user_id) {
+            console.log('[evaluations/complete] 🎉 Session passed! Updating user progress...');
+
+            const { error: progressError } = await supabase.rpc('update_voice_user_progress_on_pass', {
+              p_user_id: session.user_id,
+              p_profile_scenario_id: session.profile_scenario_id
+            });
+
+            if (progressError) {
+              console.error('[evaluations/complete] ⚠️ Failed to update user progress:', progressError);
+            } else {
+              console.log('[evaluations/complete] ✅ User progress updated successfully');
+            }
+          }
+        }
       }
     }
 

@@ -225,6 +225,7 @@ export default async function handler(req, res) {
         .from('voice_sessions')
         .update({
           score: 0, // Short sessions always get 0
+          passed: false, // Short sessions always fail
           processed_feedback: updatePayload.result,
           status: 'completed',
           ended_at: new Date().toISOString(),
@@ -236,7 +237,7 @@ export default async function handler(req, res) {
         console.error('[complete-short-evaluation] ⚠️ Failed to update voice_session:', sessionUpdateError);
         // No retornamos error aquí porque la evaluación ya se actualizó correctamente
       } else {
-        console.log('[complete-short-evaluation] ✅ Voice session updated successfully');
+        console.log('[complete-short-evaluation] ✅ Voice session updated successfully (passed: false)');
       }
     }
 

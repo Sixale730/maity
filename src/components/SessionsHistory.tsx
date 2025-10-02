@@ -19,6 +19,8 @@ interface VoiceSession {
   scenario_code: string;
   difficulty_level: number;
   score: number | null;
+  passed: boolean | null;
+  min_score_to_pass: number | null;
   processed_feedback: any;
   status: string;
   started_at: string;
@@ -66,9 +68,9 @@ export function SessionsHistory() {
     }
   };
 
-  const getStatusBadge = (status: string, score: number | null) => {
-    if (status === 'completed' && score !== null) {
-      if (score >= 70) {
+  const getStatusBadge = (status: string, passed: boolean | null) => {
+    if (status === 'completed' && passed !== null) {
+      if (passed) {
         return <Badge className="bg-green-500">Aprobado</Badge>;
       } else {
         return <Badge className="bg-red-500">No Aprobado</Badge>;
@@ -168,11 +170,11 @@ export function SessionsHistory() {
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="text-xl font-bold">
-              {sessions.filter(s => s.score && s.score >= 70).length}
+              {sessions.filter(s => s.passed === true).length}
             </div>
             <p className="text-xs text-muted-foreground">
               {sessions.length > 0
-                ? `${Math.round((sessions.filter(s => s.score && s.score >= 70).length / sessions.length) * 100)}%`
+                ? `${Math.round((sessions.filter(s => s.passed === true).length / sessions.length) * 100)}%`
                 : '0%'}
             </p>
           </CardContent>
@@ -236,7 +238,7 @@ export function SessionsHistory() {
                         <h3 className="text-sm font-semibold">
                           {session.scenario_name || 'Sesión de Práctica'}
                         </h3>
-                        {getStatusBadge(session.status, session.score)}
+                        {getStatusBadge(session.status, session.passed)}
                         {getDifficultyBadge(session.difficulty_level)}
                       </div>
 
