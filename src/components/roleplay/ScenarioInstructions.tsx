@@ -8,6 +8,7 @@ interface ScenarioInstructionsProps {
   profile: 'CEO' | 'CTO' | 'CFO';
   scenarioOrder: number;
   minScoreToPass: number;
+  userInstructions?: string | null;
 }
 
 export function ScenarioInstructions({
@@ -15,7 +16,8 @@ export function ScenarioInstructions({
   scenarioCode,
   profile,
   scenarioOrder,
-  minScoreToPass
+  minScoreToPass,
+  userInstructions
 }: ScenarioInstructionsProps) {
   // Instrucciones específicas por escenario y perfil
   const getInstructions = () => {
@@ -173,6 +175,47 @@ export function ScenarioInstructions({
   const instructions = getInstructions();
   const estimatedTime = scenarioOrder === 1 ? 3 : scenarioOrder <= 3 ? 5 : 7;
 
+  // Si hay instrucciones personalizadas de la BD, mostrarlas
+  if (userInstructions) {
+    return (
+      <Card className="bg-gray-900/50 border-gray-800 p-4 h-full">
+        <div className="space-y-3 h-full flex flex-col">
+          {/* Header */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                <Info className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-white">
+                  Escenario {scenarioOrder}: {scenarioName}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400">
+                    Perfil {profile} • Score mínimo: {minScoreToPass}%
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Clock className="h-3 w-3" />
+                    <span>{estimatedTime}-{estimatedTime + 2} min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Instrucciones de la BD */}
+          <div className="flex-1 overflow-y-auto prose prose-invert prose-sm max-w-none">
+            <div
+              className="text-xs text-gray-300 whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: userInstructions.replace(/\n/g, '<br />') }}
+            />
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Fallback: mostrar instrucciones hardcodeadas
   return (
     <Card className="bg-gray-900/50 border-gray-800 p-4 h-full">
       <div className="space-y-3 h-full flex flex-col">

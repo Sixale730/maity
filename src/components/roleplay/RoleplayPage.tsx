@@ -38,6 +38,7 @@ export function RoleplayPage() {
     minScoreToPass: number;
     isLocked: boolean;
     progressId: string;
+    userInstructions: string | null;
     // Información del perfil
     profileDescription: string;
     profileKeyFocus: string;
@@ -260,6 +261,7 @@ export function RoleplayPage() {
           minScoreToPass: parseFloat(scenarioInfo.min_score_to_pass),
           isLocked: scenarioInfo.is_locked,
           progressId: scenarioInfo.progress_id,
+          userInstructions: scenarioInfo.user_instructions || null,
           // Información del perfil
           profileDescription: scenarioInfo.profile_description,
           profileKeyFocus: scenarioInfo.profile_key_focus,
@@ -846,6 +848,7 @@ export function RoleplayPage() {
                     profile={questionnaireData.practiceStartProfile}
                     scenarioOrder={currentScenario.scenarioOrder}
                     minScoreToPass={currentScenario.minScoreToPass}
+                    userInstructions={currentScenario.userInstructions}
                   />
                 </div>
 
