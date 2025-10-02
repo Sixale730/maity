@@ -12,6 +12,9 @@ import { env } from '@/lib/env';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
 
+// Número mínimo de mensajes del usuario requeridos para enviar a n8n
+const MIN_USER_MESSAGES = 15;
+
 export function RoleplayPage() {
   const { toast } = useToast();
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
@@ -298,6 +301,58 @@ export function RoleplayPage() {
     }
   };
 
+  /**
+   * Completa una evaluación directamente sin enviar a n8n
+   * Usado para sesiones con muy pocas interacciones del usuario
+   */
+  const completeEvaluationDirectly = async (requestId: string, userMessageCount: number) => {
+    try {
+      console.log('⚡ [RoleplayPage] Completando evaluación directamente (sin n8n):', {
+        requestId,
+        userMessageCount,
+        reason: 'Menos de 15 mensajes del usuario'
+      });
+
+      // Obtener token de autenticación del usuario
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.error('❌ [RoleplayPage] No hay sesión autenticada');
+        throw new Error('No hay sesión autenticada');
+      }
+
+      const payload = {
+        request_id: requestId,
+        user_message_count: userMessageCount
+      };
+
+      console.log('📤 [RoleplayPage] Enviando a complete-short-evaluation API:', payload);
+
+      const response = await fetch(`${env.apiUrl}/api/complete-short-evaluation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
+        console.error('❌ [RoleplayPage] Error en complete-short-evaluation API:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ [RoleplayPage] Evaluación completada directamente:', result);
+      return result;
+
+    } catch (error) {
+      console.error('❌ [RoleplayPage] Error al completar evaluación directamente:', error);
+      throw error;
+    }
+  };
+
   const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string, messages?: Array<{
     id: string;
     timestamp: Date;
@@ -395,14 +450,61 @@ export function RoleplayPage() {
       console.log('✅ [RoleplayPage] Evaluation creada:', evaluationData);
       setEvaluationRequestId(requestId);
 
-      // 3. Enviar transcript a n8n para procesamiento
+      // 3. Validar número de mensajes del usuario
+      const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
+
+      console.log('📊 [RoleplayPage] Validando mensajes del usuario:', {
+        userMessageCount,
+        minRequired: MIN_USER_MESSAGES,
+        willSendToN8n: userMessageCount >= MIN_USER_MESSAGES
+      });
+
+      // Si hay muy pocos mensajes, completar evaluación directamente sin n8n
+      if (userMessageCount < MIN_USER_MESSAGES) {
+        console.log('⚠️ [RoleplayPage] Sesión muy corta, completando evaluación directamente');
+
+        try {
+          await completeEvaluationDirectly(requestId, userMessageCount);
+
+          // Mostrar resultados
+          setSessionResults({
+            duration,
+            score: 0,
+            passed: false,
+            feedback: 'La interacción fue muy breve y limitada a un saludo inicial. No hay suficiente contenido para evaluar técnicas de ventas ni conocimiento del producto.',
+            isProcessing: false
+          });
+
+          setShowResults(true);
+          setIsEvaluating(false);
+
+          toast({
+            title: "Sesión completada",
+            description: `Se requieren al menos ${MIN_USER_MESSAGES} interacciones para una evaluación completa.`,
+            variant: "default"
+          });
+
+        } catch (error) {
+          console.error('❌ [RoleplayPage] Error al completar evaluación directamente:', error);
+          toast({
+            title: "Error",
+            description: "No se pudo completar la evaluación",
+            variant: "destructive"
+          });
+        }
+
+        return; // Salir sin enviar a n8n
+      }
+
+      // 4. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes)
       const n8nWebhookUrl = env.n8nWebhookUrl;
 
-      console.log('📤 [RoleplayPage] Enviando transcript a n8n...', {
+      console.log('📤 [RoleplayPage] Enviando transcript a n8n para evaluación completa...', {
         url: n8nWebhookUrl,
         requestId,
         sessionId: effectiveSessionId,
         sessionToLink,
+        userMessageCount,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
