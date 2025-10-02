@@ -193,11 +193,38 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'DATABASE_UPDATE_ERROR', details: updateError.message });
     }
 
+    console.log(`[evaluations/complete] ✅ Evaluation updated successfully`);
+
+    // Update associated voice_session if it exists
+    if (evaluation.session_id && status === 'complete') {
+      console.log('[evaluations/complete] 🔄 Updating associated voice_session:', evaluation.session_id);
+
+      const { error: sessionUpdateError } = await supabase
+        .schema('maity')
+        .from('voice_sessions')
+        .update({
+          score: result.score || 0,
+          processed_feedback: result,
+          status: 'completed',
+          ended_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', evaluation.session_id);
+
+      if (sessionUpdateError) {
+        console.error('[evaluations/complete] ⚠️ Failed to update voice_session:', sessionUpdateError);
+        // No retornamos error aquí porque la evaluación ya se actualizó correctamente
+      } else {
+        console.log('[evaluations/complete] ✅ Voice session updated successfully');
+      }
+    }
+
     const duration = Date.now() - startTime;
-    console.log(`[evaluations/complete] ✅ Successfully updated evaluation`, {
+    console.log(`[evaluations/complete] ✅ Process completed`, {
       request_id: updated.request_id,
       status: updated.status,
       updated_at: updated.updated_at,
+      session_updated: !!evaluation.session_id,
       durationMs: duration
     });
 
