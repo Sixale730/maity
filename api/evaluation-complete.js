@@ -121,6 +121,31 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'MISSING_RESULT' });
   }
 
+  // Calculate overall score from metrics if provided (average of 4 metrics 0-100 each)
+  if (status === 'complete' && result) {
+    const { clarity, structure, connection, influence } = result;
+
+    // If metrics are provided, calculate overall score as average
+    if (clarity !== undefined && structure !== undefined && connection !== undefined && influence !== undefined) {
+      const overallScore = Math.round((clarity + structure + connection + influence) / 4);
+      result.score = overallScore;
+
+      console.log('[evaluations/complete] 📊 Calculated overall score from metrics (average):', {
+        clarity,
+        structure,
+        connection,
+        influence,
+        overallScore
+      });
+    }
+
+    // If no score at this point, default to 0
+    if (result.score === undefined) {
+      result.score = 0;
+      console.warn('[evaluations/complete] ⚠️ No score or metrics provided, defaulting to 0');
+    }
+  }
+
   console.log('[evaluations/complete] ✅ Payload validated');
 
   try {

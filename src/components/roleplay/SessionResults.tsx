@@ -53,13 +53,21 @@ export function SessionResults({
   const navigate = useNavigate();
 
   // Usar datos reales de la evaluación si están disponibles
-  const metrics = evaluation?.metrics || {
-    communication: null,
-    salesTechnique: null,
-    productKnowledge: null,
-    objectionHandling: null,
-    closing: null
+  const metrics = {
+    clarity: evaluation?.clarity ?? null,
+    structure: evaluation?.structure ?? null,
+    connection: evaluation?.connection ?? null,
+    influence: evaluation?.influence ?? null
   };
+
+  // Calcular score desde las métricas si no viene explícito (promedio de 4 métricas 0-100)
+  let calculatedScore = score;
+  if (calculatedScore === null && (metrics.clarity !== null || metrics.structure !== null || metrics.connection !== null || metrics.influence !== null)) {
+    const values = [metrics.clarity, metrics.structure, metrics.connection, metrics.influence].filter(v => v !== null);
+    if (values.length === 4) {
+      calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
+    }
+  }
 
   // Usar feedback real si está disponible
   const strengths = evaluation?.strengths || (
@@ -79,7 +87,7 @@ export function SessionResults({
   );
 
   // Score real o temporal mientras se procesa
-  const displayScore = score !== null ? score : (isProcessing ? null : 75);
+  const displayScore = calculatedScore !== null ? calculatedScore : (isProcessing ? null : 75);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -202,7 +210,7 @@ export function SessionResults({
             </h3>
             {isProcessing ? (
               <div className="space-y-4">
-                {['Comunicación', 'Técnica de Ventas', 'Conocimiento del Producto', 'Manejo de Objeciones', 'Cierre'].map((label) => (
+                {['Claridad', 'Estructura', 'Conexión', 'Influencia'].map((label) => (
                   <div key={label} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">{label}</span>
@@ -218,17 +226,16 @@ export function SessionResults({
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">
-                        {key === 'communication' && 'Comunicación'}
-                        {key === 'salesTechnique' && 'Técnica de Ventas'}
-                        {key === 'productKnowledge' && 'Conocimiento del Producto'}
-                        {key === 'objectionHandling' && 'Manejo de Objeciones'}
-                        {key === 'closing' && 'Cierre'}
+                        {key === 'clarity' && 'Claridad'}
+                        {key === 'structure' && 'Estructura'}
+                        {key === 'connection' && 'Conexión'}
+                        {key === 'influence' && 'Influencia'}
                       </span>
-                      <span className={`font-medium ${value ? getScoreColor(value) : 'text-gray-600'}`}>
-                        {value ? `${value}%` : '—'}
+                      <span className={`font-medium ${value !== null ? getScoreColor(value) : 'text-gray-600'}`}>
+                        {value !== null ? `${value}/100` : '—'}
                       </span>
                     </div>
-                    <Progress value={value || 0} className="h-2" />
+                    <Progress value={value !== null ? value : 0} className="h-2" />
                   </div>
                 ))}
               </div>

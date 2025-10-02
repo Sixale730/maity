@@ -20,6 +20,8 @@ export function RoleplayPage() {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [forceN8nEvaluation, setForceN8nEvaluation] = useState(false);
   const [questionnaireData, setQuestionnaireData] = useState<{
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
@@ -150,12 +152,18 @@ export function RoleplayPage() {
                          'Usuario';
       setUserName(displayName);
 
+      // Verificar si es admin
+      const { data: roles } = await supabase.rpc('my_roles');
+      const isUserAdmin = roles?.includes('admin') || false;
+      setIsAdmin(isUserAdmin);
+
       console.log('📝 Usuario obtenido:', {
         id: userData.id,
         name: userData.name,
         nickname: userData.nickname,
         email: userData.email,
-        displayNameSet: displayName
+        displayNameSet: displayName,
+        isAdmin: isUserAdmin
       });
 
       // Verificar si ya respondió el cuestionario alguna vez
@@ -456,11 +464,13 @@ export function RoleplayPage() {
       console.log('📊 [RoleplayPage] Validando mensajes del usuario:', {
         userMessageCount,
         minRequired: MIN_USER_MESSAGES,
-        willSendToN8n: userMessageCount >= MIN_USER_MESSAGES
+        isAdmin,
+        forceN8nEvaluation,
+        willSendToN8n: userMessageCount >= MIN_USER_MESSAGES || forceN8nEvaluation
       });
 
-      // Si hay muy pocos mensajes, completar evaluación directamente sin n8n
-      if (userMessageCount < MIN_USER_MESSAGES) {
+      // Si hay muy pocos mensajes y NO es modo admin forzado, completar evaluación directamente sin n8n
+      if (userMessageCount < MIN_USER_MESSAGES && !forceN8nEvaluation) {
         console.log('⚠️ [RoleplayPage] Sesión muy corta, completando evaluación directamente');
 
         try {
@@ -496,7 +506,7 @@ export function RoleplayPage() {
         return; // Salir sin enviar a n8n
       }
 
-      // 4. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes)
+      // 4. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes o modo admin)
       const n8nWebhookUrl = env.n8nWebhookUrl;
 
       console.log('📤 [RoleplayPage] Enviando transcript a n8n para evaluación completa...', {
@@ -505,8 +515,14 @@ export function RoleplayPage() {
         sessionId: effectiveSessionId,
         sessionToLink,
         userMessageCount,
+        forceN8nEvaluation,
+        bypassedValidation: forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
+
+      if (forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES) {
+        console.warn('⚠️ [ADMIN MODE] Enviando a n8n con menos de 15 mensajes (modo admin activado)');
+      }
 
       // Enviar a n8n webhook si está configurado
       if (n8nWebhookUrl && n8nWebhookUrl.length > 0) {
@@ -523,7 +539,8 @@ export function RoleplayPage() {
             duration_seconds: duration,
             message_count: messages?.length || 0,
             user_message_count: messages?.filter(m => m.source === 'user').length || 0,
-            ai_message_count: messages?.filter(m => m.source === 'ai').length || 0
+            ai_message_count: messages?.filter(m => m.source === 'ai').length || 0,
+            admin_bypass: forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES
           }
         };
 
@@ -678,7 +695,7 @@ export function RoleplayPage() {
           <div className="p-4 pb-2">
             <div className="flex items-center gap-3">
               <SidebarTrigger className="text-white hover:bg-white/10" />
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold text-white">Roleplay de Ventas</h1>
                 <p className="text-sm text-white/70">
                   {questionnaireData && currentScenario
@@ -686,6 +703,27 @@ export function RoleplayPage() {
                     : 'Practica tus habilidades de venta'}
                 </p>
               </div>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setForceN8nEvaluation(!forceN8nEvaluation);
+                    toast({
+                      title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
+                      description: forceN8nEvaluation
+                        ? "Se aplicará validación de 15 mensajes"
+                        : "Se enviará a n8n sin importar el número de mensajes",
+                      variant: "default"
+                    });
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    forceN8nEvaluation
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                      : 'bg-white/10 hover:bg-white/20 text-white'
+                  }`}
+                >
+                  {forceN8nEvaluation ? '🔓 Modo Admin: ON' : '🔒 Modo Admin: OFF'}
+                </button>
+              )}
             </div>
           </div>
 
