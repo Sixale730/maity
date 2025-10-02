@@ -76,22 +76,18 @@ export function OrganizationsManager() {
 
       if (error) throw error;
 
-      const newCompany = data?.[0];
-      if (!newCompany) {
+      if (!data?.[0]) {
         throw new Error("No se pudo crear la empresa");
       }
 
-      const newCompanyWithUrl: Company = {
-        ...newCompany,
-        registration_url: `${appUrl}/auth?company=${newCompany.id}`,
-      };
+      // Refrescar la lista completa para obtener los tokens de invitación
+      await fetchCompanies();
 
-      setCompanies((prev) => [newCompanyWithUrl, ...prev]);
       setNewCompanyName("");
       setIsDialogOpen(false);
 
       toast({
-        title: "A%xito",
+        title: "Éxito",
         description: "Empresa creada correctamente",
       });
     } catch (error) {
@@ -118,7 +114,7 @@ export function OrganizationsManager() {
       setCompanies((prev) => prev.filter((c) => c.id !== company.id));
 
       toast({
-        title: "A%xito",
+        title: "Éxito",
         description: "Empresa eliminada correctamente",
       });
     } catch (error) {
