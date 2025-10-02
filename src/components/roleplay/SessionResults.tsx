@@ -78,13 +78,25 @@ export function SessionResults({
     ] : []
   );
 
-  const improvements = evaluation?.weaknesses || (
-    !isProcessing ? [
+  // Procesar improvements - puede venir como array o string separado por comas
+  let improvements = [];
+  if (evaluation?.improvements) {
+    if (Array.isArray(evaluation.improvements)) {
+      improvements = evaluation.improvements;
+    } else if (typeof evaluation.improvements === 'string') {
+      // Dividir por comas y limpiar espacios
+      improvements = evaluation.improvements
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    }
+  } else if (!isProcessing) {
+    improvements = [
       "Profundizar más en las necesidades específicas del negocio",
       "Ser más específico con los beneficios cuantificables",
       "Mejorar el manejo de objeciones de precio"
-    ] : []
-  );
+    ];
+  }
 
   // Score real o temporal mientras se procesa
   const displayScore = calculatedScore !== null ? calculatedScore : (isProcessing ? null : 75);
@@ -258,29 +270,14 @@ export function SessionResults({
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Fortalezas */}
-                {strengths.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-green-400 mb-2">Fortalezas</p>
-                    <ul className="space-y-1">
-                      {strengths.map((strength, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-400">
-                          <CheckCircle className="h-3 w-3 text-green-400 mt-0.5 flex-shrink-0" />
-                          <span>{strength}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 {/* Áreas de Mejora */}
                 {improvements.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-yellow-400 mb-2">Áreas de Mejora</p>
-                    <ul className="space-y-1">
+                    <p className="text-base font-medium text-yellow-400 mb-3">Áreas de Mejora</p>
+                    <ul className="space-y-2">
                       {improvements.map((improvement, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-400">
-                          <AlertCircle className="h-3 w-3 text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <li key={idx} className="flex items-start gap-2 text-base text-gray-300">
+                          <AlertCircle className="h-4 w-4 text-yellow-400 mt-1 flex-shrink-0" />
                           <span>{improvement}</span>
                         </li>
                       ))}
@@ -290,8 +287,8 @@ export function SessionResults({
 
                 {/* Feedback general si está disponible */}
                 {evaluation?.feedback && (
-                  <div className="pt-2 border-t border-gray-700">
-                    <p className="text-sm text-gray-400">{evaluation.feedback}</p>
+                  <div className="pt-3 border-t border-gray-700 mt-4">
+                    <p className="text-base text-gray-300">{evaluation.feedback}</p>
                   </div>
                 )}
               </div>

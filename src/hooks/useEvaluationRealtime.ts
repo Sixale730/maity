@@ -54,6 +54,7 @@ export function useEvaluationRealtime({
     }
 
     let channel: RealtimeChannel | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
 
     const initializeSubscription = async () => {
       console.log('[useEvaluationRealtime] 🚀 Iniciando suscripción para request_id:', requestId);
@@ -94,9 +95,47 @@ export function useEvaluationRealtime({
         if (initialData.status === 'complete' && onComplete && initialData.result) {
           console.log('✅ [Evaluation] Completada:', initialData.result);
           onComplete(initialData.result);
+          return; // No need to subscribe if already complete
         } else if (initialData.status === 'error' && onError && initialData.error_message) {
           onError(initialData.error_message);
+          return; // No need to subscribe if error
         }
+
+        // Start polling as backup (check every 3 seconds)
+        console.log('[useEvaluationRealtime] 🔄 Iniciando polling de respaldo cada 3s');
+        pollInterval = setInterval(async () => {
+          console.log('[useEvaluationRealtime] 🔍 Polling: verificando estado...');
+
+          const { data: polledData, error: pollError } = await supabase
+            .schema('maity')
+            .from('evaluations')
+            .select('*')
+            .eq('request_id', requestId)
+            .maybeSingle();
+
+          if (!pollError && polledData) {
+            console.log('[useEvaluationRealtime] 📊 Polling: estado actual:', polledData.status);
+
+            if (polledData.status === 'complete' || polledData.status === 'error') {
+              console.log('[useEvaluationRealtime] ✅ Polling: evaluación finalizada, limpiando interval');
+
+              setEvaluation(polledData);
+
+              if (polledData.status === 'complete' && onComplete && polledData.result) {
+                console.log('✅ [Evaluation via Polling] Completada:', polledData.result);
+                onComplete(polledData.result);
+              } else if (polledData.status === 'error' && onError && polledData.error_message) {
+                onError(polledData.error_message);
+              }
+
+              // Clear polling
+              if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+              }
+            }
+          }
+        }, 3000);
 
         // Subscribe to real-time updates filtered by request_id (maity schema)
         console.log('[useEvaluationRealtime] 📡 Suscribiendo a canal:', `evaluations:${requestId}`);
@@ -158,8 +197,12 @@ export function useEvaluationRealtime({
 
     // Cleanup subscription on unmount
     return () => {
+      console.log('[useEvaluationRealtime] 🧹 Cleanup: limpiando suscripciones y polling');
       if (channel) {
         supabase.removeChannel(channel);
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
       }
     };
   }, [requestId, onUpdate, onComplete, onError]);

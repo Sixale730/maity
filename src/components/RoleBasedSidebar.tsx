@@ -41,7 +41,6 @@ import {
 const getNavigationByRole = (role: UserRole) => {
   const baseItems = [
     { title: "nav.dashboard", url: "/dashboard", icon: Home },
-    { title: "nav.coach", url: "/coach", icon: MessageCircle },
     { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
     { title: "nav.roleplay_progress", url: "/progress", icon: Map },
     { title: "nav.sessions", url: "/sessions", icon: History },
@@ -49,7 +48,11 @@ const getNavigationByRole = (role: UserRole) => {
 
   if (role === 'admin') {
     return [
-      ...baseItems,
+      { title: "nav.dashboard", url: "/dashboard", icon: Home },
+      { title: "nav.coach", url: "/coach", icon: MessageCircle },
+      { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+      { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.analytics", url: "/analytics", icon: BarChart3 },
       { title: "nav.organizations", url: "/organizations", icon: Building },
       { title: "nav.users", url: "/usuarios", icon: Users },
