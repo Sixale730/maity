@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
 
 // Número mínimo de mensajes del usuario requeridos para enviar a n8n
-const MIN_USER_MESSAGES = 15;
+const MIN_USER_MESSAGES = 8;
 
 export function RoleplayPage() {
   const { toast } = useToast();
