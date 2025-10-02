@@ -46,24 +46,6 @@ export function RoleplayVoiceAssistant({
   difficultyName = 'Fácil',
   difficultyMood = 'neutral'
 }: RoleplayVoiceAssistantProps) {
-  // Log para verificar props recibidas
-  useEffect(() => {
-    console.log('🎯 RoleplayVoiceAssistant - Props recibidas:', {
-      userName,
-      userId,
-      selectedProfile,
-      scenarioName,
-      scenarioCode,
-      difficultyLevel,
-      difficultyName,
-      difficultyMood,
-      profileDescription,
-      profileKeyFocus,
-      profileCommunicationStyle,
-      sessionId
-    });
-  }, [userName, userId, selectedProfile, scenarioName]);
-
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -328,13 +310,18 @@ export function RoleplayVoiceAssistant({
 
           // Solo mostrar error si no fue una desconexión intencional
           if (error && !isProcessing) {
-            console.error('❌ Unexpected disconnect:', error);
-
-            // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
-            if (sessionDuration > 0 && sessionDuration < 20) {
-              setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
+            // Si la razón es 'user', fue una desconexión intencional
+            if (error.reason === 'user') {
+              console.log('✅ Sesión terminada por el usuario');
             } else {
-              setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
+              console.error('❌ Desconexión inesperada:', error);
+
+              // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
+              if (sessionDuration > 0 && sessionDuration < 20) {
+                setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
+              } else {
+                setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
+              }
             }
           }
         },

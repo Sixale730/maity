@@ -56,11 +56,10 @@ export function useEvaluationRealtime({
     let channel: RealtimeChannel | null = null;
 
     const initializeSubscription = async () => {
-      console.log('[useEvaluationRealtime] 🚀 Initializing subscription for request_id:', requestId);
+      console.log('[useEvaluationRealtime] 🚀 Iniciando suscripción para request_id:', requestId);
 
       try {
         // Fetch initial evaluation state from maity schema
-        console.log('[useEvaluationRealtime] 🔍 Fetching initial evaluation state...');
         const { data: initialData, error: fetchError } = await supabase
           .schema('maity')
           .from('evaluations')
@@ -76,17 +75,16 @@ export function useEvaluationRealtime({
         }
 
         if (!initialData) {
-          console.warn('[useEvaluationRealtime] ⚠️ Evaluation not found for request_id:', requestId);
+          console.error('[useEvaluationRealtime] ❌ Evaluation not found for request_id:', requestId);
           setError('Evaluation not found');
           setIsLoading(false);
           return;
         }
 
-        console.log('[useEvaluationRealtime] ✅ Initial evaluation fetched:', {
+        console.log('[useEvaluationRealtime] 📊 Estado inicial:', {
           request_id: initialData.request_id,
           status: initialData.status,
-          hasResult: !!initialData.result,
-          created_at: initialData.created_at
+          hasResult: !!initialData.result
         });
 
         setEvaluation(initialData);
@@ -94,15 +92,14 @@ export function useEvaluationRealtime({
 
         // If already complete/error, trigger callbacks
         if (initialData.status === 'complete' && onComplete && initialData.result) {
-          console.log('[useEvaluationRealtime] ✅ Already complete, triggering onComplete callback');
+          console.log('✅ [Evaluation] Completada:', initialData.result);
           onComplete(initialData.result);
         } else if (initialData.status === 'error' && onError && initialData.error_message) {
-          console.log('[useEvaluationRealtime] ❌ Already errored, triggering onError callback');
           onError(initialData.error_message);
         }
 
         // Subscribe to real-time updates filtered by request_id (maity schema)
-        console.log('[useEvaluationRealtime] 📡 Setting up realtime subscription...');
+        console.log('[useEvaluationRealtime] 📡 Suscribiendo a canal:', `evaluations:${requestId}`);
         channel = supabase
           .channel(`evaluations:${requestId}`)
           .on(
@@ -114,49 +111,40 @@ export function useEvaluationRealtime({
               filter: `request_id=eq.${requestId}`,
             },
             (payload) => {
-              console.log('[useEvaluationRealtime] 🔔 Received realtime update!', {
-                eventType: payload.eventType,
-                old: payload.old,
-                new: payload.new
-              });
-
+              console.log('[useEvaluationRealtime] 🔔 Update recibido:', payload);
               const updated = payload.new as Evaluation;
-              setEvaluation(updated);
 
-              console.log('[useEvaluationRealtime] 📝 Evaluation updated:', {
+              console.log('[useEvaluationRealtime] 📊 Nuevo estado:', {
                 status: updated.status,
-                hasResult: !!updated.result,
-                hasError: !!updated.error_message
+                hasResult: !!updated.result
               });
+
+              setEvaluation(updated);
 
               // Trigger callbacks
               if (onUpdate) {
-                console.log('[useEvaluationRealtime] 🔄 Triggering onUpdate callback');
                 onUpdate(updated);
               }
 
               if (updated.status === 'complete' && onComplete && updated.result) {
-                console.log('[useEvaluationRealtime] ✅ Status complete, triggering onComplete callback');
+                console.log('✅ [Evaluation] Completada:', updated.result);
                 onComplete(updated.result);
               } else if (updated.status === 'error' && onError && updated.error_message) {
-                console.log('[useEvaluationRealtime] ❌ Status error, triggering onError callback');
                 onError(updated.error_message);
               }
             }
           )
           .subscribe((status, err) => {
-            console.log('[useEvaluationRealtime] 📡 Subscription status changed:', status);
+            console.log('[useEvaluationRealtime] 📡 Estado de suscripción:', status);
 
             if (status === 'SUBSCRIBED') {
-              console.log('[useEvaluationRealtime] ✅ Successfully subscribed to updates for:', requestId);
+              console.log('[useEvaluationRealtime] ✅ Suscrito exitosamente');
             } else if (status === 'CHANNEL_ERROR') {
               console.error('[useEvaluationRealtime] ❌ Subscription error:', err);
               setError('Real-time subscription failed');
             } else if (status === 'TIMED_OUT') {
               console.error('[useEvaluationRealtime] ⏱️ Subscription timed out');
               setError('Real-time subscription timed out');
-            } else if (status === 'CLOSED') {
-              console.log('[useEvaluationRealtime] 🔌 Subscription closed');
             }
           });
       } catch (err) {
@@ -171,7 +159,6 @@ export function useEvaluationRealtime({
     // Cleanup subscription on unmount
     return () => {
       if (channel) {
-        console.log('[useEvaluationRealtime] 🔌 Unsubscribing and cleaning up for:', requestId);
         supabase.removeChannel(channel);
       }
     };
@@ -206,21 +193,12 @@ export async function createEvaluation(
   maityUserId: string,
   sessionId?: string
 ) {
-  console.log('[createEvaluation] 🚀 Creating evaluation via RPC', {
-    requestId,
-    maityUserId,
-    sessionId: sessionId || 'none'
-  });
-
   const { data: user } = await supabase.auth.getUser();
 
   if (!user.user) {
     console.error('[createEvaluation] ❌ User not authenticated');
     return { data: null, error: new Error('User not authenticated') };
   }
-
-  console.log('[createEvaluation] ✅ User authenticated:', user.user.id);
-  console.log('[createEvaluation] 🔧 Calling RPC create_evaluation...');
 
   // Use RPC function to create evaluation (bypasses RLS issues)
   // The public wrapper calls maity.create_evaluation internally
@@ -234,14 +212,6 @@ export async function createEvaluation(
     console.error('[createEvaluation] ❌ Failed to create evaluation:', error);
     return { data: null, error };
   }
-
-  console.log('[createEvaluation] ✅ Evaluation created successfully via RPC:', {
-    request_id: data.request_id,
-    user_id: data.user_id,
-    session_id: data.session_id,
-    status: data.status,
-    created_at: data.created_at
-  });
 
   return { data, error: null };
 }

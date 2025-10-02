@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from './RoleplayVoiceAssistant';
 import { PrePracticeQuestionnaire } from './PrePracticeQuestionnaire';
@@ -54,61 +54,64 @@ export function RoleplayPage() {
   const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
 
+  // Callbacks memorizados para evitar re-renders infinitos
+  const handleEvaluationComplete = useCallback(async (result: any) => {
+    console.log('✅ [RoleplayPage] Evaluación completada:', result);
+
+    // Actualizar los resultados con la evaluación real
+    setSessionResults(prev => ({
+      ...prev,
+      score: result.score,
+      passed: result.score >= (currentScenario?.minScoreToPass || 70),
+      isProcessing: false,
+      evaluation: result
+    }));
+
+    // Actualizar voice_session con los resultados
+    if (currentSessionId) {
+      const { error: updateError } = await supabase
+        .schema('maity')
+        .from('voice_sessions')
+        .update({
+          score: result.score,
+          processed_feedback: result,
+          status: 'completed',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', currentSessionId);
+
+      if (updateError) {
+        console.error('❌ [RoleplayPage] Error actualizando voice_session:', updateError);
+      }
+    }
+
+    setIsEvaluating(false);
+  }, [currentScenario, currentSessionId]);
+
+  const handleEvaluationError = useCallback((errorMessage: string) => {
+    console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
+
+    // Actualizar resultados con error
+    setSessionResults(prev => ({
+      ...prev,
+      isProcessing: false,
+      error: errorMessage
+    }));
+
+    toast({
+      title: "Error en evaluación",
+      description: errorMessage,
+      variant: "destructive"
+    });
+
+    setIsEvaluating(false);
+  }, [toast]);
+
   // Hook para escuchar actualizaciones de evaluación en tiempo real
   const { evaluation, isLoading: evaluationLoading, error: evaluationError } = useEvaluationRealtime({
     requestId: evaluationRequestId || '',
-    onComplete: async (result) => {
-      console.log('✅ [RoleplayPage] Evaluación completada en tiempo real:', result);
-
-      // Actualizar los resultados con la evaluación real
-      setSessionResults(prev => ({
-        ...prev,
-        score: result.score,
-        passed: result.score >= (currentScenario?.minScoreToPass || 70),
-        isProcessing: false,
-        evaluation: result
-      }));
-
-      // Actualizar voice_session con los resultados
-      if (currentSessionId) {
-        const { error: updateError } = await supabase
-          .schema('maity')
-          .from('voice_sessions')
-          .update({
-            score: result.score,
-            processed_feedback: result,
-            status: 'completed',
-            ended_at: new Date().toISOString()
-          })
-          .eq('id', currentSessionId);
-
-        if (updateError) {
-          console.error('❌ [RoleplayPage] Error actualizando voice_session:', updateError);
-        } else {
-          console.log('✅ [RoleplayPage] voice_session actualizada con resultados');
-        }
-      }
-
-      setIsEvaluating(false);
-    },
-    onError: (errorMessage) => {
-      console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
-
-      // Actualizar resultados con error
-      setSessionResults(prev => ({
-        ...prev,
-        isProcessing: false,
-        error: errorMessage
-      }));
-
-      toast({
-        title: "Error en evaluación",
-        description: errorMessage,
-        variant: "destructive"
-      });
-
-      setIsEvaluating(false);
-    }
+    onComplete: handleEvaluationComplete,
+    onError: handleEvaluationError
   });
 
   useEffect(() => {
@@ -635,13 +638,6 @@ export function RoleplayPage() {
 
                 {/* Right Column - Voice Assistant */}
                 <div className="flex-1 flex items-center justify-center">
-                  {console.log('📤 Pasando props a RoleplayVoiceAssistant:', {
-                    userName,
-                    userId,
-                    selectedProfile: questionnaireData.practiceStartProfile,
-                    scenarioName: currentScenario.scenarioName,
-                    difficultyLevel: currentScenario.difficultyLevel
-                  })}
                   <RoleplayVoiceAssistant
                     selectedProfile={questionnaireData.practiceStartProfile}
                     questionnaireId={questionnaireData.questionnaireId}
