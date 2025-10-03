@@ -15,7 +15,8 @@ RETURNS TABLE (
   status VARCHAR,
   started_at TIMESTAMPTZ,
   ended_at TIMESTAMPTZ,
-  duration_seconds INTEGER
+  duration_seconds INTEGER,
+  raw_transcript TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -37,7 +38,8 @@ BEGIN
     vs.status::VARCHAR,
     vs.started_at,
     vs.ended_at,
-    vs.duration_seconds
+    vs.duration_seconds,
+    vs.raw_transcript
   FROM maity.voice_sessions vs
   JOIN maity.users u ON u.id = vs.user_id
   JOIN maity.voice_profile_scenarios vps ON vps.id = vs.profile_scenario_id
@@ -66,7 +68,8 @@ RETURNS TABLE (
   status VARCHAR,
   started_at TIMESTAMPTZ,
   ended_at TIMESTAMPTZ,
-  duration_seconds INTEGER
+  duration_seconds INTEGER,
+  raw_transcript TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER

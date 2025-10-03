@@ -28,6 +28,7 @@ interface SessionResultsProps {
   requestId?: string;
   evaluation?: any;
   error?: string;
+  transcript?: string | null;
   onRetry: () => void;
   onViewTranscript: () => void;
   canProceedNext: boolean;
@@ -45,12 +46,30 @@ export function SessionResults({
   requestId,
   evaluation,
   error,
+  transcript,
   onRetry,
   onViewTranscript,
   canProceedNext,
   onNextScenario
 }: SessionResultsProps) {
   const navigate = useNavigate();
+
+  // Calcular conteo de palabras del usuario desde la transcripción
+  const userWordCount = React.useMemo(() => {
+    if (!transcript) return 0;
+
+    // Filtrar solo las líneas del usuario
+    const userLines = transcript
+      .split('\n')
+      .filter(line => line.trim().startsWith('Usuario:'))
+      .map(line => line.replace('Usuario:', '').trim())
+      .join(' ');
+
+    // Contar palabras
+    return userLines
+      ? userLines.trim().split(/\s+/).filter(word => word.length > 0).length
+      : 0;
+  }, [transcript]);
 
   // Usar datos reales de la evaluación si están disponibles
   const metrics = {
@@ -200,7 +219,7 @@ export function SessionResults({
               </>
             )}
 
-            <div className="flex justify-center gap-8 text-sm text-gray-400">
+            <div className="flex justify-center gap-8 text-sm text-gray-400 flex-wrap">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 <span>Duración: {formatDuration(duration)}</span>
@@ -212,6 +231,29 @@ export function SessionResults({
             </div>
           </div>
         </Card>
+
+        {/* Conteo de Palabras del Usuario */}
+        {userWordCount > 0 && (
+          <Card className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-purple-500/20 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-500/10 rounded-lg">
+                  <FileText className="h-8 w-8 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Palabras Pronunciadas</h3>
+                  <p className="text-sm text-gray-400">Total de palabras que expresaste durante la sesión</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-bold text-purple-400">
+                  {userWordCount.toLocaleString()}
+                </div>
+                <p className="text-sm text-gray-400 mt-1">palabras</p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Métricas Detalladas */}
         <div className="grid md:grid-cols-2 gap-6">

@@ -20,7 +20,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-const MIN_USER_MESSAGES = 8;
+const MIN_USER_MESSAGES = 5;
 
 // Opciones de configuración
 const MOODS = [
@@ -279,15 +279,18 @@ export default function DemoTraining() {
 
       // Guardar duration y transcript
       if (effectiveSessionId) {
-        await supabase
-          .schema('maity')
-          .from('voice_sessions')
-          .update({
-            duration_seconds: duration,
-            raw_transcript: transcript,
-            ended_at: new Date().toISOString()
-          })
-          .eq('id', effectiveSessionId);
+        const { error: updateError } = await supabase
+          .rpc('update_voice_session_transcript', {
+            p_session_id: effectiveSessionId,
+            p_duration_seconds: duration,
+            p_raw_transcript: transcript
+          });
+
+        if (updateError) {
+          console.error('❌ [DemoTraining] Error guardando duration y transcript:', updateError);
+        } else {
+          console.log('✅ [DemoTraining] Duration y transcript guardados exitosamente');
+        }
       }
 
       // Crear evaluación
@@ -319,7 +322,8 @@ export default function DemoTraining() {
         passed: null,
         duration: duration,
         isProcessing: true,
-        requestId: requestId
+        requestId: requestId,
+        transcript: transcript
       });
       setShowResults(true);
 

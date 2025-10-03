@@ -146,6 +146,7 @@ export default function SessionResultsPage() {
         isProcessing={sessionData.status === 'evaluating'}
         evaluation={sessionData.processed_feedback}
         error={sessionData.status === 'abandoned' ? 'Sesión abandonada' : undefined}
+        transcript={sessionData.raw_transcript}
         onRetry={handleRetry}
         onViewTranscript={handleViewTranscript}
         canProceedNext={false}

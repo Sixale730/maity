@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 
 // Número mínimo de mensajes del usuario requeridos para enviar a n8n
-const MIN_USER_MESSAGES = 8;
+const MIN_USER_MESSAGES = 5;
 
 export function RoleplayPage() {
   const { toast } = useToast();
@@ -513,14 +513,11 @@ export function RoleplayPage() {
         });
 
         const { error: updateSessionError } = await supabase
-          .schema('maity')
-          .from('voice_sessions')
-          .update({
-            duration_seconds: duration,
-            raw_transcript: transcript,
-            ended_at: new Date().toISOString()
-          })
-          .eq('id', effectiveSessionId);
+          .rpc('update_voice_session_transcript', {
+            p_session_id: effectiveSessionId,
+            p_duration_seconds: duration,
+            p_raw_transcript: transcript
+          });
 
         if (updateSessionError) {
           console.error('❌ [RoleplayPage] Error guardando duration y transcript:', updateSessionError);
@@ -556,7 +553,8 @@ export function RoleplayPage() {
             score: 0,
             passed: false,
             feedback: 'La interacción fue muy breve y limitada a un saludo inicial. No hay suficiente contenido para evaluar técnicas de ventas ni conocimiento del producto.',
-            isProcessing: false
+            isProcessing: false,
+            transcript: transcript
           });
 
           setShowResults(true);
@@ -691,7 +689,8 @@ export function RoleplayPage() {
         passed: null,
         duration: duration,
         isProcessing: true,
-        requestId: requestId
+        requestId: requestId,
+        transcript: transcript
       });
       setShowResults(true);
 
@@ -742,13 +741,40 @@ export function RoleplayPage() {
   // Si estamos mostrando resultados, mostrar esa pantalla
   if (showResults && sessionResults) {
     return (
-      <SessionResults
-        {...sessionResults}
-        onRetry={handleRetryScenario}
-        onViewTranscript={handleViewTranscript}
-        canProceedNext={currentScenario ? currentScenario.scenarioOrder < 5 : false}
-        onNextScenario={handleNextScenario}
-      />
+      <>
+        <SessionResults
+          {...sessionResults}
+          onRetry={handleRetryScenario}
+          onViewTranscript={handleViewTranscript}
+          canProceedNext={currentScenario ? currentScenario.scenarioOrder < 5 : false}
+          onNextScenario={handleNextScenario}
+        />
+
+        {/* Modal de Transcripción */}
+        <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                {currentScenario?.scenarioName} • Perfil {questionnaireData?.practiceStartProfile}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              {currentTranscript ? (
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
+                    {currentTranscript}
+                  </pre>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <p>No hay transcripción disponible para esta sesión</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
