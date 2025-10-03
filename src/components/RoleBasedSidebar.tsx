@@ -16,7 +16,8 @@ import {
   MessageCircle,
   Headphones,
   History,
-  Map
+  Map,
+  Play
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.coach", url: "/coach", icon: MessageCircle },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.demo", url: "/demo", icon: Play },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
       { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.analytics", url: "/analytics", icon: BarChart3 },

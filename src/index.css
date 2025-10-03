@@ -66,11 +66,11 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
-  
+
   html {
     color-scheme: dark;
   }
-  
+
   body {
     background: hsl(0 0% 0%);        /* #000000 */
     color: hsl(240 4% 91%);          /* #e7e7e9 */

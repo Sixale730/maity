@@ -3,9 +3,12 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
 import { useUser } from "@/contexts/UserContext";
+import { PlatformTour } from "@/components/PlatformTour";
+import { usePlatformTour } from "@/contexts/PlatformTourContext";
 
 const AppLayout = () => {
   const { userRole, userProfile } = useUser();
+  const { isRunning, finishTour, skipTour } = usePlatformTour();
 
   return (
     <SidebarProvider>
@@ -20,6 +23,16 @@ const AppLayout = () => {
             <Outlet />
           </Suspense>
         </div>
+
+        {/* Tour guiado de la plataforma */}
+        {userRole && (
+          <PlatformTour
+            run={isRunning}
+            userRole={userRole}
+            onFinish={finishTour}
+            onSkip={skipTour}
+          />
+        )}
       </div>
     </SidebarProvider>
   );

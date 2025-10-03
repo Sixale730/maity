@@ -73,6 +73,9 @@ export function RoleplayVoiceAssistant({
   // Ref para el scroll del chat
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Flag para saber si el usuario clickeó "Finalizar"
+  const userEndedSessionRef = useRef(false);
+
   // Auto scroll al final del chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -214,6 +217,16 @@ export function RoleplayVoiceAssistant({
       sessionIdFromProps: sessionId
     });
 
+    // Resetear el flag al iniciar una nueva sesión
+    userEndedSessionRef.current = false;
+
+    // Limpiar estados anteriores para una nueva sesión
+    setConversationHistory([]);
+    fullTranscriptRef.current = '';
+    setTranscript('');
+    setAgentResponse('');
+    setSessionStartTime(null);
+
     setIsConnecting(true);
     setError(null);
 
@@ -308,20 +321,58 @@ export function RoleplayVoiceAssistant({
 
           console.log(`📊 Sesión terminada después de ${sessionDuration} segundos`);
 
-          // Solo mostrar error si no fue una desconexión intencional
-          if (error && !isProcessing) {
-            // Si la razón es 'user', fue una desconexión intencional
-            if (error.reason === 'user') {
-              console.log('✅ Sesión terminada por el usuario');
-            } else {
-              console.error('❌ Desconexión inesperada:', error);
+          // Si el usuario clickeó "Finalizar", no hacer nada (ya se procesó)
+          if (userEndedSessionRef.current) {
+            console.log('✅ Sesión terminada por el usuario (botón Finalizar)');
+            return;
+          }
 
-              // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
-              if (sessionDuration > 0 && sessionDuration < 20) {
-                setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
+          // Si ya estamos procesando, no hacer nada
+          if (isProcessing) {
+            console.log('⏳ Ya estamos procesando la sesión');
+            return;
+          }
+
+          // Si hay transcripción válida Y mensajes en el historial, el agente terminó la sesión
+          if (fullTranscriptRef.current && conversationHistory.length > 0) {
+            console.log('🤖 El agente terminó la sesión - procesando transcripción...', {
+              transcriptLength: fullTranscriptRef.current.length,
+              messagesCount: conversationHistory.length,
+              duration: sessionDuration
+            });
+
+            // Marcar como procesando
+            setIsProcessing(true);
+
+            // Procesar la sesión como si el usuario la hubiera terminado
+            setTimeout(() => {
+              setIsProcessing(false);
+              console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
+                hasOnSessionEnd: !!onSessionEnd,
+                currentSessionId,
+                transcriptLength: fullTranscriptRef.current.length,
+                duration: sessionDuration
+              });
+
+              if (onSessionEnd) {
+                onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
               } else {
-                setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
+                console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
               }
+            }, 500);
+
+            return;
+          }
+
+          // Si llegamos aquí, fue una desconexión inesperada o error
+          if (error) {
+            console.error('❌ Desconexión inesperada:', error);
+
+            // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
+            if (sessionDuration > 0 && sessionDuration < 20) {
+              setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
+            } else {
+              setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
             }
           }
         },
@@ -418,6 +469,9 @@ export function RoleplayVoiceAssistant({
   // End conversation
   const endConversation = async () => {
     if (conversation) {
+      // Marcar que el usuario terminó la sesión manualmente
+      userEndedSessionRef.current = true;
+
       // Marcar que estamos procesando para evitar errores de desconexión
       setIsProcessing(true);
 
@@ -459,6 +513,9 @@ export function RoleplayVoiceAssistant({
         } else {
           console.error('❌ [RoleplayVoiceAssistant] No hay onSessionEnd callback!');
         }
+
+        // Resetear el flag después de procesar
+        userEndedSessionRef.current = false;
       }, 500);
     }
   };

@@ -111,7 +111,8 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
-    'nav.roleplay': 'Roleplay',
+    'nav.roleplay': 'Sala de entrenamiento',
+    'nav.demo': 'Demo',
     'nav.roleplay_progress': 'Mi Progreso',
     'nav.sessions': 'Historial',
     'nav.analytics': 'Analytics',
@@ -289,7 +290,8 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
-    'nav.roleplay': 'Roleplay',
+    'nav.roleplay': 'Training Room',
+    'nav.demo': 'Demo',
     'nav.roleplay_progress': 'Mi Progreso',
     'nav.sessions': 'Historial',
     'nav.analytics': 'Analytics',

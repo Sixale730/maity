@@ -22,6 +22,8 @@ import { useNavigate } from "react-router-dom";
 
 import MaityLogo from "@/components/MaityLogo";
 
+import { Eye, EyeOff } from "lucide-react";
+
 // Missing type and utility definitions
 const getErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
@@ -78,6 +80,8 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
   const [loading, setLoading] = useState(false);
 
   const [showPasswordWarning, setShowPasswordWarning] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const { toast } = useToast();
 
@@ -469,20 +473,34 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               <Label htmlFor="password" className="font-inter">Contraseña</Label>
 
-              <Input
-                id="password"
-                type="password"
-                placeholder="********"
-                value={password}
-                onChange={handlePasswordChange}
-                onPaste={handlePasswordPaste}
-                required
-                className="font-inter"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="********"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  onPaste={handlePasswordPaste}
+                  required
+                  className="font-inter pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
 
             </div>
 
-            <Button type="submit" className="w-full font-inter" disabled={loading}>
+            <Button
+              type="submit"
+              className={`w-full font-inter ${!isLogin ? 'bg-[hsl(var(--red-primary))] hover:bg-[hsl(var(--red-muted))] text-white' : ''}`}
+              disabled={loading}
+            >
 
               {loading ? 'Cargando...' : (isLogin ? 'Iniciar Sesión' : 'Crear Cuenta')}
 

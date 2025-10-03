@@ -176,7 +176,7 @@ export function PrePracticeQuestionnaire({
                             {profile.traits.map((trait, idx) => (
                               <span
                                 key={idx}
-                                className="text-xs px-2 py-1 bg-gray-100 rounded-full"
+                                className="text-xs px-2 py-1 bg-blue-100/70 text-blue-800 rounded-full"
                               >
                                 {trait}
                               </span>
@@ -243,7 +243,7 @@ export function PrePracticeQuestionnaire({
                             {profile.traits.map((trait, idx) => (
                               <span
                                 key={idx}
-                                className="text-xs px-2 py-1 bg-gray-100 rounded-full"
+                                className="text-xs px-2 py-1 bg-blue-100/70 text-blue-800 rounded-full"
                               >
                                 {trait}
                               </span>
