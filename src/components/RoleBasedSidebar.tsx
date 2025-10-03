@@ -17,7 +17,8 @@ import {
   Headphones,
   History,
   Map,
-  Play
+  Play,
+  Mic
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.coach", url: "/coach", icon: MessageCircle },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
       { title: "nav.demo", url: "/demo", icon: Play },
+      { title: "nav.demo_training", url: "/demo-training", icon: Mic },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
       { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.analytics", url: "/analytics", icon: BarChart3 },
@@ -117,22 +119,53 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
       className={`${state === "collapsed" ? "w-14" : "w-64"} border-r border-sidebar-border bg-sidebar transition-all duration-300`} 
       collapsible="icon"
     >
-      <SidebarHeader className="p-4 border-b border-sidebar-border bg-gradient-to-r from-sidebar-background to-sidebar-accent">
-        <div className="flex items-center gap-3 min-w-0">
-          <MaityLogo 
-            size="sm" 
-            variant={state === "collapsed" ? "symbol" : "full"}
-            className="transition-all duration-300 flex-shrink-0"
-          />
-          {state !== "collapsed" && (
-            <div className="flex-shrink-0 ml-auto">
-            </div>
-          )}
-        </div>
+      <SidebarHeader className="p-0 border-b border-sidebar-border/50">
+        {/* Logo Section with Link */}
+        <Link
+          to="/dashboard"
+          className={`
+            group/logo relative overflow-hidden
+            ${state === "collapsed" ? "p-3" : "p-4"}
+            transition-all duration-300 ease-in-out
+            hover:bg-sidebar-accent/30
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring
+            rounded-t-lg
+          `}
+        >
+          {/* Animated Background Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 via-transparent to-sidebar-primary/5 opacity-0 group-hover/logo:opacity-100 transition-opacity duration-500" />
+
+          {/* Logo Container */}
+          <div className="relative flex items-center justify-center">
+            <MaityLogo
+              size="sm"
+              variant={state === "collapsed" ? "symbol" : "full"}
+              className="
+                transition-all duration-300 ease-in-out
+                group-hover/logo:scale-105 group-hover/logo:drop-shadow-lg
+                group-active/logo:scale-95
+              "
+            />
+          </div>
+
+          {/* Subtle shine effect on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/logo:translate-x-full transition-transform duration-1000" />
+        </Link>
+
+        {/* User Info Section */}
         {state !== "collapsed" && (
-          <div className="mt-3 text-xs">
-            <p className="font-medium text-sidebar-foreground">{userName || t('roles.default_user')}</p>
-            <p className="text-sidebar-foreground/60">{getRoleLabel(userRole)}</p>
+          <div className="px-4 pb-4 pt-2">
+            <div className="space-y-1">
+              <p className="font-semibold text-sm text-sidebar-foreground truncate">
+                {userName || t('roles.default_user')}
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-sidebar-primary animate-pulse" />
+                <p className="text-xs text-sidebar-foreground/70 font-medium uppercase tracking-wider">
+                  {getRoleLabel(userRole)}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </SidebarHeader>
