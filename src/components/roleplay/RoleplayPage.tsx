@@ -11,6 +11,13 @@ import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRe
 import { env } from '@/lib/env';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 // Número mínimo de mensajes del usuario requeridos para enviar a n8n
 const MIN_USER_MESSAGES = 8;
@@ -57,6 +64,8 @@ export function RoleplayPage() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [sessionResults, setSessionResults] = useState<any>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
   // Estado para la evaluación
   const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
@@ -495,7 +504,32 @@ export function RoleplayPage() {
       console.log('✅ [RoleplayPage] Evaluation creada:', evaluationData);
       setEvaluationRequestId(requestId);
 
-      // 3. Validar número de mensajes del usuario
+      // 3. Guardar duration y transcript en voice_session inmediatamente
+      if (effectiveSessionId) {
+        console.log('💾 [RoleplayPage] Guardando duration y transcript en voice_session...', {
+          sessionId: effectiveSessionId,
+          duration,
+          transcriptLength: transcript.length
+        });
+
+        const { error: updateSessionError } = await supabase
+          .schema('maity')
+          .from('voice_sessions')
+          .update({
+            duration_seconds: duration,
+            raw_transcript: transcript,
+            ended_at: new Date().toISOString()
+          })
+          .eq('id', effectiveSessionId);
+
+        if (updateSessionError) {
+          console.error('❌ [RoleplayPage] Error guardando duration y transcript:', updateSessionError);
+        } else {
+          console.log('✅ [RoleplayPage] Duration y transcript guardados exitosamente');
+        }
+      }
+
+      // 4. Validar número de mensajes del usuario
       const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
 
       console.log('📊 [RoleplayPage] Validando mensajes del usuario:', {
@@ -512,6 +546,9 @@ export function RoleplayPage() {
 
         try {
           await completeEvaluationDirectly(requestId, userMessageCount);
+
+          // Guardar transcripción para el modal
+          setCurrentTranscript(transcript);
 
           // Mostrar resultados
           setSessionResults({
@@ -543,7 +580,7 @@ export function RoleplayPage() {
         return; // Salir sin enviar a n8n
       }
 
-      // 4. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes o modo admin)
+      // 5. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes o modo admin)
       const n8nWebhookUrl = env.n8nWebhookUrl;
 
       console.log('📤 [RoleplayPage] Enviando transcript a n8n para evaluación completa...', {
@@ -643,8 +680,9 @@ export function RoleplayPage() {
         console.log('⚠️ [RoleplayPage] n8n webhook no configurado o usando placeholder. La evaluación quedará pendiente.');
       }
 
-      // 4. Por ahora mostrar resultados temporales mientras se procesa
+      // 6. Por ahora mostrar resultados temporales mientras se procesa
       console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras n8n procesa...');
+      setCurrentTranscript(transcript); // Guardar transcripción para el modal
       setSessionResults({
         sessionId: effectiveSessionId,
         profile: questionnaireData?.practiceStartProfile,
@@ -684,10 +722,7 @@ export function RoleplayPage() {
   };
 
   const handleViewTranscript = () => {
-    toast({
-      title: "Transcripción",
-      description: "La transcripción completa estará disponible pronto",
-    });
+    setShowTranscript(true);
   };
 
   const handleQuestionnaireComplete = (data: {
@@ -886,6 +921,31 @@ export function RoleplayPage() {
           </div>
         </main>
       </div>
+
+      {/* Modal de Transcripción */}
+      <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {currentScenario?.scenarioName} • Perfil {questionnaireData?.practiceStartProfile}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {currentTranscript ? (
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
+                  {currentTranscript}
+                </pre>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <p>No hay transcripción disponible para esta sesión</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

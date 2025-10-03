@@ -3,7 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SessionResults } from '@/components/roleplay/SessionResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface SessionData {
   id: string;
@@ -16,6 +23,7 @@ interface SessionData {
   ended_at: string | null;
   processed_feedback: any;
   status: string;
+  raw_transcript: string | null;
 }
 
 export default function SessionResultsPage() {
@@ -24,6 +32,7 @@ export default function SessionResultsPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
 
   useEffect(() => {
     if (sessionId) {
@@ -76,8 +85,7 @@ export default function SessionResultsPage() {
   };
 
   const handleViewTranscript = () => {
-    // TODO: Implement transcript view
-    console.log('Ver transcripción no implementado aún');
+    setShowTranscript(true);
   };
 
   const handleBack = () => {
@@ -142,6 +150,31 @@ export default function SessionResultsPage() {
         onViewTranscript={handleViewTranscript}
         canProceedNext={false}
       />
+
+      {/* Modal de Transcripción */}
+      <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {sessionData.scenario_name} • Perfil {sessionData.profile_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {sessionData.raw_transcript ? (
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
+                  {sessionData.raw_transcript}
+                </pre>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <p>No hay transcripción disponible para esta sesión</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

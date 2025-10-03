@@ -41,6 +41,7 @@ import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
 import Achievements from "./pages/Achievements";
 import Demo from "./pages/Demo";
+import DemoTraining from "./pages/DemoTraining";
 
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/logros" element={<Achievements />} />
                 <Route path="/demo" element={<Demo />} />
+                <Route path="/demo-training" element={<DemoTraining />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

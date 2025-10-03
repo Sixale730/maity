@@ -294,3 +294,4 @@ npm run dev
 - No uses el color platino en los diseños, solo para textos o titulos
 - recuerda que cada que recuperes datos de la database debes exponer la funcion rpc a public con un wrapper
 - Cada seccion debe tener su propia ruta
+- memoriza este proceso para agregar nuevas rutas
