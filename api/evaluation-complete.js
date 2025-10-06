@@ -147,11 +147,11 @@ export default async function handler(req, res) {
   if (status === 'complete' && result) {
     const { Evaluacion } = result;
 
-    // New structure: Evaluacion with 4 dimensions, each with 3 subdimensions (scores 1-10)
+    // New structure: Evaluacion with 4 dimensions, each with 3 subdimensions (scores 0-100)
     if (Evaluacion) {
       const { Claridad, Estructura, Alineacion_Emocional, Influencia } = Evaluacion;
 
-      // Calculate average for each dimension (subdimensions are scored 1-10)
+      // Calculate average for each dimension (subdimensions are scored 0-100)
       const calculateDimensionAverage = (dimension) => {
         if (!dimension) return null;
         const values = Object.values(dimension).map(v => parseFloat(v)).filter(v => !isNaN(v));
@@ -164,7 +164,7 @@ export default async function handler(req, res) {
       const alineacionAvg = calculateDimensionAverage(Alineacion_Emocional);
       const influenciaAvg = calculateDimensionAverage(Influencia);
 
-      // Store dimension averages (1-10 scale) for display
+      // Store dimension averages (0-100 scale) for display
       result.dimension_scores = {
         clarity: claridadAvg,
         structure: estructuraAvg,
@@ -172,12 +172,12 @@ export default async function handler(req, res) {
         influence: influenciaAvg
       };
 
-      // Calculate overall score as average of 4 dimensions, normalized to 0-100 scale
+      // Calculate overall score as average of 4 dimensions (already 0-100 scale)
       const dimensionAverages = [claridadAvg, estructuraAvg, alineacionAvg, influenciaAvg].filter(v => v !== null);
       if (dimensionAverages.length === 4) {
-        // Average of dimensions (1-10), then convert to 0-100 scale
+        // Average of dimensions (0-100)
         const avgDimension = dimensionAverages.reduce((sum, val) => sum + val, 0) / 4;
-        result.score = Math.round((avgDimension / 10) * 100);
+        result.score = Math.round(avgDimension);
 
         console.log('[evaluations/complete] 📊 Calculated overall score from new Evaluacion structure:', {
           clarity: claridadAvg?.toFixed(2),

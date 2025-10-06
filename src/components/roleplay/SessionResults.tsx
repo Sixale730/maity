@@ -13,7 +13,9 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -54,6 +56,9 @@ export function SessionResults({
 }: SessionResultsProps) {
   const navigate = useNavigate();
 
+  // Estado para controlar qué dimensión está expandida
+  const [expandedDimension, setExpandedDimension] = React.useState<string | null>(null);
+
   // Calcular conteo de palabras del usuario desde la transcripción
   const userWordCount = React.useMemo(() => {
     if (!transcript) return 0;
@@ -72,7 +77,7 @@ export function SessionResults({
   }, [transcript]);
 
   // Usar datos reales de la evaluación si están disponibles
-  // Nueva estructura: dimension_scores (escala 1-10)
+  // Nueva estructura: dimension_scores (escala 0-100)
   const metrics = {
     clarity: evaluation?.dimension_scores?.clarity ?? evaluation?.clarity ?? null,
     structure: evaluation?.dimension_scores?.structure ?? evaluation?.structure ?? null,
@@ -80,22 +85,13 @@ export function SessionResults({
     influence: evaluation?.dimension_scores?.influence ?? evaluation?.influence ?? null
   };
 
-  // Detectar si estamos usando la nueva escala (1-10) o la vieja (0-100)
-  const isNewScale = evaluation?.dimension_scores !== undefined;
-
   // Calcular score desde las métricas si no viene explícito
   let calculatedScore = score;
   if (calculatedScore === null && (metrics.clarity !== null || metrics.structure !== null || metrics.connection !== null || metrics.influence !== null)) {
     const values = [metrics.clarity, metrics.structure, metrics.connection, metrics.influence].filter(v => v !== null);
     if (values.length === 4) {
-      if (isNewScale) {
-        // Nueva escala: promediar 1-10 y convertir a 0-100
-        const avg = values.reduce((sum, val) => sum + val, 0) / 4;
-        calculatedScore = Math.round((avg / 10) * 100);
-      } else {
-        // Vieja escala: promediar 0-100
-        calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
-      }
+      // Promediar dimensiones (todas en escala 0-100)
+      calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
     }
   }
 
@@ -103,6 +99,14 @@ export function SessionResults({
   const fortalezas = evaluation?.Fortalezas || null;
   const errores = evaluation?.Errores || null;
   const recomendaciones = evaluation?.Recomendaciones || null;
+
+  // Extraer subdimensiones de Evaluacion para desglose
+  const evaluacionDesglose = evaluation?.Evaluacion ? {
+    Claridad: evaluation.Evaluacion.Claridad || null,
+    Estructura: evaluation.Evaluacion.Estructura || null,
+    Alineacion_Emocional: evaluation.Evaluacion.Alineacion_Emocional || null,
+    Influencia: evaluation.Evaluacion.Influencia || null
+  } : null;
 
   // Fallback a estructura vieja para compatibilidad
   const strengths = evaluation?.strengths || (
@@ -293,13 +297,11 @@ export function SessionResults({
             ) : (
               <div className="space-y-4">
                 {Object.entries(metrics).map(([key, value]) => {
-                  // Calcular el valor normalizado para la barra de progreso (0-100)
-                  const progressValue = value !== null
-                    ? (isNewScale ? (value / 10) * 100 : value)
-                    : 0;
+                  // Valor ya está en escala 0-100
+                  const progressValue = value !== null ? value : 0;
 
-                  // Determinar el color basado en el score normalizado
-                  const scoreColor = value !== null ? getScoreColor(progressValue) : 'text-gray-600';
+                  // Determinar el color basado en el score
+                  const scoreColor = value !== null ? getScoreColor(value) : 'text-gray-600';
 
                   return (
                     <div key={key} className="space-y-2">
@@ -311,11 +313,7 @@ export function SessionResults({
                           {key === 'influence' && 'Influencia'}
                         </span>
                         <span className={`font-medium ${scoreColor}`}>
-                          {value !== null
-                            ? isNewScale
-                              ? `${value.toFixed(1)}/10`
-                              : `${value}/100`
-                            : '—'}
+                          {value !== null ? `${Math.round(value)}/100` : '—'}
                         </span>
                       </div>
                       <Progress value={progressValue} className="h-2" />
@@ -412,6 +410,177 @@ export function SessionResults({
             )}
           </Card>
         </div>
+
+        {/* Desglose Detallado por Dimensión */}
+        {!isProcessing && evaluacionDesglose && (
+          <Card className="bg-gray-900/50 border-gray-800 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5 text-purple-400" />
+              Desglose Detallado por Dimensión
+            </h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Expande cada dimensión para ver el detalle de las subdimensiones evaluadas
+            </p>
+
+            <div className="space-y-3">
+              {/* Claridad */}
+              {evaluacionDesglose.Claridad && (
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDimension(expandedDimension === 'claridad' ? null : 'claridad')}
+                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-400" />
+                      <span className="font-medium text-white">Claridad</span>
+                      <span className="text-sm text-gray-400">
+                        ({metrics.clarity ? Math.round(metrics.clarity) : 0}/100)
+                      </span>
+                    </div>
+                    {expandedDimension === 'claridad' ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                  {expandedDimension === 'claridad' && (
+                    <div className="p-4 bg-gray-900/30 space-y-3">
+                      {Object.entries(evaluacionDesglose.Claridad).map(([key, value]) => (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">{key}</span>
+                            <span className="text-blue-400 font-medium">{value}/100</span>
+                          </div>
+                          <Progress
+                            value={parseFloat(String(value))}
+                            className="h-1.5"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Estructura */}
+              {evaluacionDesglose.Estructura && (
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDimension(expandedDimension === 'estructura' ? null : 'estructura')}
+                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-400" />
+                      <span className="font-medium text-white">Estructura</span>
+                      <span className="text-sm text-gray-400">
+                        ({metrics.structure ? Math.round(metrics.structure) : 0}/100)
+                      </span>
+                    </div>
+                    {expandedDimension === 'estructura' ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                  {expandedDimension === 'estructura' && (
+                    <div className="p-4 bg-gray-900/30 space-y-3">
+                      {Object.entries(evaluacionDesglose.Estructura).map(([key, value]) => (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">{key}</span>
+                            <span className="text-green-400 font-medium">{value}/100</span>
+                          </div>
+                          <Progress
+                            value={parseFloat(String(value))}
+                            className="h-1.5"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Alineación Emocional */}
+              {evaluacionDesglose.Alineacion_Emocional && (
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDimension(expandedDimension === 'alineacion' ? null : 'alineacion')}
+                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-yellow-400" />
+                      <span className="font-medium text-white">Alineación Emocional</span>
+                      <span className="text-sm text-gray-400">
+                        ({metrics.connection ? Math.round(metrics.connection) : 0}/100)
+                      </span>
+                    </div>
+                    {expandedDimension === 'alineacion' ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                  {expandedDimension === 'alineacion' && (
+                    <div className="p-4 bg-gray-900/30 space-y-3">
+                      {Object.entries(evaluacionDesglose.Alineacion_Emocional).map(([key, value]) => (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">{key}</span>
+                            <span className="text-yellow-400 font-medium">{value}/100</span>
+                          </div>
+                          <Progress
+                            value={parseFloat(String(value))}
+                            className="h-1.5"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Influencia */}
+              {evaluacionDesglose.Influencia && (
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDimension(expandedDimension === 'influencia' ? null : 'influencia')}
+                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-red-400" />
+                      <span className="font-medium text-white">Influencia</span>
+                      <span className="text-sm text-gray-400">
+                        ({metrics.influence ? Math.round(metrics.influence) : 0}/100)
+                      </span>
+                    </div>
+                    {expandedDimension === 'influencia' ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                  {expandedDimension === 'influencia' && (
+                    <div className="p-4 bg-gray-900/30 space-y-3">
+                      {Object.entries(evaluacionDesglose.Influencia).map(([key, value]) => (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">{key}</span>
+                            <span className="text-red-400 font-medium">{value}/100</span>
+                          </div>
+                          <Progress
+                            value={parseFloat(String(value))}
+                            className="h-1.5"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Acciones */}
         <Card className="bg-gray-900/50 border-gray-800 p-6">
