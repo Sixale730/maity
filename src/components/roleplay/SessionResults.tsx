@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import {
   Trophy,
   Target,
@@ -15,9 +16,18 @@ import {
   XCircle,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer
+} from 'recharts';
 
 interface SessionResultsProps {
   sessionId: string;
@@ -36,6 +46,13 @@ interface SessionResultsProps {
   canProceedNext: boolean;
   onNextScenario?: () => void;
 }
+
+const chartConfig = {
+  value: {
+    label: "Puntuación",
+    color: "#3b82f6",
+  },
+};
 
 export function SessionResults({
   sessionId,
@@ -140,6 +157,55 @@ export function SessionResults({
   // Score real o temporal mientras se procesa
   const displayScore = calculatedScore !== null ? calculatedScore : (isProcessing ? null : 75);
 
+  // Preparar datos para el radar chart (4 dimensiones principales)
+  const radarData = React.useMemo(() => {
+    if (isProcessing || !metrics.clarity) return [];
+
+    return [
+      { dimension: 'Claridad', value: metrics.clarity ?? 0 },
+      { dimension: 'Estructura', value: metrics.structure ?? 0 },
+      { dimension: 'Alineación Emocional', value: metrics.connection ?? 0 },
+      { dimension: 'Influencia', value: metrics.influence ?? 0 }
+    ];
+  }, [metrics, isProcessing]);
+
+  // Preparar datos para el radar de subdimensiones (12 métricas detalladas)
+  const radarSubdimensionsData = React.useMemo(() => {
+    if (isProcessing || !evaluacionDesglose) return [];
+
+    const data = [];
+
+    // Claridad
+    if (evaluacionDesglose.Claridad) {
+      Object.entries(evaluacionDesglose.Claridad).forEach(([key, value]) => {
+        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+      });
+    }
+
+    // Estructura
+    if (evaluacionDesglose.Estructura) {
+      Object.entries(evaluacionDesglose.Estructura).forEach(([key, value]) => {
+        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+      });
+    }
+
+    // Alineación Emocional
+    if (evaluacionDesglose.Alineacion_Emocional) {
+      Object.entries(evaluacionDesglose.Alineacion_Emocional).forEach(([key, value]) => {
+        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+      });
+    }
+
+    // Influencia
+    if (evaluacionDesglose.Influencia) {
+      Object.entries(evaluacionDesglose.Influencia).forEach(([key, value]) => {
+        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+      });
+    }
+
+    return data;
+  }, [evaluacionDesglose, isProcessing]);
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -241,10 +307,6 @@ export function SessionResults({
 
             <div className="flex justify-center gap-8 text-sm text-gray-400 flex-wrap">
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span>Duración: {formatDuration(duration)}</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <Target className="h-4 w-4" />
                 <span>Score mínimo: 60</span>
               </div>
@@ -252,8 +314,9 @@ export function SessionResults({
           </div>
         </Card>
 
-        {/* Conteo de Palabras del Usuario */}
-        {userWordCount > 0 && (
+        {/* Métricas de Sesión: Palabras y Duración */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Palabras Pronunciadas */}
           <Card className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-purple-500/20 p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -262,7 +325,7 @@ export function SessionResults({
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white">Palabras Pronunciadas</h3>
-                  <p className="text-sm text-gray-400">Total de palabras que expresaste durante la sesión</p>
+                  <p className="text-sm text-gray-400">Total de palabras expresadas</p>
                 </div>
               </div>
               <div className="text-right">
@@ -271,6 +334,121 @@ export function SessionResults({
                 </div>
                 <p className="text-sm text-gray-400 mt-1">palabras</p>
               </div>
+            </div>
+          </Card>
+
+          {/* Duración de la Sesión */}
+          <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/20 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <Clock className="h-8 w-8 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Duración de Sesión</h3>
+                  <p className="text-sm text-gray-400">Tiempo total de conversación</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-bold text-blue-400">
+                  {formatDuration(duration)}
+                </div>
+                <p className="text-sm text-gray-400 mt-1">minutos</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Gráfico Radar 360° - Evaluación de Habilidades */}
+        {!isProcessing && radarData.length > 0 && (
+          <Card className="bg-gray-900/50 border-gray-800 p-6">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-white mb-2">Evaluación 360° de Habilidades</h3>
+              <p className="text-sm text-gray-400">
+                Visualización de tus competencias evaluadas en esta sesión
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Gráfico de 4 Dimensiones Principales */}
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-3 text-center">Dimensiones Principales</h4>
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid
+                        stroke="hsl(var(--muted-foreground))"
+                        strokeDasharray="3 3"
+                      />
+                      <PolarAngleAxis
+                        dataKey="dimension"
+                        tick={{
+                          fill: 'white',
+                          fontSize: 12,
+                          fontWeight: 500
+                        }}
+                      />
+                      <PolarRadiusAxis
+                        domain={[0, 100]}
+                        tick={{
+                          fill: 'gray',
+                          fontSize: 10
+                        }}
+                      />
+                      <Radar
+                        name="Puntuación"
+                        dataKey="value"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.5}
+                        strokeWidth={2}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+
+              {/* Gráfico de Subdimensiones Detalladas */}
+              {radarSubdimensionsData.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3 text-center">Subdimensiones Detalladas</h4>
+                  <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={radarSubdimensionsData}>
+                        <PolarGrid
+                          stroke="hsl(var(--muted-foreground))"
+                          strokeDasharray="3 3"
+                        />
+                        <PolarAngleAxis
+                          dataKey="dimension"
+                          tick={{
+                            fill: 'white',
+                            fontSize: 9,
+                            fontWeight: 400
+                          }}
+                        />
+                        <PolarRadiusAxis
+                          domain={[0, 100]}
+                          tick={{
+                            fill: 'gray',
+                            fontSize: 9
+                          }}
+                        />
+                        <Radar
+                          name="Puntuación"
+                          dataKey="value"
+                          stroke="#10b981"
+                          fill="#10b981"
+                          fillOpacity={0.5}
+                          strokeWidth={2}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+              )}
             </div>
           </Card>
         )}
