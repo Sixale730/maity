@@ -159,10 +159,10 @@ export default async function handler(req, res) {
         return values.reduce((sum, val) => sum + val, 0) / values.length;
       };
 
-      const claridadAvg = calculateDimensionAverage(Claridad);
-      const estructuraAvg = calculateDimensionAverage(Estructura);
-      const alineacionAvg = calculateDimensionAverage(Alineacion_Emocional);
-      const influenciaAvg = calculateDimensionAverage(Influencia);
+      const claridadAvg = calculateDimensionAverage(Claridad) * 10; // Convert 1-10 to 0-100
+      const estructuraAvg = calculateDimensionAverage(Estructura) * 10;
+      const alineacionAvg = calculateDimensionAverage(Alineacion_Emocional) * 10;
+      const influenciaAvg = calculateDimensionAverage(Influencia) * 10;
 
       // Store dimension averages (0-100 scale) for display
       result.dimension_scores = {

@@ -445,18 +445,21 @@ export function SessionResults({
                   </button>
                   {expandedDimension === 'claridad' && (
                     <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Claridad).map(([key, value]) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">{key}</span>
-                            <span className="text-blue-400 font-medium">{value}/100</span>
+                      {Object.entries(evaluacionDesglose.Claridad).map(([key, value]) => {
+                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
+                        return (
+                          <div key={key} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-300">{key}</span>
+                              <span className="text-blue-400 font-medium">{Math.round(valueNum)}/100</span>
+                            </div>
+                            <Progress
+                              value={valueNum}
+                              className="h-1.5"
+                            />
                           </div>
-                          <Progress
-                            value={parseFloat(String(value))}
-                            className="h-1.5"
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -484,18 +487,21 @@ export function SessionResults({
                   </button>
                   {expandedDimension === 'estructura' && (
                     <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Estructura).map(([key, value]) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">{key}</span>
-                            <span className="text-green-400 font-medium">{value}/100</span>
+                      {Object.entries(evaluacionDesglose.Estructura).map(([key, value]) => {
+                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
+                        return (
+                          <div key={key} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-300">{key}</span>
+                              <span className="text-green-400 font-medium">{Math.round(valueNum)}/100</span>
+                            </div>
+                            <Progress
+                              value={valueNum}
+                              className="h-1.5"
+                            />
                           </div>
-                          <Progress
-                            value={parseFloat(String(value))}
-                            className="h-1.5"
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -523,18 +529,21 @@ export function SessionResults({
                   </button>
                   {expandedDimension === 'alineacion' && (
                     <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Alineacion_Emocional).map(([key, value]) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">{key}</span>
-                            <span className="text-yellow-400 font-medium">{value}/100</span>
+                      {Object.entries(evaluacionDesglose.Alineacion_Emocional).map(([key, value]) => {
+                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
+                        return (
+                          <div key={key} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-300">{key}</span>
+                              <span className="text-yellow-400 font-medium">{Math.round(valueNum)}/100</span>
+                            </div>
+                            <Progress
+                              value={valueNum}
+                              className="h-1.5"
+                            />
                           </div>
-                          <Progress
-                            value={parseFloat(String(value))}
-                            className="h-1.5"
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -562,18 +571,21 @@ export function SessionResults({
                   </button>
                   {expandedDimension === 'influencia' && (
                     <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Influencia).map(([key, value]) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">{key}</span>
-                            <span className="text-red-400 font-medium">{value}/100</span>
+                      {Object.entries(evaluacionDesglose.Influencia).map(([key, value]) => {
+                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
+                        return (
+                          <div key={key} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-300">{key}</span>
+                              <span className="text-red-400 font-medium">{Math.round(valueNum)}/100</span>
+                            </div>
+                            <Progress
+                              value={valueNum}
+                              className="h-1.5"
+                            />
                           </div>
-                          <Progress
-                            value={parseFloat(String(value))}
-                            className="h-1.5"
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
