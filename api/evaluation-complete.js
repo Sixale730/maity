@@ -121,22 +121,68 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'MISSING_RESULT' });
   }
 
-  // Calculate overall score from metrics if provided (average of 4 metrics 0-100 each)
+  // Calculate overall score from new evaluation structure if provided
   if (status === 'complete' && result) {
-    const { clarity, structure, connection, influence } = result;
+    const { Evaluacion } = result;
 
-    // If metrics are provided, calculate overall score as average
-    if (clarity !== undefined && structure !== undefined && connection !== undefined && influence !== undefined) {
-      const overallScore = Math.round((clarity + structure + connection + influence) / 4);
-      result.score = overallScore;
+    // New structure: Evaluacion with 4 dimensions, each with 3 subdimensions (scores 1-10)
+    if (Evaluacion) {
+      const { Claridad, Estructura, Alineacion_Emocional, Influencia } = Evaluacion;
 
-      console.log('[evaluations/complete] 📊 Calculated overall score from metrics (average):', {
-        clarity,
-        structure,
-        connection,
-        influence,
-        overallScore
-      });
+      // Calculate average for each dimension (subdimensions are scored 1-10)
+      const calculateDimensionAverage = (dimension) => {
+        if (!dimension) return null;
+        const values = Object.values(dimension).map(v => parseFloat(v)).filter(v => !isNaN(v));
+        if (values.length === 0) return null;
+        return values.reduce((sum, val) => sum + val, 0) / values.length;
+      };
+
+      const claridadAvg = calculateDimensionAverage(Claridad);
+      const estructuraAvg = calculateDimensionAverage(Estructura);
+      const alineacionAvg = calculateDimensionAverage(Alineacion_Emocional);
+      const influenciaAvg = calculateDimensionAverage(Influencia);
+
+      // Store dimension averages (1-10 scale) for display
+      result.dimension_scores = {
+        clarity: claridadAvg,
+        structure: estructuraAvg,
+        connection: alineacionAvg,
+        influence: influenciaAvg
+      };
+
+      // Calculate overall score as average of 4 dimensions, normalized to 0-100 scale
+      const dimensionAverages = [claridadAvg, estructuraAvg, alineacionAvg, influenciaAvg].filter(v => v !== null);
+      if (dimensionAverages.length === 4) {
+        // Average of dimensions (1-10), then convert to 0-100 scale
+        const avgDimension = dimensionAverages.reduce((sum, val) => sum + val, 0) / 4;
+        result.score = Math.round((avgDimension / 10) * 100);
+
+        console.log('[evaluations/complete] 📊 Calculated overall score from new Evaluacion structure:', {
+          clarity: claridadAvg?.toFixed(2),
+          structure: estructuraAvg?.toFixed(2),
+          connection: alineacionAvg?.toFixed(2),
+          influence: influenciaAvg?.toFixed(2),
+          avgDimension: avgDimension.toFixed(2),
+          overallScore: result.score
+        });
+      }
+    }
+    // Fallback: old structure compatibility (clarity, structure, connection, influence as 0-100)
+    else if (result.clarity !== undefined || result.structure !== undefined || result.connection !== undefined || result.influence !== undefined) {
+      const { clarity, structure, connection, influence } = result;
+
+      if (clarity !== undefined && structure !== undefined && connection !== undefined && influence !== undefined) {
+        const overallScore = Math.round((clarity + structure + connection + influence) / 4);
+        result.score = overallScore;
+
+        console.log('[evaluations/complete] 📊 Calculated overall score from old metrics (average):', {
+          clarity,
+          structure,
+          connection,
+          influence,
+          overallScore
+        });
+      }
     }
 
     // If no score at this point, default to 0

@@ -72,23 +72,39 @@ export function SessionResults({
   }, [transcript]);
 
   // Usar datos reales de la evaluación si están disponibles
+  // Nueva estructura: dimension_scores (escala 1-10)
   const metrics = {
-    clarity: evaluation?.clarity ?? null,
-    structure: evaluation?.structure ?? null,
-    connection: evaluation?.connection ?? null,
-    influence: evaluation?.influence ?? null
+    clarity: evaluation?.dimension_scores?.clarity ?? evaluation?.clarity ?? null,
+    structure: evaluation?.dimension_scores?.structure ?? evaluation?.structure ?? null,
+    connection: evaluation?.dimension_scores?.connection ?? evaluation?.connection ?? null,
+    influence: evaluation?.dimension_scores?.influence ?? evaluation?.influence ?? null
   };
 
-  // Calcular score desde las métricas si no viene explícito (promedio de 4 métricas 0-100)
+  // Detectar si estamos usando la nueva escala (1-10) o la vieja (0-100)
+  const isNewScale = evaluation?.dimension_scores !== undefined;
+
+  // Calcular score desde las métricas si no viene explícito
   let calculatedScore = score;
   if (calculatedScore === null && (metrics.clarity !== null || metrics.structure !== null || metrics.connection !== null || metrics.influence !== null)) {
     const values = [metrics.clarity, metrics.structure, metrics.connection, metrics.influence].filter(v => v !== null);
     if (values.length === 4) {
-      calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
+      if (isNewScale) {
+        // Nueva escala: promediar 1-10 y convertir a 0-100
+        const avg = values.reduce((sum, val) => sum + val, 0) / 4;
+        calculatedScore = Math.round((avg / 10) * 100);
+      } else {
+        // Vieja escala: promediar 0-100
+        calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
+      }
     }
   }
 
-  // Usar feedback real si está disponible
+  // Usar feedback real si está disponible - nueva estructura
+  const fortalezas = evaluation?.Fortalezas || null;
+  const errores = evaluation?.Errores || null;
+  const recomendaciones = evaluation?.Recomendaciones || null;
+
+  // Fallback a estructura vieja para compatibilidad
   const strengths = evaluation?.strengths || (
     !isProcessing ? [
       "Excelente rapport inicial con el cliente",
@@ -264,7 +280,7 @@ export function SessionResults({
             </h3>
             {isProcessing ? (
               <div className="space-y-4">
-                {['Claridad', 'Estructura', 'Conexión', 'Influencia'].map((label) => (
+                {['Claridad', 'Estructura', 'Alineación Emocional', 'Influencia'].map((label) => (
                   <div key={label} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">{label}</span>
@@ -276,22 +292,36 @@ export function SessionResults({
               </div>
             ) : (
               <div className="space-y-4">
-                {Object.entries(metrics).map(([key, value]) => (
-                  <div key={key} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">
-                        {key === 'clarity' && 'Claridad'}
-                        {key === 'structure' && 'Estructura'}
-                        {key === 'connection' && 'Conexión'}
-                        {key === 'influence' && 'Influencia'}
-                      </span>
-                      <span className={`font-medium ${value !== null ? getScoreColor(value) : 'text-gray-600'}`}>
-                        {value !== null ? `${value}/100` : '—'}
-                      </span>
+                {Object.entries(metrics).map(([key, value]) => {
+                  // Calcular el valor normalizado para la barra de progreso (0-100)
+                  const progressValue = value !== null
+                    ? (isNewScale ? (value / 10) * 100 : value)
+                    : 0;
+
+                  // Determinar el color basado en el score normalizado
+                  const scoreColor = value !== null ? getScoreColor(progressValue) : 'text-gray-600';
+
+                  return (
+                    <div key={key} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">
+                          {key === 'clarity' && 'Claridad'}
+                          {key === 'structure' && 'Estructura'}
+                          {key === 'connection' && 'Alineación Emocional'}
+                          {key === 'influence' && 'Influencia'}
+                        </span>
+                        <span className={`font-medium ${scoreColor}`}>
+                          {value !== null
+                            ? isNewScale
+                              ? `${value.toFixed(1)}/10`
+                              : `${value}/100`
+                            : '—'}
+                        </span>
+                      </div>
+                      <Progress value={progressValue} className="h-2" />
                     </div>
-                    <Progress value={value !== null ? value : 0} className="h-2" />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Card>
@@ -312,8 +342,53 @@ export function SessionResults({
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Áreas de Mejora */}
-                {improvements.length > 0 && (
+                {/* Nueva estructura: Fortalezas */}
+                {fortalezas && (
+                  <div>
+                    <p className="text-base font-medium text-green-400 mb-2">Fortalezas</p>
+                    {fortalezas.Cita && (
+                      <blockquote className="border-l-2 border-green-500/50 pl-3 py-1 mb-2">
+                        <p className="text-sm italic text-gray-300">{fortalezas.Cita}</p>
+                      </blockquote>
+                    )}
+                    {fortalezas.Feedback && (
+                      <p className="text-base text-gray-300">{fortalezas.Feedback}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Nueva estructura: Errores */}
+                {errores && (
+                  <div className="pt-3 border-t border-gray-700">
+                    <p className="text-base font-medium text-red-400 mb-2">Errores</p>
+                    {errores.Cita && (
+                      <blockquote className="border-l-2 border-red-500/50 pl-3 py-1 mb-2">
+                        <p className="text-sm italic text-gray-300">{errores.Cita}</p>
+                      </blockquote>
+                    )}
+                    {errores.Feedback && (
+                      <p className="text-base text-gray-300">{errores.Feedback}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Nueva estructura: Recomendaciones */}
+                {recomendaciones && (
+                  <div className="pt-3 border-t border-gray-700">
+                    <p className="text-base font-medium text-yellow-400 mb-2">Recomendaciones</p>
+                    {recomendaciones.Cita && (
+                      <blockquote className="border-l-2 border-yellow-500/50 pl-3 py-1 mb-2">
+                        <p className="text-sm italic text-gray-300">{recomendaciones.Cita}</p>
+                      </blockquote>
+                    )}
+                    {recomendaciones.Feedback && (
+                      <p className="text-base text-gray-300">{recomendaciones.Feedback}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Fallback: estructura vieja - Áreas de Mejora */}
+                {!fortalezas && !errores && !recomendaciones && improvements.length > 0 && (
                   <div>
                     <p className="text-base font-medium text-yellow-400 mb-3">Áreas de Mejora</p>
                     <ul className="space-y-2">
@@ -327,8 +402,8 @@ export function SessionResults({
                   </div>
                 )}
 
-                {/* Feedback general si está disponible */}
-                {evaluation?.feedback && (
+                {/* Feedback general si está disponible (estructura vieja) */}
+                {!fortalezas && !errores && !recomendaciones && evaluation?.feedback && (
                   <div className="pt-3 border-t border-gray-700 mt-4">
                     <p className="text-base text-gray-300">{evaluation.feedback}</p>
                   </div>
