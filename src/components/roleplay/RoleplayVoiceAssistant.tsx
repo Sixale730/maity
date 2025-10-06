@@ -314,13 +314,6 @@ export function RoleplayVoiceAssistant({
           setIsSpeaking(false);
           setIsConnectionStable(false);
 
-          // Calcular duración de la sesión para diagnosticar
-          const sessionDuration = sessionStartTime
-            ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
-            : 0;
-
-          console.log(`📊 Sesión terminada después de ${sessionDuration} segundos`);
-
           // Si el usuario clickeó "Finalizar", no hacer nada (ya se procesó)
           if (userEndedSessionRef.current) {
             console.log('✅ Sesión terminada por el usuario (botón Finalizar)');
@@ -333,48 +326,73 @@ export function RoleplayVoiceAssistant({
             return;
           }
 
-          // Si hay transcripción válida Y mensajes en el historial, el agente terminó la sesión
-          if (fullTranscriptRef.current && conversationHistory.length > 0) {
-            console.log('🤖 El agente terminó la sesión - procesando transcripción...', {
+          // Esperar 500ms para permitir que los últimos mensajes se procesen
+          setTimeout(() => {
+            // Calcular duración de la sesión
+            const sessionDuration = sessionStartTime
+              ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+              : 0;
+
+            console.log('📊 [onDisconnect] Evaluando sesión:', {
+              sessionDuration,
               transcriptLength: fullTranscriptRef.current.length,
               messagesCount: conversationHistory.length,
-              duration: sessionDuration
+              userMessages: conversationHistory.filter(m => m.source === 'user').length,
+              aiMessages: conversationHistory.filter(m => m.source === 'ai').length
             });
 
-            // Marcar como procesando
-            setIsProcessing(true);
+            // Validar que hay contenido útil (mínimo 50 caracteres de transcripción)
+            const hasValidTranscript = fullTranscriptRef.current &&
+                                       fullTranscriptRef.current.trim().length > 50;
 
-            // Procesar la sesión como si el usuario la hubiera terminado
-            setTimeout(() => {
-              setIsProcessing(false);
-              console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
-                hasOnSessionEnd: !!onSessionEnd,
-                currentSessionId,
+            // Si la sesión duró más de 10 segundos Y hay transcripción, procesarla
+            if (hasValidTranscript && sessionDuration > 10) {
+              console.log('🤖 El agente terminó la sesión - procesando transcripción...', {
                 transcriptLength: fullTranscriptRef.current.length,
+                messagesCount: conversationHistory.length,
                 duration: sessionDuration
               });
 
-              if (onSessionEnd) {
-                onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
-              } else {
-                console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
-              }
-            }, 500);
+              // Marcar como procesando
+              setIsProcessing(true);
 
-            return;
-          }
+              // Procesar la sesión como si el usuario la hubiera terminado
+              setTimeout(() => {
+                setIsProcessing(false);
+                console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
+                  hasOnSessionEnd: !!onSessionEnd,
+                  currentSessionId,
+                  transcriptLength: fullTranscriptRef.current.length,
+                  duration: sessionDuration
+                });
 
-          // Si llegamos aquí, fue una desconexión inesperada o error
-          if (error) {
-            console.error('❌ Desconexión inesperada:', error);
+                if (onSessionEnd) {
+                  onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
+                } else {
+                  console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
+                }
+              }, 100);
 
-            // Si se desconectó muy rápido (< 20 segundos), probablemente es límite
-            if (sessionDuration > 0 && sessionDuration < 20) {
-              setError('⚠️ Sesión terminada prematuramente. Es posible que hayas alcanzado el límite de uso gratuito de ElevenLabs.');
-            } else {
+              return;
+            }
+
+            // Si llegamos aquí, la sesión fue muy corta o sin contenido válido
+            console.warn('⚠️ [onDisconnect] Sesión sin contenido válido:', {
+              hasValidTranscript,
+              sessionDuration,
+              transcriptLength: fullTranscriptRef.current.length,
+              messagesCount: conversationHistory.length
+            });
+
+            if (sessionDuration > 0 && sessionDuration < 10) {
+              setError('⚠️ La sesión fue muy corta. Intenta mantener una conversación más extensa para obtener una evaluación completa.');
+            } else if (!hasValidTranscript) {
+              setError('⚠️ No se detectó contenido en la conversación. Por favor, intenta nuevamente y asegúrate de hablar durante la sesión.');
+            } else if (error) {
+              console.error('❌ Desconexión inesperada con error:', error);
               setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
             }
-          }
+          }, 500); // Esperar 500ms para que los últimos mensajes se procesen
         },
         onError: (error) => {
           console.error('❌ Conversation error:', error);
