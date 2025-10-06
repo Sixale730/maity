@@ -65,6 +65,7 @@ export function RoleplayVoiceAssistant({
   // Estado para el proceso de finalización
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const sessionStartTimeRef = useRef<Date | null>(null); // Ref para evitar closure issues
   const fullTranscriptRef = useRef<string>('');
 
   // Estado para rastrear si la conexión es segura
@@ -226,6 +227,7 @@ export function RoleplayVoiceAssistant({
     setTranscript('');
     setAgentResponse('');
     setSessionStartTime(null);
+    sessionStartTimeRef.current = null;
 
     setIsConnecting(true);
     setError(null);
@@ -297,10 +299,17 @@ export function RoleplayVoiceAssistant({
         dynamicVariables: dynamicVars,
         onConnect: () => {
           console.log('✅ Connected to Roleplay Agent');
+          const now = new Date();
           setIsConnected(true);
           setIsConnecting(false);
           setError(null);
-          setSessionStartTime(new Date());
+          setSessionStartTime(now);
+          sessionStartTimeRef.current = now; // Guardar también en ref para evitar closure issues
+
+          console.log('🕐 [onConnect] Session start time set:', {
+            stateValue: now,
+            refValue: sessionStartTimeRef.current
+          });
 
           // Marcar la conexión como estable después de un breve retraso
           setTimeout(() => {
@@ -328,10 +337,17 @@ export function RoleplayVoiceAssistant({
 
           // Esperar 500ms para permitir que los últimos mensajes se procesen
           setTimeout(() => {
-            // Calcular duración de la sesión
-            const sessionDuration = sessionStartTime
-              ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+            // Calcular duración de la sesión usando ref (evita closure issues)
+            const sessionDuration = sessionStartTimeRef.current
+              ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
               : 0;
+
+            console.log('🕐 [onDisconnect] Estado de tiempo:', {
+              sessionStartTime,
+              sessionStartTimeRef: sessionStartTimeRef.current,
+              currentTime: new Date(),
+              calculatedDuration: sessionDuration
+            });
 
             console.log('📊 [onDisconnect] Evaluando sesión:', {
               sessionDuration,
@@ -345,12 +361,14 @@ export function RoleplayVoiceAssistant({
             const hasValidTranscript = fullTranscriptRef.current &&
                                        fullTranscriptRef.current.trim().length > 50;
 
-            // Si la sesión duró más de 10 segundos Y hay transcripción, procesarla
-            if (hasValidTranscript && sessionDuration > 10) {
+            // NUEVA LÓGICA: Si hay transcripción válida, procesar SIEMPRE
+            // (no depender de duración debido a posibles problemas de timing)
+            if (hasValidTranscript) {
               console.log('🤖 El agente terminó la sesión - procesando transcripción...', {
                 transcriptLength: fullTranscriptRef.current.length,
                 messagesCount: conversationHistory.length,
-                duration: sessionDuration
+                duration: sessionDuration,
+                reason: 'Transcripción válida detectada (>50 chars)'
               });
 
               // Marcar como procesando
@@ -376,7 +394,7 @@ export function RoleplayVoiceAssistant({
               return;
             }
 
-            // Si llegamos aquí, la sesión fue muy corta o sin contenido válido
+            // Si llegamos aquí, NO hay transcripción válida
             console.warn('⚠️ [onDisconnect] Sesión sin contenido válido:', {
               hasValidTranscript,
               sessionDuration,
@@ -384,9 +402,7 @@ export function RoleplayVoiceAssistant({
               messagesCount: conversationHistory.length
             });
 
-            if (sessionDuration > 0 && sessionDuration < 10) {
-              setError('⚠️ La sesión fue muy corta. Intenta mantener una conversación más extensa para obtener una evaluación completa.');
-            } else if (!hasValidTranscript) {
+            if (!hasValidTranscript) {
               setError('⚠️ No se detectó contenido en la conversación. Por favor, intenta nuevamente y asegúrate de hablar durante la sesión.');
             } else if (error) {
               console.error('❌ Desconexión inesperada con error:', error);
@@ -493,9 +509,9 @@ export function RoleplayVoiceAssistant({
       // Marcar que estamos procesando para evitar errores de desconexión
       setIsProcessing(true);
 
-      // Calcular duración
-      const duration = sessionStartTime
-        ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+      // Calcular duración usando ref (evita closure issues)
+      const duration = sessionStartTimeRef.current
+        ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
         : 0;
 
       try {
