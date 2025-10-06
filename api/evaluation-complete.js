@@ -91,11 +91,33 @@ export default async function handler(req, res) {
 
   console.log('[evaluations/complete] ✅ Secret validated');
 
-  // Parse body - request_id now comes in the body
-  const { request_id, status, result, error_message } = req.body || {};
+  // Debug: Log raw body to see what we're receiving
+  console.log('[evaluations/complete] 🔍 Raw body type:', typeof req.body);
+  console.log('[evaluations/complete] 🔍 Raw body:', req.body);
+
+  // Parse body - handle both parsed objects and stringified JSON
+  let parsedBody = req.body;
+
+  // If body is a string, try to parse it
+  if (typeof req.body === 'string') {
+    console.log('[evaluations/complete] 📝 Body is string, parsing...');
+    try {
+      parsedBody = JSON.parse(req.body);
+      console.log('[evaluations/complete] ✅ Body parsed successfully');
+    } catch (parseError) {
+      console.error('[evaluations/complete] ❌ Failed to parse body string:', parseError);
+      return res.status(400).json({ error: 'INVALID_JSON', message: 'Request body must be valid JSON' });
+    }
+  }
+
+  const { request_id, status, result, error_message } = parsedBody || {};
 
   if (!request_id) {
-    console.error('[evaluations/complete] ❌ Missing request_id in body');
+    console.error('[evaluations/complete] ❌ Missing request_id in body', {
+      bodyType: typeof parsedBody,
+      bodyKeys: parsedBody ? Object.keys(parsedBody) : [],
+      body: parsedBody
+    });
     return res.status(400).json({ error: 'MISSING_REQUEST_ID', message: 'request_id must be provided in the request body' });
   }
 
