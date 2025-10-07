@@ -5,6 +5,7 @@ import { PrePracticeQuestionnaire } from './PrePracticeQuestionnaire';
 import { ScenarioInstructions } from './ScenarioInstructions';
 import { SessionResults } from './SessionResults';
 import { RoleplayRoadmap } from './RoleplayRoadmap';
+import { TranscriptViewer } from './TranscriptViewer';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
@@ -366,7 +367,7 @@ export function RoleplayPage() {
       console.log('⚡ [RoleplayPage] Completando evaluación directamente (sin n8n):', {
         requestId,
         userMessageCount,
-        reason: 'Menos de 15 mensajes del usuario'
+        reason: `Menos de ${MIN_USER_MESSAGES} mensajes del usuario`
       });
 
       // Obtener token de autenticación del usuario
@@ -578,18 +579,51 @@ export function RoleplayPage() {
       }
 
       // 4. Validar número de mensajes del usuario
-      const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
+      // Si no hay mensajes estructurados pero sí transcripción, contar las líneas del usuario
+      let userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
+      let userContentLength = 0;
+
+      // Si no hay mensajes pero sí transcripción, contar las líneas del usuario
+      if (transcript && transcript.length > 0) {
+        const userLines = transcript.split('\n').filter(line =>
+          line.trim().startsWith('Usuario:') ||
+          line.trim().startsWith('User:')
+        );
+
+        // Si no teníamos conteo de mensajes, usar el de la transcripción
+        if (userMessageCount === 0) {
+          userMessageCount = userLines.length;
+        }
+
+        // Calcular el contenido total del usuario
+        userContentLength = userLines
+          .map(line => line.replace(/^(Usuario:|User:)/, '').trim())
+          .join(' ').length;
+
+        console.log('📝 [RoleplayPage] Análisis de transcripción:', {
+          userLines: userLines.length,
+          userContentLength,
+          transcriptLength: transcript.length
+        });
+      }
+
+      // Considerar que hay suficiente contenido si:
+      // 1. Hay al menos MIN_USER_MESSAGES mensajes, O
+      // 2. El contenido del usuario tiene al menos 150 caracteres (una conversación sustancial)
+      const hasSufficientContent = userMessageCount >= MIN_USER_MESSAGES || userContentLength >= 150;
 
       console.log('📊 [RoleplayPage] Validando mensajes del usuario:', {
         userMessageCount,
+        userContentLength,
         minRequired: MIN_USER_MESSAGES,
+        hasSufficientContent,
         isAdmin,
         forceN8nEvaluation,
-        willSendToN8n: userMessageCount >= MIN_USER_MESSAGES || forceN8nEvaluation
+        willSendToN8n: hasSufficientContent || forceN8nEvaluation
       });
 
-      // Si hay muy pocos mensajes y NO es modo admin forzado, completar evaluación directamente sin n8n
-      if (userMessageCount < MIN_USER_MESSAGES && !forceN8nEvaluation) {
+      // Si hay muy poco contenido y NO es modo admin forzado, completar evaluación directamente sin n8n
+      if (!hasSufficientContent && !forceN8nEvaluation) {
         console.log('⚠️ [RoleplayPage] Sesión muy corta, completando evaluación directamente');
 
         try {
@@ -617,7 +651,9 @@ export function RoleplayPage() {
 
           toast({
             title: "Sesión completada",
-            description: `Se requieren al menos ${MIN_USER_MESSAGES} interacciones para una evaluación completa.`,
+            description: userMessageCount < MIN_USER_MESSAGES
+              ? `Se requieren al menos ${MIN_USER_MESSAGES} interacciones o más contenido para una evaluación completa.`
+              : "La interacción fue muy breve para una evaluación completa.",
             variant: "default"
           });
 
@@ -644,12 +680,12 @@ export function RoleplayPage() {
         userMessageCount,
         forceN8nEvaluation,
         testMode,
-        bypassedValidation: forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES,
+        bypassedValidation: forceN8nEvaluation && !hasSufficientContent,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
-      if (forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES) {
-        console.warn('⚠️ [ADMIN MODE] Enviando a n8n con menos de 15 mensajes (modo admin activado)');
+      if (forceN8nEvaluation && !hasSufficientContent) {
+        console.warn(`⚠️ [ADMIN MODE] Enviando a n8n sin suficiente contenido (modo admin activado)`);
       }
 
       if (testMode) {
@@ -675,7 +711,7 @@ export function RoleplayPage() {
             message_count: messages?.length || 0,
             user_message_count: messages?.filter(m => m.source === 'user').length || 0,
             ai_message_count: messages?.filter(m => m.source === 'ai').length || 0,
-            admin_bypass: forceN8nEvaluation && userMessageCount < MIN_USER_MESSAGES
+            admin_bypass: forceN8nEvaluation && !hasSufficientContent
           }
         };
 
@@ -819,10 +855,8 @@ export function RoleplayPage() {
             </DialogHeader>
             <div className="mt-4">
               {currentTranscript ? (
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
-                    {currentTranscript}
-                  </pre>
+                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+                  <TranscriptViewer transcript={currentTranscript} />
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-400">
@@ -876,7 +910,7 @@ export function RoleplayPage() {
                       toast({
                         title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
                         description: forceN8nEvaluation
-                          ? "Se aplicará validación de 15 mensajes"
+                          ? `Se aplicará validación de ${MIN_USER_MESSAGES} mensajes`
                           : "Se enviará a n8n sin importar el número de mensajes",
                         variant: "default"
                       });
@@ -1019,10 +1053,8 @@ export function RoleplayPage() {
           </DialogHeader>
           <div className="mt-4">
             {currentTranscript ? (
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
-                  {currentTranscript}
-                </pre>
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+                <TranscriptViewer transcript={currentTranscript} />
               </div>
             ) : (
               <div className="text-center py-8 text-gray-400">

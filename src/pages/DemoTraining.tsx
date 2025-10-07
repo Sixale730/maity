@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/components/roleplay/RoleplayVoiceAssistant';
 import { SessionResults } from '@/components/roleplay/SessionResults';
+import { TranscriptViewer } from '@/components/roleplay/TranscriptViewer';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
@@ -405,10 +406,8 @@ export default function DemoTraining() {
             </DialogHeader>
             <div className="mt-4">
               {currentTranscript ? (
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
-                    {currentTranscript}
-                  </pre>
+                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+                  <TranscriptViewer transcript={currentTranscript} />
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-400">

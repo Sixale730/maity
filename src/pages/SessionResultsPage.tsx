@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SessionResults } from '@/components/roleplay/SessionResults';
+import { TranscriptViewer } from '@/components/roleplay/TranscriptViewer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X } from 'lucide-react';
 import {
@@ -165,10 +166,8 @@ export default function SessionResultsPage() {
           </DialogHeader>
           <div className="mt-4">
             {sessionData.raw_transcript ? (
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <pre className="whitespace-pre-wrap text-sm text-gray-200 font-mono">
-                  {sessionData.raw_transcript}
-                </pre>
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+                <TranscriptViewer transcript={sessionData.raw_transcript} />
               </div>
             ) : (
               <div className="text-center py-8 text-gray-400">
