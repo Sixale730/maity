@@ -24,10 +24,14 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
  *     "status": "complete",
  *     "result": {
  *       "score": 85,
- *       "feedback": "Great communication skills"
+ *       "feedback": "Great communication skills",
+ *       "objective_feedback": "Successfully explained the key features and addressed the client concerns about implementation timeline"
  *     }
  *   }'
  * ```
+ *
+ * Note: objective_feedback is a simple string with feedback about the scenario objective.
+ * Whether the objective was achieved is determined by the overall score (passed/failed status).
  */
 export default async function handler(req, res) {
   const startTime = Date.now();

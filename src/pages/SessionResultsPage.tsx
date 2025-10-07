@@ -16,6 +16,7 @@ interface SessionData {
   id: string;
   profile_name: string;
   scenario_name: string;
+  objectives: string | null;
   score: number | null;
   passed: boolean | null;
   duration_seconds: number | null;
@@ -140,6 +141,7 @@ export default function SessionResultsPage() {
         sessionId={sessionData.id}
         profile={sessionData.profile_name as 'CEO' | 'CTO' | 'CFO'}
         scenarioName={sessionData.scenario_name}
+        objectives={sessionData.objectives || undefined}
         score={sessionData.score}
         passed={sessionData.passed}
         duration={duration}

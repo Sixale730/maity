@@ -36,6 +36,7 @@ interface SessionResultsProps {
   score: number | null;
   passed: boolean | null;
   duration: number;
+  objectives?: string;
   isProcessing?: boolean;
   requestId?: string;
   evaluation?: any;
@@ -61,6 +62,7 @@ export function SessionResults({
   score,
   passed,
   duration,
+  objectives,
   isProcessing = false,
   requestId,
   evaluation,
@@ -116,6 +118,7 @@ export function SessionResults({
   const fortalezas = evaluation?.Fortalezas || null;
   const errores = evaluation?.Errores || null;
   const recomendaciones = evaluation?.Recomendaciones || null;
+  const objectiveFeedback = evaluation?.objective_feedback || null;
 
   // Extraer subdimensiones de Evaluacion para desglose
   const evaluacionDesglose = evaluation?.Evaluacion ? {
@@ -358,6 +361,51 @@ export function SessionResults({
             </div>
           </Card>
         </div>
+
+        {/* Objetivo del Escenario y Feedback */}
+        {objectives && (
+          <Card className="bg-gradient-to-br from-green-900/30 to-teal-900/30 border-green-500/20 p-6">
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-green-500/10 rounded-lg">
+                  <Target className="h-8 w-8 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white mb-2">Objetivo del Escenario</h3>
+                  <p className="text-base text-gray-300 leading-relaxed">{objectives}</p>
+                </div>
+              </div>
+
+              {/* Feedback del Objetivo */}
+              {!isProcessing && objectiveFeedback && (
+                <div className="pt-4 border-t border-green-500/20">
+                  <h4 className="text-base font-medium text-green-400 mb-3">Evaluación del Objetivo</h4>
+                  <div className="space-y-3">
+                    {/* Indicador visual basado en si pasó la sesión */}
+                    {passed !== null && (
+                      <div className="flex items-start gap-3">
+                        {passed ? (
+                          <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        )}
+                        <div>
+                          <p className="text-base font-medium text-white">
+                            {passed ? 'Objetivo Cumplido' : 'Objetivo No Cumplido'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Feedback del objetivo (string directo) */}
+                    <p className="text-base text-gray-300 leading-relaxed">
+                      {typeof objectiveFeedback === 'string' ? objectiveFeedback : objectiveFeedback.feedback || objectiveFeedback}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Gráfico Radar 360° - Evaluación de Habilidades */}
         {!isProcessing && radarData.length > 0 && (

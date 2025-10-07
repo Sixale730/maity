@@ -24,6 +24,7 @@ interface RoleplayVoiceAssistantProps {
   profileDescription?: string;
   profileKeyFocus?: string;
   profileCommunicationStyle?: string;
+  objectives?: string;
   difficultyLevel?: number;
   difficultyName?: string;
   difficultyMood?: string;
@@ -42,6 +43,7 @@ export function RoleplayVoiceAssistant({
   profileDescription,
   profileKeyFocus,
   profileCommunicationStyle,
+  objectives,
   difficultyLevel = 1,
   difficultyName = 'Fácil',
   difficultyMood = 'neutral'
@@ -280,6 +282,7 @@ export function RoleplayVoiceAssistant({
         // Escenario (voice_scenarios) - NOTA: "scenary" con typo intencional
         scenary: scenarioName,  // Typo intencional como especificado
         scenario_code: scenarioCode,
+        objectives: objectives || '',
 
         // Dificultad (voice_difficulty_levels)
         difficulty: difficultyName,

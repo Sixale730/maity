@@ -46,6 +46,7 @@ export function RoleplayPage() {
     isLocked: boolean;
     progressId: string;
     userInstructions: string | null;
+    objectives: string;
     // Información del perfil
     profileDescription: string;
     profileKeyFocus: string;
@@ -271,6 +272,7 @@ export function RoleplayPage() {
           isLocked: scenarioInfo.is_locked,
           progressId: scenarioInfo.progress_id,
           userInstructions: scenarioInfo.user_instructions || null,
+          objectives: scenarioInfo.objectives || '',
           // Información del perfil
           profileDescription: scenarioInfo.profile_description,
           profileKeyFocus: scenarioInfo.profile_key_focus,
@@ -549,6 +551,10 @@ export function RoleplayPage() {
 
           // Mostrar resultados
           setSessionResults({
+            sessionId: effectiveSessionId,
+            profile: questionnaireData?.practiceStartProfile,
+            scenarioName: currentScenario?.scenarioName,
+            objectives: currentScenario?.objectives,
             duration,
             score: 0,
             passed: false,
@@ -613,6 +619,8 @@ export function RoleplayPage() {
             user_id: userId,
             profile: questionnaireData?.practiceStartProfile,
             scenario: currentScenario?.scenarioName,
+            scenario_code: currentScenario?.scenarioCode,
+            objectives: currentScenario?.objectives,
             difficulty: currentScenario?.difficultyLevel,
             duration_seconds: duration,
             message_count: messages?.length || 0,
@@ -685,6 +693,7 @@ export function RoleplayPage() {
         sessionId: effectiveSessionId,
         profile: questionnaireData?.practiceStartProfile,
         scenarioName: currentScenario?.scenarioName,
+        objectives: currentScenario?.objectives,
         score: null, // Será actualizado cuando llegue la evaluación
         passed: null,
         duration: duration,
@@ -932,6 +941,8 @@ export function RoleplayPage() {
                     difficultyLevel={currentScenario.difficultyLevel}
                     difficultyName={currentScenario.difficultyName}
                     difficultyMood={currentScenario.difficultyMood}
+                    // Objetivos del escenario
+                    objectives={currentScenario.objectives}
                   />
                 </div>
               </>
