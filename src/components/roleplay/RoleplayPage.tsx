@@ -427,21 +427,70 @@ export function RoleplayPage() {
     });
 
     // Usar el sessionId de RoleplayPage o el que viene de RoleplayVoiceAssistant
-    const effectiveSessionId = currentSessionId || voiceAssistantSessionId;
+    let effectiveSessionId = currentSessionId || voiceAssistantSessionId;
 
-    if (!effectiveSessionId || !userId) {
-      console.error('❌ [RoleplayPage] No se puede evaluar sin sessionId o userId', {
-        currentSessionId,
-        voiceAssistantSessionId,
-        effectiveSessionId,
-        userId
-      });
+    // Si no hay userId, no podemos continuar
+    if (!userId) {
+      console.error('❌ [RoleplayPage] No se puede evaluar sin userId');
       toast({
         title: "Error",
-        description: "Información de sesión incompleta",
+        description: "Usuario no identificado",
         variant: "destructive"
       });
       return;
+    }
+
+    // Si no hay sessionId, crear una nueva sesión antes de continuar
+    if (!effectiveSessionId) {
+      console.log('⚠️ [RoleplayPage] No hay sessionId, creando nueva sesión...');
+
+      // Verificar que tenemos los datos necesarios para crear la sesión
+      if (!questionnaireData) {
+        console.error('❌ [RoleplayPage] No se puede crear sesión sin questionnaireData');
+        toast({
+          title: "Error",
+          description: "Datos de configuración incompletos",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      try {
+        console.log('🎯 [RoleplayPage] Creando voice_session de emergencia con:', {
+          p_user_id: userId,
+          p_profile_name: questionnaireData.practiceStartProfile,
+          p_questionnaire_id: questionnaireData.questionnaireId,
+          timestamp: new Date().toISOString()
+        });
+
+        const { data: newSessionId, error: sessionError } = await supabase.rpc('create_voice_session', {
+          p_user_id: userId,
+          p_profile_name: questionnaireData.practiceStartProfile,
+          p_questionnaire_id: questionnaireData.questionnaireId
+        });
+
+        if (sessionError) {
+          console.error('❌ [RoleplayPage] Error al crear voice_session de emergencia:', sessionError);
+          toast({
+            title: "Error",
+            description: "No se pudo crear la sesión de práctica",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('✅ [RoleplayPage] Voice session creada de emergencia exitosamente:', newSessionId);
+        effectiveSessionId = newSessionId;
+        setCurrentSessionId(newSessionId); // Actualizar el estado para futuras referencias
+      } catch (error) {
+        console.error('❌ [RoleplayPage] Error inesperado al crear sesión de emergencia:', error);
+        toast({
+          title: "Error",
+          description: "Error al crear la sesión",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     console.log('✅ [RoleplayPage] Usando sessionId:', effectiveSessionId);
