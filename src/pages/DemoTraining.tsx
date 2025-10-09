@@ -3,9 +3,11 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/components/roleplay/RoleplayVoiceAssistant';
 import { SessionResults } from '@/components/roleplay/SessionResults';
 import { TranscriptViewer } from '@/components/roleplay/TranscriptViewer';
+import { AdminTextChat } from '@/components/roleplay/AdminTextChat';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
+import { useUserRole } from '@/hooks/useUserRole';
 import { env } from '@/lib/env';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -50,6 +52,7 @@ const DIFFICULTY_LEVELS = [
 
 export default function DemoTraining() {
   const { toast } = useToast();
+  const { isAdmin } = useUserRole();
 
   // Estado de configuración personalizada
   const [config, setConfig] = useState({
@@ -74,6 +77,7 @@ export default function DemoTraining() {
   const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); // Para forzar re-render del componente de voz
+  const [isCallActive, setIsCallActive] = useState(false); // Para controlar visibilidad del chat admin
 
   useEffect(() => {
     checkUser();
@@ -147,6 +151,7 @@ export default function DemoTraining() {
     setShowTranscript(false);
     setCurrentTranscript('');
     setEvaluationRequestId(null);
+    setIsCallActive(false); // Resetear estado de llamada
 
     // Incrementar key para forzar re-mount del componente de voz
     setSessionKey(prev => prev + 1);
@@ -185,6 +190,7 @@ export default function DemoTraining() {
       if (sessionId) {
         const sessionIdString = typeof sessionId === 'string' ? sessionId : sessionId.toString();
         setCurrentSessionId(sessionIdString);
+        setIsCallActive(true); // Marcar que la llamada está activa
         console.log('✅ [DemoTraining] voice_session creada:', sessionIdString);
         return sessionIdString;
       }
@@ -273,6 +279,7 @@ export default function DemoTraining() {
       return;
     }
 
+    setIsCallActive(false); // Marcar que la llamada terminó
     setIsEvaluating(true);
 
     try {
@@ -496,6 +503,21 @@ export default function DemoTraining() {
                 </div>
               </div>
             </Card>
+
+            {/* Chat Admin - Solo visible durante llamada activa y para admins */}
+            {isAdmin && isCallActive && (
+              <div className="mt-4">
+                <AdminTextChat
+                  onSendMessage={(message) => {
+                    console.log('📨 [Admin Chat] Mensaje enviado:', message);
+                    toast({
+                      title: "Mensaje de texto enviado",
+                      description: `Admin: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`,
+                    });
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Agente de Voz */}

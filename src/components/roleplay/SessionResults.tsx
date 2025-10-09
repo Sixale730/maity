@@ -55,6 +55,45 @@ const chartConfig = {
   },
 };
 
+// Descripciones de dimensiones principales
+const DIMENSION_DESCRIPTIONS = {
+  clarity: "Evalúa qué tan comprensible y directa fue tu comunicación",
+  structure: "Mide la organización lógica de tus ideas y argumentos",
+  connection: "Valora tu capacidad para conectar emocionalmente con el interlocutor",
+  influence: "Determina tu efectividad para persuadir y generar acción"
+};
+
+// Descripciones de subdimensiones
+const SUBDIMENSION_DESCRIPTIONS: Record<string, string> = {
+  // Claridad
+  "Vocabulario_Sencillo": "Uso de palabras claras y fáciles de entender",
+  "Mensajes_Directos": "Comunicación sin rodeos ni ambigüedades",
+  "Sin_Jerga": "Evitar términos técnicos innecesarios",
+  "Concision": "Expresar ideas de forma breve y precisa",
+  "Ejemplos_Claros": "Uso de ilustraciones concretas para explicar conceptos",
+
+  // Estructura
+  "Inicio_Claro": "Apertura efectiva de la conversación",
+  "Desarrollo_Logico": "Progresión coherente de ideas",
+  "Cierre_Efectivo": "Conclusión clara con llamado a la acción",
+  "Transiciones_Fluidas": "Conexión natural entre temas",
+  "Organizacion_Ideas": "Presentación ordenada de argumentos",
+
+  // Alineación Emocional
+  "Empatia": "Comprensión de sentimientos y necesidades",
+  "Conexion_Necesidades": "Vinculación con pain points del cliente",
+  "Tono_Apropiado": "Ajuste del lenguaje al contexto emocional",
+  "Escucha_Activa": "Demostración de atención a lo que dice el interlocutor",
+  "Rapport": "Construcción de confianza y conexión personal",
+
+  // Influencia
+  "Argumento_Persuasivo": "Construcción de casos convincentes",
+  "Manejo_Objeciones": "Respuesta efectiva a resistencias",
+  "Cierre_Accion": "Capacidad para generar compromisos",
+  "Valor_Propuesto": "Presentación clara de beneficios",
+  "Urgencia": "Creación de motivación para actuar ahora"
+};
+
 export function SessionResults({
   sessionId,
   profile,
@@ -501,13 +540,17 @@ export function SessionResults({
           </Card>
         )}
 
-        {/* Métricas Detalladas */}
-        <div className="grid md:grid-cols-2 gap-6">
+        {/* Métricas Detalladas - Una sola columna */}
+        <div className="space-y-6">
+          {/* Análisis por Categoría con Desglose Integrado */}
           <Card className="bg-gray-900/50 border-gray-800 p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Brain className="h-5 w-5 text-blue-400" />
               Análisis por Categoría
             </h3>
+            <p className="text-sm text-gray-400 mb-6">
+              Haz clic en cada dimensión para ver el desglose detallado de subdimensiones
+            </p>
             {isProcessing ? (
               <div className="space-y-4">
                 {['Claridad', 'Estructura', 'Alineación Emocional', 'Influencia'].map((label) => (
@@ -521,28 +564,97 @@ export function SessionResults({
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {Object.entries(metrics).map(([key, value]) => {
                   // Valor ya está en escala 0-100
                   const progressValue = value !== null ? value : 0;
-
-                  // Determinar el color basado en el score
                   const scoreColor = value !== null ? getScoreColor(value) : 'text-gray-600';
 
+                  const dimensionName =
+                    key === 'clarity' ? 'Claridad' :
+                    key === 'structure' ? 'Estructura' :
+                    key === 'connection' ? 'Alineación Emocional' :
+                    'Influencia';
+
+                  const dimensionKey =
+                    key === 'clarity' ? 'claridad' :
+                    key === 'structure' ? 'estructura' :
+                    key === 'connection' ? 'alineacion' :
+                    'influencia';
+
+                  const dimensionColor =
+                    key === 'clarity' ? 'blue' :
+                    key === 'structure' ? 'green' :
+                    key === 'connection' ? 'yellow' :
+                    'red';
+
+                  const desgloseDimension =
+                    key === 'clarity' ? evaluacionDesglose?.Claridad :
+                    key === 'structure' ? evaluacionDesglose?.Estructura :
+                    key === 'connection' ? evaluacionDesglose?.Alineacion_Emocional :
+                    evaluacionDesglose?.Influencia;
+
                   return (
-                    <div key={key} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">
-                          {key === 'clarity' && 'Claridad'}
-                          {key === 'structure' && 'Estructura'}
-                          {key === 'connection' && 'Alineación Emocional'}
-                          {key === 'influence' && 'Influencia'}
-                        </span>
-                        <span className={`font-medium ${scoreColor}`}>
-                          {value !== null ? `${Math.round(value)}/100` : '—'}
-                        </span>
-                      </div>
-                      <Progress value={progressValue} className="h-2" />
+                    <div key={key} className="border border-gray-700 rounded-lg overflow-hidden">
+                      {/* Header de la dimensión */}
+                      <button
+                        onClick={() => setExpandedDimension(expandedDimension === dimensionKey ? null : dimensionKey)}
+                        className="w-full p-4 bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 text-left space-y-2">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-2 h-2 rounded-full bg-${dimensionColor}-400`} />
+                              <span className="font-medium text-white">{dimensionName}</span>
+                              <span className={`text-sm font-medium ${scoreColor}`}>
+                                {value !== null ? `${Math.round(value)}/100` : '—'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-400 pl-5">
+                              {DIMENSION_DESCRIPTIONS[key as keyof typeof DIMENSION_DESCRIPTIONS]}
+                            </p>
+                            <div className="pl-5">
+                              <Progress value={progressValue} className="h-2" />
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {desgloseDimension && (
+                              expandedDimension === dimensionKey ? (
+                                <ChevronUp className="h-5 w-5 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-5 w-5 text-gray-400" />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Desglose de subdimensiones */}
+                      {expandedDimension === dimensionKey && desgloseDimension && (
+                        <div className="p-4 bg-gray-900/30 space-y-3 border-t border-gray-700">
+                          <p className="text-xs text-gray-500 mb-3">Subdimensiones evaluadas:</p>
+                          {Object.entries(desgloseDimension).map(([subKey, subValue]) => {
+                            const valueNum = parseFloat(String(subValue)) * 10; // Convert 1-10 to 0-100
+                            const description = SUBDIMENSION_DESCRIPTIONS[subKey] || '';
+                            return (
+                              <div key={subKey} className="space-y-2">
+                                <div className="flex justify-between items-start text-sm">
+                                  <div className="flex-1">
+                                    <span className="text-gray-200 font-medium">{subKey.replace(/_/g, ' ')}</span>
+                                    {description && (
+                                      <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+                                    )}
+                                  </div>
+                                  <span className={`text-${dimensionColor}-400 font-medium ml-4`}>
+                                    {Math.round(valueNum)}/100
+                                  </span>
+                                </div>
+                                <Progress value={valueNum} className="h-1.5" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -550,6 +662,7 @@ export function SessionResults({
             )}
           </Card>
 
+          {/* Feedback del Agente */}
           <Card className="bg-gray-900/50 border-gray-800 p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-400" />
@@ -636,189 +749,6 @@ export function SessionResults({
             )}
           </Card>
         </div>
-
-        {/* Desglose Detallado por Dimensión */}
-        {!isProcessing && evaluacionDesglose && (
-          <Card className="bg-gray-900/50 border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Target className="h-5 w-5 text-purple-400" />
-              Desglose Detallado por Dimensión
-            </h3>
-            <p className="text-sm text-gray-400 mb-4">
-              Expande cada dimensión para ver el detalle de las subdimensiones evaluadas
-            </p>
-
-            <div className="space-y-3">
-              {/* Claridad */}
-              {evaluacionDesglose.Claridad && (
-                <div className="border border-gray-700 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setExpandedDimension(expandedDimension === 'claridad' ? null : 'claridad')}
-                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" />
-                      <span className="font-medium text-white">Claridad</span>
-                      <span className="text-sm text-gray-400">
-                        ({metrics.clarity ? Math.round(metrics.clarity) : 0}/100)
-                      </span>
-                    </div>
-                    {expandedDimension === 'claridad' ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                  {expandedDimension === 'claridad' && (
-                    <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Claridad).map(([key, value]) => {
-                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
-                        return (
-                          <div key={key} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">{key}</span>
-                              <span className="text-blue-400 font-medium">{Math.round(valueNum)}/100</span>
-                            </div>
-                            <Progress
-                              value={valueNum}
-                              className="h-1.5"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Estructura */}
-              {evaluacionDesglose.Estructura && (
-                <div className="border border-gray-700 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setExpandedDimension(expandedDimension === 'estructura' ? null : 'estructura')}
-                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="font-medium text-white">Estructura</span>
-                      <span className="text-sm text-gray-400">
-                        ({metrics.structure ? Math.round(metrics.structure) : 0}/100)
-                      </span>
-                    </div>
-                    {expandedDimension === 'estructura' ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                  {expandedDimension === 'estructura' && (
-                    <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Estructura).map(([key, value]) => {
-                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
-                        return (
-                          <div key={key} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">{key}</span>
-                              <span className="text-green-400 font-medium">{Math.round(valueNum)}/100</span>
-                            </div>
-                            <Progress
-                              value={valueNum}
-                              className="h-1.5"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Alineación Emocional */}
-              {evaluacionDesglose.Alineacion_Emocional && (
-                <div className="border border-gray-700 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setExpandedDimension(expandedDimension === 'alineacion' ? null : 'alineacion')}
-                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-yellow-400" />
-                      <span className="font-medium text-white">Alineación Emocional</span>
-                      <span className="text-sm text-gray-400">
-                        ({metrics.connection ? Math.round(metrics.connection) : 0}/100)
-                      </span>
-                    </div>
-                    {expandedDimension === 'alineacion' ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                  {expandedDimension === 'alineacion' && (
-                    <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Alineacion_Emocional).map(([key, value]) => {
-                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
-                        return (
-                          <div key={key} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">{key}</span>
-                              <span className="text-yellow-400 font-medium">{Math.round(valueNum)}/100</span>
-                            </div>
-                            <Progress
-                              value={valueNum}
-                              className="h-1.5"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Influencia */}
-              {evaluacionDesglose.Influencia && (
-                <div className="border border-gray-700 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setExpandedDimension(expandedDimension === 'influencia' ? null : 'influencia')}
-                    className="w-full p-4 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-red-400" />
-                      <span className="font-medium text-white">Influencia</span>
-                      <span className="text-sm text-gray-400">
-                        ({metrics.influence ? Math.round(metrics.influence) : 0}/100)
-                      </span>
-                    </div>
-                    {expandedDimension === 'influencia' ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                  {expandedDimension === 'influencia' && (
-                    <div className="p-4 bg-gray-900/30 space-y-3">
-                      {Object.entries(evaluacionDesglose.Influencia).map(([key, value]) => {
-                        const valueNum = parseFloat(String(value)) * 10; // Convert 1-10 to 0-100
-                        return (
-                          <div key={key} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">{key}</span>
-                              <span className="text-red-400 font-medium">{Math.round(valueNum)}/100</span>
-                            </div>
-                            <Progress
-                              value={valueNum}
-                              className="h-1.5"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
 
         {/* Acciones */}
         <Card className="bg-gray-900/50 border-gray-800 p-6">
