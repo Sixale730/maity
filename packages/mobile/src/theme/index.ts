@@ -1,22 +1,38 @@
 import { MD3DarkTheme as DefaultTheme } from 'react-native-paper';
 
-// MAITY color palette - Dark Mode with Neon
+// Paleta oficial de colores de MAITY
 const colors = {
-  primary: '#8B5CF6', // Morado neón principal
-  secondary: '#F97316', // Naranja neón
-  tertiary: '#06B6D4', // Cyan neón
-  background: '#0F172A', // Fondo muy oscuro
-  surface: '#1E293B', // Superficie oscura
-  surfaceVariant: '#334155', // Superficie variante
-  text: '#F8FAFC', // Texto blanco
+  // Colores principales oficiales
+  primary: '#1bea9a',      // Verde brillante
+  secondary: '#485df4',     // Azul vibrante
+  accent: '#ff0050',        // Rosa/rojo vibrante
+
+  // Colores de fondo
+  background: '#000000',    // Negro puro
+  surface: '#0F0F0F',       // Gris muy oscuro
+  surfaceVariant: '#0F0F0F', // Gris oscuro
+
+  // Colores de texto
+  text: '#e7e7e9',          // Platino
   textSecondary: '#94A3B8', // Texto secundario gris claro
-  error: '#EF4444',
-  success: '#10B981',
-  warning: '#F59E0B',
-  border: '#334155', // Borde oscuro
-  gradient1: '#8B5CF6', // Para gradientes
-  gradient2: '#EC4899', // Rosa para gradientes
-  neonGlow: '#8B5CF6', // Color para efectos de brillo
+
+  // Estados
+  error: '#ff0050',         // Rosa/rojo para errores
+  success: '#1bea9a',       // Verde para éxito
+  warning: '#F59E0B',       // Naranja para advertencias
+
+  // Bordes
+  border: '#333333',        // Borde oscuro
+
+  // Para gradientes
+  gradient1: '#1bea9a',     // Verde para gradientes
+  gradient2: '#485df4',     // Azul para gradientes
+  gradient3: '#ff0050',     // Rojo para gradientes
+
+  // Para efectos neón
+  neonGlow: '#1bea9a',      // Verde neón principal
+  neonGlowSecondary: '#485df4', // Azul neón secundario
+  neonGlowAccent: '#ff0050',    // Rojo neón acento
 };
 
 export const theme = {

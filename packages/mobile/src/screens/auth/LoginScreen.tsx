@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import {
   View,
   ScrollView,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Alert,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { Text, Divider, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,8 +16,11 @@ import { AuthService } from '@maity/shared';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { GoogleIcon } from '../../components/icons/GoogleIcon';
+import { MicrosoftIcon } from '../../components/icons/MicrosoftIcon';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -31,6 +34,7 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validateForm = () => {
@@ -71,6 +75,26 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleRegister = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await AuthService.signUp({ email, password });
+
+      if (error) {
+        Alert.alert('Error', error.message || 'Error al crear cuenta');
+      } else if (data.user) {
+        Alert.alert('Éxito', 'Cuenta creada exitosamente. Por favor verifica tu email.');
+        setIsLogin(true);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Ocurrió un error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -85,103 +109,172 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleMicrosoftLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await AuthService.signInWithOAuth('azure');
+      if (error) {
+        Alert.alert('Error', 'Error al iniciar sesión con Microsoft');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Ocurrió un error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+    <LinearGradient
+      colors={['#1a1a1a', '#000000', '#000000']}
+      style={styles.gradient}
+      locations={[0, 0.5, 1]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+    >
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
         >
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>MAITY</Text>
-            <Text style={styles.tagline}>Tu mentor de IA</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>{t('auth.welcome_back')}</Text>
-
-            <Input
-              label={t('auth.email')}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="tu@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              error={errors.email}
-              containerStyle={styles.input}
-            />
-
-            <Input
-              label={t('auth.password')}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              secureTextEntry
-              error={errors.password}
-              containerStyle={styles.input}
-            />
-
-            <Button
-              title={loading ? 'Iniciando sesión...' : t('auth.login')}
-              onPress={handleLogin}
-              disabled={loading}
-              fullWidth
-              style={styles.loginButton}
-            />
-
-            <Button
-              title={t('auth.forgot_password')}
-              variant="text"
-              onPress={() => navigation.navigate('ForgotPassword')}
-              style={styles.forgotButton}
-            />
-
-            <View style={styles.dividerContainer}>
-              <Divider style={styles.divider} />
-              <Text style={styles.dividerText}>O</Text>
-              <Divider style={styles.divider} />
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Logo con efecto neón */}
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>MAITY</Text>
+              <Text style={styles.tagline}>Tu mentor de IA</Text>
             </View>
 
-            <Button
-              title={t('auth.continue_google')}
-              variant="outline"
-              onPress={handleGoogleLogin}
-              disabled={loading}
-              fullWidth
-              icon="google"
-            />
+            {/* Form Card */}
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>
+                {isLogin ? 'Bienvenido de vuelta' : 'Crear Cuenta'}
+              </Text>
+              <Text style={styles.subtitle}>
+                {isLogin
+                  ? 'Accede a tu cuenta para continuar'
+                  : 'Crea tu cuenta para comenzar tu transformación'
+                }
+              </Text>
 
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>{t('auth.no_account')}</Text>
-              <Button
-                title="Registrarse"
-                variant="text"
-                onPress={() => navigation.navigate('Register')}
+              <Input
+                label="Correo electrónico"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="tu@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                error={errors.email}
+                containerStyle={styles.input}
               />
-            </View>
-          </View>
 
-          {loading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={colors.primary} />
+              <Input
+                label="Contraseña"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                error={errors.password}
+                containerStyle={styles.input}
+              />
+
+              <Button
+                title={loading ? 'Cargando...' : (isLogin ? 'Iniciar Sesión' : 'Crear Cuenta')}
+                onPress={isLogin ? handleLogin : handleRegister}
+                disabled={loading}
+                fullWidth
+                gradient
+                gradientColors={
+                  isLogin
+                    ? [colors.gradient1, colors.gradient2]
+                    : [colors.gradient3, colors.gradient2]
+                }
+                style={styles.loginButton}
+              />
+
+              {isLogin && (
+                <Button
+                  title="¿Olvidaste tu contraseña?"
+                  variant="text"
+                  onPress={() => navigation.navigate('ForgotPassword')}
+                  style={styles.forgotButton}
+                />
+              )}
+
+              <View style={styles.dividerContainer}>
+                <LinearGradient
+                  colors={['transparent', `${colors.primary}33`, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.dividerGradient}
+                />
+                <Text style={styles.dividerText}>O continúa con</Text>
+                <LinearGradient
+                  colors={['transparent', `${colors.primary}33`, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.dividerGradient}
+                />
+              </View>
+
+              {/* OAuth Buttons con estilo neón */}
+              <TouchableOpacity
+                onPress={handleGoogleLogin}
+                disabled={loading}
+                style={styles.oauthButton}
+                activeOpacity={0.8}
+              >
+                <View style={styles.oauthContent}>
+                  <GoogleIcon width={20} height={20} />
+                  <Text style={styles.oauthText}>Continuar con Google</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleMicrosoftLogin}
+                disabled={loading}
+                style={[styles.oauthButton, { borderColor: `${colors.secondary}66` }]}
+                activeOpacity={0.8}
+              >
+                <View style={styles.oauthContent}>
+                  <MicrosoftIcon width={20} height={20} />
+                  <Text style={styles.oauthText}>Continuar con Microsoft</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Toggle Login/Register */}
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>
+                  {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                </Text>
+                <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                  <Text style={styles.registerLink}>
+                    {isLogin ? 'Regístrate' : 'Inicia sesión'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+            {loading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardAvoid: {
     flex: 1,
@@ -196,43 +289,53 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoText: {
-    fontSize: 52,
-    fontWeight: 'bold',
+    fontSize: 65,
+    fontWeight: '900',
     color: colors.primary,
-    letterSpacing: 3,
+    letterSpacing: 5,
     textShadowColor: colors.primary,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
+    textShadowRadius: 40,
+    // Multiple shadows for better neon effect (simulated)
+    elevation: 30,
   },
   tagline: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginTop: 8,
-    letterSpacing: 1,
+    fontSize: 14,
+    color: colors.text,
+    marginTop: 10,
+    letterSpacing: 3,
+    opacity: 0.8,
+    textTransform: 'uppercase',
   },
   formContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
-    // Sombra neón sutil
+    // Enhanced neon shadow
     shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 0,
     },
     shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowRadius: 50,
+    elevation: 20,
+    borderWidth: 0,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 24,
+    marginBottom: 8,
     textAlign: 'center',
     letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 24,
+    textAlign: 'center',
+    opacity: 0.7,
   },
   input: {
     marginBottom: 16,
@@ -240,36 +343,62 @@ const styles = StyleSheet.create({
   loginButton: {
     marginTop: 12,
     marginBottom: 16,
-    borderRadius: 12,
-    // Efecto gradiente simulado con sombra
     shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 10,
+    elevation: 8,
   },
   forgotButton: {
     alignSelf: 'center',
+    marginBottom: 20,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 24,
   },
-  divider: {
+  dividerGradient: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border,
-    opacity: 0.5,
   },
   dividerText: {
     marginHorizontal: 16,
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
+    opacity: 0.6,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  oauthButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: `${colors.primary}44`,
+    marginBottom: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  oauthContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  oauthIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginRight: 12,
+  },
+  oauthText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
   },
   registerContainer: {
     flexDirection: 'row',
@@ -280,6 +409,13 @@ const styles = StyleSheet.create({
   registerText: {
     color: colors.textSecondary,
     fontSize: 14,
+    marginRight: 6,
+  },
+  registerLink: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   loadingOverlay: {
     position: 'absolute',
@@ -287,7 +423,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -24,6 +24,8 @@ import MaityLogo from "@/components/MaityLogo";
 
 import { Eye, EyeOff } from "lucide-react";
 
+import { MAITY_COLORS } from "@/lib/colors";
+
 // Missing type and utility definitions
 const getErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
@@ -309,36 +311,56 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   return (
 
-    <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-3 sm:p-4"
+      style={{
+        backgroundColor: MAITY_COLORS.black,
+        background: `radial-gradient(ellipse at center, ${MAITY_COLORS.darkGrayAlpha(0.8)} 0%, ${MAITY_COLORS.black} 100%)`,
+      }}
+    >
 
-      <Card className="w-full max-w-md">
+      <Card
+        className="w-full max-w-md border-0"
+        style={{
+          backgroundColor: MAITY_COLORS.darkGray,
+          boxShadow: `0 0 60px ${MAITY_COLORS.primaryAlpha(0.15)}, 0 0 100px ${MAITY_COLORS.secondaryAlpha(0.1)}`,
+        }}
+      >
 
-        <CardHeader className="text-center p-4 sm:p-6">
+        <CardHeader className="text-center p-4 sm:p-6 space-y-2">
 
-          <div className="flex justify-center mb-3 sm:mb-4">
-
-            {isLogin ? (
-              <>
-                <MaityLogo variant="full" size="md" className="sm:hidden" />
-                <MaityLogo variant="full" size="lg" className="hidden sm:block" />
-              </>
-            ) : (
-              <img
-                src="/lovable-uploads/maity_logo_rojo.png"
-                alt="Maity Logo"
-                className="h-10 sm:h-12 w-auto"
-              />
-            )}
-
+          {/* Logo con efecto neón */}
+          <div className="flex flex-col items-center justify-center mb-3 sm:mb-4">
+            <div
+              className="text-5xl sm:text-6xl font-bold tracking-wider mb-2"
+              style={{
+                color: MAITY_COLORS.primary,
+                textShadow: `0 0 20px ${MAITY_COLORS.primaryAlpha(0.8)}, 0 0 40px ${MAITY_COLORS.primaryAlpha(0.5)}, 0 0 60px ${MAITY_COLORS.primaryAlpha(0.3)}`,
+              }}
+            >
+              MAITY
+            </div>
+            <div
+              className="text-sm font-medium tracking-widest opacity-80"
+              style={{ color: MAITY_COLORS.lightGray }}
+            >
+              Tu mentor de IA
+            </div>
           </div>
 
-          <CardTitle className="font-geist text-xl sm:text-2xl">
+          <CardTitle
+            className="font-geist text-xl sm:text-2xl"
+            style={{ color: MAITY_COLORS.lightGray }}
+          >
 
-            {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            {isLogin ? 'Bienvenido de vuelta' : 'Crear Cuenta'}
 
           </CardTitle>
 
-          <CardDescription className="font-inter text-sm sm:text-base">
+          <CardDescription
+            className="font-inter text-sm sm:text-base opacity-70"
+            style={{ color: MAITY_COLORS.lightGray }}
+          >
 
             {isLogin
 
@@ -366,7 +388,21 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               size="lg"
 
-              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12"
+              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12 transition-all duration-300 hover:scale-[1.02]"
+
+              style={{
+                backgroundColor: MAITY_COLORS.darkGrayAlpha(0.5),
+                borderColor: MAITY_COLORS.primaryAlpha(0.3),
+                color: MAITY_COLORS.lightGray,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = MAITY_COLORS.primary;
+                e.currentTarget.style.boxShadow = `0 0 20px ${MAITY_COLORS.primaryAlpha(0.3)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = MAITY_COLORS.primaryAlpha(0.3);
+                e.currentTarget.style.boxShadow = 'none';
+              }}
 
               onClick={() => handleOAuthLogin('google')}
 
@@ -398,7 +434,21 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               size="lg"
 
-              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12"
+              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12 transition-all duration-300 hover:scale-[1.02]"
+
+              style={{
+                backgroundColor: MAITY_COLORS.darkGrayAlpha(0.5),
+                borderColor: MAITY_COLORS.secondaryAlpha(0.3),
+                color: MAITY_COLORS.lightGray,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = MAITY_COLORS.secondary;
+                e.currentTarget.style.boxShadow = `0 0 20px ${MAITY_COLORS.secondaryAlpha(0.3)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = MAITY_COLORS.secondaryAlpha(0.3);
+                e.currentTarget.style.boxShadow = 'none';
+              }}
 
               onClick={() => handleOAuthLogin('azure')}
 
@@ -428,13 +478,24 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <div className="absolute inset-0 flex items-center">
 
-              <Separator />
+              <div
+                className="w-full h-px"
+                style={{
+                  background: `linear-gradient(to right, transparent, ${MAITY_COLORS.primaryAlpha(0.3)}, transparent)`,
+                }}
+              />
 
             </div>
 
             <div className="relative flex justify-center text-xs uppercase">
 
-              <span className="bg-background px-2 text-muted-foreground font-inter">
+              <span
+                className="px-3 font-inter tracking-wider"
+                style={{
+                  backgroundColor: MAITY_COLORS.darkGray,
+                  color: MAITY_COLORS.lightGrayAlpha(0.6),
+                }}
+              >
 
                 O continúa con email
 
@@ -450,7 +511,13 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <div className="space-y-2">
 
-              <Label htmlFor="email" className="font-inter text-sm sm:text-base">Correo electrónico</Label>
+              <Label
+                htmlFor="email"
+                className="font-inter text-sm sm:text-base"
+                style={{ color: MAITY_COLORS.lightGrayAlpha(0.9) }}
+              >
+                Correo electrónico
+              </Label>
 
               <Input
 
@@ -466,7 +533,20 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
                 required
 
-                className="font-inter text-sm sm:text-base h-10 sm:h-11"
+                className="font-inter text-sm sm:text-base h-10 sm:h-11 transition-all duration-200"
+                style={{
+                  backgroundColor: MAITY_COLORS.blackAlpha(0.5),
+                  borderColor: MAITY_COLORS.primaryAlpha(0.2),
+                  color: MAITY_COLORS.lightGray,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = MAITY_COLORS.primary;
+                  e.currentTarget.style.boxShadow = `0 0 0 1px ${MAITY_COLORS.primaryAlpha(0.3)}`;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = MAITY_COLORS.primaryAlpha(0.2);
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
 
               />
 
@@ -474,7 +554,13 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <div className="space-y-2">
 
-              <Label htmlFor="password" className="font-inter text-sm sm:text-base">Contraseña</Label>
+              <Label
+                htmlFor="password"
+                className="font-inter text-sm sm:text-base"
+                style={{ color: MAITY_COLORS.lightGrayAlpha(0.9) }}
+              >
+                Contraseña
+              </Label>
 
               <div className="relative">
                 <Input
@@ -485,12 +571,34 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
                   onChange={handlePasswordChange}
                   onPaste={handlePasswordPaste}
                   required
-                  className="font-inter text-sm sm:text-base h-10 sm:h-11 pr-10"
+                  className="font-inter text-sm sm:text-base h-10 sm:h-11 pr-10 transition-all duration-200"
+                  style={{
+                    backgroundColor: MAITY_COLORS.blackAlpha(0.5),
+                    borderColor: MAITY_COLORS.secondaryAlpha(0.2),
+                    color: MAITY_COLORS.lightGray,
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = MAITY_COLORS.secondary;
+                    e.currentTarget.style.boxShadow = `0 0 0 1px ${MAITY_COLORS.secondaryAlpha(0.3)}`;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = MAITY_COLORS.secondaryAlpha(0.2);
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{
+                    color: MAITY_COLORS.lightGrayAlpha(0.5),
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = MAITY_COLORS.lightGray;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = MAITY_COLORS.lightGrayAlpha(0.5);
+                  }}
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? <EyeOff size={18} className="sm:w-5 sm:h-5" /> : <Eye size={18} className="sm:w-5 sm:h-5" />}
@@ -501,7 +609,27 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <Button
               type="submit"
-              className={`w-full font-inter text-sm sm:text-base h-10 sm:h-11 ${!isLogin ? 'bg-[hsl(var(--red-primary))] hover:bg-[hsl(var(--red-muted))] text-white' : ''}`}
+              className="w-full font-inter text-sm sm:text-base h-10 sm:h-11 transition-all duration-300 hover:scale-[1.02]"
+              style={{
+                background: isLogin
+                  ? `linear-gradient(135deg, ${MAITY_COLORS.primary} 0%, ${MAITY_COLORS.secondary} 100%)`
+                  : `linear-gradient(135deg, ${MAITY_COLORS.accent} 0%, ${MAITY_COLORS.secondary} 100%)`,
+                color: '#FFFFFF',
+                border: 'none',
+                boxShadow: isLogin
+                  ? `0 4px 20px ${MAITY_COLORS.primaryAlpha(0.3)}`
+                  : `0 4px 20px ${MAITY_COLORS.accentAlpha(0.3)}`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = isLogin
+                  ? `0 6px 30px ${MAITY_COLORS.primaryAlpha(0.5)}`
+                  : `0 6px 30px ${MAITY_COLORS.accentAlpha(0.5)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = isLogin
+                  ? `0 4px 20px ${MAITY_COLORS.primaryAlpha(0.3)}`
+                  : `0 4px 20px ${MAITY_COLORS.accentAlpha(0.3)}`;
+              }}
               disabled={loading}
             >
 
@@ -521,7 +649,18 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               onClick={() => setIsLogin(!isLogin)}
 
-              className="text-xs sm:text-sm text-primary hover:underline font-inter"
+              className="text-xs sm:text-sm font-inter transition-colors"
+              style={{
+                color: MAITY_COLORS.primary,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = MAITY_COLORS.secondary;
+                e.currentTarget.style.textShadow = `0 0 10px ${MAITY_COLORS.secondaryAlpha(0.5)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = MAITY_COLORS.primary;
+                e.currentTarget.style.textShadow = 'none';
+              }}
 
             >
 
@@ -547,7 +686,16 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               onClick={() => navigate('/')}
 
-              className="text-xs sm:text-sm text-muted-foreground hover:underline font-inter"
+              className="text-xs sm:text-sm font-inter transition-colors"
+              style={{
+                color: MAITY_COLORS.lightGrayAlpha(0.5),
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = MAITY_COLORS.lightGray;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = MAITY_COLORS.lightGrayAlpha(0.5);
+              }}
 
             >
 

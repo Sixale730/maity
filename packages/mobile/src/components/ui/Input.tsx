@@ -54,14 +54,14 @@ export const Input: React.FC<InputProps> = ({
         multiline={multiline}
         numberOfLines={numberOfLines}
         mode="outlined"
-        outlineColor={colors.border}
+        outlineColor={`${colors.primary}33`} // Color con transparencia
         activeOutlineColor={colors.primary}
         textColor={colors.text}
         placeholderTextColor={colors.textSecondary}
         style={[
           {
-            backgroundColor: colors.surfaceVariant,
-            borderRadius: 8,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderRadius: 12,
           },
           style,
         ]}

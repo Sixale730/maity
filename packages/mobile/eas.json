@@ -1,21 +1,24 @@
 {
   "cli": {
-    "version": ">= 16.20.4",
+    "version": ">= 7.6.0",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": { "EXPO_USE_LOCAL_WORKSPACES": "1" },
+      "android": { "buildType": "apk" }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": { "EXPO_USE_LOCAL_WORKSPACES": "1" },
+      "android": { "buildType": "apk" }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": { "EXPO_USE_LOCAL_WORKSPACES": "1" }
     }
   },
-  "submit": {
-    "production": {}
-  }
+  "submit": { "production": {} }
 }

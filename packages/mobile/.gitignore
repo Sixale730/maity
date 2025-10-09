@@ -18,9 +18,9 @@ web-build/
 *.xcuserstate
 ios/Pods
 ios/build
-android/build
-android/.gradle
-android/app/build
+# Android build folders
+android/
+ios/
 
 # Environment
 .env

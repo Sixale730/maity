@@ -23,3 +23,23 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Build and temp files
+*.apk
+*.aab
+*.bat
+*.zip
+nul
+
+# JDK/Java
+jdk-*
+openjdk*
+
+# React Native / Expo
+packages/mobile/android/
+packages/mobile/ios/
+packages/mobile/.expo/
+packages/mobile/.expo-shared/
+
+# Duplicate files
+/app.json
