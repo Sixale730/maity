@@ -1,0 +1,23 @@
+{
+  "name": "maity-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "./"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev",
+    "dev:mobile": "cd packages/mobile && npm start",
+    "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:mobile\"",
+    "build:shared": "cd packages/shared && npm run build",
+    "build:web": "npm run build",
+    "build:all": "npm run build:shared && npm run build:web",
+    "test:all": "npm run test --workspaces --if-present",
+    "lint:all": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}

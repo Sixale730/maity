@@ -127,13 +127,13 @@ export default function SessionResultsPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <Button
           onClick={handleBack}
           variant="ghost"
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 hover:text-white text-sm sm:text-base h-9 sm:h-10"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           Volver al Historial
         </Button>
       </div>
@@ -157,21 +157,21 @@ export default function SessionResultsPage() {
 
       {/* Modal de Transcripción */}
       <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
-            <DialogDescription className="text-gray-400">
+        <DialogContent className="max-w-[95vw] sm:max-w-3xl lg:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogHeader className="px-3 sm:px-6 py-3 sm:py-4">
+            <DialogTitle className="text-base sm:text-lg lg:text-xl text-white">Transcripción de la Sesión</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-gray-400">
               {sessionData.scenario_name} • Perfil {sessionData.profile_name}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="mt-2 sm:mt-4 px-3 sm:px-6">
             {sessionData.raw_transcript ? (
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+              <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 lg:p-6 border border-gray-700 max-h-[60vh] sm:max-h-[55vh] overflow-y-auto">
                 <TranscriptViewer transcript={sessionData.raw_transcript} />
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <p>No hay transcripción disponible para esta sesión</p>
+              <div className="text-center py-6 sm:py-8 text-gray-400">
+                <p className="text-sm sm:text-base">No hay transcripción disponible para esta sesión</p>
               </div>
             )}
           </div>

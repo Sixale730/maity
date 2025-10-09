@@ -309,37 +309,40 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
   return (
 
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4">
 
       <Card className="w-full max-w-md">
 
-        <CardHeader className="text-center">
+        <CardHeader className="text-center p-4 sm:p-6">
 
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-3 sm:mb-4">
 
             {isLogin ? (
-              <MaityLogo variant="full" size="lg" />
+              <>
+                <MaityLogo variant="full" size="md" className="sm:hidden" />
+                <MaityLogo variant="full" size="lg" className="hidden sm:block" />
+              </>
             ) : (
               <img
                 src="/lovable-uploads/maity_logo_rojo.png"
                 alt="Maity Logo"
-                className="h-12 w-auto"
+                className="h-10 sm:h-12 w-auto"
               />
             )}
 
           </div>
 
-          <CardTitle className="font-geist text-2xl">
+          <CardTitle className="font-geist text-xl sm:text-2xl">
 
             {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
 
           </CardTitle>
 
-          <CardDescription className="font-inter">
+          <CardDescription className="font-inter text-sm sm:text-base">
 
-            {isLogin 
+            {isLogin
 
-              ? 'Accede a tu cuenta para continuar' 
+              ? 'Accede a tu cuenta para continuar'
 
               : 'Crea tu cuenta para comenzar tu transformación'
 
@@ -349,11 +352,11 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
 
           {/* OAuth Buttons */}
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
 
             <Button
 
@@ -363,7 +366,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               size="lg"
 
-              className="w-full font-inter"
+              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12"
 
               onClick={() => handleOAuthLogin('google')}
 
@@ -371,7 +374,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             >
 
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" viewBox="0 0 24 24">
 
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
 
@@ -395,7 +398,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               size="lg"
 
-              className="w-full font-inter"
+              className="w-full font-inter text-sm sm:text-base h-11 sm:h-12"
 
               onClick={() => handleOAuthLogin('azure')}
 
@@ -403,7 +406,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             >
 
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" viewBox="0 0 24 24">
 
                 <path fill="#00BCF2" d="M11.4 24H0V12.6L11.4 24z"/>
 
@@ -443,11 +446,11 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           {/* Email Form */}
 
-          <form onSubmit={handleEmailAuth} className="space-y-4">
+          <form onSubmit={handleEmailAuth} className="space-y-3 sm:space-y-4">
 
             <div className="space-y-2">
 
-              <Label htmlFor="email" className="font-inter">Correo electrónico</Label>
+              <Label htmlFor="email" className="font-inter text-sm sm:text-base">Correo electrónico</Label>
 
               <Input
 
@@ -463,7 +466,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
                 required
 
-                className="font-inter"
+                className="font-inter text-sm sm:text-base h-10 sm:h-11"
 
               />
 
@@ -471,7 +474,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <div className="space-y-2">
 
-              <Label htmlFor="password" className="font-inter">Contraseña</Label>
+              <Label htmlFor="password" className="font-inter text-sm sm:text-base">Contraseña</Label>
 
               <div className="relative">
                 <Input
@@ -482,7 +485,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
                   onChange={handlePasswordChange}
                   onPaste={handlePasswordPaste}
                   required
-                  className="font-inter pr-10"
+                  className="font-inter text-sm sm:text-base h-10 sm:h-11 pr-10"
                 />
                 <button
                   type="button"
@@ -490,7 +493,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} className="sm:w-5 sm:h-5" /> : <Eye size={18} className="sm:w-5 sm:h-5" />}
                 </button>
               </div>
 
@@ -498,7 +501,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
             <Button
               type="submit"
-              className={`w-full font-inter ${!isLogin ? 'bg-[hsl(var(--red-primary))] hover:bg-[hsl(var(--red-muted))] text-white' : ''}`}
+              className={`w-full font-inter text-sm sm:text-base h-10 sm:h-11 ${!isLogin ? 'bg-[hsl(var(--red-primary))] hover:bg-[hsl(var(--red-muted))] text-white' : ''}`}
               disabled={loading}
             >
 
@@ -510,7 +513,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           {/* Toggle Login/Signup */}
 
-          <div className="text-center">
+          <div className="text-center pt-2">
 
             <button
 
@@ -518,13 +521,13 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               onClick={() => setIsLogin(!isLogin)}
 
-              className="text-sm text-primary hover:underline font-inter"
+              className="text-xs sm:text-sm text-primary hover:underline font-inter"
 
             >
 
-              {isLogin 
+              {isLogin
 
-                ? '¿No tienes cuenta? Regístrate' 
+                ? '¿No tienes cuenta? Regístrate'
 
                 : '¿Ya tienes cuenta? Inicia sesión'
 
@@ -536,7 +539,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
           {/* Back to home */}
 
-          <div className="text-center pt-4">
+          <div className="text-center pt-3 sm:pt-4">
 
             <button
 
@@ -544,7 +547,7 @@ const Auth = ({ mode = 'default' }: AuthProps) => {
 
               onClick={() => navigate('/')}
 
-              className="text-sm text-muted-foreground hover:underline font-inter"
+              className="text-xs sm:text-sm text-muted-foreground hover:underline font-inter"
 
             >
 

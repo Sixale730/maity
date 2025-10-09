@@ -267,50 +267,50 @@ export function SessionResults({
   };
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-black p-3 sm:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">Resultados de la Sesión</h1>
-          <p className="text-gray-400">
+        <div className="text-center space-y-1 sm:space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Resultados de la Sesión</h1>
+          <p className="text-sm sm:text-base text-gray-400">
             {scenarioName} • Perfil {profile}
           </p>
         </div>
 
         {/* Score Principal */}
-        <Card className={`bg-gray-900/50 border ${isProcessing ? 'border-blue-500/20' : getScoreBg(displayScore || 0)} p-8`}>
-          <div className="text-center space-y-4">
+        <Card className={`bg-gray-900/50 border ${isProcessing ? 'border-blue-500/20' : getScoreBg(displayScore || 0)} p-4 sm:p-6 lg:p-8`}>
+          <div className="text-center space-y-3 sm:space-y-4">
             {isProcessing ? (
               <>
                 <div className="flex justify-center">
-                  <div className="p-4 bg-blue-500/10 rounded-full animate-pulse">
-                    <Brain className="h-12 w-12 text-blue-400" />
+                  <div className="p-3 sm:p-4 bg-blue-500/10 rounded-full animate-pulse">
+                    <Brain className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-blue-400">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-400">
                     Procesando evaluación...
                   </div>
-                  <p className="text-gray-400">
+                  <p className="text-sm sm:text-base text-gray-400">
                     Nuestro agente AI está analizando tu conversación
                   </p>
                   <div className="flex justify-center">
-                    <div className="animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full" />
+                    <div className="animate-spin h-5 w-5 sm:h-6 sm:w-6 border-2 border-blue-400 border-t-transparent rounded-full" />
                   </div>
                 </div>
               </>
             ) : error ? (
               <>
                 <div className="flex justify-center">
-                  <div className="p-4 bg-red-500/10 rounded-full">
-                    <XCircle className="h-12 w-12 text-red-400" />
+                  <div className="p-3 sm:p-4 bg-red-500/10 rounded-full">
+                    <XCircle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-red-400" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-red-400">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-red-400">
                     Error al procesar evaluación
                   </div>
-                  <p className="text-gray-400">
+                  <p className="text-sm sm:text-base text-gray-400">
                     {error}
                   </p>
                 </div>
@@ -319,22 +319,22 @@ export function SessionResults({
               <>
                 <div className="flex justify-center">
                   {passed ? (
-                    <div className="p-4 bg-green-500/10 rounded-full">
-                      <Trophy className="h-12 w-12 text-green-400" />
+                    <div className="p-3 sm:p-4 bg-green-500/10 rounded-full">
+                      <Trophy className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-400" />
                     </div>
                   ) : (
-                    <div className="p-4 bg-red-500/10 rounded-full">
-                      <AlertCircle className="h-12 w-12 text-red-400" />
+                    <div className="p-3 sm:p-4 bg-red-500/10 rounded-full">
+                      <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-red-400" />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="text-6xl font-bold">
+                  <div className="text-4xl sm:text-5xl lg:text-6xl font-bold">
                     <span className={getScoreColor(displayScore || 0)}>{displayScore || '—'}</span>
                     <span className="text-gray-500">/100</span>
                   </div>
-                  <p className="text-xl mt-2">
+                  <p className="text-base sm:text-lg lg:text-xl mt-2">
                     {passed ? (
                       <span className="text-green-400">¡Aprobado!</span>
                     ) : passed === false ? (
@@ -347,9 +347,9 @@ export function SessionResults({
               </>
             )}
 
-            <div className="flex justify-center gap-8 text-sm text-gray-400 flex-wrap">
+            <div className="flex justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-400 flex-wrap">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
+                <Target className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Score mínimo: 60</span>
               </div>
             </div>
@@ -357,45 +357,45 @@ export function SessionResults({
         </Card>
 
         {/* Métricas de Sesión: Palabras y Duración */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
           {/* Palabras Pronunciadas */}
-          <Card className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-purple-500/20 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-500/10 rounded-lg">
-                  <FileText className="h-8 w-8 text-purple-400" />
+          <Card className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-purple-500/20 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-purple-500/10 rounded-lg flex-shrink-0">
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Palabras Pronunciadas</h3>
-                  <p className="text-sm text-gray-400">Total de palabras expresadas</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Palabras Pronunciadas</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">Total de palabras expresadas</p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-purple-400">
+              <div className="text-left sm:text-right pl-11 sm:pl-0">
+                <div className="text-3xl sm:text-4xl font-bold text-purple-400">
                   {userWordCount.toLocaleString()}
                 </div>
-                <p className="text-sm text-gray-400 mt-1">palabras</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">palabras</p>
               </div>
             </div>
           </Card>
 
           {/* Duración de la Sesión */}
-          <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/20 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-500/10 rounded-lg">
-                  <Clock className="h-8 w-8 text-blue-400" />
+          <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/20 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
+                  <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Duración de Sesión</h3>
-                  <p className="text-sm text-gray-400">Tiempo total de conversación</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Duración de Sesión</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">Tiempo total de conversación</p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-blue-400">
+              <div className="text-left sm:text-right pl-11 sm:pl-0">
+                <div className="text-3xl sm:text-4xl font-bold text-blue-400">
                   {formatDuration(duration)}
                 </div>
-                <p className="text-sm text-gray-400 mt-1">minutos</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">minutos</p>
               </div>
             </div>
           </Card>
@@ -403,40 +403,40 @@ export function SessionResults({
 
         {/* Objetivo del Escenario y Feedback */}
         {objectives && (
-          <Card className="bg-gradient-to-br from-green-900/30 to-teal-900/30 border-green-500/20 p-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-500/10 rounded-lg">
-                  <Target className="h-8 w-8 text-green-400" />
+          <Card className="bg-gradient-to-br from-green-900/30 to-teal-900/30 border-green-500/20 p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
+                  <Target className="h-6 w-6 sm:h-8 sm:w-8 text-green-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">Objetivo del Escenario</h3>
-                  <p className="text-base text-gray-300 leading-relaxed">{objectives}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Objetivo del Escenario</h3>
+                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">{objectives}</p>
                 </div>
               </div>
 
               {/* Feedback del Objetivo */}
               {!isProcessing && objectiveFeedback && (
-                <div className="pt-4 border-t border-green-500/20">
-                  <h4 className="text-base font-medium text-green-400 mb-3">Evaluación del Objetivo</h4>
-                  <div className="space-y-3">
+                <div className="pt-3 sm:pt-4 border-t border-green-500/20">
+                  <h4 className="text-sm sm:text-base font-medium text-green-400 mb-2 sm:mb-3">Evaluación del Objetivo</h4>
+                  <div className="space-y-2 sm:space-y-3">
                     {/* Indicador visual basado en si pasó la sesión */}
                     {passed !== null && (
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         {passed ? (
-                          <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                          <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mt-0.5 flex-shrink-0" />
                         )}
                         <div>
-                          <p className="text-base font-medium text-white">
+                          <p className="text-sm sm:text-base font-medium text-white">
                             {passed ? 'Objetivo Cumplido' : 'Objetivo No Cumplido'}
                           </p>
                         </div>
                       </div>
                     )}
                     {/* Feedback del objetivo (string directo) */}
-                    <p className="text-base text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
                       {typeof objectiveFeedback === 'string' ? objectiveFeedback : objectiveFeedback.feedback || objectiveFeedback}
                     </p>
                   </div>
@@ -448,19 +448,19 @@ export function SessionResults({
 
         {/* Gráfico Radar 360° - Evaluación de Habilidades */}
         {!isProcessing && radarData.length > 0 && (
-          <Card className="bg-gray-900/50 border-gray-800 p-6">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Evaluación 360° de Habilidades</h3>
-              <p className="text-sm text-gray-400">
+          <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+            <div className="text-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">Evaluación 360° de Habilidades</h3>
+              <p className="text-xs sm:text-sm text-gray-400">
                 Visualización de tus competencias evaluadas en esta sesión
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Gráfico de 4 Dimensiones Principales */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3 text-center">Dimensiones Principales</h4>
-                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                <h4 className="text-base sm:text-lg font-semibold text-white mb-3 text-center">Dimensiones Principales</h4>
+                <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarData}>
                       <PolarGrid
@@ -499,8 +499,8 @@ export function SessionResults({
               {/* Gráfico de Subdimensiones Detalladas */}
               {radarSubdimensionsData.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-white mb-3 text-center">Subdimensiones Detalladas</h4>
-                  <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <h4 className="text-base sm:text-lg font-semibold text-white mb-3 text-center">Subdimensiones Detalladas</h4>
+                  <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarSubdimensionsData}>
                         <PolarGrid
@@ -541,14 +541,14 @@ export function SessionResults({
         )}
 
         {/* Métricas Detalladas - Una sola columna */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Análisis por Categoría con Desglose Integrado */}
-          <Card className="bg-gray-900/50 border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Brain className="h-5 w-5 text-blue-400" />
+          <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+              <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
               Análisis por Categoría
             </h3>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
               Haz clic en cada dimensión para ver el desglose detallado de subdimensiones
             </p>
             {isProcessing ? (
@@ -599,30 +599,30 @@ export function SessionResults({
                       {/* Header de la dimensión */}
                       <button
                         onClick={() => setExpandedDimension(expandedDimension === dimensionKey ? null : dimensionKey)}
-                        className="w-full p-4 bg-gray-800/50 hover:bg-gray-800 transition-colors"
+                        className="w-full p-3 sm:p-4 bg-gray-800/50 hover:bg-gray-800 transition-colors"
                       >
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start justify-between gap-2 sm:gap-4">
                           <div className="flex-1 text-left space-y-2">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-2 h-2 rounded-full bg-${dimensionColor}-400`} />
-                              <span className="font-medium text-white">{dimensionName}</span>
-                              <span className={`text-sm font-medium ${scoreColor}`}>
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                              <div className={`w-2 h-2 rounded-full bg-${dimensionColor}-400 flex-shrink-0`} />
+                              <span className="font-medium text-white text-sm sm:text-base">{dimensionName}</span>
+                              <span className={`text-xs sm:text-sm font-medium ${scoreColor}`}>
                                 {value !== null ? `${Math.round(value)}/100` : '—'}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-400 pl-5">
+                            <p className="text-xs sm:text-sm text-gray-400 pl-4 sm:pl-5">
                               {DIMENSION_DESCRIPTIONS[key as keyof typeof DIMENSION_DESCRIPTIONS]}
                             </p>
-                            <div className="pl-5">
-                              <Progress value={progressValue} className="h-2" />
+                            <div className="pl-4 sm:pl-5">
+                              <Progress value={progressValue} className="h-1.5 sm:h-2" />
                             </div>
                           </div>
                           <div className="flex-shrink-0">
                             {desgloseDimension && (
                               expandedDimension === dimensionKey ? (
-                                <ChevronUp className="h-5 w-5 text-gray-400" />
+                                <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                               ) : (
-                                <ChevronDown className="h-5 w-5 text-gray-400" />
+                                <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                               )
                             )}
                           </div>
@@ -631,25 +631,25 @@ export function SessionResults({
 
                       {/* Desglose de subdimensiones */}
                       {expandedDimension === dimensionKey && desgloseDimension && (
-                        <div className="p-4 bg-gray-900/30 space-y-3 border-t border-gray-700">
-                          <p className="text-xs text-gray-500 mb-3">Subdimensiones evaluadas:</p>
+                        <div className="p-3 sm:p-4 bg-gray-900/30 space-y-2 sm:space-y-3 border-t border-gray-700">
+                          <p className="text-xs text-gray-500 mb-2 sm:mb-3">Subdimensiones evaluadas:</p>
                           {Object.entries(desgloseDimension).map(([subKey, subValue]) => {
                             const valueNum = parseFloat(String(subValue)) * 10; // Convert 1-10 to 0-100
                             const description = SUBDIMENSION_DESCRIPTIONS[subKey] || '';
                             return (
-                              <div key={subKey} className="space-y-2">
-                                <div className="flex justify-between items-start text-sm">
-                                  <div className="flex-1">
+                              <div key={subKey} className="space-y-1 sm:space-y-2">
+                                <div className="flex justify-between items-start text-xs sm:text-sm">
+                                  <div className="flex-1 pr-2">
                                     <span className="text-gray-200 font-medium">{subKey.replace(/_/g, ' ')}</span>
                                     {description && (
                                       <p className="text-xs text-gray-500 mt-0.5">{description}</p>
                                     )}
                                   </div>
-                                  <span className={`text-${dimensionColor}-400 font-medium ml-4`}>
+                                  <span className={`text-${dimensionColor}-400 font-medium flex-shrink-0`}>
                                     {Math.round(valueNum)}/100
                                   </span>
                                 </div>
-                                <Progress value={valueNum} className="h-1.5" />
+                                <Progress value={valueNum} className="h-1 sm:h-1.5" />
                               </div>
                             );
                           })}
@@ -663,9 +663,9 @@ export function SessionResults({
           </Card>
 
           {/* Feedback del Agente */}
-          <Card className="bg-gray-900/50 border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-400" />
+          <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
               Feedback del Agente
             </h3>
 
@@ -678,18 +678,18 @@ export function SessionResults({
                 <div className="h-4 bg-gray-800 rounded animate-pulse w-4/5" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Nueva estructura: Fortalezas */}
                 {fortalezas && (
                   <div>
-                    <p className="text-base font-medium text-green-400 mb-2">Fortalezas</p>
+                    <p className="text-sm sm:text-base font-medium text-green-400 mb-2">Fortalezas</p>
                     {fortalezas.Cita && (
-                      <blockquote className="border-l-2 border-green-500/50 pl-3 py-1 mb-2">
-                        <p className="text-sm italic text-gray-300">{fortalezas.Cita}</p>
+                      <blockquote className="border-l-2 border-green-500/50 pl-2 sm:pl-3 py-1 mb-2">
+                        <p className="text-xs sm:text-sm italic text-gray-300">{fortalezas.Cita}</p>
                       </blockquote>
                     )}
                     {fortalezas.Feedback && (
-                      <p className="text-base text-gray-300">{fortalezas.Feedback}</p>
+                      <p className="text-sm sm:text-base text-gray-300">{fortalezas.Feedback}</p>
                     )}
                   </div>
                 )}
@@ -697,14 +697,14 @@ export function SessionResults({
                 {/* Nueva estructura: Errores */}
                 {errores && (
                   <div className="pt-3 border-t border-gray-700">
-                    <p className="text-base font-medium text-red-400 mb-2">Errores</p>
+                    <p className="text-sm sm:text-base font-medium text-red-400 mb-2">Errores</p>
                     {errores.Cita && (
-                      <blockquote className="border-l-2 border-red-500/50 pl-3 py-1 mb-2">
-                        <p className="text-sm italic text-gray-300">{errores.Cita}</p>
+                      <blockquote className="border-l-2 border-red-500/50 pl-2 sm:pl-3 py-1 mb-2">
+                        <p className="text-xs sm:text-sm italic text-gray-300">{errores.Cita}</p>
                       </blockquote>
                     )}
                     {errores.Feedback && (
-                      <p className="text-base text-gray-300">{errores.Feedback}</p>
+                      <p className="text-sm sm:text-base text-gray-300">{errores.Feedback}</p>
                     )}
                   </div>
                 )}
@@ -712,14 +712,14 @@ export function SessionResults({
                 {/* Nueva estructura: Recomendaciones */}
                 {recomendaciones && (
                   <div className="pt-3 border-t border-gray-700">
-                    <p className="text-base font-medium text-yellow-400 mb-2">Recomendaciones</p>
+                    <p className="text-sm sm:text-base font-medium text-yellow-400 mb-2">Recomendaciones</p>
                     {recomendaciones.Cita && (
-                      <blockquote className="border-l-2 border-yellow-500/50 pl-3 py-1 mb-2">
-                        <p className="text-sm italic text-gray-300">{recomendaciones.Cita}</p>
+                      <blockquote className="border-l-2 border-yellow-500/50 pl-2 sm:pl-3 py-1 mb-2">
+                        <p className="text-xs sm:text-sm italic text-gray-300">{recomendaciones.Cita}</p>
                       </blockquote>
                     )}
                     {recomendaciones.Feedback && (
-                      <p className="text-base text-gray-300">{recomendaciones.Feedback}</p>
+                      <p className="text-sm sm:text-base text-gray-300">{recomendaciones.Feedback}</p>
                     )}
                   </div>
                 )}
@@ -727,11 +727,11 @@ export function SessionResults({
                 {/* Fallback: estructura vieja - Áreas de Mejora */}
                 {!fortalezas && !errores && !recomendaciones && improvements.length > 0 && (
                   <div>
-                    <p className="text-base font-medium text-yellow-400 mb-3">Áreas de Mejora</p>
+                    <p className="text-sm sm:text-base font-medium text-yellow-400 mb-2 sm:mb-3">Áreas de Mejora</p>
                     <ul className="space-y-2">
                       {improvements.map((improvement, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-base text-gray-300">
-                          <AlertCircle className="h-4 w-4 text-yellow-400 mt-1 flex-shrink-0" />
+                        <li key={idx} className="flex items-start gap-2 text-sm sm:text-base text-gray-300">
+                          <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 mt-1 flex-shrink-0" />
                           <span>{improvement}</span>
                         </li>
                       ))}
@@ -741,8 +741,8 @@ export function SessionResults({
 
                 {/* Feedback general si está disponible (estructura vieja) */}
                 {!fortalezas && !errores && !recomendaciones && evaluation?.feedback && (
-                  <div className="pt-3 border-t border-gray-700 mt-4">
-                    <p className="text-base text-gray-300">{evaluation.feedback}</p>
+                  <div className="pt-3 border-t border-gray-700 mt-3 sm:mt-4">
+                    <p className="text-sm sm:text-base text-gray-300">{evaluation.feedback}</p>
                   </div>
                 )}
               </div>
@@ -751,32 +751,32 @@ export function SessionResults({
         </div>
 
         {/* Acciones */}
-        <Card className="bg-gray-900/50 border-gray-800 p-6">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               onClick={onRetry}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
               Repetir Escenario
             </Button>
 
             <Button
               onClick={onViewTranscript}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
               Ver Transcripción
             </Button>
 
             {passed && canProceedNext && (
               <Button
                 onClick={onNextScenario}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto bg-green-600 hover:bg-green-700 text-sm sm:text-base h-10 sm:h-11"
               >
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 Siguiente Escenario
               </Button>
             )}
@@ -784,9 +784,9 @@ export function SessionResults({
             {passed && !canProceedNext && (
               <Button
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-sm sm:text-base h-10 sm:h-11"
               >
-                <Trophy className="h-4 w-4" />
+                <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
                 ¡Perfil Completado!
               </Button>
             )}
@@ -795,8 +795,8 @@ export function SessionResults({
 
         {/* Nota informativa */}
         {isProcessing && (
-          <Card className="bg-blue-900/20 border-blue-500/20 p-4">
-            <p className="text-sm text-blue-400 text-center">
+          <Card className="bg-blue-900/20 border-blue-500/20 p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-blue-400 text-center">
               💡 La evaluación está siendo procesada por nuestro agente AI. Los resultados completos estarán disponibles en unos momentos.
               {requestId && (
                 <span className="block mt-1 text-xs text-gray-500">
