@@ -41,7 +41,7 @@ export const theme = {
     ...DefaultTheme.colors,
     primary: colors.primary,
     secondary: colors.secondary,
-    tertiary: colors.tertiary,
+    tertiary: colors.accent,
     background: colors.background,
     surface: colors.surface,
     error: colors.error,

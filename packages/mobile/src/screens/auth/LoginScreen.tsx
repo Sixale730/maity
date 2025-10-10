@@ -21,6 +21,7 @@ import { colors } from '../../theme';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { GoogleIcon } from '../../components/icons/GoogleIcon';
 import { MicrosoftIcon } from '../../components/icons/MicrosoftIcon';
+import { Logo } from '../../components/ui/Logo';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -142,7 +143,7 @@ export const LoginScreen: React.FC = () => {
           >
             {/* Logo con efecto neón */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>MAITY</Text>
+              <Logo width={100} height={100} />
               <Text style={styles.tagline}>Tu mentor de IA</Text>
             </View>
 
@@ -288,21 +289,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  logoText: {
-    fontSize: 65,
-    fontWeight: '900',
-    color: colors.primary,
-    letterSpacing: 5,
-    textShadowColor: colors.primary,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 40,
-    // Multiple shadows for better neon effect (simulated)
-    elevation: 30,
-  },
   tagline: {
     fontSize: 14,
     color: colors.text,
-    marginTop: 10,
+    marginTop: 15,
     letterSpacing: 3,
     opacity: 0.8,
     textTransform: 'uppercase',

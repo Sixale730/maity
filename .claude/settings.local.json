@@ -25,7 +25,12 @@
       "Read(//c/Users/jagv1/OneDrive/Documents/**)",
       "Bash(npm ls:*)",
       "Bash(npm cache clean:*)",
-      "Read(//c/Users/jagv1/**)"
+      "Read(//c/Users/jagv1/**)",
+      "Bash(cp:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "WebSearch",
+      "Bash(npx:*)"
     ],
     "deny": [],
     "ask": []

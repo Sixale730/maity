@@ -2,17 +2,17 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/main/DashboardScreen';
+import { CoachScreen } from '../screens/main/CoachScreen';
 import { RoleplayScreen } from '../screens/main/RoleplayScreen';
-import { SessionsScreen } from '../screens/main/SessionsScreen';
-import { ProfileScreen } from '../screens/main/ProfileScreen';
+import { SessionsNavigator } from './SessionsNavigator';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../theme';
 
 export type MainTabParamList = {
   Dashboard: undefined;
+  Coach: undefined;
   Roleplay: undefined;
   Sessions: undefined;
-  Profile: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -28,12 +28,12 @@ export const MainNavigator: React.FC = () => {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Coach') {
+            iconName = focused ? 'megaphone' : 'megaphone-outline';
           } else if (route.name === 'Roleplay') {
             iconName = focused ? 'play-circle' : 'play-circle-outline';
           } else if (route.name === 'Sessions') {
             iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -55,19 +55,19 @@ export const MainNavigator: React.FC = () => {
         options={{ title: t('nav.dashboard') }}
       />
       <Tab.Screen
+        name="Coach"
+        component={CoachScreen}
+        options={{ title: 'Coach' }}
+      />
+      <Tab.Screen
         name="Roleplay"
         component={RoleplayScreen}
         options={{ title: t('nav.roleplay') }}
       />
       <Tab.Screen
         name="Sessions"
-        component={SessionsScreen}
+        component={SessionsNavigator}
         options={{ title: t('nav.sessions') }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ title: 'Perfil' }}
       />
     </Tab.Navigator>
   );

@@ -1,118 +1,158 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, Chip, FAB } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { Text, Chip, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme';
+import { getSupabase } from '@maity/shared';
 
-interface Session {
+type SessionsStackParamList = {
+  SessionsList: undefined;
+  SessionResults: { sessionId: string };
+};
+
+type SessionsScreenNavigationProp = NativeStackNavigationProp<SessionsStackParamList, 'SessionsList'>;
+
+interface VoiceSession {
   id: string;
-  title: string;
-  date: string;
-  time: string;
-  duration: number;
-  type: 'coaching' | 'roleplay' | 'evaluation';
-  status: 'completed' | 'upcoming' | 'cancelled';
-  score?: number;
+  profile_name: string;
+  scenario_name: string;
+  status: string;
+  score: number | null;
+  passed: boolean | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_seconds: number | null;
 }
 
 export const SessionsScreen: React.FC = () => {
   const { t } = useLanguage();
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
+  const navigation = useNavigation<SessionsScreenNavigationProp>();
+  const [filter, setFilter] = useState<'all' | 'completed'>('all');
+  const [sessions, setSessions] = useState<VoiceSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const sessions: Session[] = [
-    {
-      id: '1',
-      title: 'Sesión de Coaching Personal',
-      date: '2024-01-15',
-      time: '15:00',
-      duration: 30,
-      type: 'coaching',
-      status: 'upcoming',
-    },
-    {
-      id: '2',
-      title: 'Role Play: Negociación',
-      date: '2024-01-14',
-      time: '10:00',
-      duration: 45,
-      type: 'roleplay',
-      status: 'completed',
-      score: 85,
-    },
-    {
-      id: '3',
-      title: 'Evaluación 360°',
-      date: '2024-01-12',
-      time: '14:00',
-      duration: 60,
-      type: 'evaluation',
-      status: 'completed',
-      score: 92,
-    },
-    {
-      id: '4',
-      title: 'Sesión de Coaching Grupal',
-      date: '2024-01-10',
-      time: '16:00',
-      duration: 45,
-      type: 'coaching',
-      status: 'completed',
-    },
-  ];
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const supabase = getSupabase();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError('Usuario no autenticado');
+        return;
+      }
+
+      const { data, error: fetchError } = await supabase
+        .rpc('get_user_sessions_history', { p_auth_id: user.id });
+
+      if (fetchError) {
+        console.error('Error fetching sessions:', fetchError);
+        setError('No se pudieron cargar las sesiones');
+        return;
+      }
+
+      setSessions(data || []);
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Ocurrió un error al cargar las sesiones');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchSessions();
+    setRefreshing(false);
+  };
 
   const filteredSessions = sessions.filter(session => {
     if (filter === 'all') return true;
-    if (filter === 'upcoming') return session.status === 'upcoming';
     if (filter === 'completed') return session.status === 'completed';
     return true;
   });
 
-  const getTypeColor = (type: Session['type']) => {
-    switch (type) {
-      case 'coaching':
-        return colors.primary;
-      case 'roleplay':
-        return colors.secondary;
-      case 'evaluation':
-        return colors.tertiary;
-      default:
-        return colors.textSecondary;
+  const getStatusBadge = (status: string, passed: boolean | null) => {
+    if (status === 'completed' && passed !== null) {
+      return {
+        label: passed ? 'Aprobado' : 'No Aprobado',
+        color: passed ? '#10B981' : '#EF4444'
+      };
+    } else if (status === 'in_progress') {
+      return { label: 'En Progreso', color: '#F59E0B' };
+    } else if (status === 'abandoned') {
+      return { label: 'Abandonado', color: '#6B7280' };
     }
+    return { label: 'Pendiente', color: colors.textSecondary };
   };
 
-  const getTypeLabel = (type: Session['type']) => {
-    switch (type) {
-      case 'coaching':
-        return 'Coaching';
-      case 'roleplay':
-        return 'Role Play';
-      case 'evaluation':
-        return 'Evaluación';
-      default:
-        return '';
-    }
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return 'N/A';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const getStatusLabel = (status: Session['status']) => {
-    switch (status) {
-      case 'upcoming':
-        return 'Próxima';
-      case 'completed':
-        return 'Completada';
-      case 'cancelled':
-        return 'Cancelada';
-      default:
-        return '';
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
   };
+
+  const getScoreColor = (score: number | null) => {
+    if (!score) return colors.textSecondary;
+    if (score >= 80) return '#10B981';
+    if (score >= 60) return '#F59E0B';
+    return '#EF4444';
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Cargando historial...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchSessions}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+          />
+        }
       >
         <View style={styles.header}>
           <Text style={styles.title}>{t('nav.sessions')}</Text>
@@ -132,90 +172,101 @@ export const SessionsScreen: React.FC = () => {
             onPress={() => setFilter('all')}
             style={styles.filterChip}
           >
-            Todas
-          </Chip>
-          <Chip
-            selected={filter === 'upcoming'}
-            onPress={() => setFilter('upcoming')}
-            style={styles.filterChip}
-          >
-            Próximas
+            Todas ({sessions.length})
           </Chip>
           <Chip
             selected={filter === 'completed'}
             onPress={() => setFilter('completed')}
             style={styles.filterChip}
           >
-            Completadas
+            Completadas ({sessions.filter(s => s.status === 'completed').length})
           </Chip>
         </ScrollView>
 
         {/* Sessions List */}
         <View style={styles.sessionsList}>
-          {filteredSessions.map((session) => (
-            <TouchableOpacity key={session.id} activeOpacity={0.7}>
-              <Card style={styles.sessionCard}>
-                <View style={styles.sessionHeader}>
-                  <View style={styles.sessionTypeContainer}>
-                    <View
-                      style={[
-                        styles.typeIndicator,
-                        { backgroundColor: getTypeColor(session.type) },
-                      ]}
-                    />
-                    <Text style={styles.sessionType}>
-                      {getTypeLabel(session.type)}
-                    </Text>
-                  </View>
-                  {session.score && (
-                    <View style={styles.scoreContainer}>
-                      <Text style={styles.scoreLabel}>Score:</Text>
-                      <Text style={styles.scoreValue}>{session.score}</Text>
+          {filteredSessions.length === 0 ? (
+            <Card style={styles.emptyCard}>
+              <Text style={styles.emptyTitle}>No hay sesiones registradas</Text>
+              <Text style={styles.emptyText}>
+                Comienza tu primera práctica de roleplay
+              </Text>
+            </Card>
+          ) : (
+            filteredSessions.map((session) => {
+              const statusBadge = getStatusBadge(session.status, session.passed);
+
+              return (
+                <TouchableOpacity
+                  key={session.id}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('SessionResults', { sessionId: session.id })}
+                >
+                  <Card style={styles.sessionCard}>
+                    <View style={styles.sessionHeader}>
+                      <Text style={styles.sessionTitle}>
+                        {session.scenario_name || 'Sesión de Práctica'}
+                      </Text>
+                      {session.score !== null && (
+                        <View style={styles.scoreContainer}>
+                          <Text
+                            style={[
+                              styles.scoreValue,
+                              { color: getScoreColor(session.score) }
+                            ]}
+                          >
+                            {session.score}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  )}
-                </View>
 
-                <Text style={styles.sessionTitle}>{session.title}</Text>
+                    <View style={styles.sessionMeta}>
+                      <View
+                        style={[
+                          styles.typeIndicator,
+                          { backgroundColor: colors.primary }
+                        ]}
+                      />
+                      <Text style={styles.sessionType}>
+                        {session.profile_name}
+                      </Text>
+                    </View>
 
-                <View style={styles.sessionDetails}>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>📅</Text>
-                    <Text style={styles.detailText}>{session.date}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>🕐</Text>
-                    <Text style={styles.detailText}>{session.time}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>⏱</Text>
-                    <Text style={styles.detailText}>{session.duration} min</Text>
-                  </View>
-                </View>
+                    <View style={styles.sessionDetails}>
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailLabel}>📅</Text>
+                        <Text style={styles.detailText}>
+                          {formatDate(session.started_at)}
+                        </Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailLabel}>⏱</Text>
+                        <Text style={styles.detailText}>
+                          {formatDuration(session.duration_seconds)}
+                        </Text>
+                      </View>
+                    </View>
 
-                <View style={styles.sessionFooter}>
-                  <Chip
-                    compact
-                    style={[
-                      styles.statusChip,
-                      session.status === 'completed' && styles.completedChip,
-                      session.status === 'upcoming' && styles.upcomingChip,
-                    ]}
-                  >
-                    {getStatusLabel(session.status)}
-                  </Chip>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))}
+                    <View style={styles.sessionFooter}>
+                      <Chip
+                        compact
+                        style={[
+                          styles.statusChip,
+                          { backgroundColor: statusBadge.color + '20' }
+                        ]}
+                        textStyle={{ color: statusBadge.color }}
+                      >
+                        {statusBadge.label}
+                      </Chip>
+                    </View>
+                  </Card>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </ScrollView>
-
-      {/* Floating Action Button */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => console.log('Schedule new session')}
-      />
     </SafeAreaView>
   );
 };
@@ -225,8 +276,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   scrollContent: {
-    paddingBottom: 100, // Space for FAB
+    paddingBottom: 20,
   },
   header: {
     padding: 20,
@@ -252,6 +336,21 @@ const styles = StyleSheet.create({
   sessionsList: {
     paddingHorizontal: 20,
   },
+  emptyCard: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
   sessionCard: {
     marginBottom: 16,
     padding: 0,
@@ -259,12 +358,13 @@ const styles = StyleSheet.create({
   sessionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
-  sessionTypeContainer: {
+  sessionMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
   },
   typeIndicator: {
     width: 4,
@@ -276,27 +376,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
-    textTransform: 'uppercase',
   },
   scoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginRight: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
   },
   scoreValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: colors.primary,
   },
   sessionTitle: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 12,
+    marginRight: 8,
   },
   sessionDetails: {
     flexDirection: 'row',
@@ -319,19 +415,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   statusChip: {
-    backgroundColor: colors.background,
-  },
-  completedChip: {
-    backgroundColor: '#D1FAE5',
-  },
-  upcomingChip: {
-    backgroundColor: '#DBEAFE',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.primary,
+    paddingHorizontal: 8,
   },
 });
