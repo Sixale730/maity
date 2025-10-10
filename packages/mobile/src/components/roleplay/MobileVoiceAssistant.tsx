@@ -105,20 +105,97 @@ export function MobileVoiceAssistant({
       };
 
       console.error('[MobileVoiceAssistant] ❌ Error en conversación:', errorDetails);
+      console.error('[MobileVoiceAssistant] ❌ Error completo:', error);
+      console.error('[MobileVoiceAssistant] ❌ Tipo de error:', typeof error);
 
-      const errorMsg = `Error en conversación:\nTipo: ${errorDetails.name}\nMensaje: ${errorDetails.message}`;
-      setLastError(errorMsg);
-      setDetailedStatus(`Error: ${errorDetails.message}`);
+      // Extraer mensaje de error
+      const errorMessage = errorDetails.message || error?.toString() || 'Error desconocido';
+      const errorLower = errorMessage.toLowerCase();
+
+      let userFriendlyMessage = '';
+      let errorTitle = 'Error en la conversación';
+
+      // Manejo específico para errores de WebRTC/PeerConnection
+      if (errorLower.includes('could not establish pc connection') ||
+          errorLower.includes('peerconnection') ||
+          errorLower.includes('webrtc') ||
+          errorLower.includes('peer connection')) {
+        console.error('[MobileVoiceAssistant] 🔴 WebRTC/PeerConnection error detected');
+        errorTitle = 'Error de Conexión de Voz';
+        userFriendlyMessage =
+          'No se pudo establecer la conexión de voz.\n\n' +
+          'Causas posibles:\n' +
+          '• Firewall o red corporativa bloqueando WebRTC\n' +
+          '• Problemas de conexión a internet\n' +
+          '• Límite de cuota alcanzado\n\n' +
+          'Soluciones:\n' +
+          '1. Verificar tu conexión a internet\n' +
+          '2. Intentar con datos móviles en lugar de WiFi\n' +
+          '3. Desactivar VPN si tienes una activa\n' +
+          '4. Esperar unos minutos y volver a intentar';
+      }
+      // Manejo específico para errores de cuota/límites
+      else if (errorLower.includes('quota') ||
+               errorLower.includes('limit') ||
+               errorLower.includes('rate') ||
+               errorLower.includes('429') ||
+               errorLower.includes('insufficient') ||
+               errorLower.includes('exceeded')) {
+        console.error('[MobileVoiceAssistant] ⚠️ Límite de ElevenLabs alcanzado');
+        errorTitle = 'Límite Alcanzado';
+        userFriendlyMessage =
+          'Se ha alcanzado el límite de uso del servicio de voz.\n\n' +
+          'Por favor, intenta más tarde o contacta al administrador.';
+      }
+      // Manejo específico para errores de tipo desconocido
+      else if (errorLower.includes('unknown type') ||
+               errorLower.includes('tipo desconocido') ||
+               errorMessage === '[object Object]') {
+        console.error('[MobileVoiceAssistant] ❓ Unknown error type detected');
+        errorTitle = 'Error Desconocido';
+        userFriendlyMessage =
+          'Error desconocido al conectar con el servicio de voz.\n\n' +
+          'Soluciones:\n' +
+          '1. Cierra y abre la aplicación\n' +
+          '2. Verifica tu conexión a internet\n' +
+          '3. Asegúrate de haber dado permisos al micrófono\n' +
+          '4. Si persiste, contacta a soporte técnico';
+      }
+      // Manejo para errores de permisos de micrófono
+      else if (errorLower.includes('permission') ||
+               errorLower.includes('notallowed') ||
+               errorLower.includes('denied')) {
+        console.error('[MobileVoiceAssistant] 🎤 Microphone permission error');
+        errorTitle = 'Sin Permiso de Micrófono';
+        userFriendlyMessage =
+          'No se pudo acceder al micrófono.\n\n' +
+          'Por favor, permite el acceso al micrófono en la configuración de tu dispositivo.';
+      }
+      // Error genérico
+      else {
+        console.error('[MobileVoiceAssistant] ❌ Generic error');
+        userFriendlyMessage =
+          `Error en la conversación:\n\n${errorMessage.substring(0, 150)}\n\n` +
+          'Por favor, verifica tu conexión y vuelve a intentar.';
+      }
+
+      const shortErrorMsg = `${errorTitle}: ${errorMessage.substring(0, 50)}...`;
+      setLastError(shortErrorMsg);
+      setDetailedStatus(`Error: ${errorTitle}`);
 
       Alert.alert(
-        'Error en la conversación',
-        errorMsg,
+        errorTitle,
+        userFriendlyMessage,
         [
           {
-            text: 'Ver detalles',
-            onPress: () => Alert.alert('Detalles del error', errorDetails.fullError)
+            text: 'Ver detalles técnicos',
+            onPress: () => Alert.alert(
+              'Detalles Técnicos',
+              `Tipo: ${errorDetails.name}\nMensaje: ${errorDetails.message}\n\nStack:\n${errorDetails.stack}`,
+              [{ text: 'OK' }]
+            )
           },
-          { text: 'OK' }
+          { text: 'Entendido' }
         ]
       );
     },

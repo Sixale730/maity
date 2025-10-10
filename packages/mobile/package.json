@@ -9,8 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@elevenlabs/client": "^0.7.1",
-    "@elevenlabs/react-native": "^0.4.0",
+    "@elevenlabs/client": "^0.8.0",
+    "@elevenlabs/react-native": "^0.4.1",
     "@expo/vector-icons": "^15.0.2",
     "@livekit/react-native": "^2.9.2",
     "@livekit/react-native-webrtc": "^137.0.2",
