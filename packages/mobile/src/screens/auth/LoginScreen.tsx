@@ -141,16 +141,15 @@ export const LoginScreen: React.FC = () => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Logo con efecto neón */}
+            {/* Logo */}
             <View style={styles.logoContainer}>
               <Logo width={100} height={100} />
-              <Text style={styles.tagline}>Tu mentor de IA</Text>
             </View>
 
             {/* Form Card */}
             <View style={styles.formContainer}>
               <Text style={styles.title}>
-                {isLogin ? 'Bienvenido de vuelta' : 'Crear Cuenta'}
+                {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
               </Text>
               <Text style={styles.subtitle}>
                 {isLogin
@@ -159,6 +158,51 @@ export const LoginScreen: React.FC = () => {
                 }
               </Text>
 
+              {/* OAuth Buttons primero (como en web) */}
+              <View style={styles.oauthContainer}>
+                <TouchableOpacity
+                  onPress={handleGoogleLogin}
+                  disabled={loading}
+                  style={styles.oauthButton}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.oauthContent}>
+                    <GoogleIcon width={20} height={20} />
+                    <Text style={styles.oauthText}>Continuar con Google</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleMicrosoftLogin}
+                  disabled={loading}
+                  style={styles.oauthButton}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.oauthContent}>
+                    <MicrosoftIcon width={20} height={20} />
+                    <Text style={styles.oauthText}>Continuar con Microsoft</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Separador */}
+              <View style={styles.dividerContainer}>
+                <LinearGradient
+                  colors={['transparent', `${colors.primary}33`, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.dividerGradient}
+                />
+                <Text style={styles.dividerText}>O continúa con email</Text>
+                <LinearGradient
+                  colors={['transparent', `${colors.primary}33`, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.dividerGradient}
+                />
+              </View>
+
+              {/* Formulario */}
               <Input
                 label="Correo electrónico"
                 value={email}
@@ -204,47 +248,6 @@ export const LoginScreen: React.FC = () => {
                 />
               )}
 
-              <View style={styles.dividerContainer}>
-                <LinearGradient
-                  colors={['transparent', `${colors.primary}33`, 'transparent']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.dividerGradient}
-                />
-                <Text style={styles.dividerText}>O continúa con</Text>
-                <LinearGradient
-                  colors={['transparent', `${colors.primary}33`, 'transparent']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.dividerGradient}
-                />
-              </View>
-
-              {/* OAuth Buttons con estilo neón */}
-              <TouchableOpacity
-                onPress={handleGoogleLogin}
-                disabled={loading}
-                style={styles.oauthButton}
-                activeOpacity={0.8}
-              >
-                <View style={styles.oauthContent}>
-                  <GoogleIcon width={20} height={20} />
-                  <Text style={styles.oauthText}>Continuar con Google</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleMicrosoftLogin}
-                disabled={loading}
-                style={[styles.oauthButton, { borderColor: `${colors.secondary}66` }]}
-                activeOpacity={0.8}
-              >
-                <View style={styles.oauthContent}>
-                  <MicrosoftIcon width={20} height={20} />
-                  <Text style={styles.oauthText}>Continuar con Microsoft</Text>
-                </View>
-              </TouchableOpacity>
-
               {/* Toggle Login/Register */}
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>
@@ -287,69 +290,51 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
-  tagline: {
-    fontSize: 14,
-    color: colors.text,
-    marginTop: 15,
-    letterSpacing: 3,
-    opacity: 0.8,
-    textTransform: 'uppercase',
+  oauthContainer: {
+    marginBottom: 0,
   },
   formContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 24,
-    // Enhanced neon shadow
-    shadowColor: colors.primary,
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 0,
+      height: 2,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 50,
-    elevation: 20,
-    borderWidth: 0,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
-    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 24,
+    marginBottom: 20,
     textAlign: 'center',
-    opacity: 0.7,
   },
   input: {
     marginBottom: 16,
   },
   loginButton: {
-    marginTop: 12,
-    marginBottom: 16,
-    shadowColor: colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
+    marginTop: 8,
   },
   forgotButton: {
     alignSelf: 'center',
-    marginBottom: 20,
+    marginTop: 8,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: 20,
   },
   dividerGradient: {
     flex: 1,
@@ -358,43 +343,36 @@ const styles = StyleSheet.create({
   dividerText: {
     marginHorizontal: 16,
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     opacity: 0.6,
-    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   oauthButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: `${colors.primary}44`,
+    borderColor: colors.border || '#333',
     marginBottom: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   oauthContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  oauthIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginRight: 12,
-  },
   oauthText: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
-    marginLeft: 12,
+    marginLeft: 10,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   registerText: {
     color: colors.textSecondary,
@@ -405,7 +383,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 14,
     fontWeight: '600',
-    textDecorationLine: 'underline',
   },
   loadingOverlay: {
     position: 'absolute',
