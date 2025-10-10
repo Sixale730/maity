@@ -5,20 +5,34 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "mx.com.maity.app"
+      "bundleIdentifier": "mx.com.maity.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Necesitamos acceso al micrófono para las sesiones de práctica con IA",
+        "NSCameraUsageDescription": "Necesitamos acceso a la cámara para funciones de video (opcional)"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000000"
       },
-      "package": "mx.com.maity.app"
+      "package": "mx.com.maity.app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

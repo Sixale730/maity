@@ -5,13 +5,17 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SecureStore from 'expo-secure-store';
 import { initializeSupabase, AuthService } from '@maity/shared';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { theme } from './src/theme';
+import { ElevenLabsProvider } from '@elevenlabs/react-native';
 
 // Initialize Supabase for mobile
 const supabase = initializeSupabase('mobile');
+
+const SESSION_KEY = 'maity_session';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,16 +23,31 @@ export default function App() {
 
   useEffect(() => {
     console.log('App mounted, checking auth state...');
-    // Check initial auth state
+    // Check initial auth state (including stored session)
     checkAuthState();
 
     // Listen to auth changes
-    const { data: authListener } = AuthService.onAuthStateChange((event, session) => {
+    const { data: authListener } = AuthService.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, !!session);
       setIsAuthenticated(!!session);
-      if (event === 'SIGNED_OUT') {
-        // Handle sign out
+
+      if (event === 'SIGNED_IN' && session) {
+        // Save session to secure storage
+        try {
+          await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+          console.log('Session saved to secure storage');
+        } catch (error) {
+          console.error('Error saving session:', error);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        // Clear session from storage
         setIsAuthenticated(false);
+        try {
+          await SecureStore.deleteItemAsync(SESSION_KEY);
+          console.log('Session cleared from secure storage');
+        } catch (error) {
+          console.error('Error clearing session:', error);
+        }
       }
     });
 
@@ -40,7 +59,35 @@ export default function App() {
   const checkAuthState = async () => {
     try {
       console.log('Checking auth state...');
-      const session = await AuthService.getSession();
+
+      // First try to get current session
+      let session = await AuthService.getSession();
+
+      // If no active session, try to restore from storage
+      if (!session) {
+        try {
+          const storedSession = await SecureStore.getItemAsync(SESSION_KEY);
+          if (storedSession) {
+            const parsedSession = JSON.parse(storedSession);
+            // Attempt to restore the session
+            const { data, error } = await supabase.auth.setSession({
+              access_token: parsedSession.access_token,
+              refresh_token: parsedSession.refresh_token,
+            });
+            if (!error && data.session) {
+              session = data.session;
+              console.log('Session restored from secure storage');
+            } else {
+              // If restore fails, clear invalid stored session
+              await SecureStore.deleteItemAsync(SESSION_KEY);
+              console.log('Stored session was invalid, cleared');
+            }
+          }
+        } catch (error) {
+          console.error('Error restoring session:', error);
+        }
+      }
+
       console.log('Session found:', !!session);
       setIsAuthenticated(!!session);
     } catch (error) {
@@ -63,15 +110,17 @@ export default function App() {
   console.log('Rendering app with auth:', isAuthenticated);
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={theme}>
-        <LanguageProvider>
-          <NavigationContainer>
-            <StatusBar style="auto" />
-            <RootNavigator isAuthenticated={isAuthenticated} />
-          </NavigationContainer>
-        </LanguageProvider>
-      </PaperProvider>
-    </SafeAreaProvider>
+    <ElevenLabsProvider>
+      <SafeAreaProvider>
+        <PaperProvider theme={theme}>
+          <LanguageProvider>
+            <NavigationContainer>
+              <StatusBar style="auto" />
+              <RootNavigator isAuthenticated={isAuthenticated} />
+            </NavigationContainer>
+          </LanguageProvider>
+        </PaperProvider>
+      </SafeAreaProvider>
+    </ElevenLabsProvider>
   );
 }
