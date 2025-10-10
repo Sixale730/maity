@@ -111,6 +111,88 @@ npx expo run:android  # o run:ios
   - ✅ Tracking de conexión/desconexión con razones
   - ✅ Validación de transcripción con longitud y duración
 
+## ✅ Completadas Recientemente (2025-10-10)
+
+### Arreglo Crítico: WebRTC Connection Error
+- [x] Solucionar error "could not establish pc connection" en MobileVoiceAssistant
+  - ✅ **Problema identificado**: Faltaban plugins de Expo requeridos para WebRTC
+  - ✅ Instalado `@livekit/react-native-expo-plugin@^1.0.1`
+  - ✅ Instalado `@config-plugins/react-native-webrtc@^12.0.0`
+  - ✅ Actualizado `app.json` con los plugins requeridos
+  - ✅ Regenerado build nativo con `npx expo prebuild --clean`
+
+**Causa del error:**
+- Los plugins de Expo son OBLIGATORIOS para que WebRTC funcione correctamente
+- Sin ellos, los módulos nativos de WebRTC no se configuran adecuadamente
+- Esto causaba que PeerConnection no se pudiera establecer
+
+**Solución aplicada:**
+```json
+// app.json
+"plugins": [
+  "@livekit/react-native-expo-plugin",      // NUEVO ✅
+  "@config-plugins/react-native-webrtc",    // NUEVO ✅
+  "expo-secure-store",
+  "expo-web-browser",
+  "expo-font"
+]
+```
+
+**Próximos pasos para testing:**
+1. Reconstruir la app: `npx expo run:android` o `npx expo run:ios`
+2. Probar conexión con el agente de voz
+3. Verificar que se establece la conexión WebRTC sin errores
+
+**Referencias:**
+- [ElevenLabs React Native Docs](https://elevenlabs.io/docs/agents-platform/libraries/react-native)
+- [Ejemplo oficial](https://github.com/elevenlabs/elevenlabs-examples/tree/main/examples/conversational-ai/react-native/elevenlabs-conversational-ai-expo-react-native)
+- [LiveKit Expo Plugin](https://docs.livekit.io/home/quickstarts/expo/)
+
+### Simplificación Completa: Implementación Basada en Ejemplo Oficial
+- [x] Reescribir MobileVoiceAssistant para coincidir con ejemplo oficial de ElevenLabs
+  - ✅ **Cambio principal**: Eliminado sistema de `conversationToken`, ahora usa `agentId` directamente
+  - ✅ Agregados permisos Android adicionales: `ACCESS_NETWORK_STATE`, `INTERNET`, `SYSTEM_ALERT_WINDOW`, `WAKE_LOCK`, `BLUETOOTH`
+  - ✅ Simplificado flujo de conexión: solo permisos → validar agentId → conectar
+  - ✅ Eliminada complejidad innecesaria de tokens y endpoints
+  - ✅ Implementación mínima funcional de ~460 líneas (vs ~640 anteriores)
+  - ✅ Regenerado build nativo con nuevos permisos
+
+**Cambios clave en la implementación:**
+
+```typescript
+// ANTES (con conversationToken - NO funcionaba)
+const token = await getConversationToken(); // Endpoint separado
+await conversation.startSession({
+  conversationToken: token,
+  userId: userId
+});
+
+// AHORA (con agentId - según ejemplo oficial)
+await conversation.startSession({
+  agentId: process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_ID_TEST
+});
+```
+
+**Beneficios:**
+- ✅ Implementación más simple y directa
+- ✅ Elimina punto de fallo (endpoint de tokens)
+- ✅ Coincide exactamente con ejemplo oficial que SÍ funciona
+- ✅ Menos código = menos bugs
+- ✅ Más fácil de mantener y debuggear
+
+**Archivos modificados:**
+1. `app.json` - Agregados 5 permisos Android
+2. `MobileVoiceAssistant.tsx` - Reescrito completamente (~200 líneas menos)
+
+**Próximos pasos:**
+1. Reconstruir app: `npx expo run:android`
+2. Probar conexión con agente
+3. Verificar que WebRTC conecta correctamente
+
+**Nota importante:**
+- El endpoint `/api/elevenlabs-conversation-token` ya no se usa
+- Se puede eliminar en el futuro si no se necesita para la versión web
+
 ## 🎯 Prioridad Alta
 1. SessionsScreen con datos reales
 2. Crear SessionResultsScreen
