@@ -485,13 +485,6 @@ export const RoleplayScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('nav.roleplay')}</Text>
-          <Text style={styles.subtitle}>
-            Bienvenido, {userName}
-          </Text>
-        </View>
-
         {/* Loading State */}
         {initialLoading && (
           <View style={styles.loadingContainer}>
@@ -542,58 +535,6 @@ export const RoleplayScreen: React.FC = () => {
             </View>
           </Card>
         )}
-
-        {/* Recent Progress */}
-        <Card
-          title="Tu Progreso Reciente"
-          style={styles.progressCard}
-        >
-          {recentSessions.length > 0 ? (
-            recentSessions.map((session, index) => (
-              <View
-                key={session.id}
-                style={[
-                  styles.progressItem,
-                  index === recentSessions.length - 1 && styles.progressItemLast
-                ]}
-              >
-                <View style={styles.progressInfo}>
-                  <Text style={styles.progressTitle}>
-                    {session.profile_name || 'Práctica'}
-                  </Text>
-                  <Text style={styles.progressDate}>
-                    {new Date(session.created_at).toLocaleDateString('es-MX')}
-                  </Text>
-                  {session.status && (
-                    <Text style={[
-                      styles.statusBadge,
-                      session.status === 'completed' ? styles.statusCompleted : styles.statusPending
-                    ]}>
-                      {session.status === 'completed' ? 'Completado' : 'En proceso'}
-                    </Text>
-                  )}
-                </View>
-                {session.score !== null && (
-                  <View style={[
-                    styles.scoreCircle,
-                    session.score >= 60 ? styles.scorePass : styles.scoreFail
-                  ]}>
-                    <Text style={styles.scoreText}>{session.score}</Text>
-                  </View>
-                )}
-              </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                No has completado sesiones aún
-              </Text>
-              <Text style={styles.emptyStateSubtext}>
-                ¡Comienza con un escenario para ver tu progreso!
-              </Text>
-            </View>
-          )}
-        </Card>
 
         {/* Loading Overlay */}
         {loading && (

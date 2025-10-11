@@ -12,15 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme';
+import { getSupabase } from '../../lib/supabase/client';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 export const DashboardScreen: React.FC = () => {
   const { t } = useLanguage();
-  // Temporarily comment out useUserRole to fix hook error
-  // const { userRole, userProfile, loading: roleLoading, refreshRole } = useUserRole();
-  const userProfile = { name: 'Usuario', email: 'user@example.com', role: 'user' };
-  const roleLoading = false;
+  const [userName, setUserName] = useState<string>('Usuario');
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     sessionsCompleted: 12,
@@ -31,9 +29,38 @@ export const DashboardScreen: React.FC = () => {
     totalXP: 2450,
   });
 
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const supabase = getSupabase();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, name, nickname, email')
+        .eq('auth_id', user.id)
+        .single();
+
+      if (userData) {
+        const displayName =
+          userData.name?.trim() ||
+          userData.nickname?.trim() ||
+          userData.email?.split('@')[0] ||
+          'Usuario';
+        setUserName(displayName);
+      }
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading user:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    // await refreshRole(); // Temporarily disabled
+    await loadUserData();
     // Refresh dashboard data here
     setTimeout(() => setRefreshing(false), 1000);
   };
@@ -44,14 +71,6 @@ export const DashboardScreen: React.FC = () => {
     if (hour < 19) return 'Buenas tardes';
     return 'Buenas noches';
   };
-
-  if (roleLoading && !userProfile) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text>{t('common.loading')}</Text>
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,8 +84,7 @@ export const DashboardScreen: React.FC = () => {
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.greeting}>{getGreeting()},</Text>
-          <Text style={styles.userName}>{userProfile?.name || 'Usuario'}</Text>
-          <Text style={styles.subtitle}>{t('dashboard.user.description')}</Text>
+          <Text style={styles.userName}>{userName}</Text>
         </View>
 
         {/* Stats Grid */}
