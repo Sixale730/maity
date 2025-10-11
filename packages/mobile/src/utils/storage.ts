@@ -1,5 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LanguageStorage } from '@maity/shared';
+
+interface LanguageStorage {
+  getItem: (key: string) => Promise<string | null>;
+  setItem: (key: string, value: string) => Promise<void>;
+}
 
 export const mobileStorage: LanguageStorage = {
   getItem: async (key: string) => {

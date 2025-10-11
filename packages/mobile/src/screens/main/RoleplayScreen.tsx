@@ -6,7 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { colors } from '../../theme';
-import { getSupabase } from '@maity/shared';
+import { getSupabase } from '../../lib/supabase/client';
 import { MobileVoiceAssistant } from '../../components/roleplay/MobileVoiceAssistant';
 
 interface CurrentScenario {
@@ -291,7 +291,6 @@ export const RoleplayScreen: React.FC = () => {
   ) => {
     // Close the voice assistant view
     setShowVoiceAssistant(false);
-    setSelectedScenario(null);
     setCurrentSessionId(null);
 
     // Refresh sessions to show the new one

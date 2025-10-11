@@ -12,8 +12,8 @@ import { Text, Divider, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthService } from '@maity/shared';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { AuthService } from '../../lib/supabase/auth';
+// import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,7 +30,7 @@ type LoginScreenNavigationProp = NativeStackNavigationProp<
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const { t } = useLanguage();
+  // const { t } = useLanguage();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

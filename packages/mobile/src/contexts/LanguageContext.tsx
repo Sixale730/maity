@@ -1,48 +1,29 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  LanguageManager,
-  LanguageContextType,
-  Language
-} from '@maity/shared';
-import { mobileStorage } from '../utils/storage';
+import React, { createContext, useContext, useState } from 'react';
 
-// Create the language manager instance
-const languageManager = new LanguageManager(mobileStorage);
+// Temporary types until we restore full functionality
+type Language = 'es' | 'en';
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => Promise<void>;
+  t: (key: string) => string;
+}
 
 // Create context
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-// Provider component
+// Provider component (simplified version)
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('es');
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    // Initialize language from storage
-    languageManager.initialize().then((initialLanguage) => {
-      setLanguageState(initialLanguage);
-      setIsInitialized(true);
-    });
-
-    // Subscribe to language changes
-    const unsubscribe = languageManager.subscribe((newLanguage) => {
-      setLanguageState(newLanguage);
-    });
-
-    return unsubscribe;
-  }, []);
 
   const setLanguage = async (lang: Language) => {
-    await languageManager.setLanguage(lang);
+    setLanguageState(lang);
   };
 
   const t = (key: string) => {
-    return languageManager.translate(key);
+    // Temporary placeholder - just return the key
+    return key;
   };
-
-  if (!isInitialized) {
-    return null; // Or a loading spinner
-  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

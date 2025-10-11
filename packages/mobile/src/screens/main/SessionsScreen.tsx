@@ -7,7 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme';
-import { getSupabase } from '@maity/shared';
+import { getSupabase } from '../../lib/supabase/client';
 
 type SessionsStackParamList = {
   SessionsList: undefined;

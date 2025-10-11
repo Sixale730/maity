@@ -11,8 +11,8 @@ import { Text, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthService } from '@maity/shared';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { AuthService } from '../../lib/supabase/auth';
+// import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { colors } from '../../theme';
@@ -25,7 +25,8 @@ type RegisterScreenNavigationProp = NativeStackNavigationProp<
 
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
-  const { t } = useLanguage();
+  // const { t } = useLanguage();
+  const t = (key: string) => key; // Temporary placeholder
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

@@ -15,7 +15,7 @@ import {
   RadioButton,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthService } from '@maity/shared';
+import { AuthService } from '../../lib/supabase/auth';
 // import { useUserRole } from '@maity/shared'; // Temporarily disabled
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
