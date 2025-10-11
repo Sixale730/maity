@@ -118,14 +118,36 @@ export function MobileVoiceAssistant({
     }) => {
       console.log('[MobileVoiceAssistant] 💬 Message from', source, ':', message);
 
-      const newMessage = {
-        id: `${Date.now()}-${Math.random()}`,
-        timestamp: new Date(),
-        source: source === 'user' ? 'user' as const : 'ai' as const,
-        message: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      // Filter out system events - only process actual conversation messages
+      if (typeof message === 'object' && message.type) {
+        const eventType = message.type;
 
-      setConversationMessages((prev) => [...prev, newMessage]);
+        // Only process user transcripts and agent responses
+        if (eventType === 'user_transcript' && message.user_transcription_event) {
+          const userText = message.user_transcription_event.user_transcript;
+          if (userText && userText.trim()) {
+            const newMessage = {
+              id: `${Date.now()}-${Math.random()}`,
+              timestamp: new Date(),
+              source: 'user' as const,
+              message: userText,
+            };
+            setConversationMessages((prev) => [...prev, newMessage]);
+          }
+        } else if (eventType === 'agent_response' && message.agent_response_event) {
+          const agentText = message.agent_response_event.agent_response;
+          if (agentText && agentText.trim()) {
+            const newMessage = {
+              id: `${Date.now()}-${Math.random()}`,
+              timestamp: new Date(),
+              source: 'ai' as const,
+              message: agentText,
+            };
+            setConversationMessages((prev) => [...prev, newMessage]);
+          }
+        }
+        // Ignore: ping, interruption, agent_response_correction, conversation_initiation_metadata, etc.
+      }
     },
     onModeChange: ({ mode }: { mode: 'speaking' | 'listening' }) => {
       console.log('[MobileVoiceAssistant] 🔊 Mode changed:', mode);
@@ -218,11 +240,40 @@ export function MobileVoiceAssistant({
       setConversationStartTime(Date.now());
       setConversationMessages([]);
 
-      // Step 5: Start ElevenLabs session with agentId
+      // Step 5: Prepare dynamic variables (matching web version)
+      const dynamicVars = {
+        // Usuario
+        user_name: userName || 'Usuario',
+
+        // Perfil (voice_agent_profiles)
+        profile: selectedProfile,
+        profile_description: profileDescription || '',
+        profile_key_focus: profileKeyFocus || '',
+        profile_style: profileCommunicationStyle || '',
+
+        // Escenario (voice_scenarios) - NOTA: "scenary" con typo intencional
+        scenary: scenarioName,  // Typo intencional como especificado
+        scenario_code: scenarioCode,
+        objectives: objectives || '',
+
+        // Dificultad (voice_difficulty_levels)
+        difficulty: difficultyName,
+        level: difficultyLevel.toString(),
+        mood: difficultyMood || 'neutral',
+
+        // IDs para tracking
+        questionnaire_id: questionnaireId || '',
+        session_id: newSessionId || sessionId || ''
+      };
+
+      console.log('[MobileVoiceAssistant] 🚀 Enviando variables dinámicas a ElevenLabs:', dynamicVars);
+
+      // Step 6: Start ElevenLabs session with agentId and dynamicVariables
       console.log('[MobileVoiceAssistant] 🎙️ Conectando a ElevenLabs con agentId:', agentId);
 
       await conversation.startSession({
         agentId: agentId,
+        dynamicVariables: dynamicVars,
       });
 
       console.log('[MobileVoiceAssistant] ✅ startSession() llamado exitosamente');
@@ -281,6 +332,11 @@ export function MobileVoiceAssistant({
   };
 
   const getStatusColor = () => {
+    // If we have a conversationId, we're connected regardless of status
+    if (currentConversationId) {
+      return colors.success;
+    }
+
     switch (status) {
       case 'connected':
         return colors.success;
@@ -294,6 +350,11 @@ export function MobileVoiceAssistant({
   };
 
   const getStatusText = () => {
+    // If we have a conversationId, we're connected regardless of status
+    if (currentConversationId) {
+      return 'Conectado - Listo para hablar';
+    }
+
     switch (status) {
       case 'connected':
         return 'Conectado - Listo para hablar';
@@ -339,7 +400,7 @@ export function MobileVoiceAssistant({
         )}
 
         <View style={styles.controls}>
-          {status === 'disconnected' ? (
+          {!currentConversationId && status === 'disconnected' ? (
             <TouchableOpacity
               style={styles.startButton}
               onPress={handleStartConversation}
