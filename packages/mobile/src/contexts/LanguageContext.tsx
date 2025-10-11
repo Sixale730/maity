@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
 
-// Temporary types until we restore full functionality
 type Language = 'es' | 'en';
 
 interface LanguageContextType {
@@ -9,10 +8,46 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
+// Translation dictionary
+const translations: Record<Language, Record<string, string>> = {
+  es: {
+    // Navigation
+    'nav.dashboard': 'Inicio',
+    'nav.roleplay': 'Práctica',
+    'nav.coach': 'Coach',
+    'nav.sessions': 'Sesiones',
+
+    // Common
+    'common.loading': 'Cargando...',
+    'common.error': 'Error',
+    'common.success': 'Éxito',
+    'common.cancel': 'Cancelar',
+    'common.confirm': 'Confirmar',
+    'common.save': 'Guardar',
+    'common.delete': 'Eliminar',
+  },
+  en: {
+    // Navigation
+    'nav.dashboard': 'Home',
+    'nav.roleplay': 'Practice',
+    'nav.coach': 'Coach',
+    'nav.sessions': 'Sessions',
+
+    // Common
+    'common.loading': 'Loading...',
+    'common.error': 'Error',
+    'common.success': 'Success',
+    'common.cancel': 'Cancel',
+    'common.confirm': 'Confirm',
+    'common.save': 'Save',
+    'common.delete': 'Delete',
+  },
+};
+
 // Create context
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-// Provider component (simplified version)
+// Provider component
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('es');
 
@@ -20,9 +55,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLanguageState(lang);
   };
 
-  const t = (key: string) => {
-    // Temporary placeholder - just return the key
-    return key;
+  const t = (key: string): string => {
+    return translations[language][key] || key;
   };
 
   return (

@@ -1,36 +1,83 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { colors } from '../../theme';
+import { getSupabase } from '../../lib/supabase/client';
+import { MobileVoiceAssistantSVG } from '../../components/roleplay/MobileVoiceAssistantSVG';
 
 export const CoachScreen: React.FC = () => {
   const { t } = useLanguage();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('Usuario');
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const supabase = getSupabase();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, name, nickname, email')
+        .eq('auth_id', user.id)
+        .single();
+
+      if (userData) {
+        setUserId(userData.id);
+        const displayName =
+          userData.name?.trim() ||
+          userData.nickname?.trim() ||
+          userData.email?.split('@')[0] ||
+          'Usuario';
+        setUserName(displayName);
+      }
+    } catch (error) {
+      console.error('[CoachScreen] Error loading user:', error);
+    }
+  };
+
+  const handleSessionStart = async (): Promise<string | null> => {
+    // Simple version without database session creation
+    // Just return a mock session ID for testing
+    const mockSessionId = `coach-${Date.now()}`;
+    console.log('[CoachScreen] Mock session created:', mockSessionId);
+    return mockSessionId;
+  };
+
+  const handleSessionEnd = async (
+    transcript: string,
+    duration: number,
+    sessionId?: string
+  ) => {
+    console.log('[CoachScreen] Session ended:', { transcript: transcript.length, duration, sessionId });
+
+    Alert.alert(
+      'Sesión Completada',
+      `Tu práctica de ${duration}s ha finalizado.`,
+      [{ text: 'Entendido' }]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Coach Maity</Text>
-        <Text style={styles.subtitle}>
-          Tu coach en habilidades blandas
-        </Text>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.placeholderContainer}>
-          <Text style={styles.placeholderIcon}>🎯</Text>
-          <Text style={styles.placeholderTitle}>
-            Coach de Voz Maity
-          </Text>
-          <Text style={styles.placeholderText}>
-            Próximamente: Conversaciones con tu coach personal impulsado por IA
-          </Text>
-          <Text style={styles.placeholderSubtext}>
-            Mejora tus habilidades de comunicación, liderazgo y más.
-          </Text>
-        </View>
-      </View>
+      <MobileVoiceAssistantSVG
+        selectedProfile="CTO"
+        userName={userName}
+        userId={userId || undefined}
+        scenarioCode="coach_practice"
+        scenarioName="Práctica con Coach"
+        onSessionStart={handleSessionStart}
+        onSessionEnd={handleSessionEnd}
+        profileDescription="Coach de desarrollo personal"
+        difficultyLevel={1}
+        difficultyName="Fácil"
+        difficultyMood="receptivo"
+      />
     </SafeAreaView>
   );
 };

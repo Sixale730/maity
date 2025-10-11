@@ -57,7 +57,7 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Coach"
         component={CoachScreen}
-        options={{ title: 'Coach' }}
+        options={{ title: t('nav.coach') }}
       />
       <Tab.Screen
         name="Roleplay"

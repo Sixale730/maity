@@ -11,9 +11,9 @@ import {
 import { useConversation } from '@elevenlabs/react-native';
 import type { ConversationStatus, Role } from '@elevenlabs/react-native';
 import { colors } from '../../theme';
-import { VoiceOrb } from './VoiceOrb';
+import { VoiceOrbSVG } from './VoiceOrbSVG';
 
-interface MobileVoiceAssistantProps {
+interface MobileVoiceAssistantSVGProps {
   selectedProfile?: 'CEO' | 'CTO' | 'CFO';
   questionnaireId?: string;
   userName?: string;
@@ -42,7 +42,7 @@ interface MobileVoiceAssistantProps {
   difficultyMood?: string;
 }
 
-export function MobileVoiceAssistant({
+export function MobileVoiceAssistantSVG({
   selectedProfile = 'CEO',
   questionnaireId,
   userName,
@@ -59,7 +59,7 @@ export function MobileVoiceAssistant({
   difficultyLevel = 1,
   difficultyName = 'Fácil',
   difficultyMood = 'neutral',
-}: MobileVoiceAssistantProps) {
+}: MobileVoiceAssistantSVGProps) {
   const [conversationStartTime, setConversationStartTime] = useState<number | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const [conversationMessages, setConversationMessages] = useState<Array<{
@@ -72,10 +72,9 @@ export function MobileVoiceAssistant({
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Usar EXPO_PUBLIC_AGENT_ID (como ejemplo oficial) o fallback a _TEST
   const agentId = process.env.EXPO_PUBLIC_AGENT_ID || process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_ID_TEST;
 
-  console.log('[MobileVoiceAssistant] Component mounted with config:', {
+  console.log('[MobileVoiceAssistantSVG] Component mounted with config:', {
     hasAgentId: !!agentId,
     agentId,
     scenarioCode,
@@ -85,17 +84,16 @@ export function MobileVoiceAssistant({
 
   const conversation = useConversation({
     onConnect: ({ conversationId }: { conversationId: string }) => {
-      console.log('[MobileVoiceAssistant] ✅ Connected to conversation', conversationId);
+      console.log('[MobileVoiceAssistantSVG] ✅ Connected to conversation', conversationId);
       setCurrentConversationId(conversationId);
     },
     onDisconnect: (details: string) => {
-      console.log('[MobileVoiceAssistant] 🔌 Disconnected from conversation', details);
+      console.log('[MobileVoiceAssistantSVG] 🔌 Disconnected from conversation', details);
       setCurrentConversationId(null);
       handleConversationEnd();
     },
     onError: (message: string, context?: Record<string, unknown>) => {
-      console.error('[MobileVoiceAssistant] ❌ Conversation error:', message, context);
-
+      console.error('[MobileVoiceAssistantSVG] ❌ Conversation error:', message, context);
       Alert.alert(
         'Error en la Conversación',
         `Error: ${message}\n\nDetalles: ${JSON.stringify(context || {})}`,
@@ -118,13 +116,11 @@ export function MobileVoiceAssistant({
       message: any;
       source: Role;
     }) => {
-      console.log('[MobileVoiceAssistant] 💬 Message from', source, ':', message);
+      console.log('[MobileVoiceAssistantSVG] 💬 Message from', source, ':', message);
 
-      // Filter out system events - only process actual conversation messages
       if (typeof message === 'object' && message.type) {
         const eventType = message.type;
 
-        // Only process user transcripts and agent responses
         if (eventType === 'user_transcript' && message.user_transcription_event) {
           const userText = message.user_transcription_event.user_transcript;
           if (userText && userText.trim()) {
@@ -148,15 +144,14 @@ export function MobileVoiceAssistant({
             setConversationMessages((prev) => [...prev, newMessage]);
           }
         }
-        // Ignore: ping, interruption, agent_response_correction, conversation_initiation_metadata, etc.
       }
     },
     onModeChange: ({ mode }: { mode: 'speaking' | 'listening' }) => {
-      console.log('[MobileVoiceAssistant] 🔊 Mode changed:', mode);
+      console.log('[MobileVoiceAssistantSVG] 🔊 Mode changed:', mode);
       setIsSpeaking(mode === 'speaking');
     },
     onStatusChange: ({ status: newStatus }: { status: ConversationStatus }) => {
-      console.log('[MobileVoiceAssistant] 📡 Status changed:', newStatus);
+      console.log('[MobileVoiceAssistantSVG] 📡 Status changed:', newStatus);
       setStatus(newStatus);
     },
     onCanSendFeedbackChange: ({
@@ -164,13 +159,13 @@ export function MobileVoiceAssistant({
     }: {
       canSendFeedback: boolean;
     }) => {
-      console.log('[MobileVoiceAssistant] 🔊 Can send feedback:', canSendFeedback);
+      console.log('[MobileVoiceAssistantSVG] 🔊 Can send feedback:', canSendFeedback);
     },
   });
 
   const requestMicrophonePermission = async (): Promise<boolean> => {
     try {
-      console.log('[MobileVoiceAssistant] 🎤 Verificando permisos de micrófono...');
+      console.log('[MobileVoiceAssistantSVG] 🎤 Verificando permisos de micrófono...');
 
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
@@ -185,10 +180,10 @@ export function MobileVoiceAssistant({
         );
 
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('[MobileVoiceAssistant] ✅ Permiso de micrófono concedido');
+          console.log('[MobileVoiceAssistantSVG] ✅ Permiso de micrófono concedido');
           return true;
         } else {
-          console.log('[MobileVoiceAssistant] ❌ Permiso de micrófono denegado');
+          console.log('[MobileVoiceAssistantSVG] ❌ Permiso de micrófono denegado');
           Alert.alert(
             'Permiso necesario',
             'Necesitamos acceso al micrófono para iniciar la práctica'
@@ -197,10 +192,9 @@ export function MobileVoiceAssistant({
         }
       }
 
-      // iOS permissions are handled automatically by the system
       return true;
     } catch (err: any) {
-      console.error('[MobileVoiceAssistant] Error solicitando permisos:', err);
+      console.error('[MobileVoiceAssistantSVG] Error solicitando permisos:', err);
       Alert.alert('Error', 'No se pudo verificar permisos de micrófono');
       return false;
     }
@@ -208,82 +202,67 @@ export function MobileVoiceAssistant({
 
   const handleStartConversation = async () => {
     try {
-      console.log('[MobileVoiceAssistant] 🚀 Iniciando proceso de conversación...');
+      console.log('[MobileVoiceAssistantSVG] 🚀 Iniciando proceso de conversación...');
 
-      // Step 1: Request microphone permission
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
-        console.log('[MobileVoiceAssistant] ⚠️ Sin permisos de micrófono, abortando');
+        console.log('[MobileVoiceAssistantSVG] ⚠️ Sin permisos de micrófono, abortando');
         return;
       }
 
-      // Step 2: Validate agentId
       if (!agentId) {
-        console.error('[MobileVoiceAssistant] ❌ No agent ID configured');
+        console.error('[MobileVoiceAssistantSVG] ❌ No agent ID configured');
         Alert.alert('Error de Configuración', 'No se encontró el ID del agente');
         return;
       }
 
-      // Step 3: Create session in DB
-      console.log('[MobileVoiceAssistant] 💾 Creando sesión en base de datos...');
+      console.log('[MobileVoiceAssistantSVG] 💾 Creando sesión en base de datos...');
 
       let newSessionId = currentSessionId;
       if (onSessionStart && !newSessionId) {
-        console.log('[MobileVoiceAssistant] Llamando a onSessionStart...');
+        console.log('[MobileVoiceAssistantSVG] Llamando a onSessionStart...');
         newSessionId = await onSessionStart();
         if (newSessionId) {
           setCurrentSessionId(newSessionId);
-          console.log('[MobileVoiceAssistant] ✅ Sesión creada en DB:', newSessionId);
+          console.log('[MobileVoiceAssistantSVG] ✅ Sesión creada en DB:', newSessionId);
         } else {
-          console.warn('[MobileVoiceAssistant] ⚠️ onSessionStart no devolvió sessionId');
+          console.warn('[MobileVoiceAssistantSVG] ⚠️ onSessionStart no devolvió sessionId');
         }
       }
 
-      // Step 4: Initialize conversation tracking
       setConversationStartTime(Date.now());
       setConversationMessages([]);
 
-      // Step 5: Prepare dynamic variables (matching web version)
       const dynamicVars = {
-        // Usuario
         user_name: userName || 'Usuario',
-
-        // Perfil (voice_agent_profiles)
         profile: selectedProfile,
         profile_description: profileDescription || '',
         profile_key_focus: profileKeyFocus || '',
         profile_style: profileCommunicationStyle || '',
-
-        // Escenario (voice_scenarios) - NOTA: "scenary" con typo intencional
-        scenary: scenarioName,  // Typo intencional como especificado
+        scenary: scenarioName,
         scenario_code: scenarioCode,
         objectives: objectives || '',
-
-        // Dificultad (voice_difficulty_levels)
         difficulty: difficultyName,
         level: difficultyLevel.toString(),
         mood: difficultyMood || 'neutral',
-
-        // IDs para tracking
         questionnaire_id: questionnaireId || '',
         session_id: newSessionId || sessionId || ''
       };
 
-      console.log('[MobileVoiceAssistant] 🚀 Enviando variables dinámicas a ElevenLabs:', dynamicVars);
+      console.log('[MobileVoiceAssistantSVG] 🚀 Enviando variables dinámicas a ElevenLabs:', dynamicVars);
 
-      // Step 6: Start ElevenLabs session with agentId and dynamicVariables
-      console.log('[MobileVoiceAssistant] 🎙️ Conectando a ElevenLabs con agentId:', agentId);
+      console.log('[MobileVoiceAssistantSVG] 🎙️ Conectando a ElevenLabs con agentId:', agentId);
 
       await conversation.startSession({
         agentId: agentId,
         dynamicVariables: dynamicVars,
       });
 
-      console.log('[MobileVoiceAssistant] ✅ startSession() llamado exitosamente');
+      console.log('[MobileVoiceAssistantSVG] ✅ startSession() llamado exitosamente');
 
     } catch (err: any) {
       const errorMsg = `Error iniciando conversación:\nTipo: ${err?.name || 'Unknown'}\nMensaje: ${err?.message || 'Sin mensaje'}\nStack: ${err?.stack || 'No stack'}`;
-      console.error('[MobileVoiceAssistant]', errorMsg);
+      console.error('[MobileVoiceAssistantSVG]', errorMsg);
 
       Alert.alert(
         'Error al Iniciar',
@@ -301,11 +280,11 @@ export function MobileVoiceAssistant({
 
   const handleEndConversation = async () => {
     try {
-      console.log('[MobileVoiceAssistant] 🛑 Finalizando conversación...');
+      console.log('[MobileVoiceAssistantSVG] 🛑 Finalizando conversación...');
       await conversation.endSession();
       handleConversationEnd();
     } catch (err: any) {
-      console.error('[MobileVoiceAssistant] Error finalizando conversación:', err);
+      console.error('[MobileVoiceAssistantSVG] Error finalizando conversación:', err);
     }
   };
 
@@ -313,12 +292,11 @@ export function MobileVoiceAssistant({
     if (conversationStartTime && onSessionEnd) {
       const duration = Math.floor((Date.now() - conversationStartTime) / 1000);
 
-      // Build transcript from messages
       const transcript = conversationMessages
         .map(msg => `${msg.source === 'user' ? 'Usuario' : 'AI'}: ${msg.message}`)
         .join('\n');
 
-      console.log('[MobileVoiceAssistant] 📊 Sesión terminada - Estadísticas:', {
+      console.log('[MobileVoiceAssistantSVG] 📊 Sesión terminada - Estadísticas:', {
         duration: `${duration}s`,
         messageCount: conversationMessages.length,
         transcriptLength: transcript.length,
@@ -328,14 +306,12 @@ export function MobileVoiceAssistant({
 
       onSessionEnd(transcript, duration, currentSessionId || undefined, conversationMessages);
 
-      // Reset state
       setConversationStartTime(null);
       setConversationMessages([]);
     }
   };
 
   const getStatusColor = () => {
-    // If we have a conversationId, we're connected regardless of status
     if (currentConversationId) {
       return colors.success;
     }
@@ -353,7 +329,6 @@ export function MobileVoiceAssistant({
   };
 
   const getStatusText = () => {
-    // If we have a conversationId, we're connected regardless of status
     if (currentConversationId) {
       return 'Conectado - Listo para hablar';
     }
@@ -373,16 +348,16 @@ export function MobileVoiceAssistant({
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {/* Status bar - always visible */}
+        {/* Status bar */}
         <View style={styles.statusContainer}>
           <View style={[styles.statusIndicator, { backgroundColor: getStatusColor() }]} />
           <Text style={styles.statusText}>{getStatusText()}</Text>
         </View>
 
-        {/* Voice Orb - show when connected */}
+        {/* Voice Orb SVG - show when connected */}
         {currentConversationId ? (
           <View style={styles.orbContainer}>
-            <VoiceOrb isListening={!isSpeaking} isSpeaking={isSpeaking} />
+            <VoiceOrbSVG isListening={!isSpeaking} isSpeaking={isSpeaking} />
             <Text style={styles.orbLabel}>
               {isSpeaking ? 'Agente hablando...' : 'Escuchando...'}
             </Text>
@@ -466,17 +441,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  infoBox: {
-    backgroundColor: colors.card,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  infoText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
   },
   scenarioTitle: {
     fontSize: 24,
