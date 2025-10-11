@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/main/DashboardScreen';
 import { CoachScreen } from '../screens/main/CoachScreen';
 import { RoleplayScreen } from '../screens/main/RoleplayScreen';
+import { ProfileScreen } from '../screens/main/ProfileScreen';
 import { SessionsNavigator } from './SessionsNavigator';
+import { LanguageScreen } from '../screens/settings/LanguageScreen';
+import { NotificationsScreen } from '../screens/settings/NotificationsScreen';
+import { HelpCenterScreen } from '../screens/help/HelpCenterScreen';
+import { TermsScreen } from '../screens/help/TermsScreen';
+import { PrivacyScreen } from '../screens/help/PrivacyScreen';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DrawerModal } from '../components/navigation/DrawerModal';
+import { DrawerContent } from '../components/navigation/DrawerContent';
 import { colors } from '../theme';
 
 export type MainTabParamList = {
@@ -15,14 +26,32 @@ export type MainTabParamList = {
   Sessions: undefined;
 };
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+export type MainStackParamList = {
+  MainTabs: undefined;
+  Profile: undefined;
+  Language: undefined;
+  Notifications: undefined;
+  HelpCenter: undefined;
+  Terms: undefined;
+  Privacy: undefined;
+};
 
-export const MainNavigator: React.FC = () => {
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createNativeStackNavigator<MainStackParamList>();
+
+const MainTabs: React.FC = () => {
   const { t } = useLanguage();
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  const openDrawer = () => setDrawerVisible(true);
+  const closeDrawer = () => setDrawerVisible(false);
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
+    <>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home';
 
@@ -51,28 +80,99 @@ export const MainNavigator: React.FC = () => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={openDrawer}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="menu" size={28} color="#fff" />
+          </TouchableOpacity>
+        ),
       })}
+      >
+        <Tab.Screen
+          name="Dashboard"
+          component={DashboardScreen}
+          options={{ title: t('nav.dashboard') }}
+        />
+        <Tab.Screen
+          name="Coach"
+          component={CoachScreen}
+          options={{ title: t('nav.coach') }}
+        />
+        <Tab.Screen
+          name="Roleplay"
+          component={RoleplayScreen}
+          options={{ title: t('nav.roleplay') }}
+        />
+        <Tab.Screen
+          name="Sessions"
+          component={SessionsNavigator}
+          options={{ title: t('nav.sessions') }}
+        />
+      </Tab.Navigator>
+
+      <DrawerModal visible={drawerVisible} onClose={closeDrawer}>
+        <DrawerContent
+          navigation={navigation}
+          currentRoute={route.name}
+          onClose={closeDrawer}
+        />
+      </DrawerModal>
+    </>
+  );
+};
+
+export const MainNavigator: React.FC = () => {
+  const { t } = useLanguage();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.secondary,
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{ title: t('nav.dashboard') }}
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={{ headerShown: false }}
       />
-      <Tab.Screen
-        name="Coach"
-        component={CoachScreen}
-        options={{ title: t('nav.coach') }}
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: t('nav.profile') }}
       />
-      <Tab.Screen
-        name="Roleplay"
-        component={RoleplayScreen}
-        options={{ title: t('nav.roleplay') }}
+      <Stack.Screen
+        name="Language"
+        component={LanguageScreen}
+        options={{ title: t('nav.language') }}
       />
-      <Tab.Screen
-        name="Sessions"
-        component={SessionsNavigator}
-        options={{ title: t('nav.sessions') }}
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: t('nav.notifications') }}
       />
-    </Tab.Navigator>
+      <Stack.Screen
+        name="HelpCenter"
+        component={HelpCenterScreen}
+        options={{ title: t('nav.helpCenter') }}
+      />
+      <Stack.Screen
+        name="Terms"
+        component={TermsScreen}
+        options={{ title: t('nav.terms') }}
+      />
+      <Stack.Screen
+        name="Privacy"
+        component={PrivacyScreen}
+        options={{ title: t('nav.privacy') }}
+      />
+    </Stack.Navigator>
   );
 };

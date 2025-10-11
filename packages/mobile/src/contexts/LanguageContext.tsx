@@ -16,6 +16,14 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.roleplay': 'Práctica',
     'nav.coach': 'Coach',
     'nav.sessions': 'Sesiones',
+    'nav.profile': 'Mi Perfil',
+    'nav.language': 'Idioma',
+    'nav.notifications': 'Notificaciones',
+    'nav.helpCenter': 'Centro de Ayuda',
+    'nav.terms': 'Términos y Condiciones',
+    'nav.privacy': 'Política de Privacidad',
+    'nav.logout': 'Cerrar Sesión',
+    'nav.version': 'Versión',
 
     // Common
     'common.loading': 'Cargando...',
@@ -25,6 +33,14 @@ const translations: Record<Language, Record<string, string>> = {
     'common.confirm': 'Confirmar',
     'common.save': 'Guardar',
     'common.delete': 'Eliminar',
+    'common.comingSoon': 'Próximamente',
+    'common.underConstructionDesc': 'Estamos trabajando en esta funcionalidad. ¡Pronto estará disponible!',
+
+    // Dashboard
+    'dashboard.user.description': 'Bienvenido a tu panel',
+    'dashboard.user.sessions_completed': 'Sesiones completadas',
+    'dashboard.user.attendance_rate': 'Asistencia',
+    'dashboard.user.upcoming': 'Próximas Sesiones',
   },
   en: {
     // Navigation
@@ -32,6 +48,14 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.roleplay': 'Practice',
     'nav.coach': 'Coach',
     'nav.sessions': 'Sessions',
+    'nav.profile': 'My Profile',
+    'nav.language': 'Language',
+    'nav.notifications': 'Notifications',
+    'nav.helpCenter': 'Help Center',
+    'nav.terms': 'Terms and Conditions',
+    'nav.privacy': 'Privacy Policy',
+    'nav.logout': 'Logout',
+    'nav.version': 'Version',
 
     // Common
     'common.loading': 'Loading...',
@@ -41,6 +65,14 @@ const translations: Record<Language, Record<string, string>> = {
     'common.confirm': 'Confirm',
     'common.save': 'Save',
     'common.delete': 'Delete',
+    'common.comingSoon': 'Coming Soon',
+    'common.underConstructionDesc': 'We are working on this feature. It will be available soon!',
+
+    // Dashboard
+    'dashboard.user.description': 'Welcome to your dashboard',
+    'dashboard.user.sessions_completed': 'Sessions completed',
+    'dashboard.user.attendance_rate': 'Attendance',
+    'dashboard.user.upcoming': 'Upcoming Sessions',
   },
 };
 
