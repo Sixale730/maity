@@ -99,11 +99,23 @@ export const LoginScreen: React.FC = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await AuthService.signInWithOAuth('google');
+      console.log('[LoginScreen] Starting Google OAuth...');
+      const { data, error } = await AuthService.signInWithOAuth('google');
+
       if (error) {
-        Alert.alert('Error', 'Error al iniciar sesión con Google');
+        console.error('[LoginScreen] Google OAuth error:', error);
+        if (error.message.includes('cancelled')) {
+          // User cancelled, don't show error
+          console.log('[LoginScreen] User cancelled Google login');
+        } else {
+          Alert.alert('Error', error.message || 'Error al iniciar sesión con Google');
+        }
+      } else if (data) {
+        console.log('[LoginScreen] Google OAuth successful');
+        // Navigation will be handled automatically by auth state change
       }
     } catch (error) {
+      console.error('[LoginScreen] Unexpected Google OAuth error:', error);
       Alert.alert('Error', 'Ocurrió un error inesperado');
     } finally {
       setLoading(false);
@@ -113,11 +125,23 @@ export const LoginScreen: React.FC = () => {
   const handleMicrosoftLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await AuthService.signInWithOAuth('azure');
+      console.log('[LoginScreen] Starting Microsoft/Azure OAuth...');
+      const { data, error } = await AuthService.signInWithOAuth('azure');
+
       if (error) {
-        Alert.alert('Error', 'Error al iniciar sesión con Microsoft');
+        console.error('[LoginScreen] Microsoft OAuth error:', error);
+        if (error.message.includes('cancelled')) {
+          // User cancelled, don't show error
+          console.log('[LoginScreen] User cancelled Microsoft login');
+        } else {
+          Alert.alert('Error', error.message || 'Error al iniciar sesión con Microsoft');
+        }
+      } else if (data) {
+        console.log('[LoginScreen] Microsoft OAuth successful');
+        // Navigation will be handled automatically by auth state change
       }
     } catch (error) {
+      console.error('[LoginScreen] Unexpected Microsoft OAuth error:', error);
       Alert.alert('Error', 'Ocurrió un error inesperado');
     } finally {
       setLoading(false);
