@@ -1,56 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { Text, ActivityIndicator, ProgressBar } from 'react-native-paper';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Dimensions
+} from 'react-native';
+import { Text, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../../components/ui/Card';
+import { RadarChart } from '../../components/charts/RadarChart';
 import { colors } from '../../theme';
 import { getSupabase } from '../../lib/supabase/client';
-
-interface SessionData {
-  id: string;
-  profile_name: string;
-  scenario_name: string;
-  objectives: string | null;
-  score: number | null;
-  passed: boolean | null;
-  duration_seconds: number | null;
-  started_at: string;
-  ended_at: string | null;
-  processed_feedback: any;
-  status: string;
-  raw_transcript: string | null;
-}
+import {
+  parseEvaluationData,
+  prepareRadarData,
+  prepareSubdimensionsRadarData,
+  formatDuration,
+  calculateWordCount,
+  getScoreColor,
+  getScoreBg
+} from '../../utils/sessionResults';
+import {
+  DIMENSION_DESCRIPTIONS,
+  SUBDIMENSION_DESCRIPTIONS,
+  DIMENSION_NAMES,
+  DIMENSION_COLORS
+} from '../../constants/dimensions';
 
 type SessionsStackParamList = {
   SessionsList: undefined;
   SessionResults: { sessionId: string };
 };
 
-type SessionResultsScreenRouteProp = RouteProp<SessionsStackParamList, 'SessionResults'>;
-type SessionResultsScreenNavigationProp = NativeStackNavigationProp<SessionsStackParamList, 'SessionResults'>;
+type SessionResultsRouteProp = RouteProp<SessionsStackParamList, 'SessionResults'>;
+
+interface SessionData {
+  id: string;
+  profile_name: string;
+  scenario_name: string;
+  scenario_code: string;
+  objectives: string | null;
+  difficulty_level: number;
+  score: number | null;
+  passed: boolean | null;
+  min_score_to_pass: number;
+  processed_feedback: any;
+  status: string;
+  started_at: string;
+  ended_at: string | null;
+  duration_seconds: number | null;
+  raw_transcript: string | null;
+}
 
 export const SessionResultsScreen: React.FC = () => {
-  const route = useRoute<SessionResultsScreenRouteProp>();
-  const navigation = useNavigation<SessionResultsScreenNavigationProp>();
+  const route = useRoute<SessionResultsRouteProp>();
+  const navigation = useNavigation();
   const { sessionId } = route.params;
 
-  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
+  const [transcriptVisible, setTranscriptVisible] = useState(false);
+  const [expandedDimension, setExpandedDimension] = useState<string | null>(null);
 
   useEffect(() => {
-    if (sessionId) {
-      fetchSessionData();
-    }
+    fetchSessionData();
   }, [sessionId]);
 
-  const fetchSessionData = async () => {
+  // Poll for updates if session is still processing
+  useEffect(() => {
+    if (!session || !isProcessing) return;
+
+    console.log('[SessionResultsScreen] Starting polling for processing session');
+    const pollInterval = setInterval(() => {
+      console.log('[SessionResultsScreen] Polling for updates...');
+      fetchSessionData(false); // Don't show loading spinner on polls
+    }, 5000); // Poll every 5 seconds
+
+    return () => {
+      console.log('[SessionResultsScreen] Stopping polling');
+      clearInterval(pollInterval);
+    };
+  }, [session?.status, isProcessing]);
+
+  const fetchSessionData = async (isInitialLoad: boolean = true) => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       setError(null);
 
       const supabase = getSupabase();
@@ -61,7 +103,7 @@ export const SessionResultsScreen: React.FC = () => {
         return;
       }
 
-      const { data: sessions, error: fetchError } = await supabase
+      const { data, error: fetchError } = await supabase
         .rpc('get_user_sessions_history', { p_auth_id: user.id });
 
       if (fetchError) {
@@ -70,48 +112,61 @@ export const SessionResultsScreen: React.FC = () => {
         return;
       }
 
-      const session = sessions?.find((s: any) => s.id === sessionId);
+      // Find the specific session
+      const sessionData = data?.find((s: any) => s.id === sessionId);
 
-      if (!session) {
+      if (!sessionData) {
         setError('Sesión no encontrada');
         return;
       }
 
-      setSessionData(session);
+      console.log('[SessionResultsScreen] Session data updated:', {
+        status: sessionData.status,
+        hasScore: sessionData.score !== null,
+        hasFeedback: !!sessionData.processed_feedback
+      });
+
+      setSession(sessionData);
     } catch (err) {
       console.error('Error:', err);
       setError('Ocurrió un error al cargar la sesión');
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // Parse evaluation data
+  const evaluation = useMemo(() => {
+    if (!session) return null;
+    return parseEvaluationData(session.processed_feedback, session.score);
+  }, [session]);
+
+  // Prepare radar chart data
+  const radarData = useMemo(() => {
+    if (!evaluation) return [];
+    return prepareRadarData(evaluation.dimensionScores);
+  }, [evaluation]);
+
+  const radarSubdimensionsData = useMemo(() => {
+    if (!evaluation?.subdimensionData) return [];
+    return prepareSubdimensionsRadarData(evaluation.subdimensionData);
+  }, [evaluation]);
+
+  // Calculate metrics
+  const userWordCount = useMemo(() => {
+    if (!session?.raw_transcript) return 0;
+    return calculateWordCount(session.raw_transcript);
+  }, [session]);
+
+  const handleRetry = () => {
+    // Navigate back to roleplay screen
+    navigation.navigate('Roleplay' as never);
   };
 
-  const getScoreColor = (score: number | null) => {
-    if (!score) return colors.textSecondary;
-    if (score >= 80) return '#10B981';
-    if (score >= 60) return '#F59E0B';
-    return '#EF4444';
-  };
-
-  const calculateUserWordCount = (transcript: string | null) => {
-    if (!transcript) return 0;
-
-    const userLines = transcript
-      .split('\n')
-      .filter(line => line.trim().startsWith('Usuario:'))
-      .map(line => line.replace('Usuario:', '').trim())
-      .join(' ');
-
-    return userLines
-      ? userLines.trim().split(/\s+/).filter(word => word.length > 0).length
-      : 0;
+  const handleViewTranscript = () => {
+    setTranscriptVisible(true);
   };
 
   if (loading) {
@@ -125,212 +180,333 @@ export const SessionResultsScreen: React.FC = () => {
     );
   }
 
-  if (error || !sessionData) {
+  if (error || !session) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={64} color={colors.error} />
           <Text style={styles.errorText}>{error || 'Sesión no encontrada'}</Text>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={20} color="#fff" />
-            <Text style={styles.backButtonText}>Volver al Historial</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.retryButtonText}>Volver</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  const isProcessing = sessionData.status === 'evaluating';
-  const evaluation = sessionData.processed_feedback;
-  const userWordCount = calculateUserWordCount(sessionData.raw_transcript);
-
-  // Extract metrics from evaluation
-  const metrics = {
-    clarity: evaluation?.dimension_scores?.clarity ?? evaluation?.clarity ?? null,
-    structure: evaluation?.dimension_scores?.structure ?? evaluation?.structure ?? null,
-    connection: evaluation?.dimension_scores?.connection ?? evaluation?.connection ?? null,
-    influence: evaluation?.dimension_scores?.influence ?? evaluation?.influence ?? null
-  };
-
-  // Extract feedback
-  const fortalezas = evaluation?.Fortalezas || null;
-  const errores = evaluation?.Errores || null;
-  const recomendaciones = evaluation?.Recomendaciones || null;
+  const isProcessing = session.status === 'in_progress' || !evaluation?.calculatedScore;
+  const displayScore = evaluation?.calculatedScore || session.score || 0;
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Resultados</Text>
-        <View style={styles.headerButton} />
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title Section */}
-        <View style={styles.titleSection}>
-          <Text style={styles.title}>Resultados de la Sesión</Text>
-          <Text style={styles.subtitle}>
-            {sessionData.scenario_name} • {sessionData.profile_name}
-          </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Resultados de la Sesión</Text>
+            <Text style={styles.subtitle}>
+              {session.scenario_name} • {session.profile_name}
+            </Text>
+          </View>
         </View>
 
         {/* Score Card */}
-        <Card style={[styles.scoreCard, { borderColor: isProcessing ? '#3B82F6' : getScoreColor(sessionData.score) }]}>
+        <Card
+          style={{
+            ...styles.scoreCard,
+            backgroundColor: isProcessing ? 'rgba(59, 130, 246, 0.1)' : getScoreBg(displayScore)
+          }}
+        >
           {isProcessing ? (
             <View style={styles.processingContainer}>
-              <ActivityIndicator size="large" color="#3B82F6" />
+              <Ionicons name="hourglass-outline" size={48} color="#3b82f6" />
               <Text style={styles.processingTitle}>Procesando evaluación...</Text>
               <Text style={styles.processingText}>
                 Nuestro agente AI está analizando tu conversación
               </Text>
+              <ActivityIndicator size="small" color="#3b82f6" style={{ marginTop: 12 }} />
             </View>
           ) : (
-            <View style={styles.scoreContainer}>
-              <Ionicons
-                name={sessionData.passed ? "trophy" : "alert-circle"}
-                size={48}
-                color={sessionData.passed ? '#10B981' : '#EF4444'}
-              />
-              <View style={styles.scoreValue}>
-                <Text style={[styles.scoreNumber, { color: getScoreColor(sessionData.score) }]}>
-                  {sessionData.score || '—'}
-                </Text>
-                <Text style={styles.scoreTotal}>/100</Text>
+            <>
+              <View style={styles.scoreIconContainer}>
+                {session.passed ? (
+                  <Ionicons name="trophy" size={48} color="#10B981" />
+                ) : (
+                  <Ionicons name="alert-circle" size={48} color="#EF4444" />
+                )}
               </View>
-              <Text style={[
-                styles.scoreStatus,
-                { color: sessionData.passed ? '#10B981' : '#EF4444' }
-              ]}>
-                {sessionData.passed
-                  ? '¡Aprobado!'
-                  : sessionData.passed === false
-                  ? 'Necesitas 60 puntos para aprobar'
-                  : 'Evaluación pendiente'
-                }
+              <Text style={[styles.scoreValue, { color: getScoreColor(displayScore) }]}>
+                {displayScore}
+                <Text style={styles.scoreMax}>/100</Text>
               </Text>
-            </View>
+              <Text style={[styles.scoreStatus, { color: session.passed ? '#10B981' : '#EF4444' }]}>
+                {session.passed
+                  ? '¡Aprobado!'
+                  : `Necesitas ${session.min_score_to_pass} puntos para aprobar`}
+              </Text>
+              <Text style={styles.scoreNote}>
+                Score mínimo: {session.min_score_to_pass}
+              </Text>
+            </>
           )}
         </Card>
 
-        {/* Stats Cards */}
-        <View style={styles.statsRow}>
-          {/* Words Card */}
-          <Card style={[styles.statCard, styles.wordsCard]}>
-            <Ionicons name="document-text" size={32} color="#A78BFA" />
-            <Text style={styles.statValue}>{userWordCount.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>palabras</Text>
+        {/* Metrics Cards */}
+        <View style={styles.metricsRow}>
+          <Card style={{ ...styles.metricCard, ...styles.wordsCard }}>
+            <View style={styles.metricIconContainer}>
+              <Ionicons name="document-text" size={32} color="#a78bfa" />
+            </View>
+            <View style={styles.metricTextContainer}>
+              <Text style={styles.metricLabel}>Palabras Pronunciadas</Text>
+              <Text style={[styles.metricValue, { color: '#a78bfa' }]}>
+                {userWordCount.toLocaleString()}
+              </Text>
+            </View>
           </Card>
 
-          {/* Duration Card */}
-          <Card style={[styles.statCard, styles.durationCard]}>
-            <Ionicons name="time" size={32} color="#60A5FA" />
-            <Text style={styles.statValue}>{formatDuration(sessionData.duration_seconds)}</Text>
-            <Text style={styles.statLabel}>minutos</Text>
+          <Card style={{ ...styles.metricCard, ...styles.durationCard }}>
+            <View style={styles.metricIconContainer}>
+              <Ionicons name="time" size={32} color="#60a5fa" />
+            </View>
+            <View style={styles.metricTextContainer}>
+              <Text style={styles.metricLabel}>Duración</Text>
+              <Text style={[styles.metricValue, { color: '#60a5fa' }]}>
+                {session.duration_seconds ? formatDuration(session.duration_seconds) : 'N/A'}
+              </Text>
+            </View>
           </Card>
         </View>
 
-        {/* Objectives Card */}
-        {sessionData.objectives && (
+        {/* Objectives Section */}
+        {session.objectives && (
           <Card style={styles.objectivesCard}>
             <View style={styles.objectivesHeader}>
-              <Ionicons name="flag" size={24} color="#10B981" />
+              <Ionicons name="flag" size={24} color="#10b981" />
               <Text style={styles.objectivesTitle}>Objetivo del Escenario</Text>
             </View>
-            <Text style={styles.objectivesText}>{sessionData.objectives}</Text>
+            <Text style={styles.objectivesText}>{session.objectives}</Text>
+
+            {/* Objective Feedback */}
+            {!isProcessing && evaluation?.objectiveFeedback && (
+              <View style={styles.objectiveFeedbackContainer}>
+                <View style={styles.objectiveFeedbackHeader}>
+                  {session.passed ? (
+                    <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+                  ) : (
+                    <Ionicons name="close-circle" size={20} color="#ef4444" />
+                  )}
+                  <Text style={[
+                    styles.objectiveFeedbackTitle,
+                    { color: session.passed ? '#10b981' : '#ef4444' }
+                  ]}>
+                    {session.passed ? 'Objetivo Cumplido' : 'Objetivo No Cumplido'}
+                  </Text>
+                </View>
+                <Text style={styles.objectiveFeedbackText}>
+                  {evaluation.objectiveFeedback}
+                </Text>
+              </View>
+            )}
           </Card>
         )}
 
-        {/* Metrics Section */}
-        {!isProcessing && metrics.clarity !== null && (
-          <Card style={styles.metricsCard}>
-            <Text style={styles.sectionTitle}>Evaluación de Habilidades</Text>
-            <View style={styles.metricsContainer}>
-              {[
-                { key: 'clarity', label: 'Claridad', value: metrics.clarity, color: '#60A5FA' },
-                { key: 'structure', label: 'Estructura', value: metrics.structure, color: '#10B981' },
-                { key: 'connection', label: 'Alineación Emocional', value: metrics.connection, color: '#F59E0B' },
-                { key: 'influence', label: 'Influencia', value: metrics.influence, color: '#EF4444' }
-              ].map((metric) => (
-                <View key={metric.key} style={styles.metricItem}>
-                  <View style={styles.metricHeader}>
-                    <Text style={styles.metricLabel}>{metric.label}</Text>
-                    <Text style={[styles.metricValue, { color: metric.color }]}>
-                      {Math.round(metric.value || 0)}
-                    </Text>
-                  </View>
-                  <ProgressBar
-                    progress={(metric.value || 0) / 100}
-                    color={metric.color}
-                    style={styles.progressBar}
+        {/* Radar Charts */}
+        {!isProcessing && radarData.length > 0 && (
+          <Card style={styles.radarCard}>
+            <Text style={styles.sectionTitle}>Evaluación 360° de Habilidades</Text>
+            <Text style={styles.sectionSubtitle}>
+              Visualización de tus competencias evaluadas
+            </Text>
+
+            <View style={styles.radarChartsContainer}>
+              {/* Main Dimensions Chart */}
+              <View style={styles.radarChartSection}>
+                <Text style={styles.radarChartTitle}>Dimensiones Principales</Text>
+                <RadarChart
+                  data={radarData}
+                  size={Dimensions.get('window').width - 80}
+                  strokeColor="#3b82f6"
+                  fillColor="#3b82f6"
+                />
+              </View>
+
+              {/* Subdimensions Chart */}
+              {radarSubdimensionsData.length > 0 && (
+                <View style={styles.radarChartSection}>
+                  <Text style={styles.radarChartTitle}>Subdimensiones Detalladas</Text>
+                  <RadarChart
+                    data={radarSubdimensionsData}
+                    size={Dimensions.get('window').width - 80}
+                    strokeColor="#10b981"
+                    fillColor="#10b981"
+                    fontSize={9}
                   />
                 </View>
-              ))}
+              )}
+            </View>
+          </Card>
+        )}
+
+        {/* Dimensions Analysis */}
+        {!isProcessing && evaluation && (
+          <Card style={styles.dimensionsCard}>
+            <View style={styles.dimensionsHeader}>
+              <Ionicons name="analytics" size={24} color="#3b82f6" />
+              <Text style={styles.sectionTitle}>Análisis por Categoría</Text>
+            </View>
+            <Text style={styles.dimensionsSubtitle}>
+              Toca cada dimensión para ver el desglose detallado
+            </Text>
+
+            <View style={styles.dimensionsList}>
+              {Object.entries(evaluation.dimensionScores).map(([key, value]) => {
+                const dimensionName = DIMENSION_NAMES[key as keyof typeof DIMENSION_NAMES];
+                const dimensionColor = DIMENSION_COLORS[key as keyof typeof DIMENSION_COLORS];
+                const dimensionKey = key;
+
+                const subdimensionData =
+                  key === 'clarity' ? evaluation.subdimensionData?.Claridad :
+                  key === 'structure' ? evaluation.subdimensionData?.Estructura :
+                  key === 'connection' ? evaluation.subdimensionData?.Alineacion_Emocional :
+                  evaluation.subdimensionData?.Influencia;
+
+                const isExpanded = expandedDimension === dimensionKey;
+                const progressValue = value !== null ? value : 0;
+
+                return (
+                  <View key={key} style={styles.dimensionItem}>
+                    <TouchableOpacity
+                      style={styles.dimensionHeader}
+                      onPress={() => setExpandedDimension(isExpanded ? null : dimensionKey)}
+                    >
+                      <View style={styles.dimensionHeaderContent}>
+                        <View style={[styles.dimensionDot, { backgroundColor: dimensionColor }]} />
+                        <View style={styles.dimensionInfo}>
+                          <View style={styles.dimensionTitleRow}>
+                            <Text style={styles.dimensionName}>{dimensionName}</Text>
+                            <Text style={[styles.dimensionScore, { color: value ? getScoreColor(value) : colors.textSecondary }]}>
+                              {value !== null ? `${Math.round(value)}/100` : '—'}
+                            </Text>
+                          </View>
+                          <Text style={styles.dimensionDescription}>
+                            {DIMENSION_DESCRIPTIONS[key as keyof typeof DIMENSION_DESCRIPTIONS]}
+                          </Text>
+                          <View style={styles.progressBarContainer}>
+                            <View style={[styles.progressBar, { width: `${progressValue}%`, backgroundColor: dimensionColor }]} />
+                          </View>
+                        </View>
+                        {subdimensionData && (
+                          <Ionicons
+                            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={20}
+                            color={colors.textSecondary}
+                          />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Subdimensions Breakdown */}
+                    {isExpanded && subdimensionData && (
+                      <View style={styles.subdimensionsContainer}>
+                        <Text style={styles.subdimensionsLabel}>Subdimensiones evaluadas:</Text>
+                        {Object.entries(subdimensionData).map(([subKey, subValue]) => {
+                          const valueNum = parseFloat(String(subValue)) * 10; // 1-10 to 0-100
+                          const description = SUBDIMENSION_DESCRIPTIONS[subKey] || '';
+                          return (
+                            <View key={subKey} style={styles.subdimensionItem}>
+                              <View style={styles.subdimensionHeader}>
+                                <View style={styles.subdimensionTextContainer}>
+                                  <Text style={styles.subdimensionName}>
+                                    {subKey.replace(/_/g, ' ')}
+                                  </Text>
+                                  {description && (
+                                    <Text style={styles.subdimensionDescription}>{description}</Text>
+                                  )}
+                                </View>
+                                <Text style={[styles.subdimensionScore, { color: dimensionColor }]}>
+                                  {Math.round(valueNum)}/100
+                                </Text>
+                              </View>
+                              <View style={styles.progressBarContainer}>
+                                <View style={[styles.progressBar, { width: `${valueNum}%`, backgroundColor: dimensionColor }]} />
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </Card>
         )}
 
         {/* Feedback Section */}
-        {!isProcessing && (fortalezas || errores || recomendaciones) && (
+        {!isProcessing && evaluation && (
           <Card style={styles.feedbackCard}>
-            <Text style={styles.sectionTitle}>Feedback del Agente</Text>
+            <View style={styles.feedbackHeader}>
+              <Ionicons name="trending-up" size={24} color="#10b981" />
+              <Text style={styles.sectionTitle}>Feedback del Agente</Text>
+            </View>
 
             {/* Fortalezas */}
-            {fortalezas && (
+            {evaluation.fortalezas && (
               <View style={styles.feedbackSection}>
-                <Text style={[styles.feedbackTitle, { color: '#10B981' }]}>
+                <Text style={[styles.feedbackSectionTitle, { color: '#10b981' }]}>
                   Fortalezas
                 </Text>
-                {fortalezas.Cita && (
-                  <View style={[styles.quote, { borderLeftColor: '#10B981' }]}>
-                    <Text style={styles.quoteText}>{fortalezas.Cita}</Text>
+                {evaluation.fortalezas.Cita && (
+                  <View style={[styles.quoteContainer, { borderLeftColor: '#10b981' }]}>
+                    <Text style={styles.quoteText}>"{evaluation.fortalezas.Cita}"</Text>
                   </View>
                 )}
-                {fortalezas.Feedback && (
-                  <Text style={styles.feedbackText}>{fortalezas.Feedback}</Text>
+                {evaluation.fortalezas.Feedback && (
+                  <Text style={styles.feedbackText}>{evaluation.fortalezas.Feedback}</Text>
                 )}
               </View>
             )}
 
             {/* Errores */}
-            {errores && (
-              <View style={styles.feedbackSection}>
-                <Text style={[styles.feedbackTitle, { color: '#EF4444' }]}>
+            {evaluation.errores && (
+              <View style={[styles.feedbackSection, styles.feedbackSectionBorder]}>
+                <Text style={[styles.feedbackSectionTitle, { color: '#ef4444' }]}>
                   Errores
                 </Text>
-                {errores.Cita && (
-                  <View style={[styles.quote, { borderLeftColor: '#EF4444' }]}>
-                    <Text style={styles.quoteText}>{errores.Cita}</Text>
+                {evaluation.errores.Cita && (
+                  <View style={[styles.quoteContainer, { borderLeftColor: '#ef4444' }]}>
+                    <Text style={styles.quoteText}>"{evaluation.errores.Cita}"</Text>
                   </View>
                 )}
-                {errores.Feedback && (
-                  <Text style={styles.feedbackText}>{errores.Feedback}</Text>
+                {evaluation.errores.Feedback && (
+                  <Text style={styles.feedbackText}>{evaluation.errores.Feedback}</Text>
                 )}
               </View>
             )}
 
             {/* Recomendaciones */}
-            {recomendaciones && (
-              <View style={styles.feedbackSection}>
-                <Text style={[styles.feedbackTitle, { color: '#F59E0B' }]}>
+            {evaluation.recomendaciones && (
+              <View style={[styles.feedbackSection, styles.feedbackSectionBorder]}>
+                <Text style={[styles.feedbackSectionTitle, { color: '#f59e0b' }]}>
                   Recomendaciones
                 </Text>
-                {recomendaciones.Cita && (
-                  <View style={[styles.quote, { borderLeftColor: '#F59E0B' }]}>
-                    <Text style={styles.quoteText}>{recomendaciones.Cita}</Text>
+                {evaluation.recomendaciones.Cita && (
+                  <View style={[styles.quoteContainer, { borderLeftColor: '#f59e0b' }]}>
+                    <Text style={styles.quoteText}>"{evaluation.recomendaciones.Cita}"</Text>
                   </View>
                 )}
-                {recomendaciones.Feedback && (
-                  <Text style={styles.feedbackText}>{recomendaciones.Feedback}</Text>
+                {evaluation.recomendaciones.Feedback && (
+                  <Text style={styles.feedbackText}>{evaluation.recomendaciones.Feedback}</Text>
                 )}
               </View>
             )}
@@ -339,35 +515,37 @@ export const SessionResultsScreen: React.FC = () => {
 
         {/* Action Buttons */}
         <Card style={styles.actionsCard}>
-          {sessionData.raw_transcript && (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => setShowTranscript(true)}
-            >
-              <Ionicons name="document-text-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Ver Transcripción</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.actionButton} onPress={handleRetry}>
+            <Ionicons name="refresh" size={20} color={colors.text} />
+            <Text style={styles.actionButtonText}>Repetir Escenario</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.primaryButton]}
+            onPress={handleViewTranscript}
+          >
+            <Ionicons name="document-text" size={20} color="#fff" />
+            <Text style={styles.primaryButtonText}>Ver Transcripción</Text>
+          </TouchableOpacity>
         </Card>
       </ScrollView>
 
       {/* Transcript Modal */}
       <Modal
-        visible={showTranscript}
+        visible={transcriptVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowTranscript(false)}
+        onRequestClose={() => setTranscriptVisible(false)}
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Transcripción</Text>
-            <TouchableOpacity onPress={() => setShowTranscript(false)}>
-              <Ionicons name="close" size={28} color="#fff" />
+            <TouchableOpacity onPress={() => setTranscriptVisible(false)}>
+              <Ionicons name="close" size={28} color={colors.text} />
             </TouchableOpacity>
           </View>
-          <ScrollView style={styles.transcriptScroll}>
+          <ScrollView style={styles.modalContent}>
             <Text style={styles.transcriptText}>
-              {sessionData?.raw_transcript || 'No hay transcripción disponible'}
+              {session.raw_transcript || 'No hay transcripción disponible'}
             </Text>
           </ScrollView>
         </SafeAreaView>
@@ -381,22 +559,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerButton: {
-    width: 40,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
   },
   loadingContainer: {
     flex: 1,
@@ -416,124 +581,127 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#EF4444',
+    color: colors.error,
     textAlign: 'center',
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 24,
   },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  retryButton: {
     paddingHorizontal: 24,
     paddingVertical: 12,
     backgroundColor: colors.primary,
     borderRadius: 8,
   },
-  backButtonText: {
+  retryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  titleSection: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
+  },
+  backButton: {
+    marginRight: 12,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: colors.textSecondary,
-    textAlign: 'center',
     marginTop: 4,
   },
   scoreCard: {
-    marginBottom: 16,
     padding: 24,
-    borderWidth: 2,
+    alignItems: 'center',
+    marginBottom: 16,
   },
   processingContainer: {
     alignItems: 'center',
-    gap: 12,
+    paddingVertical: 12,
   },
   processingTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3B82F6',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#3b82f6',
+    marginTop: 16,
   },
   processingText: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginTop: 8,
     textAlign: 'center',
   },
-  scoreContainer: {
-    alignItems: 'center',
-    gap: 12,
+  scoreIconContainer: {
+    marginBottom: 16,
   },
   scoreValue: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  scoreNumber: {
     fontSize: 56,
     fontWeight: 'bold',
   },
-  scoreTotal: {
-    fontSize: 28,
+  scoreMax: {
+    fontSize: 32,
     color: colors.textSecondary,
   },
   scoreStatus: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
+    marginTop: 8,
   },
-  statsRow: {
+  scoreNote: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 12,
+  },
+  metricsRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
     marginBottom: 16,
   },
-  statCard: {
+  metricCard: {
     flex: 1,
-    padding: 20,
-    alignItems: 'center',
-    gap: 8,
+    padding: 16,
   },
   wordsCard: {
     backgroundColor: 'rgba(167, 139, 250, 0.1)',
-    borderColor: 'rgba(167, 139, 250, 0.2)',
   },
   durationCard: {
     backgroundColor: 'rgba(96, 165, 250, 0.1)',
-    borderColor: 'rgba(96, 165, 250, 0.2)',
   },
-  statValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.text,
+  metricIconContainer: {
+    marginBottom: 8,
   },
-  statLabel: {
+  metricTextContainer: {
+    gap: 4,
+  },
+  metricLabel: {
     fontSize: 12,
     color: colors.textSecondary,
   },
+  metricValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
   objectivesCard: {
-    marginBottom: 16,
     padding: 16,
+    marginBottom: 16,
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderColor: 'rgba(16, 185, 129, 0.2)',
   },
   objectivesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     marginBottom: 12,
+    gap: 8,
   },
   objectivesTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.text,
   },
@@ -542,62 +710,199 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 20,
   },
-  metricsCard: {
-    marginBottom: 16,
+  objectiveFeedbackContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  objectiveFeedbackHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  objectiveFeedbackTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  objectiveFeedbackText: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  radarCard: {
     padding: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: colors.text,
+    marginLeft: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  radarChartsContainer: {
+    gap: 24,
+  },
+  radarChartSection: {
+    alignItems: 'center',
+  },
+  radarChartTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 16,
   },
-  metricsContainer: {
-    gap: 16,
+  dimensionsCard: {
+    padding: 16,
+    marginBottom: 16,
   },
-  metricItem: {
+  dimensionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
     gap: 8,
   },
-  metricHeader: {
+  dimensionsSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  dimensionsList: {
+    gap: 12,
+  },
+  dimensionItem: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  dimensionHeader: {
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+  },
+  dimensionHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  dimensionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
+  },
+  dimensionInfo: {
+    flex: 1,
+    gap: 8,
+  },
+  dimensionTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  metricLabel: {
-    fontSize: 14,
-    color: colors.text,
-    fontWeight: '500',
-  },
-  metricValue: {
+  dimensionName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: colors.text,
+  },
+  dimensionScore: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dimensionDescription: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 16,
+  },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 3,
+    overflow: 'hidden',
   },
   progressBar: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.border,
+    height: '100%',
+    borderRadius: 3,
+  },
+  subdimensionsContainer: {
+    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 12,
+  },
+  subdimensionsLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  subdimensionItem: {
+    gap: 6,
+  },
+  subdimensionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  subdimensionTextContainer: {
+    flex: 1,
+  },
+  subdimensionName: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  subdimensionDescription: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  subdimensionScore: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   feedbackCard: {
-    marginBottom: 16,
     padding: 16,
+    marginBottom: 16,
+  },
+  feedbackHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
   },
   feedbackSection: {
     marginBottom: 16,
   },
-  feedbackTitle: {
+  feedbackSectionBorder: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  feedbackSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  quote: {
+  quoteContainer: {
     borderLeftWidth: 3,
     paddingLeft: 12,
+    paddingVertical: 8,
     marginBottom: 8,
   },
   quoteText: {
-    fontSize: 14,
+    fontSize: 13,
     fontStyle: 'italic',
-    color: colors.textSecondary,
+    color: colors.text,
+    lineHeight: 18,
   },
   feedbackText: {
     fontSize: 14,
@@ -613,15 +918,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   actionButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
   modalContainer: {
     flex: 1,
@@ -631,8 +946,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -641,9 +955,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
   },
-  transcriptScroll: {
+  modalContent: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   transcriptText: {
     fontSize: 14,

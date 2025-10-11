@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -71,6 +71,9 @@ export function MobileVoiceAssistant({
   const [status, setStatus] = useState<ConversationStatus>('disconnected');
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Use ref instead of state to persist across re-renders
+  const isEndingSessionRef = useRef(false);
 
   // Usar EXPO_PUBLIC_AGENT_ID (como ejemplo oficial) o fallback a _TEST
   const agentId = process.env.EXPO_PUBLIC_AGENT_ID || process.env.EXPO_PUBLIC_ELEVENLABS_AGENT_ID_TEST;
@@ -303,14 +306,28 @@ export function MobileVoiceAssistant({
     try {
       console.log('[MobileVoiceAssistant] 🛑 Finalizando conversación...');
       await conversation.endSession();
-      handleConversationEnd();
+      // handleConversationEnd will be called automatically via onDisconnect callback
     } catch (err: any) {
       console.error('[MobileVoiceAssistant] Error finalizando conversación:', err);
     }
   };
 
   const handleConversationEnd = () => {
-    if (conversationStartTime && onSessionEnd) {
+    // Prevent multiple calls using ref (persists across re-renders)
+    if (isEndingSessionRef.current) {
+      console.log('[MobileVoiceAssistant] Already ending session, skipping...');
+      return;
+    }
+
+    if (!conversationStartTime || !onSessionEnd) {
+      console.log('[MobileVoiceAssistant] No active session to end');
+      return;
+    }
+
+    // Set flag immediately
+    isEndingSessionRef.current = true;
+
+    try {
       const duration = Math.floor((Date.now() - conversationStartTime) / 1000);
 
       // Build transcript from messages
@@ -331,6 +348,11 @@ export function MobileVoiceAssistant({
       // Reset state
       setConversationStartTime(null);
       setConversationMessages([]);
+    } finally {
+      // Reset flag after a delay to allow next session
+      setTimeout(() => {
+        isEndingSessionRef.current = false;
+      }, 2000);
     }
   };
 

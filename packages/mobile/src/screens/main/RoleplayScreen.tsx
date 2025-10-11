@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -32,6 +33,7 @@ interface CurrentScenario {
 }
 
 export const RoleplayScreen: React.FC = () => {
+  const navigation = useNavigation();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -45,6 +47,9 @@ export const RoleplayScreen: React.FC = () => {
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
     questionnaireId: string;
   } | null>(null);
+
+  // Use ref instead of state to persist across re-renders
+  const isProcessingEndRef = useRef(false);
 
   useEffect(() => {
     checkUserAndQuestionnaire();
@@ -289,21 +294,167 @@ export const RoleplayScreen: React.FC = () => {
       message: string;
     }>
   ) => {
-    // Close the voice assistant view
-    setShowVoiceAssistant(false);
-    setCurrentSessionId(null);
+    // Prevent multiple simultaneous executions using ref
+    if (isProcessingEndRef.current) {
+      console.log('[RoleplayScreen] Already processing session end, skipping...');
+      return;
+    }
 
-    // Refresh sessions to show the new one
-    setTimeout(() => {
-      loadRecentSessions();
-    }, 1000);
+    // Set flag immediately
+    isProcessingEndRef.current = true;
 
-    // Show completion message
-    Alert.alert(
-      'Sesión Completada',
-      `Tu práctica de ${duration}s ha sido guardada. Revisa tu progreso en la sección de historial.`,
-      [{ text: 'Entendido' }]
-    );
+    try {
+      // Use the session ID from state or parameter
+      const effectiveSessionId = sessionId || currentSessionId;
+
+      console.log('[RoleplayScreen] Session ended:', {
+        duration,
+        sessionId: effectiveSessionId,
+        transcriptLength: transcript?.length || 0,
+        messagesCount: messages?.length || 0,
+        userMessages: messages?.filter(m => m.source === 'user').length || 0
+      });
+
+      // Close the voice assistant view
+      setShowVoiceAssistant(false);
+
+    // Save transcript and duration to database if we have a sessionId
+    if (effectiveSessionId && transcript) {
+      try {
+        console.log('[RoleplayScreen] Saving transcript and duration to database...');
+        const supabase = getSupabase();
+
+        const { error: updateError } = await supabase
+          .rpc('update_voice_session_transcript', {
+            p_session_id: effectiveSessionId,
+            p_duration_seconds: duration,
+            p_raw_transcript: transcript
+          });
+
+        if (updateError) {
+          console.error('[RoleplayScreen] Error saving transcript:', updateError);
+        } else {
+          console.log('[RoleplayScreen] Transcript and duration saved successfully');
+        }
+
+        // Create evaluation and trigger n8n webhook for processing
+        if (userId) {
+          try {
+            // Generate unique request ID (UUID v4)
+            const requestId = crypto.randomUUID();
+            console.log('[RoleplayScreen] Creating evaluation with request_id:', requestId);
+
+            // Create evaluation record
+            const { error: evalError } = await supabase
+              .rpc('create_evaluation', {
+                p_request_id: requestId,
+                p_user_id: userId,
+                p_session_id: effectiveSessionId
+              });
+
+            if (evalError) {
+              console.error('[RoleplayScreen] Error creating evaluation:', evalError);
+            } else {
+              console.log('[RoleplayScreen] Evaluation record created successfully');
+
+              // Send to n8n webhook for processing
+              const n8nWebhookUrl = process.env.EXPO_PUBLIC_N8N_WEBHOOK_URL;
+
+              if (n8nWebhookUrl && n8nWebhookUrl.length > 0 && !n8nWebhookUrl.includes('placeholder')) {
+                const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
+
+                const webhookPayload = {
+                  request_id: requestId,
+                  session_id: effectiveSessionId,
+                  transcript: transcript,
+                  messages: messages || [],
+                  metadata: {
+                    user_id: userId,
+                    profile: questionnaireData?.practiceStartProfile,
+                    scenario: currentScenario?.scenarioName,
+                    scenario_code: currentScenario?.scenarioCode,
+                    objectives: currentScenario?.objectives,
+                    difficulty: currentScenario?.difficultyLevel,
+                    duration_seconds: duration,
+                    message_count: messages?.length || 0,
+                    user_message_count: userMessageCount,
+                    ai_message_count: messages?.filter(m => m.source === 'ai').length || 0
+                  }
+                };
+
+                console.log('[RoleplayScreen] Sending to n8n webhook:', {
+                  url: n8nWebhookUrl,
+                  requestId,
+                  userMessageCount
+                });
+
+                fetch(n8nWebhookUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                  },
+                  body: JSON.stringify(webhookPayload)
+                }).then(async response => {
+                  console.log('[RoleplayScreen] n8n webhook response:', {
+                    status: response.status,
+                    ok: response.ok
+                  });
+
+                  if (!response.ok) {
+                    console.error('[RoleplayScreen] n8n webhook error:', response.status);
+                  }
+                }).catch(error => {
+                  console.error('[RoleplayScreen] Error sending to n8n:', error);
+                });
+              } else {
+                console.log('[RoleplayScreen] n8n webhook not configured, evaluation will remain pending');
+              }
+            }
+          } catch (error) {
+            console.error('[RoleplayScreen] Error in evaluation creation:', error);
+          }
+        }
+        } catch (error) {
+          console.error('[RoleplayScreen] Error in save transcript:', error);
+        }
+      }
+
+      // Navigate to results screen with sessionId (nested in Sessions tab)
+      if (effectiveSessionId) {
+        // Navigate to Sessions tab, then to SessionResults screen
+        navigation.navigate('Sessions' as never, {
+          screen: 'SessionResults',
+          params: { sessionId: effectiveSessionId }
+        } as never);
+
+        // Refresh sessions list in background
+        setTimeout(() => {
+          loadRecentSessions();
+        }, 1000);
+      } else {
+        // Fallback: if no sessionId, show error and go back to main view
+        console.error('[RoleplayScreen] No sessionId available for results');
+        Alert.alert(
+          'Sesión Completada',
+          'Tu sesión ha finalizado, pero no se pudo cargar los resultados. Verifica tu historial.',
+          [{ text: 'Entendido' }]
+        );
+
+        // Refresh sessions list
+        setTimeout(() => {
+          loadRecentSessions();
+        }, 1000);
+      }
+
+      // Reset session ID
+      setCurrentSessionId(null);
+    } finally {
+      // Reset processing flag to allow future session ends
+      setTimeout(() => {
+        isProcessingEndRef.current = false;
+      }, 2000);
+    }
   };
 
   // If showing voice assistant, render it fullscreen

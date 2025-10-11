@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card as PaperCard, Title, Paragraph } from 'react-native-paper';
 import { View, ViewStyle, TextStyle } from 'react-native';
+import { colors } from '../../theme';
 
 interface CardProps {
   title?: string;
@@ -29,7 +30,9 @@ export const Card: React.FC<CardProps> = ({
         {
           borderRadius: 12,
           marginVertical: 8,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
         },
         style,
       ]}
@@ -44,7 +47,7 @@ export const Card: React.FC<CardProps> = ({
                 {
                   fontSize: 18,
                   fontWeight: '600',
-                  color: '#1F2937',
+                  color: colors.text,
                 },
                 titleStyle,
               ]}
@@ -57,7 +60,7 @@ export const Card: React.FC<CardProps> = ({
               style={[
                 {
                   fontSize: 14,
-                  color: '#6B7280',
+                  color: colors.textSecondary,
                   marginTop: 4,
                 },
                 subtitleStyle,
