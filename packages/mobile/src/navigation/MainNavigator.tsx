@@ -15,6 +15,7 @@ import { HelpCenterScreen } from '../screens/help/HelpCenterScreen';
 import { TermsScreen } from '../screens/help/TermsScreen';
 import { PrivacyScreen } from '../screens/help/PrivacyScreen';
 import OmiConnectionScreen from '../screens/main/OmiConnectionScreen';
+import OmiVADTestScreen from '../screens/main/OmiVADTestScreen';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DrawerModal } from '../components/navigation/DrawerModal';
 import { DrawerContent } from '../components/navigation/DrawerContent';
@@ -36,6 +37,7 @@ export type MainStackParamList = {
   Terms: undefined;
   Privacy: undefined;
   OmiConnection: undefined;
+  OmiVADTest: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -179,6 +181,11 @@ export const MainNavigator: React.FC = () => {
         name="OmiConnection"
         component={OmiConnectionScreen}
         options={{ title: 'Conectar Omi' }}
+      />
+      <Stack.Screen
+        name="OmiVADTest"
+        component={OmiVADTestScreen}
+        options={{ title: 'Omi VAD Test' }}
       />
     </Stack.Navigator>
   );

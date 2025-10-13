@@ -198,6 +198,11 @@ export const DrawerContent: React.FC<DrawerContentProps> = ({
             onPress={() => navigateTo('OmiConnection')}
           />
           <DrawerItem
+            icon="mic"
+            label="Omi VAD Test"
+            onPress={() => navigateTo('OmiVADTest')}
+          />
+          <DrawerItem
             icon="globe"
             label={t('nav.language')}
             onPress={() => navigateTo('Language')}

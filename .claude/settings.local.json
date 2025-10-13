@@ -31,7 +31,8 @@
       "Bash(npx tsc:*)",
       "WebSearch",
       "Bash(npx:*)",
-      "WebFetch(domain:docs.omi.me)"
+      "WebFetch(domain:docs.omi.me)",
+      "WebFetch(domain:www.omi.me)"
     ],
     "deny": [],
     "ask": []

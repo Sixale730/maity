@@ -22,7 +22,9 @@
         "NSMicrophoneUsageDescription": "Necesitamos acceso al micrófono para las sesiones de práctica con IA",
         "NSCameraUsageDescription": "Necesitamos acceso a la cámara para funciones de video (opcional)",
         "NSBluetoothAlwaysUsageDescription": "Necesitamos acceso a Bluetooth para conectar con tu dispositivo Omi",
-        "NSBluetoothPeripheralUsageDescription": "Necesitamos acceso a Bluetooth para conectar con tu dispositivo Omi"
+        "NSBluetoothPeripheralUsageDescription": "Necesitamos acceso a Bluetooth para conectar con tu dispositivo Omi",
+        "NSLocationWhenInUseUsageDescription": "Omi usa tu ubicación para contextualizar tus grabaciones",
+        "UIBackgroundModes": ["audio", "location", "bluetooth-central"]
       }
     },
     "android": {
@@ -44,7 +46,9 @@
         "BLUETOOTH_SCAN",
         "BLUETOOTH_CONNECT",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MICROPHONE"
       ]
     },
     "web": {

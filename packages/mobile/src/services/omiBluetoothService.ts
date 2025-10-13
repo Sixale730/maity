@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // UUIDs del dispositivo Omi (basados en el repositorio oficial)
 export const OMI_SERVICE_UUID = '19b10000-e8f2-537e-4f6c-d104768a1214';
+export const OMI_AUDIO_CHAR_UUID = '19b10001-e8f2-537e-4f6c-d104768a1214'; // Audio streaming characteristic
 export const BATTERY_SERVICE_UUID = '0000180f-0000-1000-8000-00805f9b34fb';
 export const BATTERY_LEVEL_CHAR_UUID = '00002a19-0000-1000-8000-00805f9b34fb';
 export const DEVICE_INFO_SERVICE_UUID = '0000180a-0000-1000-8000-00805f9b34fb';
@@ -20,13 +21,16 @@ export interface OmiDevice {
 }
 
 export type ConnectionStatusListener = (device: OmiDevice | null) => void;
+export type AudioDataListener = (audioData: string) => void;
 
 class OmiBluetoothService {
   private bleManager: BleManager;
   private connectedDevice: Device | null = null;
   private scanningTimeout: NodeJS.Timeout | null = null;
   private disconnectionSubscription: Subscription | null = null;
+  private audioStreamSubscription: Subscription | null = null;
   private connectionListeners: Set<ConnectionStatusListener> = new Set();
+  private audioDataListeners: Set<AudioDataListener> = new Set();
 
   constructor() {
     this.bleManager = new BleManager();
@@ -412,10 +416,92 @@ class OmiBluetoothService {
   }
 
   /**
+   * Inicia el streaming de audio desde el dispositivo Omi
+   */
+  async startAudioStreaming(): Promise<void> {
+    if (!this.connectedDevice) {
+      throw new Error('No hay dispositivo Omi conectado');
+    }
+
+    try {
+      console.log('[Omi] Starting audio streaming...');
+
+      // Detener streaming anterior si existe
+      if (this.audioStreamSubscription) {
+        this.audioStreamSubscription.remove();
+        this.audioStreamSubscription = null;
+      }
+
+      // Monitorear el characteristic de audio
+      this.audioStreamSubscription = this.connectedDevice.monitorCharacteristicForService(
+        OMI_SERVICE_UUID,
+        OMI_AUDIO_CHAR_UUID,
+        (error, characteristic) => {
+          if (error) {
+            console.error('[Omi] Error in audio stream:', error);
+            return;
+          }
+
+          if (characteristic?.value) {
+            // Notificar a los listeners con los datos de audio (base64)
+            this.notifyAudioDataListeners(characteristic.value);
+          }
+        }
+      );
+
+      console.log('[Omi] Audio streaming started successfully');
+    } catch (error) {
+      console.error('[Omi] Error starting audio stream:', error);
+      throw new Error('No se pudo iniciar el streaming de audio');
+    }
+  }
+
+  /**
+   * Detiene el streaming de audio
+   */
+  stopAudioStreaming(): void {
+    if (this.audioStreamSubscription) {
+      console.log('[Omi] Stopping audio streaming...');
+      this.audioStreamSubscription.remove();
+      this.audioStreamSubscription = null;
+      console.log('[Omi] Audio streaming stopped');
+    }
+  }
+
+  /**
+   * Verifica si el audio está streaming
+   */
+  isAudioStreaming(): boolean {
+    return this.audioStreamSubscription !== null;
+  }
+
+  /**
+   * Agrega un listener para datos de audio
+   */
+  addAudioDataListener(listener: AudioDataListener): void {
+    this.audioDataListeners.add(listener);
+  }
+
+  /**
+   * Remueve un listener de datos de audio
+   */
+  removeAudioDataListener(listener: AudioDataListener): void {
+    this.audioDataListeners.delete(listener);
+  }
+
+  /**
+   * Notifica a los listeners sobre nuevos datos de audio
+   */
+  private notifyAudioDataListeners(audioData: string): void {
+    this.audioDataListeners.forEach(listener => listener(audioData));
+  }
+
+  /**
    * Limpia y destruye el manager de BLE
    */
   destroy(): void {
     this.stopScan();
+    this.stopAudioStreaming();
     this.disconnect();
     this.bleManager.destroy();
   }
