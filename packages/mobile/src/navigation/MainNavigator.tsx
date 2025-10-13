@@ -14,6 +14,7 @@ import { NotificationsScreen } from '../screens/settings/NotificationsScreen';
 import { HelpCenterScreen } from '../screens/help/HelpCenterScreen';
 import { TermsScreen } from '../screens/help/TermsScreen';
 import { PrivacyScreen } from '../screens/help/PrivacyScreen';
+import OmiConnectionScreen from '../screens/main/OmiConnectionScreen';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DrawerModal } from '../components/navigation/DrawerModal';
 import { DrawerContent } from '../components/navigation/DrawerContent';
@@ -34,6 +35,7 @@ export type MainStackParamList = {
   HelpCenter: undefined;
   Terms: undefined;
   Privacy: undefined;
+  OmiConnection: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -172,6 +174,11 @@ export const MainNavigator: React.FC = () => {
         name="Privacy"
         component={PrivacyScreen}
         options={{ title: t('nav.privacy') }}
+      />
+      <Stack.Screen
+        name="OmiConnection"
+        component={OmiConnectionScreen}
+        options={{ title: 'Conectar Omi' }}
       />
     </Stack.Navigator>
   );

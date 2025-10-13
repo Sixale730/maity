@@ -20,7 +20,9 @@
       "bundleIdentifier": "mx.com.maity.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Necesitamos acceso al micrófono para las sesiones de práctica con IA",
-        "NSCameraUsageDescription": "Necesitamos acceso a la cámara para funciones de video (opcional)"
+        "NSCameraUsageDescription": "Necesitamos acceso a la cámara para funciones de video (opcional)",
+        "NSBluetoothAlwaysUsageDescription": "Necesitamos acceso a Bluetooth para conectar con tu dispositivo Omi",
+        "NSBluetoothPeripheralUsageDescription": "Necesitamos acceso a Bluetooth para conectar con tu dispositivo Omi"
       }
     },
     "android": {
@@ -37,7 +39,12 @@
         "INTERNET",
         "SYSTEM_ALERT_WINDOW",
         "WAKE_LOCK",
-        "BLUETOOTH"
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
