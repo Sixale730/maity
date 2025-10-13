@@ -194,7 +194,7 @@ export const SessionResultsScreen: React.FC = () => {
     );
   }
 
-  const isProcessing = session.status === 'in_progress' || !evaluation?.calculatedScore;
+  const isProcessing = session.status !== 'completed';
   const displayScore = evaluation?.calculatedScore || session.score || 0;
 
   return (

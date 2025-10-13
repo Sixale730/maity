@@ -11,7 +11,7 @@ import {
 import { useConversation } from '@elevenlabs/react-native';
 import type { ConversationStatus, Role } from '@elevenlabs/react-native';
 import { colors } from '../../theme';
-import { VoiceParticleOrb } from './VoiceParticleOrb';
+import { VoiceParticleSphere3D } from './VoiceParticleSphere3D';
 
 interface MobileVoiceAssistantProps {
   selectedProfile?: 'CEO' | 'CTO' | 'CFO';
@@ -401,10 +401,10 @@ export function MobileVoiceAssistant({
           <Text style={styles.statusText}>{getStatusText()}</Text>
         </View>
 
-        {/* Voice Particle Orb - show when connected */}
+        {/* Voice Particle Sphere 3D - show when connected */}
         {currentConversationId ? (
           <View style={styles.orbContainer}>
-            <VoiceParticleOrb isListening={!isSpeaking} isSpeaking={isSpeaking} />
+            <VoiceParticleSphere3D isListening={!isSpeaking} isSpeaking={isSpeaking} />
             <Text style={styles.orbLabel}>
               {isSpeaking ? 'Agente hablando...' : 'Escuchando...'}
             </Text>
