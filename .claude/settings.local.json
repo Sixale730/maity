@@ -48,7 +48,10 @@
       "Bash(for file in DashboardScreen.tsx RoleplayScreen.tsx CoachScreen.tsx SessionsScreen.tsx)",
       "Bash(do sed -i \"s|from ''../../lib/supabase/client''|from ''@maity/shared''|g\" \"$file\")",
       "Bash(for file in RoleplayScreen.tsx CoachScreen.tsx SessionsScreen.tsx)",
-      "Bash(do sed -i \"s|getSupabase|supabase|g\" \"$file\")"
+      "Bash(do sed -i \"s|getSupabase|supabase|g\" \"$file\")",
+      "Bash(dir:*)",
+      "Bash(npm --version)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
