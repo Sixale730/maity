@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { Outlet } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { RoleBasedSidebar } from "@/components/RoleBasedSidebar";
+import { SidebarProvider } from "@/ui/components/ui/sidebar";
+import { RoleBasedSidebar } from "@/shared/components/RoleBasedSidebar";
 import { useUser } from "@/contexts/UserContext";
 import { PlatformTour } from "@/components/PlatformTour";
 import { usePlatformTour } from "@/contexts/PlatformTourContext";

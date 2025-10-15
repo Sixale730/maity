@@ -1,13 +1,13 @@
 ﻿import React, { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { AuthService, OrganizationService } from '@maity/shared';
 import type { Database } from '@/integrations/supabase/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 // Removed UserInfo type as get_user_info is no longer used
 
@@ -39,9 +39,7 @@ const Onboarding = () => {
     try {
       setLoading(true);
 
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+      const currentUser = await AuthService.getUser();
 
       if (!currentUser) {
         navigate('/auth?returnTo=/onboarding');
@@ -49,19 +47,20 @@ const Onboarding = () => {
       }
 
       // Check user status instead of get_user_info
-      const { data: statusData } = await supabase.rpc('my_status');
+      const statusData = await AuthService.getMyStatus();
 
       if (statusData?.[0]?.registration_form_completed) {
         navigate('/dashboard');
         return;
       }
 
-      const { error: provisionError } = await supabase.rpc('provision_user');
-      if (provisionError) {
+      try {
+        await OrganizationService.provisionUser();
+      } catch (provisionError) {
         console.error('Error provisioning user:', provisionError);
         toast({
           title: 'Error',
-          description: `Error al configurar usuario: ${provisionError.message}`,
+          description: `Error al configurar usuario: ${(provisionError as Error).message}`,
           variant: 'destructive',
         });
       }
@@ -127,17 +126,7 @@ const Onboarding = () => {
 
   const handleFormCompletion = async () => {
     try {
-      const { error } = await supabase.rpc('complete_onboarding');
-
-      if (error) {
-        console.error('Error completing onboarding:', error);
-        toast({
-          title: 'Error',
-          description: 'Error al completar onboarding',
-          variant: 'destructive',
-        });
-        return;
-      }
+      await AuthService.completeOnboarding();
 
       setFormCompleted(true);
 
@@ -150,10 +139,10 @@ const Onboarding = () => {
         navigate('/dashboard');
       }, 2000);
     } catch (error) {
-      console.error('Error in form completion:', error);
+      console.error('Error completing onboarding:', error);
       toast({
         title: 'Error',
-        description: 'Error al procesar formulario',
+        description: 'Error al completar onboarding',
         variant: 'destructive',
       });
     }

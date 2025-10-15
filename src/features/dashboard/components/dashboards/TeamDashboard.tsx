@@ -1,12 +1,12 @@
 ﻿
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Button } from "@/ui/components/ui/button";
+import { Badge } from "@/ui/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/components/ui/table";
 import { Upload, Users, Download, FileText, CheckCircle, Trash2, FolderOpen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/shared/hooks/use-toast";
+import { supabase, OrganizationService } from "@maity/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UploadedFile {
@@ -37,14 +37,7 @@ const TeamDashboard = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data: companyId, error } = await supabase.rpc('get_user_company_id', {
-        user_auth_id: session.user.id
-      });
-
-      if (error) {
-        console.error('Error loading user company:', error);
-        return;
-      }
+      const companyId = await OrganizationService.getUserCompanyId(session.user.id);
 
       if (companyId) {
         setCompanyId(companyId);
@@ -60,10 +53,8 @@ const TeamDashboard = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      // Get company_id using RPC
-      const { data: companyId } = await supabase.rpc('get_user_company_id', {
-        user_auth_id: session.user.id
-      });
+      // Get company_id using service
+      const companyId = await OrganizationService.getUserCompanyId(session.user.id);
 
       if (!companyId) {
         console.error('No company_id found for user');
@@ -129,14 +120,12 @@ const TeamDashboard = () => {
       }
       console.log('User authenticated:', s.session.user.id);
 
-      // Obtener company_id usando RPC
+      // Obtener company_id usando service
       console.log('Getting company_id...');
-      const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
-        user_auth_id: s.session.user.id
-      });
-        
-      if (companyError || !companyId) {
-        console.error('Company ID error:', companyError);
+      const companyId = await OrganizationService.getUserCompanyId(s.session.user.id);
+
+      if (!companyId) {
+        console.error('Company ID error: No company ID found');
         throw new Error("Sin company_id");
       }
       console.log('Company ID:', companyId);

@@ -3,18 +3,18 @@ import { UserRole, UserProfile } from "@/contexts/UserContext";
 import { PlatformAdminDashboard } from "./dashboards/PlatformAdminDashboard";
 import { UserDashboard } from "./dashboards/UserDashboard";
 import TeamDashboard from "./dashboards/TeamDashboard";
-import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
+import { SidebarTrigger } from "@/ui/components/ui/sidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
+import { Skeleton } from "@/ui/components/ui/skeleton";
+import { Badge } from "@/ui/components/ui/badge";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { OrganizationsManager } from "./OrganizationsManager";
-import { CoachPage } from "./coach/CoachPage";
-import { RoleplayPage } from "./roleplay/RoleplayPage";
-import { SessionsHistory } from "./SessionsHistory";
+import { OrganizationsManager } from "@/features/organizations/components/OrganizationsManager";
+import { CoachPage } from "@/features/coach/pages/CoachPage";
+import { RoleplayPage } from "@/features/roleplay/pages/RoleplayPage";
+import { SessionsHistory } from "@/shared/components/SessionsHistory";
 import { 
   BarChart, 
   Bar, 

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { RoleplayVoiceAssistant } from './RoleplayVoiceAssistant';
-import { PrePracticeQuestionnaire } from './PrePracticeQuestionnaire';
-import { ScenarioInstructions } from './ScenarioInstructions';
-import { SessionResults } from './SessionResults';
-import { RoleplayRoadmap } from './RoleplayRoadmap';
-import { TranscriptViewer } from './TranscriptViewer';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
-import { env } from '@/lib/env';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
+import { RoleplayVoiceAssistant } from '../components/RoleplayVoiceAssistant';
+import { PrePracticeQuestionnaire } from '../components/PrePracticeQuestionnaire';
+import { ScenarioInstructions } from '../components/ScenarioInstructions';
+import { SessionResults } from '../components/SessionResults';
+import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
+import { TranscriptViewer } from '../components/TranscriptViewer';
+import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime, env } from '@maity/shared';
+import { useToast } from '@/ui/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
 import {
   Dialog,
@@ -18,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/ui/components/ui/dialog';
 
 // Número mínimo de mensajes del usuario requeridos para enviar a n8n
 const MIN_USER_MESSAGES = 5;
@@ -189,7 +187,7 @@ export function RoleplayPage() {
       setUserName(displayName);
 
       // Verificar si es admin
-      const { data: roles } = await supabase.rpc('my_roles');
+      const roles = await AuthService.getMyRoles();
       const isUserAdmin = roles?.includes('admin') || false;
       setIsAdmin(isUserAdmin);
 
@@ -243,12 +241,7 @@ export function RoleplayPage() {
 
     try {
       // Obtener o crear progreso del usuario
-      const { data: progress, error } = await supabase.rpc('get_or_create_user_progress', {
-        p_user_id: userId,
-        p_profile_name: questionnaireData.practiceStartProfile
-      });
-
-      if (error) throw error;
+      const progress = await RoleplayService.getOrCreateProgress(userId, questionnaireData.practiceStartProfile);
 
       if (progress && progress.length > 0) {
         const scenarioInfo = progress[0];
@@ -317,21 +310,11 @@ export function RoleplayPage() {
         timestamp: new Date().toISOString()
       });
 
-      const { data: sessionId, error: sessionError } = await supabase.rpc('create_voice_session', {
-        p_user_id: userId,
-        p_profile_name: questionnaireData.practiceStartProfile,
-        p_questionnaire_id: questionnaireData.questionnaireId
-      });
-
-      if (sessionError) {
-        console.error('❌ [RoleplayPage] Error al crear voice_session:', sessionError);
-        toast({
-          title: "Error",
-          description: "No se pudo crear la sesión de práctica",
-          variant: "destructive"
-        });
-        return null;
-      }
+      const sessionId = await RoleplayService.createSession(
+        userId,
+        questionnaireData.practiceStartProfile,
+        questionnaireData.questionnaireId
+      );
 
       if (sessionId) {
         console.log('✅ [RoleplayPage] voice_session creada exitosamente:', {
@@ -464,21 +447,11 @@ export function RoleplayPage() {
           timestamp: new Date().toISOString()
         });
 
-        const { data: newSessionId, error: sessionError } = await supabase.rpc('create_voice_session', {
-          p_user_id: userId,
-          p_profile_name: questionnaireData.practiceStartProfile,
-          p_questionnaire_id: questionnaireData.questionnaireId
-        });
-
-        if (sessionError) {
-          console.error('❌ [RoleplayPage] Error al crear voice_session de emergencia:', sessionError);
-          toast({
-            title: "Error",
-            description: "No se pudo crear la sesión de práctica",
-            variant: "destructive"
-          });
-          return;
-        }
+        const newSessionId = await RoleplayService.createSession(
+          userId,
+          questionnaireData.practiceStartProfile,
+          questionnaireData.questionnaireId
+        );
 
         console.log('✅ [RoleplayPage] Voice session creada de emergencia exitosamente:', newSessionId);
         effectiveSessionId = newSessionId;

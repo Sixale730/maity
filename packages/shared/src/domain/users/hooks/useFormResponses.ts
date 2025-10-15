@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../../../api/client/supabase';
 
 export interface FormResponse {
   q1: string | null;

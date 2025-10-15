@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../../../api/client/supabase';
 
 interface Evaluation {
   request_id: string; // Ahora es la primary key

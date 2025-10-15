@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { env } from '@/lib/env';
+import { env } from '../../../constants/env';
 
 interface UseElevenLabsVoiceOptions {
   voiceId?: string;

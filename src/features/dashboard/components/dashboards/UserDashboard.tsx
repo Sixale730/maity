@@ -1,11 +1,11 @@
 import React from "react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { SidebarTrigger } from "@/ui/components/ui/sidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
+import { Badge } from "@/ui/components/ui/badge";
+import { Progress } from "@/ui/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
-import LanguageSelector from "@/components/LanguageSelector";
+import LanguageSelector from "@/shared/components/LanguageSelector";
 import { 
   BarChart, 
   Bar, 
@@ -24,8 +24,8 @@ import {
   PolarRadiusAxis,
   Radar
 } from "recharts";
-import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
-import { useFormResponses } from "@/hooks/useFormResponses";
+import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
+import { useFormResponses } from "@maity/shared";
 
 const chartConfig = {
   sessions: {

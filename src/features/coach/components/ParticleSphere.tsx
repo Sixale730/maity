@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { MAITY_COLORS } from '@/lib/colors';
+import { MAITY_COLORS } from '@maity/shared';
 
 interface ParticleSphereProps {
   isListening: boolean;

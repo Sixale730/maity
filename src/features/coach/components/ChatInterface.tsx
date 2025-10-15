@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/ui/components/ui/button';
+import { Input } from '@/ui/components/ui/input';
 import { Send, User, Bot } from 'lucide-react';
 import { AgentState } from './CoachPage';
 

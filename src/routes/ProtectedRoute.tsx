@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, AuthService } from '@maity/shared';
 
 type GuardState = 'loading' | 'allow' | 'deny';
 
@@ -34,36 +34,17 @@ const ProtectedRoute = () => {
         }
 
         // Primero verificar roles - si es admin/manager, permitir acceso directo
-        const { data: rolesData, error: rolesError } = await supabase.rpc("my_roles");
-        if (!rolesError && rolesData && Array.isArray(rolesData)) {
-          console.log("[ProtectedRoute] User roles:", rolesData);
+        const rolesData = await AuthService.getMyRoles();
+        console.log("[ProtectedRoute] User roles:", rolesData);
 
-          if (rolesData.includes('admin') || rolesData.includes('manager')) {
-            console.log("[ProtectedRoute] User has admin/manager role - access granted");
-            if (!cancelled) setState('allow');
-            return;
-          }
-        }
-
-        // Si no es admin/manager, verificar fase
-        const { data, error } = await supabase.rpc('my_phase');
-        if (error) {
-          console.error('[ProtectedRoute] my_phase error:', error);
-          // Error en my_phase - ir a página de error del estado del usuario
-          if (pathname !== '/user-status-error') {
-            navigate('/user-status-error', { replace: true });
-          }
-          if (!cancelled) setState('deny');
+        if (rolesData.includes('admin') || rolesData.includes('manager')) {
+          console.log("[ProtectedRoute] User has admin/manager role - access granted");
+          if (!cancelled) setState('allow');
           return;
         }
 
-        const raw =
-          typeof data === 'string'
-            ? data
-            : (data as any)?.phase ??
-              (Array.isArray(data) ? (data[0] as any)?.phase : undefined);
-
-        const phase: Phase = String(raw || '').toUpperCase();
+        // Si no es admin/manager, verificar fase
+        const phase: Phase = await AuthService.getMyPhase();
         console.log("[ProtectedRoute] User phase:", phase, "for path:", pathname);
 
         if (phase === 'ACTIVE') {

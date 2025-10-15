@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, AuthService } from '@maity/shared';
 
 interface PlatformTourState {
   isRunning: boolean;
@@ -52,18 +52,7 @@ export const PlatformTourProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const localCompleted = localStorage.getItem(localStorageKey) === 'true';
 
       // Consultar base de datos usando RPC para acceder a maity.users
-      const { data, error } = await supabase.rpc('my_status');
-
-      if (error) {
-        console.error('Error checking tour status:', error);
-        setState({
-          isRunning: false,
-          hasCompleted: localCompleted,
-          loading: false,
-        });
-        return;
-      }
-
+      const data = await AuthService.getMyStatus();
       const dbCompleted = data?.[0]?.platform_tour_completed ?? false;
       const hasCompleted = dbCompleted || localCompleted;
 
@@ -86,12 +75,7 @@ export const PlatformTourProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const localStorageKey = `maity_tour_completed_${userId}`;
       localStorage.setItem(localStorageKey, 'true');
 
-      const { error } = await supabase.rpc('mark_tour_completed');
-
-      if (error) {
-        console.error('Error marking tour as completed:', error);
-        return;
-      }
+      await AuthService.markTourCompleted();
 
       setState(prev => ({
         ...prev,

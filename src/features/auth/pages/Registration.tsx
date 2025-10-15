@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AuthService, env } from "@maity/shared";
+import { useToast } from "@/shared/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Button } from "@/ui/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { env } from "@/lib/env";
 
 /**
  * NOTAS IMPORTANTES:
@@ -28,14 +27,14 @@ const Registration: React.FC = () => {
   const init = async () => {
     try {
       // 1) Sesión obligatoria
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await AuthService.getSession();
       if (!session) {
         const returnTo = encodeURIComponent(window.location.href);
         navigate(`/auth?returnTo=${returnTo}`);
         return;
       }
       // 2) Verificar fase actual del usuario
-      const { data: statusData } = await supabase.rpc('my_status');
+      const statusData = await AuthService.getMyStatus();
 
       if (!statusData) {
         console.error("[registration] my_status returned no data");

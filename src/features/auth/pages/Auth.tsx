@@ -1,26 +1,24 @@
 import React, { useState } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/components/ui/button";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 
-import { Input } from "@/components/ui/input";
+import { Input } from "@/ui/components/ui/input";
 
-import { Label } from "@/components/ui/label";
+import { Label } from "@/ui/components/ui/label";
 
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/ui/components/ui/separator";
 
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@maity/shared";
 
-import { resolveBaseOrigin, rebaseUrlToOrigin } from "@/lib/urlHelpers";
-
-import { getAppUrl } from "@/lib/appUrl";
+import { resolveBaseOrigin, rebaseUrlToOrigin, getAppUrl } from "@maity/shared";
 
 import { useNavigate } from "react-router-dom";
 
-import MaityLogo from "@/components/MaityLogo";
+import MaityLogo from "@/shared/components/MaityLogo";
 
 import { Eye, EyeOff } from "lucide-react";
 

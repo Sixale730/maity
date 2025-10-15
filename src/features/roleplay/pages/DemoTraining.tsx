@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { RoleplayVoiceAssistant } from '@/components/roleplay/RoleplayVoiceAssistant';
-import { SessionResults } from '@/components/roleplay/SessionResults';
-import { TranscriptViewer } from '@/components/roleplay/TranscriptViewer';
-import { AdminTextChat } from '@/components/roleplay/AdminTextChat';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { createEvaluation, useEvaluationRealtime } from '@/hooks/useEvaluationRealtime';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
+import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
+import { SessionResults } from '@/features/roleplay/components/SessionResults';
+import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
+import { AdminTextChat } from '@/features/roleplay/components/AdminTextChat';
+import { supabase } from '@maity/shared';
+import { useToast } from '@/ui/components/ui/use-toast';
+import { createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { useUserRole } from '@/hooks/useUserRole';
-import { env } from '@/lib/env';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { env } from '@maity/shared';
+import { Card } from '@/ui/components/ui/card';
+import { Label } from '@/ui/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/components/ui/select';
+import { Input } from '@/ui/components/ui/input';
+import { Button } from '@/ui/components/ui/button';
 import { Settings, Play } from 'lucide-react';
 import {
   Dialog,
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/ui/components/ui/dialog';
 
 const MIN_USER_MESSAGES = 5;
 

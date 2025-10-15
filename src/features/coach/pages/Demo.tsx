@@ -1,9 +1,9 @@
 import React from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Play, MapIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/components/ui/button';
 import { usePlatformTour } from '@/contexts/PlatformTourContext';
-import { MAITY_COLORS } from '@/lib/colors';
+import { MAITY_COLORS } from '@maity/shared';
 
 export default function Demo() {
   const { restartTour } = usePlatformTour();

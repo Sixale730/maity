@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Card } from '@/ui/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
+import { Progress } from '@/ui/components/ui/progress';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/ui/components/ui/chart';
 import {
   Trophy,
   Target,

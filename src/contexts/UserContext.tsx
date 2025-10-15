@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, AuthService } from '@maity/shared';
 import { useNavigate } from 'react-router-dom';
-import { getAppUrl } from '@/lib/appUrl';
+import { getAppUrl } from '@maity/shared';
 
 export type UserRole = 'admin' | 'manager' | 'user' | null;
 
@@ -52,14 +52,7 @@ export function UserProvider({ children }: UserProviderProps) {
       }
 
       // Get user role
-      const { data: role, error: roleError } = await supabase.rpc('get_user_role');
-
-      if (roleError) {
-        console.error('Error fetching user role:', roleError);
-        setError('Error al obtener el rol del usuario');
-        setLoading(false);
-        return;
-      }
+      const role = await AuthService.getUserRole();
 
       // If admin or manager, proceed regardless of phase
       if (role === 'admin' || role === 'manager') {
@@ -79,16 +72,7 @@ export function UserProvider({ children }: UserProviderProps) {
       }
 
       // For regular users, check phase
-      const { data: phaseData, error: phaseError } = await supabase.rpc('my_phase');
-
-      if (phaseError) {
-        console.error('[UserProvider] my_phase error:', phaseError);
-        setError('Error al verificar el estado del usuario');
-        setLoading(false);
-        return;
-      }
-
-      const phase = String(phaseData || '').toUpperCase();
+      const phase = await AuthService.getMyPhase();
       console.log('[UserProvider] User phase:', phase);
 
       // Only continue if user is ACTIVE

@@ -21,7 +21,7 @@ import {
   Mic
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@maity/shared";
 import { UserRole } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
@@ -38,7 +38,7 @@ import {
   SidebarHeader,
   SidebarFooter,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/ui/components/ui/sidebar";
 
 const getNavigationByRole = (role: UserRole) => {
   const baseItems = [

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Progress } from "@/ui/components/ui/progress";
+import { Badge } from "@/ui/components/ui/badge";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/ui/components/ui/tooltip";
 import {
   ResponsiveContainer,
   RadarChart,
@@ -25,7 +25,7 @@ import {
   Bar
 } from "recharts";
 import { Trophy, Shield, Award, Target, Star, TrendingUp, Brain, Users, Zap, Lock, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, RoleplayService } from "@maity/shared";
 
 interface RoleCard {
   id: string;
@@ -317,10 +317,7 @@ export function RoleplayProgress() {
       if (!userProgress || userProgress.length === 0) {
         const ceoProfile = profiles?.find(p => p.name === 'CEO');
         if (ceoProfile) {
-          await supabase.rpc('create_initial_voice_progress', {
-            p_auth_id: user.id,
-            p_profile_name: 'CEO'
-          });
+          await RoleplayService.createInitialProgress(user.id, 'CEO');
 
           // Refresh data
           await fetchUserProgress();
@@ -353,15 +350,7 @@ export function RoleplayProgress() {
       if (!user) return;
 
       // Create new progress entry for the selected profile using RPC
-      const { error } = await supabase.rpc('create_initial_voice_progress', {
-        p_auth_id: user.id,
-        p_profile_name: profileId.toUpperCase()
-      });
-
-      if (error) {
-        console.error('Error updating profile:', error);
-        return;
-      }
+      await RoleplayService.createInitialProgress(user.id, profileId.toUpperCase());
 
       // Refresh the data
       fetchUserProgress();

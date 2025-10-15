@@ -1,47 +1,50 @@
 ﻿// src/App.tsx
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/ui/components/ui/toaster";
+import { Toaster as Sonner } from "@/ui/components/ui/sonner";
+import { TooltipProvider } from "@/ui/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { PlatformTourProvider } from "@/contexts/PlatformTourContext";
 
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
+import {
+  AuthPage,
+  AuthCallbackPage,
+  RegistrationPage,
+  OnboardingPage,
+  PendingPage,
+  OnboardingSuccessPage
+} from "./features/auth";
+import {
+  DashboardPage,
+  IndexPage,
+  MyProgressPage,
+  AnalyticsPage,
+  ReportsPage,
+  TrendsPage,
+  PlansPage,
+  PlanPage,
+  DocumentsPage,
+  SettingsPage,
+  AchievementsPage
+} from "./features/dashboard";
+import {
+  RoleplayPage,
+  SessionResultsPage,
+  SessionsPage,
+  DemoTrainingPage
+} from "./features/roleplay";
+import { CoachPage, DemoPage } from "./features/coach";
+import { OrganizationsPage, TeamPage, UsersPage } from "./features/organizations";
 import OAuthTest from "./pages/OAuthTest";
-import Dashboard from "./pages/Dashboard";
-import Pending from "./pages/Pending";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import Registration from "./pages/Registration";
-import Onboarding from "./pages/Onboarding";
-import OnboardingSuccess from "./pages/OnboardingSuccess";
 import InvitationConflict from "./pages/InvitationConflict";
 import InvitationRequired from "./pages/InvitationRequired";
 import UserStatusError from "./pages/UserStatusError";
 import NotFound from "./pages/NotFound";
-import Roleplay from "./pages/Roleplay";
-import { MyProgress } from "./pages/MyProgress";
 import AppLayout from "./layouts/AppLayout";
-import Coach from "./pages/Coach";
-import Sessions from "./pages/Sessions";
-import SessionResultsPage from "./pages/SessionResultsPage";
-import Organizations from "./pages/Organizations";
-import Team from "./pages/Team";
-import Analytics from "./pages/Analytics";
-import Users from "./pages/Users";
-import Reports from "./pages/Reports";
-import Trends from "./pages/Trends";
-import Plans from "./pages/Plans";
-import Plan from "./pages/Plan";
-import Documents from "./pages/Documents";
-import Settings from "./pages/Settings";
-import Achievements from "./pages/Achievements";
-import Demo from "./pages/Demo";
-import DemoTraining from "./pages/DemoTraining";
 
 
 const queryClient = new QueryClient();
@@ -56,38 +59,38 @@ const App = () => (
           <UserProvider>
             <PlatformTourProvider>
               <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/oauth-test" element={<OAuthTest />} />
-            <Route path="/registration" element={<Registration />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
+            <Route path="/registration" element={<RegistrationPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/onboarding/success" element={<OnboardingSuccessPage />} />
             <Route path="/invitation-confirm" element={<InvitationConflict />} />
-            <Route path="/pending" element={<Pending />} />
+            <Route path="/pending" element={<PendingPage />} />
             <Route path="/invitation-required" element={<InvitationRequired />} />
             <Route path="/user-status-error" element={<UserStatusError />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/coach" element={<Coach />} />
-                <Route path="/roleplay" element={<Roleplay />} />
-                <Route path="/progress" element={<MyProgress />} />
-                <Route path="/sessions" element={<Sessions />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/coach" element={<CoachPage />} />
+                <Route path="/roleplay" element={<RoleplayPage />} />
+                <Route path="/progress" element={<MyProgressPage />} />
+                <Route path="/sessions" element={<SessionsPage />} />
                 <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/organizations" element={<Organizations />} />
-                <Route path="/usuarios" element={<Users />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/trends" element={<Trends />} />
-                <Route path="/planes" element={<Plans />} />
-                <Route path="/plan" element={<Plan />} />
-                <Route path="/documentos" element={<Documents />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/logros" element={<Achievements />} />
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/demo-training" element={<DemoTraining />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/organizations" element={<OrganizationsPage />} />
+                <Route path="/usuarios" element={<UsersPage />} />
+                <Route path="/team" element={<TeamPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/trends" element={<TrendsPage />} />
+                <Route path="/planes" element={<PlansPage />} />
+                <Route path="/plan" element={<PlanPage />} />
+                <Route path="/documentos" element={<DocumentsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/logros" element={<AchievementsPage />} />
+                <Route path="/demo" element={<DemoPage />} />
+                <Route path="/demo-training" element={<DemoTrainingPage />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

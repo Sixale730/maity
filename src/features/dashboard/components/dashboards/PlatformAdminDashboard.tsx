@@ -1,8 +1,8 @@
 import React from "react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Badge } from "@/components/ui/badge";
+import { SidebarTrigger } from "@/ui/components/ui/sidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
+import { Badge } from "@/ui/components/ui/badge";
 import { 
   BarChart, 
   Bar, 
@@ -16,8 +16,8 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { useDashboardDataByRole } from "@/hooks/useDashboardDataByRole";
-import { supabase } from "@/integrations/supabase/client";
+import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
+import { DashboardService } from "@maity/shared";
 
 const chartConfig = {
   sessions: {
@@ -47,12 +47,12 @@ export function PlatformAdminDashboard() {
   React.useEffect(() => {
     const fetchAdditionalStats = async () => {
       try {
-        const response = await supabase.rpc('get_admin_dashboard_stats');
-        if (response.data) {
+        const stats = await DashboardService.getAdminStats();
+        if (stats) {
           setAdditionalStats({
-            totalUsers: response.data.totalUsers || 0,
-            totalCompanies: response.data.totalCompanies || 0,
-            completedSessions: response.data.completedSessions || 0
+            totalUsers: stats.totalUsers || 0,
+            totalCompanies: stats.totalCompanies || 0,
+            completedSessions: stats.completedSessions || 0
           });
         }
       } catch (error) {

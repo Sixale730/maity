@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { env } from "@/lib/env";
-import { MaityLogo } from "@/components/MaityLogo";
+import { supabase, AuthService, env } from "@maity/shared";
+import { MaityLogo } from "@/shared/components/MaityLogo";
 
 // Helper function to call finalize-invite API
 const finalizeInvite = async (accessToken: string) => {
@@ -55,7 +54,7 @@ export default function AuthCallback() {
       // Pequeño delay para asegurar que la sesión esté completamente establecida
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await AuthService.getSession();
       console.log("[AuthCb] Session found:", !!session, session?.user?.email);
 
       if (!session) {
@@ -66,7 +65,7 @@ export default function AuthCallback() {
       }
 
       // Ensure user exists in the database
-      await supabase.rpc('ensure_user');
+      await AuthService.ensureUser();
 
       // 1) Procesar invitación via API (si hay cookie)
       console.log("[AuthCb] Checking for invite cookie...");
@@ -98,40 +97,38 @@ export default function AuthCallback() {
 
       // 4) Primero verificar roles
       console.log("[AuthCb] About to call my_roles()");
-      const { data: rolesData, error: rolesError } = await supabase.rpc("my_roles");
-      console.log("[AuthCb] my_roles() returned:", { rolesData, rolesError });
+      try {
+        const rolesData = await AuthService.getMyRoles();
+        console.log("[AuthCb] my_roles() returned:", { rolesData });
 
-      if (!rolesError && rolesData && Array.isArray(rolesData)) {
-        console.log("[AuthCb] User roles:", rolesData);
+        if (rolesData && Array.isArray(rolesData)) {
+          console.log("[AuthCb] User roles:", rolesData);
 
-        // Si tiene admin o manager, ir directo a dashboard
-        if (rolesData.includes('admin') || rolesData.includes('manager')) {
-          console.log("[AuthCb] User has admin/manager role - redirecting to dashboard");
-          hasRoutedRef.current = true;
-          navigate("/dashboard", { replace: true });
-          return;
+          // Si tiene admin o manager, ir directo a dashboard
+          if (rolesData.includes('admin') || rolesData.includes('manager')) {
+            console.log("[AuthCb] User has admin/manager role - redirecting to dashboard");
+            hasRoutedRef.current = true;
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+          console.log("[AuthCb] User does not have admin/manager role, continuing to my_phase");
         }
-        console.log("[AuthCb] User does not have admin/manager role, continuing to my_phase");
-      } else {
-        console.log("[AuthCb] my_roles error or no roles:", rolesError);
+      } catch (error) {
+        console.log("[AuthCb] my_roles error or no roles:", error);
       }
 
       // 5) Si no tiene roles admin/manager, verificar fase
-      const { data, error } = await supabase.rpc("my_phase");
-      if (error) {
+      let phase: string;
+      try {
+        phase = await AuthService.getMyPhase();
+        console.log("[AuthCb] User phase:", phase, "returnTo:", returnTo);
+      } catch (error) {
         console.error("[AuthCb] my_phase error:", error);
         hasRoutedRef.current = true;
         // Error en my_phase - ir a página de error del estado del usuario
         navigate("/user-status-error", { replace: true });
         return;
       }
-
-      const phase =
-        typeof data === "string"
-          ? data.toUpperCase()
-          : String((data as any)?.phase ?? (Array.isArray(data) ? (data[0] as any)?.phase : "")).toUpperCase();
-
-      console.log("[AuthCb] User phase:", phase, "returnTo:", returnTo);
 
       hasRoutedRef.current = true;
 

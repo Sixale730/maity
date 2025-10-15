@@ -1,14 +1,14 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/ui/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Badge } from "@/ui/components/ui/badge";
 import { CheckCircle, Users, Target, Calendar, Award, ArrowRight, Star, Quote, Menu, X } from "lucide-react";
-import MaityLogo from "@/components/MaityLogo";
-import LanguageSelector from "@/components/LanguageSelector";
+import MaityLogo from "@/shared/components/MaityLogo";
+import LanguageSelector from "@/shared/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, AuthService } from "@maity/shared";
 
 const LandingPage = () => {
   const { t } = useLanguage();
@@ -28,11 +28,7 @@ const LandingPage = () => {
           return;
         }
 
-        const { data, error } = await supabase.rpc("my_status");
-        if (error) {
-          console.error("[guard] my_status error:", error);
-          return;
-        }
+        const data = await AuthService.getMyStatus();
 
         const raw =
           typeof data === "string"

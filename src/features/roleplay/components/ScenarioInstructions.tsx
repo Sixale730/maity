@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/ui/components/ui/card';
 import { Info, Target, Clock, CheckCircle } from 'lucide-react';
 
 interface ScenarioInstructionsProps {

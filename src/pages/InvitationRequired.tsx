@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
 import { AlertTriangle, Mail, ArrowLeft } from 'lucide-react';
-import { MaityLogo } from '@/components/MaityLogo';
+import { MaityLogo } from '@/shared/components/MaityLogo';
 
 const InvitationRequired = () => {
   const navigate = useNavigate();

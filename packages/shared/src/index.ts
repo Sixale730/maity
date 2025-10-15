@@ -1,19 +1,60 @@
-// Types
-export * from './types/user.types';
+// ===== API Layer =====
+// Supabase Client
+export { initializeSupabase, getSupabase } from './services/supabase/client';
+export { supabase } from './api/client/supabase';
 
-// Constants
+// ===== Types =====
+export * from './types/user.types';
+export type { Database } from './types/database.types';
+export type { Database as SupabaseDatabase } from './services/supabase/types';
+
+// ===== Constants =====
 export * from './constants/translations';
 export * from './constants/env';
+export * from './constants/colors';
+export * from './constants/appUrl';
 
-// Services
-export { initializeSupabase, getSupabase } from './services/supabase/client';
-export { AuthService } from './services/supabase/auth';
+// ===== Utils =====
+export * from './utils/cn';
+export * from './utils/urlHelpers';
+export * from './utils/jwt';
 
-// Contexts
+// ===== Domain: Auth =====
+export { AuthService, buildRedirectTo } from './domain/auth/auth.service';
+export * from './domain/auth/auth.types';
+export * from './domain/auth/hooks/useStatusValidation';
+
+// ===== Domain: Organizations =====
+export { OrganizationService } from './domain/organizations/organization.service';
+export * from './domain/organizations/organization.types';
+export * from './domain/organizations/invite.service';
+export * from './domain/organizations/company.persistence';
+export * from './domain/organizations/hooks/useCompanyAssociation';
+
+// ===== Domain: Users =====
+export * from './domain/users/tally.service';
+export * from './domain/users/hooks/useFormResponses';
+export * from './domain/users/hooks/useOnboardingStatus';
+
+// ===== Domain: Roleplay =====
+export { RoleplayService } from './domain/roleplay/roleplay.service';
+export * from './domain/roleplay/roleplay.types';
+
+// ===== Domain: Coach =====
+export { CoachService } from './domain/coach/coach.service';
+export * from './domain/coach/coach.types';
+export * from './domain/coach/hooks/useElevenLabsVoice';
+export * from './domain/coach/hooks/useElevenLabsConversation';
+export * from './domain/coach/hooks/useElevenLabsChat';
+export * from './domain/coach/hooks/useVoiceConversation';
+export * from './domain/coach/hooks/useEvaluationRealtime';
+
+// ===== Domain: Dashboard =====
+export { DashboardService } from './domain/dashboard/dashboard.service';
+export * from './domain/dashboard/dashboard.types';
+
+// ===== Contexts =====
 export * from './contexts/LanguageContext';
 
-// Hooks
+// ===== Hooks =====
 export { useUserRole } from './hooks/useUserRole';
-
-// Re-export Supabase types
-export type { Database } from './services/supabase/types';

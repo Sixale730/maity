@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { getAppUrl } from "@/lib/appUrl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import MaityLogo from '@/components/MaityLogo';
+import { Button } from "@/ui/components/ui/button";
+import { getAppUrl } from "@maity/shared";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { supabase } from '@maity/shared';
+import { useToast } from '@/shared/hooks/use-toast';
+import MaityLogo from '@/shared/components/MaityLogo';
 
 console.log('[DEBUG] OAuthTest: Component loaded');
 

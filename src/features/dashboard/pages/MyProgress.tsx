@@ -1,7 +1,7 @@
 import React from "react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { RoleplayProgress } from "@/components/RoleplayProgress";
-import LanguageSelector from "@/components/LanguageSelector";
+import { SidebarTrigger } from "@/ui/components/ui/sidebar";
+import { RoleplayProgress } from "@/features/roleplay/components/RoleplayProgress";
+import LanguageSelector from "@/shared/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import "@/styles/hexagon.css";
 

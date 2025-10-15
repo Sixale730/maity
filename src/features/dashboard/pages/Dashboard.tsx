@@ -1,5 +1,5 @@
 import React from "react";
-import { DashboardContent } from "@/components/DashboardContent";
+import { DashboardContent } from "@/features/dashboard/components/DashboardContent";
 import { useUser } from "@/contexts/UserContext";
 
 const Dashboard = () => {

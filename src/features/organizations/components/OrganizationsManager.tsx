@@ -1,18 +1,17 @@
 ﻿import React, { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import { Button } from "@/ui/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/ui/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/ui/components/ui/alert-dialog";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Badge } from "@/ui/components/ui/badge";
+import { SidebarTrigger } from "@/ui/components/ui/sidebar";
+import { useToast } from "@/shared/hooks/use-toast";
+import { OrganizationService, getAppUrl } from "@maity/shared";
 import type { Database } from "@/integrations/supabase/types";
 import { Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
-import { getAppUrl } from "@/lib/appUrl";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
 
@@ -33,11 +32,9 @@ export function OrganizationsManager() {
 
   const fetchCompanies = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc("get_companies_with_invite_tokens");
+      const data = await OrganizationService.getWithInviteTokens();
 
-      if (error) throw error;
-
-      const companiesWithUrls: Company[] = (data ?? []).map((company) => ({
+      const companiesWithUrls: Company[] = data.map((company) => ({
         ...company,
         registration_url: `${appUrl}/auth?company=${company.id}`,
       }));
@@ -70,15 +67,7 @@ export function OrganizationsManager() {
     }
 
     try {
-      const { data, error } = await supabase.rpc("create_company", {
-        company_name: newCompanyName.trim(),
-      });
-
-      if (error) throw error;
-
-      if (!data?.[0]) {
-        throw new Error("No se pudo crear la empresa");
-      }
+      await OrganizationService.createCompany(newCompanyName.trim());
 
       // Refrescar la lista completa para obtener los tokens de invitación
       await fetchCompanies();
@@ -107,9 +96,7 @@ export function OrganizationsManager() {
     setDeleteLoading(company.id);
 
     try {
-      const { error } = await supabase.rpc("delete_company", { company_id: company.id });
-
-      if (error) throw error;
+      await OrganizationService.deleteCompany(company.id);
 
       setCompanies((prev) => prev.filter((c) => c.id !== company.id));
 

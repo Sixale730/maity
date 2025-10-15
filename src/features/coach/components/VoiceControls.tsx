@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/components/ui/button';
 import { Mic, Square, Volume2, VolumeX } from 'lucide-react';
 
 interface VoiceControlsProps {

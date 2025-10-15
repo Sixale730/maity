@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { env } from '@/lib/env';
+import { env } from '../../../constants/env';
 
 interface ConversationState {
   status: 'idle' | 'connecting' | 'connected' | 'disconnecting' | 'error';

@@ -1,7 +1,8 @@
 ﻿import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '../../../api/client/supabase';
+import type { Database } from '../../../services/supabase/types';
+// TODO: Remove UI dependency from shared package - toast should be handled by consumers
+// import { useToast } from '@/hooks/use-toast';
 
 interface CompanyAssociationResult {
   success: boolean;
@@ -43,7 +44,7 @@ const parseProvisionResult = (data: ProvisionUserResponse): ParsedProvisionResul
 
 export const useCompanyAssociation = () => {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  // const { toast } = useToast(); // TODO: Make toast optional or remove UI dependency
 
   const associateUserWithCompany = async (
     userId: string,
@@ -79,10 +80,10 @@ export const useCompanyAssociation = () => {
       console.log('[DEBUG] useCompanyAssociation: Function result', parsedResult);
 
       if (parsedResult.success) {
-        toast({
-          title: 'A%xito',
-          description: 'Usuario asociado con empresa exitosamente',
-        });
+        // toast({
+        //   title: 'Éxito',
+        //   description: 'Usuario asociado con empresa exitosamente',
+        // });
 
         return {
           success: true,
@@ -94,11 +95,11 @@ export const useCompanyAssociation = () => {
       console.error('[DEBUG] useCompanyAssociation: Association failed', parsedResult, error);
       const errorMessage = parsedResult.error ?? error?.message ?? 'No se pudo asociar el usuario con la empresa';
 
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      // toast({
+      //   title: 'Error',
+      //   description: errorMessage,
+      //   variant: 'destructive',
+      // });
 
       return {
         success: false,
@@ -107,11 +108,11 @@ export const useCompanyAssociation = () => {
       };
     } catch (error) {
       console.error('[DEBUG] useCompanyAssociation: Unexpected error', error);
-      toast({
-        title: 'Error',
-        description: 'Ocurrió un error inesperado al asociar el usuario',
-        variant: 'destructive',
-      });
+      // toast({
+      //   title: 'Error',
+      //   description: 'Ocurrió un error inesperado al asociar el usuario',
+      //   variant: 'destructive',
+      // });
 
       return {
         success: false,

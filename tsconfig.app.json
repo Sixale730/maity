@@ -23,7 +23,13 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/ui/*": ["./src/ui/*"],
+      "@maity/shared": ["./packages/shared/src/index.ts"],
+      "@maity/shared/*": ["./packages/shared/src/*"]
     }
   },
   "include": ["src"]

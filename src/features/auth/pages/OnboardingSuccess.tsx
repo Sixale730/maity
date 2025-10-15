@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase, AuthService } from '@maity/shared';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 const OnboardingSuccess = () => {
   const [loading, setLoading] = useState(true);
@@ -59,14 +59,7 @@ const OnboardingSuccess = () => {
       }
 
       // Complete onboarding (idempotent - safe to call multiple times)
-      const { error: completeError } = await supabase.rpc('complete_onboarding');
-      
-      if (completeError) {
-        console.error('Error completing onboarding:', completeError);
-        setError('Error al completar onboarding');
-        setLoading(false);
-        return;
-      }
+      await AuthService.completeOnboarding();
 
       setSuccess(true);
       setLoading(false);

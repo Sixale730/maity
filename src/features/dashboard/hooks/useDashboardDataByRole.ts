@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { DashboardService } from '@maity/shared';
 import { UserRole } from './useUserRole';
 
 export interface MonthlyStats {
@@ -146,19 +146,11 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
       try {
         if (userRole === 'admin') {
           // Load real data for admin
-          const [statsResponse, monthlyResponse, statusResponse] = await Promise.all([
-            supabase.rpc('get_admin_dashboard_stats'),
-            supabase.rpc('get_admin_monthly_data'),
-            supabase.rpc('get_admin_session_status')
+          const [stats, monthlyData, statusData] = await Promise.all([
+            DashboardService.getAdminStats(),
+            DashboardService.getAdminMonthlyData(),
+            DashboardService.getAdminSessionStatus()
           ]);
-
-          if (statsResponse.error || monthlyResponse.error || statusResponse.error) {
-            throw new Error('Failed to fetch admin data');
-          }
-
-          const stats = statsResponse.data;
-          const monthlyData = monthlyResponse.data || [];
-          const statusData = statusResponse.data || [];
 
           // Generate daily data based on recent activity (last 7 days)
           const dailyData = [
@@ -211,19 +203,11 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
     try {
       if (userRole === 'admin') {
         // Reload real data for admin
-        const [statsResponse, monthlyResponse, statusResponse] = await Promise.all([
-          supabase.rpc('get_admin_dashboard_stats'),
-          supabase.rpc('get_admin_monthly_data'),
-          supabase.rpc('get_admin_session_status')
+        const [stats, monthlyData, statusData] = await Promise.all([
+          DashboardService.getAdminStats(),
+          DashboardService.getAdminMonthlyData(),
+          DashboardService.getAdminSessionStatus()
         ]);
-
-        if (statsResponse.error || monthlyResponse.error || statusResponse.error) {
-          throw new Error('Failed to fetch admin data');
-        }
-
-        const stats = statsResponse.data;
-        const monthlyData = monthlyResponse.data || [];
-        const statusData = statusResponse.data || [];
 
         const dailyData = [
           { day: "Lun", sessions: Math.floor(Math.random() * 20) + 5 },

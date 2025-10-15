@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Users as UsersIcon } from 'lucide-react';
 
 export default function Users() {

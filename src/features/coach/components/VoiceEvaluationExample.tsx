@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useEvaluationRealtime, createEvaluation } from '@/hooks/useEvaluationRealtime';
-import { supabase } from '@/integrations/supabase/client';
+import { useEvaluationRealtime, createEvaluation } from '@maity/shared';
+import { supabase } from '@maity/shared';
 
 /**
  * Example component showing how to:

@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import MaityLogo from '@/components/MaityLogo';
+import { supabase, AuthService } from '@maity/shared';
+import { useToast } from '@/shared/hooks/use-toast';
+import MaityLogo from '@/shared/components/MaityLogo';
 
 export default function UserStatusError() {
   const navigate = useNavigate();
@@ -13,18 +13,7 @@ export default function UserStatusError() {
 
   const handleRetry = async () => {
     try {
-      const { data, error } = await supabase.rpc('my_phase');
-
-      if (error) {
-        toast({
-          title: 'Error persiste',
-          description: 'No se pudo verificar el estado del usuario. Contacta soporte.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const phase = String(data || '').toUpperCase();
+      const phase = await AuthService.getMyPhase();
 
       switch (phase) {
         case 'ACTIVE':

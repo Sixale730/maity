@@ -1,6 +1,6 @@
 import React from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { MaityVoiceAssistant } from './MaityVoiceAssistant';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
+import { MaityVoiceAssistant } from '../components/MaityVoiceAssistant';
 
 export function CoachPage() {
   return (

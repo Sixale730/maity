@@ -1,6 +1,6 @@
-﻿import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import MaityLogo from "@/components/MaityLogo";
+﻿import { Button } from "@/ui/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/card";
+import MaityLogo from "@/shared/components/MaityLogo";
 import { useNavigate } from "react-router-dom";
 
 const Pending = () => {

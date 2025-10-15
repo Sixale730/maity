@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/ui/components/ui/button';
+import { Input } from '@/ui/components/ui/input';
+import { ScrollArea } from '@/ui/components/ui/scroll-area';
 import { Mic, MicOff, Send, MessageCircle, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useElevenLabsChat } from '@/hooks/useElevenLabsChat';
 import { useVoiceConversation } from '@/hooks/useVoiceConversation';
-import { env } from '@/lib/env';
+import { env } from '@maity/shared';
 import type { AgentState } from './CoachPage';
 
 interface VoiceInterfaceProps {

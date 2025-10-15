@@ -41,3 +41,6 @@ export const getEnv = (platform: 'web' | 'mobile'): EnvConfig => {
     n8nWebhookUrl: undefined,
   };
 };
+
+// Export a default env object for web (most common use case in the shared package)
+export const env = getEnv('web');

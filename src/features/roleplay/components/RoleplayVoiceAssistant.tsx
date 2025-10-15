@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
-import { ParticleSphere } from '../coach/ParticleSphere';
-import { MAITY_COLORS } from '@/lib/colors';
+import { ParticleSphere } from '@/features/coach/components/ParticleSphere';
+import { MAITY_COLORS } from '@maity/shared';
 
 interface RoleplayVoiceAssistantProps {
   selectedProfile?: 'CEO' | 'CTO' | 'CFO';

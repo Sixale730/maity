@@ -1,5 +1,5 @@
 import React from "react";
-import { RoleplayPage } from "@/components/roleplay/RoleplayPage";
+import { RoleplayPage } from "./RoleplayPage";
 
 const Roleplay = () => {
   return <RoleplayPage />;

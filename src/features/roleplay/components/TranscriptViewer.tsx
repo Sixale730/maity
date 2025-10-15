@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, Bot } from 'lucide-react';
-import { MAITY_COLORS } from '@/lib/colors';
+import { MAITY_COLORS } from '@maity/shared';
 
 interface TranscriptViewerProps {
   transcript: string;

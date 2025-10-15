@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/ui/components/ui/dialog';
+import { Button } from '@/ui/components/ui/button';
+import { Card } from '@/ui/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/ui/components/ui/radio-group';
+import { Label } from '@/ui/components/ui/label';
 import { ChevronRight, Users, Target } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@maity/shared';
+import { useToast } from '@/ui/components/ui/use-toast';
 
 interface PrePracticeQuestionnaireProps {
   isOpen: boolean;

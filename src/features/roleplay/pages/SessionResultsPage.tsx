@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { SessionResults } from '@/components/roleplay/SessionResults';
-import { TranscriptViewer } from '@/components/roleplay/TranscriptViewer';
-import { Button } from '@/components/ui/button';
+import { supabase } from '@maity/shared';
+import { SessionResults } from '@/features/roleplay/components/SessionResults';
+import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
+import { Button } from '@/ui/components/ui/button';
 import { ArrowLeft, X } from 'lucide-react';
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/ui/components/ui/dialog';
 
 interface SessionData {
   id: string;

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/ui/components/ui/button';
+import { Input } from '@/ui/components/ui/input';
 import { Send, MessageSquare, X } from 'lucide-react';
-import { MAITY_COLORS } from '@/lib/colors';
+import { MAITY_COLORS } from '@maity/shared';
 
 interface Message {
   id: string;

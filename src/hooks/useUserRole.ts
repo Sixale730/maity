@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { getAppUrl } from "@/lib/appUrl";
+import { supabase, AuthService } from '@maity/shared';
+import { getAppUrl } from "@maity/shared";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export type UserRole = 'admin' | 'manager' | 'user' | null;
@@ -56,13 +56,7 @@ export const useUserRole = () => {
       }
 
       // Primero obtener el rol del usuario
-      const { data: role, error: roleError } = await supabase.rpc('get_user_role');
-
-      if (roleError) {
-        console.error('Error fetching user role:', roleError);
-        setError('Error al obtener el rol del usuario');
-        return;
-      }
+      const role = await AuthService.getUserRole();
 
       // Si es admin o manager, proceder independientemente de la fase
       if (role === 'admin' || role === 'manager') {
@@ -89,7 +83,7 @@ export const useUserRole = () => {
       }
 
       // Para usuarios regulares, verificar fase - use my_status instead
-      const { data: statusData } = await supabase.rpc('my_status');
+      const statusData = await AuthService.getMyStatus();
 
       if (!statusData) {
         console.error('[useUserRole] my_status error: no data returned');
