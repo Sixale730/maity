@@ -81,6 +81,7 @@ This plan addresses the **3 CRITICAL issues** identified in the architecture ana
 **Priority:** CRITICAL
 **Effort:** 40-80 hours (incremental over 2-3 sprints)
 **Risk:** Low (incremental migration)
+**Status:** Sprint 1 Complete ✅
 
 #### Objectives
 - Enable TypeScript strict mode
@@ -98,7 +99,7 @@ This plan addresses the **3 CRITICAL issues** identified in the architecture ana
 
 #### Tasks
 
-- [ ] **2.1 Enable strict mode in `tsconfig.json`**
+- [x] **2.1 Enable strict mode in `tsconfig.json`**
   ```json
   {
     "compilerOptions": {
@@ -111,11 +112,16 @@ This plan addresses the **3 CRITICAL issues** identified in the architecture ana
   }
   ```
 
-- [ ] **2.2 Fix Service Layer (Sprint 1)**
-  - [ ] packages/shared/src/domain/auth/auth.service.ts
-  - [ ] packages/shared/src/domain/dashboard/dashboard.service.ts
-  - [ ] packages/shared/src/domain/roleplay/roleplay.service.ts
-  - [ ] packages/shared/src/domain/coach/coach.service.ts
+- [x] **2.2 Fix Service Layer (Sprint 1) ✅ COMPLETED**
+  - [x] Created `packages/shared/src/types/supabase-helpers.ts` utility
+  - [x] Created `packages/shared/src/types/common.ts` utility
+  - [x] packages/shared/src/domain/users/tally.service.ts
+  - [x] packages/shared/src/domain/organizations/invite.service.ts
+  - [x] packages/shared/src/domain/auth/auth.service.ts
+  - [x] packages/shared/src/domain/dashboard/dashboard.service.ts
+  - [x] packages/shared/src/domain/coach/coach.service.ts
+  - [x] packages/shared/src/domain/roleplay/roleplay.service.ts
+  - [x] packages/shared/src/domain/organizations/organization.service.ts
 
 - [ ] **2.3 Fix Feature Modules (Sprint 2)**
   - [ ] src/features/auth/
