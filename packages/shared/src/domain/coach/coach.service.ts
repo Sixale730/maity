@@ -1,6 +1,24 @@
 import { supabase } from '../../api/client/supabase';
 
 /**
+ * Type for coach conversation message
+ */
+export interface CoachMessage {
+  speaker: 'user' | 'coach';
+  content: string;
+  timestamp: string;
+}
+
+/**
+ * Type for conversation update data
+ */
+export interface ConversationUpdate {
+  ended_at?: string;
+  messages?: CoachMessage[];
+  summary?: string;
+}
+
+/**
  * Service for managing coach conversations and voice interactions
  * Works in conjunction with the ElevenLabs hooks for voice functionality
  */
@@ -11,7 +29,7 @@ export class CoachService {
    * @param limit - Optional limit for results
    * @returns Promise with array of conversations
    */
-  static async getConversations(userId: string, limit?: number) {
+  static async getConversations(userId: string, limit?: number): Promise<unknown[] | null> {
     let query = supabase
       .from('maity.coach_conversations')
       .select('*')
@@ -37,7 +55,7 @@ export class CoachService {
    * @param conversationId - Conversation UUID
    * @returns Promise with conversation data
    */
-  static async getConversationById(conversationId: string) {
+  static async getConversationById(conversationId: string): Promise<any> {
     const { data, error } = await supabase
       .from('maity.coach_conversations')
       .select('*')
@@ -58,12 +76,12 @@ export class CoachService {
    * @param topic - Optional conversation topic
    * @returns Promise with created conversation
    */
-  static async createConversation(userId: string, topic?: string) {
+  static async createConversation(userId: string, topic?: string): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.coach_conversations')
       .insert({
         user_id: userId,
-        topic: topic || null,
+        topic: topic ?? null,
         started_at: new Date().toISOString()
       })
       .select()
@@ -85,12 +103,8 @@ export class CoachService {
    */
   static async updateConversation(
     conversationId: string,
-    updates: {
-      ended_at?: string;
-      messages?: any[];
-      summary?: string;
-    }
-  ) {
+    updates: ConversationUpdate
+  ): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.coach_conversations')
       .update(updates)
@@ -112,10 +126,10 @@ export class CoachService {
    * @param summary - Optional conversation summary
    * @returns Promise with updated conversation
    */
-  static async endConversation(conversationId: string, summary?: string) {
+  static async endConversation(conversationId: string, summary?: string): Promise<unknown> {
     return this.updateConversation(conversationId, {
       ended_at: new Date().toISOString(),
-      summary: summary || undefined
+      summary: summary ?? undefined
     });
   }
 
@@ -127,13 +141,16 @@ export class CoachService {
    */
   static async addMessage(
     conversationId: string,
-    message: { speaker: 'user' | 'coach'; content: string; timestamp: string }
-  ) {
+    message: CoachMessage
+  ): Promise<unknown> {
     // First get the current conversation
     const conversation = await this.getConversationById(conversationId);
 
     // Add the new message
-    const updatedMessages = [...(conversation.messages || []), message];
+    const existingMessages: CoachMessage[] = Array.isArray(conversation.messages)
+      ? conversation.messages
+      : [];
+    const updatedMessages = [...existingMessages, message];
 
     return this.updateConversation(conversationId, {
       messages: updatedMessages
@@ -147,7 +164,13 @@ export class CoachService {
    * @param pageSize - Number of results per page
    * @returns Promise with paginated conversations
    */
-  static async getHistory(userId: string, page: number = 1, pageSize: number = 10) {
+  static async getHistory(userId: string, page: number = 1, pageSize: number = 10): Promise<{
+    conversations: unknown[] | null;
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
@@ -163,12 +186,14 @@ export class CoachService {
       throw error;
     }
 
+    const totalCount = count ?? 0;
+
     return {
       conversations: data,
-      total: count || 0,
+      total: totalCount,
       page,
       pageSize,
-      totalPages: count ? Math.ceil(count / pageSize) : 0
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / pageSize) : 0
     };
   }
 
@@ -178,7 +203,7 @@ export class CoachService {
    * @param searchTerm - Term to search for
    * @returns Promise with matching conversations
    */
-  static async searchConversations(userId: string, searchTerm: string) {
+  static async searchConversations(userId: string, searchTerm: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.coach_conversations')
       .select('*')
@@ -199,7 +224,7 @@ export class CoachService {
    * @param conversationId - Conversation UUID
    * @returns Promise with deletion result
    */
-  static async deleteConversation(conversationId: string) {
+  static async deleteConversation(conversationId: string): Promise<{ success: boolean }> {
     const { error } = await supabase
       .from('maity.coach_conversations')
       .delete()

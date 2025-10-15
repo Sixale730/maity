@@ -1,6 +1,18 @@
 import { supabase } from '../../api/client/supabase';
 
 /**
+ * Type for voice session update data
+ */
+export interface SessionUpdate {
+  ended_at?: string;
+  status?: string;
+  transcript?: unknown;
+  processed_feedback?: unknown;
+  score?: number;
+  passed?: boolean;
+}
+
+/**
  * Service for managing roleplay sessions and user progress
  * Encapsulates business logic for voice sessions, progress tracking, and scenarios
  */
@@ -21,7 +33,7 @@ export class RoleplayService {
     const { data, error } = await supabase.rpc('create_voice_session', {
       p_user_id: userId,
       p_profile_name: profileName,
-      p_questionnaire_id: questionnaireId || null
+      p_questionnaire_id: questionnaireId ?? null
     });
 
     if (error) {
@@ -39,7 +51,7 @@ export class RoleplayService {
    * @param profileName - Name of the practice profile
    * @returns Promise with user progress data
    */
-  static async getOrCreateProgress(userId: string, profileName: string) {
+  static async getOrCreateProgress(userId: string, profileName: string): Promise<unknown> {
     const { data, error } = await supabase.rpc('get_or_create_user_progress', {
       p_user_id: userId,
       p_profile_name: profileName
@@ -60,7 +72,7 @@ export class RoleplayService {
    * @param profileName - Name of the practice profile
    * @returns Promise with creation result
    */
-  static async createInitialProgress(authId: string, profileName: string) {
+  static async createInitialProgress(authId: string, profileName: string): Promise<unknown> {
     const { data, error } = await supabase.rpc('create_initial_voice_progress', {
       p_auth_id: authId,
       p_profile_name: profileName
@@ -80,7 +92,7 @@ export class RoleplayService {
    * @param limit - Optional limit for results
    * @returns Promise with array of voice sessions
    */
-  static async getSessions(userId: string, limit?: number) {
+  static async getSessions(userId: string, limit?: number): Promise<unknown[] | null> {
     let query = supabase
       .from('maity.voice_sessions')
       .select('*')
@@ -106,7 +118,7 @@ export class RoleplayService {
    * @param sessionId - Session UUID
    * @returns Promise with session data
    */
-  static async getSessionById(sessionId: string) {
+  static async getSessionById(sessionId: string): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.voice_sessions')
       .select('*')
@@ -129,15 +141,8 @@ export class RoleplayService {
    */
   static async updateSession(
     sessionId: string,
-    updates: {
-      ended_at?: string;
-      status?: string;
-      transcript?: any;
-      processed_feedback?: any;
-      score?: number;
-      passed?: boolean;
-    }
-  ) {
+    updates: SessionUpdate
+  ): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.voice_sessions')
       .update(updates)
@@ -158,7 +163,7 @@ export class RoleplayService {
    * @param sessionId - Session UUID
    * @returns Promise with updated session
    */
-  static async endSession(sessionId: string) {
+  static async endSession(sessionId: string): Promise<unknown> {
     return this.updateSession(sessionId, {
       ended_at: new Date().toISOString(),
       status: 'completed'
@@ -169,7 +174,7 @@ export class RoleplayService {
    * Get all available practice profiles
    * @returns Promise with array of profiles
    */
-  static async getProfiles() {
+  static async getProfiles(): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.practice_profiles')
       .select('*')
@@ -188,7 +193,7 @@ export class RoleplayService {
    * @param profileId - Profile UUID
    * @returns Promise with array of scenarios
    */
-  static async getScenariosByProfile(profileId: string) {
+  static async getScenariosByProfile(profileId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.practice_scenarios')
       .select('*')
@@ -208,7 +213,7 @@ export class RoleplayService {
    * @param userId - User's UUID from maity.users table
    * @returns Promise with array of progress records
    */
-  static async getUserProgress(userId: string) {
+  static async getUserProgress(userId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.voice_progress')
       .select('*')

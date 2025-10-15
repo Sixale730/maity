@@ -1,5 +1,7 @@
 import { supabase } from '../../api/client/supabase';
 import type { UserRole, UserPhase, UserStatus } from './auth.types';
+import type { Session, User } from '@supabase/supabase-js';
+import { hasProperty } from '../../types/supabase-helpers';
 
 /**
  * AuthService - Encapsulates authentication and user status operations
@@ -27,7 +29,7 @@ export class AuthService {
       console.error('Error getting user roles:', error);
       throw error;
     }
-    return (data || []) as UserRole[];
+    return (data ?? []) as UserRole[];
   }
 
   /**
@@ -42,9 +44,16 @@ export class AuthService {
     }
 
     // Handle different response formats
-    const phase = typeof data === 'string'
-      ? data.toUpperCase()
-      : String((data as any)?.phase ?? (Array.isArray(data) ? (data[0] as any)?.phase : '')).toUpperCase();
+    let phase: string;
+    if (typeof data === 'string') {
+      phase = data.toUpperCase();
+    } else if (data && hasProperty(data, 'phase')) {
+      phase = String(data.phase).toUpperCase();
+    } else if (Array.isArray(data) && data[0] && hasProperty(data[0], 'phase')) {
+      phase = String(data[0].phase).toUpperCase();
+    } else {
+      phase = '';
+    }
 
     return phase as UserPhase;
   }
@@ -59,7 +68,7 @@ export class AuthService {
       console.error('Error getting user status:', error);
       throw error;
     }
-    return data || [];
+    return data ?? [];
   }
 
   /**
@@ -76,7 +85,7 @@ export class AuthService {
   /**
    * Gets the current user's session
    */
-  static async getSession() {
+  static async getSession(): Promise<Session | null> {
     const { data: { session } } = await supabase.auth.getSession();
     return session;
   }
@@ -84,7 +93,7 @@ export class AuthService {
   /**
    * Gets the current authenticated user
    */
-  static async getUser() {
+  static async getUser(): Promise<User | null> {
     const { data: { user } } = await supabase.auth.getUser();
     return user;
   }
@@ -99,7 +108,7 @@ export class AuthService {
       console.error('Error getting user role:', error);
       throw error;
     }
-    return (data || 'user') as UserRole;
+    return (data ?? 'user') as UserRole;
   }
 
   /**

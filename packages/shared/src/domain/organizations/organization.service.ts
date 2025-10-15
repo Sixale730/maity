@@ -1,6 +1,14 @@
 import { supabase } from '../../api/client/supabase';
 
 /**
+ * Type for organization/company update data
+ */
+export interface CompanyUpdate {
+  name?: string;
+  slug?: string;
+}
+
+/**
  * Service for managing organizations/companies in the Maity platform
  * Encapsulates business logic for CRUD operations and company-user relationships
  */
@@ -9,7 +17,7 @@ export class OrganizationService {
    * Get all organizations/companies
    * @returns Promise with array of organizations
    */
-  static async getAll() {
+  static async getAll(): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.companies')
       .select('*')
@@ -28,7 +36,7 @@ export class OrganizationService {
    * @param id - Organization UUID
    * @returns Promise with organization data
    */
-  static async getById(id: string) {
+  static async getById(id: string): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.companies')
       .select('*')
@@ -67,7 +75,7 @@ export class OrganizationService {
    * Uses the provision_user RPC function
    * @returns Promise with provision result
    */
-  static async provisionUser() {
+  static async provisionUser(): Promise<unknown> {
     const { data, error } = await supabase.rpc('provision_user');
 
     if (error) {
@@ -91,7 +99,7 @@ export class OrganizationService {
     userAuthId: string,
     companySlug: string,
     action: 'accept' | 'reject'
-  ) {
+  ): Promise<unknown> {
     const { data, error } = await supabase.rpc('handle_company_invitation', {
       user_auth_id: userAuthId,
       company_slug: companySlug,
@@ -111,7 +119,7 @@ export class OrganizationService {
    * @param companyId - Company UUID
    * @returns Promise with array of company users
    */
-  static async getUsers(companyId: string) {
+  static async getUsers(companyId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.users')
       .select('id, auth_id, email, name, role, created_at')
@@ -131,7 +139,7 @@ export class OrganizationService {
    * @param slug - Organization slug/identifier
    * @returns Promise with created organization
    */
-  static async create(name: string, slug: string) {
+  static async create(name: string, slug: string): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.companies')
       .insert({ name, slug })
@@ -152,7 +160,7 @@ export class OrganizationService {
    * @param updates - Fields to update
    * @returns Promise with updated organization
    */
-  static async update(id: string, updates: { name?: string; slug?: string }) {
+  static async update(id: string, updates: CompanyUpdate): Promise<unknown> {
     const { data, error } = await supabase
       .from('maity.companies')
       .update(updates)
@@ -173,7 +181,7 @@ export class OrganizationService {
    * @param id - Organization UUID
    * @returns Promise with delete result
    */
-  static async delete(id: string) {
+  static async delete(id: string): Promise<{ success: boolean }> {
     const { error } = await supabase
       .from('maity.companies')
       .delete()
@@ -192,7 +200,7 @@ export class OrganizationService {
    * @param userId - User UUID (from maity.users table)
    * @returns Promise with removal result
    */
-  static async removeUser(userId: string) {
+  static async removeUser(userId: string): Promise<{ success: boolean }> {
     const { error } = await supabase
       .from('maity.users')
       .update({ company_id: null })
@@ -211,7 +219,7 @@ export class OrganizationService {
    * Uses the get_companies_with_invite_tokens RPC function
    * @returns Promise with array of companies including invite tokens
    */
-  static async getWithInviteTokens() {
+  static async getWithInviteTokens(): Promise<unknown[]> {
     const { data, error } = await supabase.rpc('get_companies_with_invite_tokens');
 
     if (error) {
@@ -228,7 +236,7 @@ export class OrganizationService {
    * @param companyName - Name of the company to create
    * @returns Promise with created company data
    */
-  static async createCompany(companyName: string) {
+  static async createCompany(companyName: string): Promise<unknown> {
     const { data, error } = await supabase.rpc('create_company', {
       company_name: companyName
     });
@@ -251,7 +259,7 @@ export class OrganizationService {
    * @param companyId - UUID of the company to delete
    * @returns Promise with deletion result
    */
-  static async deleteCompany(companyId: string) {
+  static async deleteCompany(companyId: string): Promise<{ success: boolean }> {
     const { error } = await supabase.rpc('delete_company', {
       company_id: companyId
     });

@@ -10,7 +10,7 @@ export class DashboardService {
    * Uses the get_admin_dashboard_stats RPC function
    * @returns Promise with admin stats
    */
-  static async getAdminStats() {
+  static async getAdminStats(): Promise<unknown> {
     const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
 
     if (error) {
@@ -26,7 +26,7 @@ export class DashboardService {
    * Uses the get_admin_monthly_data RPC function
    * @returns Promise with monthly data
    */
-  static async getAdminMonthlyData() {
+  static async getAdminMonthlyData(): Promise<unknown> {
     const { data, error } = await supabase.rpc('get_admin_monthly_data');
 
     if (error) {
@@ -42,7 +42,7 @@ export class DashboardService {
    * Uses the get_admin_session_status RPC function
    * @returns Promise with session status data
    */
-  static async getAdminSessionStatus() {
+  static async getAdminSessionStatus(): Promise<unknown> {
     const { data, error } = await supabase.rpc('get_admin_session_status');
 
     if (error) {
@@ -58,7 +58,13 @@ export class DashboardService {
    * @param userId - User's UUID from maity.users table
    * @returns Promise with user stats
    */
-  static async getUserStats(userId: string) {
+  static async getUserStats(userId: string): Promise<{
+    totalSessions: number;
+    completedSessions: number;
+    passedSessions: number;
+    averageScore: number;
+    sessions: unknown[];
+  }> {
     // Get user's sessions
     const { data: sessions, error: sessionsError } = await supabase
       .from('maity.voice_sessions')
@@ -66,16 +72,18 @@ export class DashboardService {
       .eq('user_id', userId);
 
     if (sessionsError) {
-      console.error('Error fetching user sessions:', error);
+      console.error('Error fetching user sessions:', sessionsError);
       throw sessionsError;
     }
 
-    // Calculate stats
-    const totalSessions = sessions?.length || 0;
-    const completedSessions = sessions?.filter(s => s.status === 'completed').length || 0;
-    const passedSessions = sessions?.filter(s => s.passed === true).length || 0;
-    const averageScore = sessions?.length
-      ? sessions.reduce((acc, s) => acc + (s.score || 0), 0) / sessions.length
+    // Calculate stats safely
+    const sessionList = sessions ?? [];
+    const totalSessions = sessionList.length;
+    const completedSessions = sessionList.filter(s => s.status === 'completed').length;
+    const passedSessions = sessionList.filter(s => s.passed === true).length;
+
+    const averageScore = totalSessions > 0
+      ? sessionList.reduce((acc, s) => acc + (s.score ?? 0), 0) / totalSessions
       : 0;
 
     return {
@@ -83,7 +91,7 @@ export class DashboardService {
       completedSessions,
       passedSessions,
       averageScore: Math.round(averageScore),
-      sessions: sessions || []
+      sessions: sessionList
     };
   }
 
@@ -93,7 +101,7 @@ export class DashboardService {
    * @param limit - Number of recent activities to fetch
    * @returns Promise with recent activities
    */
-  static async getRecentActivity(userId: string, limit: number = 10) {
+  static async getRecentActivity(userId: string, limit: number = 10): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .from('maity.voice_sessions')
       .select('*')
