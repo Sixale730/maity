@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SessionsScreen } from '../screens/main/SessionsScreen';
-import { SessionResultsScreen } from '../screens/main/SessionResultsScreen';
+import { SessionsScreen, SessionResultsScreen } from '../features/roleplay';
 
 export type SessionsStackParamList = {
   SessionsList: undefined;

@@ -10,7 +10,7 @@ import { Text, Avatar, Divider } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { AuthService } from '../../lib/supabase/auth';
-import { getSupabase } from '../../lib/supabase/client';
+import { supabase } from '@maity/shared';
 import { colors } from '../../theme';
 import type { NavigationProp } from '@react-navigation/native';
 
@@ -78,7 +78,6 @@ export const DrawerContent: React.FC<DrawerContentProps> = ({
 
   const loadUserData = async () => {
     try {
-      const supabase = getSupabase();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 

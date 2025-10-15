@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { supabase } from '@maity/shared';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 

@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
-import { supabase } from './src/lib/supabase/client';
+import { supabase } from '@maity/shared';
 import { AuthService } from './src/lib/supabase/auth';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
