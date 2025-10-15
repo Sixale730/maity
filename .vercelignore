@@ -1,0 +1,11 @@
+packages/mobile
+packages/mobile/**
+node_modules
+*.md
+.github
+.vscode
+.idea
+*.log
+.DS_Store
+.claude
+MIGRATION_PLAN.md
