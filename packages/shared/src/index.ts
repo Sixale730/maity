@@ -1,7 +1,13 @@
 // ===== API Layer =====
 // Supabase Client
-export { initializeSupabase, getSupabase } from './services/supabase/client';
-export { supabase } from './api/client/supabase';
+export {
+  supabase,
+  initializeSupabase,
+  getSupabase,
+  isSupabaseInitialized,
+  createSupabaseClient,
+  type SupabaseConfig
+} from './api/client/supabase';
 
 // ===== Types =====
 export * from './types/user.types';
