@@ -51,7 +51,9 @@
       "Bash(do sed -i \"s|getSupabase|supabase|g\" \"$file\")",
       "Bash(dir:*)",
       "Bash(npm --version)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(xargs:*)",
+      "Bash(npm outdated)"
     ],
     "deny": [],
     "ask": []
