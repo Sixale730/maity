@@ -5,7 +5,7 @@
  */
 
 import { VercelResponse } from '@vercel/node';
-import { ErrorResponse } from './common';
+import { ErrorResponse } from './common.js';
 
 /**
  * Standard API error codes

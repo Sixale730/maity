@@ -4,7 +4,7 @@
  * Type definitions matching the maity schema in Supabase
  */
 
-import { UserRole, InviteAudience, EvaluationStatus } from './common';
+import { UserRole, InviteAudience, EvaluationStatus } from './common.js';
 
 /**
  * User table (maity.users)
