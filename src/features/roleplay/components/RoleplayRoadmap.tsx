@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Progress } from '@/ui/components/ui/progress';
-import { CheckCircle2, Circle, Lock, Trophy, Target, TrendingUp } from 'lucide-react';
-import { supabase } from '@maity/shared';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { cn } from '@maity/shared';
+import { CheckCircle2, Circle, Trophy, Target, TrendingUp } from 'lucide-react';
+import { supabase, cn } from '@maity/shared';
 
 interface ScenarioProgress {
   scenarioId: string;
@@ -44,7 +42,6 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
   const [loading, setLoading] = useState(true);
   const [scenarioProgress, setScenarioProgress] = useState<ScenarioProgress[]>([]);
   const [profileProgress, setProfileProgress] = useState<ProfileProgress[]>([]);
-  const { t } = useLanguage();
 
   useEffect(() => {
     if (userId) {

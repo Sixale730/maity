@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, AuthService } from '@maity/shared';
-import { useNavigate } from 'react-router-dom';
-import { getAppUrl } from '@maity/shared';
 
 export type UserRole = 'admin' | 'manager' | 'user' | null;
 
@@ -35,8 +33,6 @@ export function UserProvider({ children }: UserProviderProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const appUrl = getAppUrl();
 
   const getUserData = async () => {
     try {

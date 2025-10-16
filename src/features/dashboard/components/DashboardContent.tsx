@@ -236,7 +236,7 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ userRole, userProfile }: DashboardContentProps) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
   console.log('DashboardContent rendering, current language:', language);
 
