@@ -8,7 +8,7 @@ interface ElevenLabsVoiceProps {
   isEnabled: boolean;
 }
 
-export function ElevenLabsVoice({ agentState, onStateChange, isEnabled }: ElevenLabsVoiceProps) {
+export function ElevenLabsVoice({ agentState: _agentState, onStateChange, isEnabled }: ElevenLabsVoiceProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [_conversationId, setConversationId] = useState<string | null>(null);
 

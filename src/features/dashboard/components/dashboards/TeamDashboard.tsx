@@ -24,7 +24,7 @@ const TeamDashboard = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [lastObjectPath, setLastObjectPath] = useState<string | null>(null);
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [_companyId, setCompanyId] = useState<string | null>(null);
 
   // Cargar archivos subidos y company_id al montar el componente
   useEffect(() => {

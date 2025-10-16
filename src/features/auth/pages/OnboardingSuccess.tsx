@@ -21,10 +21,9 @@ const OnboardingSuccess = () => {
   const validateAndCompleteOnboarding = async () => {
     try {
       setLoading(true);
-      
+
       const token = searchParams.get('token');
-      const _responseId = searchParams.get('rid');
-      
+
       if (!token) {
         setError('Token de validación no encontrado');
         setLoading(false);

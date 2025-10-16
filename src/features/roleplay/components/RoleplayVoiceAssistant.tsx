@@ -34,7 +34,7 @@ export function RoleplayVoiceAssistant({
   selectedProfile = 'CEO',
   questionnaireId,
   userName,
-  userId,
+  userId: _userId,
   scenarioCode = 'first_visit',
   scenarioName = 'Primera Visita',
   sessionId,
@@ -53,8 +53,8 @@ export function RoleplayVoiceAssistant({
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string>('');
-  const [agentResponse, setAgentResponse] = useState<string>('');
+  const [_transcript, setTranscript] = useState<string>('');
+  const [_agentResponse, setAgentResponse] = useState<string>('');
 
   // Historial completo de la conversación
   const [conversationHistory, setConversationHistory] = useState<Array<{
@@ -71,7 +71,7 @@ export function RoleplayVoiceAssistant({
   const fullTranscriptRef = useRef<string>('');
 
   // Estado para rastrear si la conexión es segura
-  const [isConnectionStable, setIsConnectionStable] = useState(false);
+  const [_isConnectionStable, setIsConnectionStable] = useState(false);
 
   // Ref para el scroll del chat
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -443,9 +443,9 @@ export function RoleplayVoiceAssistant({
             // Limpiar la conexión actual
             if (conversation) {
               try {
-                conversation.endSession().catch(e => console.log('Session already ended'));
-              } catch (e) {
-                console.log('Session cleanup error:', e);
+                conversation.endSession().catch(() => console.log('Session already ended'));
+              } catch (_e) {
+                console.log('Session cleanup error');
               }
             }
             setConversation(null);
@@ -472,7 +472,8 @@ export function RoleplayVoiceAssistant({
             console.log('🤖 AGENT RESPONSE:', message);
           }
         },
-        onStatusChange: ({ status }) => {
+        onStatusChange: ({ status: _e }) => {
+          const status = _e;
           console.log('📊 Status changed to:', status);
 
           // Manejar cambios de estado problemáticos

@@ -7,9 +7,7 @@ import {
   TrendingUp,
   LogOut,
   Building,
-  User,
   Target,
-  Calendar,
   FileText,
   Trophy,
   MessageCircle,
@@ -24,7 +22,6 @@ import { supabase } from "@maity/shared";
 import { UserRole } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
-import LanguageSelector from "./LanguageSelector";
 import {
   Sidebar,
   SidebarContent,

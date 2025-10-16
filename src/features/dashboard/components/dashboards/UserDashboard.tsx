@@ -1,7 +1,6 @@
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
-import { Badge } from "@/ui/components/ui/badge";
 import { Progress } from "@/ui/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/shared/components/LanguageSelector";

@@ -20,9 +20,7 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
-  BarChart,
-  Bar
+  CartesianGrid
 } from "recharts";
 import { Trophy, Shield, Award, Target, Star, TrendingUp, Brain, Users, Zap, Lock, CheckCircle2 } from "lucide-react";
 import { supabase, RoleplayService } from "@maity/shared";
@@ -234,7 +232,7 @@ function HexagonCard({ card, onProfileClick }: { card: RoleCard; onProfileClick?
 export function RoleplayProgress() {
   const [roleCards, setRoleCards] = useState<RoleCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userProgress, setUserProgress] = useState<any>(null);
+  const [_userProgress, setUserProgress] = useState<any>(null);
 
   useEffect(() => {
     fetchUserProgress();

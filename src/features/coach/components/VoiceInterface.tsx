@@ -36,14 +36,8 @@ export function VoiceInterface({ agentState, onStateChange }: VoiceInterfaceProp
     onTranscript: (text) => {
       setCurrentMessage(text);
     },
-    onResponse: (response) => {
-      // Add voice response to chat messages
-      const _agentMessage = {
-        id: Date.now().toString(),
-        text: response,
-        timestamp: new Date(),
-        sender: 'agent' as const
-      };
+    onResponse: (_response) => {
+      // Voice response received - could be added to chat messages in the future
       // This would ideally update the messages state, but we'll keep it simple for now
     },
     onError: (error) => {

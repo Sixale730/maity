@@ -17,7 +17,7 @@ interface AdminTextChatProps {
   onToggleMinimize?: () => void;
 }
 
-export function AdminTextChat({ onSendMessage, isMinimized, onToggleMinimize }: AdminTextChatProps) {
+export function AdminTextChat({ onSendMessage, isMinimized: _isMinimized, onToggleMinimize }: AdminTextChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);

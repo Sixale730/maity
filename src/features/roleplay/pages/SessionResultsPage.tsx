@@ -4,7 +4,7 @@ import { supabase } from '@maity/shared';
 import { SessionResults } from '@/features/roleplay/components/SessionResults';
 import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
 import { Button } from '@/ui/components/ui/button';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

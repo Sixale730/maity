@@ -7,7 +7,6 @@ import {
   Trophy,
   Target,
   TrendingUp,
-  MessageSquare,
   Brain,
   RefreshCw,
   ArrowRight,
@@ -95,7 +94,7 @@ const SUBDIMENSION_DESCRIPTIONS: Record<string, string> = {
 };
 
 export function SessionResults({
-  sessionId,
+  sessionId: _sessionId,
   profile,
   scenarioName,
   score,
@@ -167,14 +166,7 @@ export function SessionResults({
     Influencia: evaluation.Evaluacion.Influencia || null
   } : null;
 
-  // Fallback a estructura vieja para compatibilidad
-  const strengths = evaluation?.strengths || (
-    !isProcessing ? [
-      "Excelente rapport inicial con el cliente",
-      "Buena identificación de pain points",
-      "Comunicación clara y concisa"
-    ] : []
-  );
+  // Fallback removed - using new structure only (Fortalezas, Errores, Recomendaciones)
 
   // Procesar improvements - puede venir como array o string separado por comas
   let improvements = [];
