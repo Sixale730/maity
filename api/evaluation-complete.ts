@@ -10,10 +10,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { setCors } from '../lib/cors.js';
-import { ApiError, withErrorHandler, validateMethod } from './types/errors.js';
-import { getEnv } from './types/common.js';
-import { evaluationCompleteRequestSchema, EvaluationCompleteRequest } from './types/schemas.js';
-import { EvaluationDimension } from './types/database.js';
+import { ApiError, withErrorHandler, validateMethod } from '../../lib/types/api/errors.js';
+import { getEnv } from '../../lib/types/api/common.js';
+import { evaluationCompleteRequestSchema, EvaluationCompleteRequest } from '../../lib/types/api/schemas.js';
+import { EvaluationDimension } from '../../lib/types/api/database.js';
 
 /**
  * Calculate average score from evaluation dimension

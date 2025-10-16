@@ -1,2 +1,0 @@
-# Exclude type definition files from being treated as serverless functions
-types/**
