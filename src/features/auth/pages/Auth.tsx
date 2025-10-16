@@ -30,37 +30,23 @@ import { Eye, EyeOff } from "lucide-react";
 //   return 'An unexpected error occurred';
 // };
 
-interface InvitationResult {
-
-  success: boolean;
-
-  action?: string;
-
-  message?: string;
-
-  error?: string;
-
-  company_name?: string;
-
-  current_company?: {
-
-    id: string;
-
-    name: string;
-
-  };
-
-  target_company?: {
-
-    id: string;
-
-    name: string;
-
-  };
-
-  invitation_source?: string;
-
-}
+// Unused interface - kept for future use
+// interface InvitationResult {
+//   success: boolean;
+//   action?: string;
+//   message?: string;
+//   error?: string;
+//   company_name?: string;
+//   current_company?: {
+//     id: string;
+//     name: string;
+//   };
+//   target_company?: {
+//     id: string;
+//     name: string;
+//   };
+//   invitation_source?: string;
+// }
 
 interface AuthProps {
 
@@ -246,13 +232,13 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
 
       toast({
 
         title: 'Error',
 
-        description: error.message || 'Ocurrio un error inesperado.',
+        description: (error as Error)?.message || 'Ocurrio un error inesperado.',
 
         variant: 'destructive',
 

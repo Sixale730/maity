@@ -171,9 +171,11 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
           const bestScore = userSessionsForScenario.reduce((max, s) =>
             Math.max(max, s.score || 0), 0
           ) || null;
-          const lastSession = userSessionsForScenario.sort((a, b) =>
-            new Date(b.ended_at).getTime() - new Date(a.ended_at).getTime()
-          )[0];
+          const lastSession = userSessionsForScenario
+            .filter(s => s.ended_at != null)
+            .sort((a, b) =>
+              new Date(b.ended_at!).getTime() - new Date(a.ended_at!).getTime()
+            )[0];
 
           progressMap.set(profileScenarioId, {
             scenarioId: scenario.scenario_id,
@@ -188,7 +190,7 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
             passed,
             bestScore,
             attempts: userSessionsForScenario.length,
-            lastAttempt: lastSession ? new Date(lastSession.ended_at) : null
+            lastAttempt: lastSession?.ended_at ? new Date(lastSession.ended_at) : null
           });
         } catch (err) {
           console.error('📊 Roadmap - Error processing scenario:', {

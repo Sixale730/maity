@@ -9,7 +9,6 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../services/supabase/types';
 import type { DatabaseWithMaity } from '../../types/database-maity.types';
 
 export interface SupabaseConfig {

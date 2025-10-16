@@ -187,12 +187,11 @@ export default function DemoTraining() {
         return null;
       }
 
-      if (sessionId) {
-        const sessionIdString = typeof sessionId === 'string' ? sessionId : sessionId.toString();
-        setCurrentSessionId(sessionIdString);
+      if (sessionId && typeof sessionId === 'string') {
+        setCurrentSessionId(sessionId);
         setIsCallActive(true); // Marcar que la llamada está activa
-        console.log('✅ [DemoTraining] voice_session creada:', sessionIdString);
-        return sessionIdString;
+        console.log('✅ [DemoTraining] voice_session creada:', sessionId);
+        return sessionId;
       }
 
       return null;

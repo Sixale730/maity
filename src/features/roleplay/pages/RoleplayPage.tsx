@@ -250,7 +250,7 @@ export function RoleplayPage() {
       // Obtener o crear progreso del usuario
       const progress = await RoleplayService.getOrCreateProgress(userId, questionnaireData.practiceStartProfile);
 
-      if (progress && progress.length > 0) {
+      if (progress && Array.isArray(progress) && progress.length > 0) {
         const scenarioInfo = progress[0];
 
         console.log('🎮 Información del escenario obtenida:', {
@@ -323,7 +323,7 @@ export function RoleplayPage() {
         questionnaireData.questionnaireId
       );
 
-      if (sessionId) {
+      if (sessionId && typeof sessionId === 'string') {
         console.log('✅ [RoleplayPage] voice_session creada exitosamente:', {
           sessionId,
           sessionIdType: typeof sessionId,
@@ -332,12 +332,10 @@ export function RoleplayPage() {
           timestamp: new Date().toISOString()
         });
 
-        // Asegurarnos de que sessionId es un string
-        const sessionIdString = typeof sessionId === 'string' ? sessionId : sessionId.toString();
-        setCurrentSessionId(sessionIdString);
-        console.log('📝 [RoleplayPage] currentSessionId actualizado:', sessionIdString);
+        setCurrentSessionId(sessionId);
+        console.log('📝 [RoleplayPage] currentSessionId actualizado:', sessionId);
 
-        return sessionIdString;
+        return sessionId;
       } else {
         console.warn('⚠️ [RoleplayPage] create_voice_session no retornó sessionId');
         return null;

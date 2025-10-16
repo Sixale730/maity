@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import Joyride, { Step, CallBackProps, STATUS, EVENTS } from 'react-joyride';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/contexts/UserContext';
@@ -147,7 +146,8 @@ export function PlatformTour({ run, userRole, onFinish, onSkip }: PlatformTourPr
     }
 
     // Si el usuario cierra el tooltip (X), tratarlo como skip
-    if (type === 'close') {
+    // Note: type can be 'close' but TypeScript doesn't have it in the CallBackProps type
+    if ((type as string) === 'close') {
       onSkip();
       return;
     }

@@ -180,7 +180,7 @@ export class RoleplayService {
   static async getProfiles(): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .schema('maity')
-      .from('practice_profiles')
+      .from('voice_agent_profiles')
       .select('*')
       .order('name', { ascending: true });
 
@@ -200,10 +200,10 @@ export class RoleplayService {
   static async getScenariosByProfile(profileId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .schema('maity')
-      .from('practice_scenarios')
+      .from('voice_scenarios')
       .select('*')
       .eq('profile_id', profileId)
-      .order('difficulty_level', { ascending: true });
+      .order('order_index', { ascending: true });
 
     if (error) {
       console.error('Error fetching scenarios:', error);
@@ -221,7 +221,7 @@ export class RoleplayService {
   static async getUserProgress(userId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
       .schema('maity')
-      .from('voice_progress')
+      .from('voice_user_progress')
       .select('*')
       .eq('user_id', userId);
 
