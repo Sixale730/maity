@@ -35,7 +35,7 @@ export function useElevenLabsChat(config: ChatConfig = {}) {
     }],
   });
 
-  const { onStateChange, onError } = config;
+  const { onStateChange, onError: _onError } = config;
 
   // Simulate conversation with predefined responses
   const sendMessage = useCallback(async (userMessage: string) => {

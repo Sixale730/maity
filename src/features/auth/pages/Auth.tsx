@@ -23,11 +23,12 @@ import MaityLogo from "@/shared/components/MaityLogo";
 import { Eye, EyeOff } from "lucide-react";
 
 // Missing type and utility definitions
-const getErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error;
-  if (error?.message) return error.message;
-  return 'An unexpected error occurred';
-};
+// getErrorMessage defined for future error handling
+// const getErrorMessage = (error: any): string => {
+//   if (typeof error === 'string') return error;
+//   if (error?.message) return error.message;
+//   return 'An unexpected error occurred';
+// };
 
 interface InvitationResult {
 
@@ -67,7 +68,7 @@ interface AuthProps {
 
 }
 
-const Auth = ({ mode = 'default' }: AuthProps) => {
+const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
   const [isLogin, setIsLogin] = useState(true);
 

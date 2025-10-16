@@ -37,7 +37,7 @@ export const useOnboardingStatus = () => {
       
       // For now, we'll use a simple approach - if user has ACTIVE status and has completed registration_form
       // In the future, we can create a specific RPC for onboarding status
-      const { data, error } = await supabase.rpc('complete_user_registration');
+      const { data: _data, error } = await supabase.rpc('complete_user_registration');
       
       if (error && error.code !== 'PGRST301') { // Ignore "No data returned" error
         console.error('Error checking onboarding status:', error);

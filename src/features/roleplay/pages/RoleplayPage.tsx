@@ -69,7 +69,7 @@ export function RoleplayPage() {
 
   // Estado para la evaluación
   const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
-  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [_isEvaluating, setIsEvaluating] = useState(false);
 
   // Callbacks memorizados para evitar re-renders infinitos
   const handleEvaluationComplete = useCallback(async (result: any) => {

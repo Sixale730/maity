@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { Button } from "@/ui/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/components/ui/table";
@@ -11,7 +11,7 @@ import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
 import type { Database } from "@maity/shared";
-import { Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Trash2 } from "lucide-react";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
 
@@ -217,7 +217,7 @@ export function OrganizationsManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((company, index) => (
+                {companies.map((company) => (
                   <TableRow
                     key={company.id}
                     className="border-b-2 hover:bg-muted/30"

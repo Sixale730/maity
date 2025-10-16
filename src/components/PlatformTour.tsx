@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import Joyride, { Step, CallBackProps, STATUS, EVENTS, ACTIONS } from 'react-joyride';
+import Joyride, { Step, CallBackProps, STATUS, EVENTS } from 'react-joyride';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/contexts/UserContext';
-import { usePlatformTour } from '@/contexts/PlatformTourContext';
 import { MAITY_COLORS } from '@maity/shared';
 
 interface PlatformTourProps {

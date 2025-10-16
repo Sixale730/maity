@@ -10,7 +10,7 @@ interface ElevenLabsVoiceProps {
 
 export function ElevenLabsVoice({ agentState, onStateChange, isEnabled }: ElevenLabsVoiceProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [_conversationId, setConversationId] = useState<string | null>(null);
 
   // Load ElevenLabs SDK script
   useEffect(() => {

@@ -6,9 +6,9 @@ import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardD
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
-import { Skeleton } from "@/ui/components/ui/skeleton";
+// import { Skeleton } from "@/ui/components/ui/skeleton"; // Unused
 import { Badge } from "@/ui/components/ui/badge";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { OrganizationsManager } from "@/features/organizations/components/OrganizationsManager";
 import { CoachPage } from "@/features/coach/pages/CoachPage";
@@ -44,7 +44,7 @@ const chartConfig = {
 };
 
 // Org Admin Dashboard Component
-function OrgAdminDashboard({ userName, companyId }: { userName?: string; companyId?: string }) {
+function OrgAdminDashboard({ userName: _userName, companyId }: { userName?: string; companyId?: string }) {
   const { t } = useLanguage();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
     useDashboardDataByRole('manager', companyId);

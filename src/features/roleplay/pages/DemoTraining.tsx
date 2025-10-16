@@ -75,7 +75,7 @@ export default function DemoTraining() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
   const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
-  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [_isEvaluating, setIsEvaluating] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); // Para forzar re-render del componente de voz
   const [isCallActive, setIsCallActive] = useState(false); // Para controlar visibilidad del chat admin
 

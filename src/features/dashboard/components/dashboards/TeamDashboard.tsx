@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/
 import { Button } from "@/ui/components/ui/button";
 import { Badge } from "@/ui/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/components/ui/table";
-import { Upload, Users, Download, FileText, CheckCircle, Trash2, FolderOpen } from "lucide-react";
+import { Upload, Download, FileText, CheckCircle, Trash2, FolderOpen } from "lucide-react";
 import { useToast } from "@/shared/hooks/use-toast";
 import { supabase, OrganizationService } from "@maity/shared";
 import { useLanguage } from "@/contexts/LanguageContext";

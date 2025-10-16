@@ -215,7 +215,7 @@ const Onboarding = () => {
     );
   }
 
-  const validationToken = btoa(`${user.id}:${Date.now()}`);
+  const _validationToken = btoa(`${user.id}:${Date.now()}`);
 
   return (
     <>

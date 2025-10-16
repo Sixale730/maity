@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/ui/components/ui/button';
 import { Input } from '@/ui/components/ui/input';
 import { ScrollArea } from '@/ui/components/ui/scroll-area';
-import { Mic, MicOff, Send, MessageCircle, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Send, MessageCircle, Loader2, Volume2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useElevenLabsChat, useVoiceConversation, env } from '@maity/shared';
 import type { AgentState } from '../types';
@@ -38,7 +38,7 @@ export function VoiceInterface({ agentState, onStateChange }: VoiceInterfaceProp
     },
     onResponse: (response) => {
       // Add voice response to chat messages
-      const agentMessage = {
+      const _agentMessage = {
         id: Date.now().toString(),
         text: response,
         timestamp: new Date(),

@@ -1,9 +1,9 @@
-import Lottie from 'lottie-react';
+// import Lottie from 'lottie-react';
 import { motion } from 'framer-motion';
 import type { AgentState } from '../types';
 
 // Placeholder animation data - replace with actual Lottie files
-const animationData = {
+const _animationData = {
   idle: {
     v: "5.7.4",
     fr: 30,

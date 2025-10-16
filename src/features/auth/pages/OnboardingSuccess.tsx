@@ -8,7 +8,7 @@ import { useToast } from '@/shared/hooks/use-toast';
 
 const OnboardingSuccess = () => {
   const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [_success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -23,7 +23,7 @@ const OnboardingSuccess = () => {
       setLoading(true);
       
       const token = searchParams.get('token');
-      const responseId = searchParams.get('rid');
+      const _responseId = searchParams.get('rid');
       
       if (!token) {
         setError('Token de validación no encontrado');

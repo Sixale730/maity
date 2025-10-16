@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@maity/shared';
+// import { supabase } from '@maity/shared'; // Unused for now
 
 export interface MonthlyStats {
   month: string;

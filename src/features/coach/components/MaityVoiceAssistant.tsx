@@ -11,8 +11,8 @@ export function MaityVoiceAssistant() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string>('');
-  const [agentResponse, setAgentResponse] = useState<string>('');
+  const [_transcript, setTranscript] = useState<string>('');
+  const [_agentResponse, setAgentResponse] = useState<string>('');
 
   // Historial completo de la conversación
   const [conversationHistory, setConversationHistory] = useState<Array<{
