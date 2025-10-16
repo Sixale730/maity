@@ -249,7 +249,7 @@ export default function DemoTraining() {
     setIsEvaluating(false);
   };
 
-  const { evaluation, isLoading: evaluationLoading, error: evaluationError } = useEvaluationRealtime({
+  const { evaluation: _evaluation, isLoading: _evaluationLoading, error: _evaluationError } = useEvaluationRealtime({
     requestId: evaluationRequestId || '',
     onComplete: handleEvaluationComplete,
     onError: handleEvaluationError

@@ -138,6 +138,8 @@ export const PlatformTourProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       return () => clearTimeout(timer);
     }
+    // No need to return anything if condition is not met
+    return undefined;
   }, [state.loading, state.hasCompleted, userId, startTour]);
 
   return (
