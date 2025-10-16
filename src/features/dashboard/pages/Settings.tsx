@@ -1,4 +1,3 @@
-import React from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Settings as SettingsIcon } from 'lucide-react';
 

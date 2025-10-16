@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DashboardService } from '@maity/shared';
-import { UserRole } from './useUserRole';
+import { DashboardService, UserRole } from '@maity/shared';
 
 export interface MonthlyStats {
   month: string;

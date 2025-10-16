@@ -9,7 +9,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import type { Database } from '../../services/supabase/types';
 
 export interface SupabaseConfig {
   url: string;

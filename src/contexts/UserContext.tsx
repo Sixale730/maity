@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, AuthService } from '@maity/shared';
 import { useNavigate } from 'react-router-dom';
 import { getAppUrl } from '@maity/shared';

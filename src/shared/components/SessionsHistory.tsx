@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@maity/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/ui/components/ui/button';
 import { Input } from '@/ui/components/ui/input';
 import { Send, User, Bot } from 'lucide-react';
-import { AgentState } from './CoachPage';
+import type { AgentState } from '../types';
 
 interface Message {
   id: number;

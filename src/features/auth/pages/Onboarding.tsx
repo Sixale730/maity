@@ -2,7 +2,7 @@
 import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { AuthService, OrganizationService } from '@maity/shared';
-import type { Database } from '@/integrations/supabase/types';
+import type { Database } from '@maity/shared';
 import { Button } from '@/ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';

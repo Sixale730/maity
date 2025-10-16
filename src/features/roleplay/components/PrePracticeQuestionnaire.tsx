@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/ui/components/ui/dialog';
 import { Button } from '@/ui/components/ui/button';
 import { Card } from '@/ui/components/ui/card';

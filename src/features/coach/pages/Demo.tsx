@@ -1,4 +1,3 @@
-import React from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Play, MapIcon } from 'lucide-react';
 import { Button } from '@/ui/components/ui/button';

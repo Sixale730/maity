@@ -10,7 +10,7 @@ import { Badge } from "@/ui/components/ui/badge";
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@maity/shared";
 import { Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];

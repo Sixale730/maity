@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '../components/RoleplayVoiceAssistant';
 import { PrePracticeQuestionnaire } from '../components/PrePracticeQuestionnaire';

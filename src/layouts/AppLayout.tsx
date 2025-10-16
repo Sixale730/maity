@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/ui/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/shared/components/RoleBasedSidebar";

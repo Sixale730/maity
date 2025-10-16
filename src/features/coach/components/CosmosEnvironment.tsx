@@ -1,7 +1,7 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { AgentState } from './CoachPage';
+import type { AgentState } from '../types';
 
 interface CosmosEnvironmentProps {
   agentState: AgentState;

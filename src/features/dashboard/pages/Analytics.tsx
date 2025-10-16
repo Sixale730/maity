@@ -1,4 +1,3 @@
-import React from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { BarChart3 } from 'lucide-react';
 

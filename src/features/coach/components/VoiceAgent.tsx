@@ -1,7 +1,6 @@
-import React from 'react';
 import Lottie from 'lottie-react';
 import { motion } from 'framer-motion';
-import { AgentState } from './CoachPage';
+import type { AgentState } from '../types';
 
 // Placeholder animation data - replace with actual Lottie files
 const animationData = {

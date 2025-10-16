@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card } from '@/ui/components/ui/card';
 import { Info, Target, Clock, CheckCircle } from 'lucide-react';
 

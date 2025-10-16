@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { supabase } from "@maity/shared";
-import { finalizeInvite } from "@/lib/finalizeInvite";
+import { supabase, finalizeInvite } from "@maity/shared";
 
 /**
  * Dispara finalize-invite UNA sola vez por sesión:

@@ -1,4 +1,3 @@
-import React from "react";
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { RoleplayProgress } from "@/features/roleplay/components/RoleplayProgress";
 import LanguageSelector from "@/shared/components/LanguageSelector";

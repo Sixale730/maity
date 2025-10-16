@@ -1,5 +1,4 @@
 ﻿// src/App.tsx
-import React from "react";
 import { Toaster } from "@/ui/components/ui/toaster";
 import { Toaster as Sonner } from "@/ui/components/ui/sonner";
 import { TooltipProvider } from "@/ui/components/ui/tooltip";

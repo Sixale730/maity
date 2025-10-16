@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { env } from '../../../constants/env';
-import type { AgentState } from '@/components/coach/CoachPage';
+
+type AgentState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 interface ChatMessage {
   id: string;

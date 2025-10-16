@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';

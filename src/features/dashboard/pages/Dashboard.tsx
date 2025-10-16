@@ -1,4 +1,3 @@
-import React from "react";
 import { DashboardContent } from "@/features/dashboard/components/DashboardContent";
 import { useUser } from "@/contexts/UserContext";
 
