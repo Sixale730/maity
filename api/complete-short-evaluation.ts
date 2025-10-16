@@ -10,9 +10,9 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { ApiError, withErrorHandler, validateMethod } from './types/errors';
-import { getEnv } from './types/common';
-import { completeShortEvaluationRequestSchema } from './types/schemas';
+import { ApiError, withErrorHandler, validateMethod } from './types/errors.js';
+import { getEnv } from './types/common.js';
+import { completeShortEvaluationRequestSchema } from './types/schemas.js';
 
 /**
  * Custom CORS handler for this endpoint

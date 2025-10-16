@@ -6,10 +6,10 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { setCors } from '../lib/cors';
-import { ApiError, withErrorHandler, validateMethod } from './types/errors';
-import { CookieOptions } from './types/common';
-import { acceptInviteRequestSchema } from './types/schemas';
+import { setCors } from '../lib/cors.js';
+import { ApiError, withErrorHandler, validateMethod } from './types/errors.js';
+import { CookieOptions } from './types/common.js';
+import { acceptInviteRequestSchema } from './types/schemas.js';
 
 /**
  * Helper to create cookie string with options
