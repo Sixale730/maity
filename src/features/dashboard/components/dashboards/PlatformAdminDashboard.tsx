@@ -47,7 +47,11 @@ export function PlatformAdminDashboard() {
   React.useEffect(() => {
     const fetchAdditionalStats = async () => {
       try {
-        const stats = await DashboardService.getAdminStats();
+        const stats = await DashboardService.getAdminStats() as unknown as {
+          totalUsers?: number;
+          totalCompanies?: number;
+          completedSessions?: number;
+        } | null;
         if (stats) {
           setAdditionalStats({
             totalUsers: stats.totalUsers || 0,

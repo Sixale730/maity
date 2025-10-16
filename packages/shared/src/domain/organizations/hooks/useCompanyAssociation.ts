@@ -93,7 +93,7 @@ export const useCompanyAssociation = () => {
       }
 
       console.error('[DEBUG] useCompanyAssociation: Association failed', parsedResult, error);
-      const errorMessage = parsedResult.error ?? error?.message ?? 'No se pudo asociar el usuario con la empresa';
+      const errorMessage = parsedResult.error ?? (error as Error | null)?.message ?? 'No se pudo asociar el usuario con la empresa';
 
       // toast({
       //   title: 'Error',

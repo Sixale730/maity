@@ -19,7 +19,8 @@ export class OrganizationService {
    */
   static async getAll(): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.companies')
+      .schema('maity')
+      .from('companies')
       .select('*')
       .order('name');
 
@@ -38,7 +39,8 @@ export class OrganizationService {
    */
   static async getById(id: string): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.companies')
+      .schema('maity')
+      .from('companies')
       .select('*')
       .eq('id', id)
       .single();
@@ -121,7 +123,8 @@ export class OrganizationService {
    */
   static async getUsers(companyId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.users')
+      .schema('maity')
+      .from('users')
       .select('id, auth_id, email, name, role, created_at')
       .eq('company_id', companyId);
 
@@ -141,7 +144,8 @@ export class OrganizationService {
    */
   static async create(name: string, slug: string): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.companies')
+      .schema('maity')
+      .from('companies')
       .insert({ name, slug })
       .select()
       .single();
@@ -162,7 +166,8 @@ export class OrganizationService {
    */
   static async update(id: string, updates: CompanyUpdate): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.companies')
+      .schema('maity')
+      .from('companies')
       .update(updates)
       .eq('id', id)
       .select()
@@ -183,7 +188,8 @@ export class OrganizationService {
    */
   static async delete(id: string): Promise<{ success: boolean }> {
     const { error } = await supabase
-      .from('maity.companies')
+      .schema('maity')
+      .from('companies')
       .delete()
       .eq('id', id);
 
@@ -202,7 +208,8 @@ export class OrganizationService {
    */
   static async removeUser(userId: string): Promise<{ success: boolean }> {
     const { error } = await supabase
-      .from('maity.users')
+      .schema('maity')
+      .from('users')
       .update({ company_id: null })
       .eq('id', userId);
 

@@ -10,6 +10,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../services/supabase/types';
+import type { DatabaseWithMaity } from '../../types/database-maity.types';
 
 export interface SupabaseConfig {
   url: string;
@@ -21,7 +22,7 @@ export interface SupabaseConfig {
  * Supabase client singleton
  * Must be initialized via initializeSupabase() before use
  */
-export let supabase: SupabaseClient<Database>;
+export let supabase: SupabaseClient<DatabaseWithMaity>;
 
 let isInitialized = false;
 
@@ -42,7 +43,7 @@ let isInitialized = false;
  * });
  * ```
  */
-export function initializeSupabase(config: SupabaseConfig): SupabaseClient<Database> {
+export function initializeSupabase(config: SupabaseConfig): SupabaseClient<DatabaseWithMaity> {
   if (isInitialized) {
     console.warn('[Supabase] Client already initialized. Skipping re-initialization.');
     return supabase;
@@ -55,7 +56,7 @@ export function initializeSupabase(config: SupabaseConfig): SupabaseClient<Datab
     );
   }
 
-  supabase = createClient<Database>(config.url, config.anonKey, {
+  supabase = createClient<DatabaseWithMaity>(config.url, config.anonKey, {
     auth: {
       storage: config.storage || localStorage,
       persistSession: true,
@@ -77,7 +78,7 @@ export function initializeSupabase(config: SupabaseConfig): SupabaseClient<Datab
  *
  * @returns The Supabase client instance
  */
-export function getSupabase(): SupabaseClient<Database> {
+export function getSupabase(): SupabaseClient<DatabaseWithMaity> {
   if (!isInitialized || !supabase) {
     throw new Error(
       '[Supabase] Client not initialized. Call initializeSupabase() at app startup.\n' +
@@ -103,8 +104,8 @@ export function isSupabaseInitialized(): boolean {
  * @param config - Supabase configuration
  * @returns A new Supabase client instance
  */
-export function createSupabaseClient(config: SupabaseConfig): SupabaseClient<Database> {
-  return createClient<Database>(config.url, config.anonKey, {
+export function createSupabaseClient(config: SupabaseConfig): SupabaseClient<DatabaseWithMaity> {
+  return createClient<DatabaseWithMaity>(config.url, config.anonKey, {
     auth: {
       storage: config.storage || localStorage,
       persistSession: true,

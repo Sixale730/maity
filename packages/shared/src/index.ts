@@ -12,6 +12,7 @@ export {
 // ===== Types =====
 export * from './types/user.types';
 export type { Database } from './types/database.types';
+export type { DatabaseWithMaity, MaitySchema } from './types/database-maity.types';
 export type { Database as SupabaseDatabase } from './services/supabase/types';
 
 // ===== Constants =====

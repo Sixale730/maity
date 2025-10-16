@@ -171,7 +171,6 @@ export const useFormResponses = () => {
 
       console.log('Form responses from RPC:', formResponses, 'Error:', formError);
 
-      // Get the most recent response if any exist
       const formResponse = formResponses && formResponses.length > 0 ? formResponses[0] : null;
 
       if (formError || !formResponse) {

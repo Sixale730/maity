@@ -40,7 +40,7 @@ export const PlatformTourProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Verificar si el usuario ya completó el tour
   const checkTourStatus = useCallback(async () => {
     if (!userId) {
-      setState({ isRunning: false, hasCompleted: false, loading: false });
+      setState({ isRunning: false, hasCompleted: false, loading: false, currentStepIndex: 0 });
       return;
     }
 
@@ -60,10 +60,11 @@ export const PlatformTourProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isRunning: false,
         hasCompleted,
         loading: false,
+        currentStepIndex: 0,
       });
     } catch (err) {
       console.error('Error in checkTourStatus:', err);
-      setState({ isRunning: false, hasCompleted: false, loading: false });
+      setState({ isRunning: false, hasCompleted: false, loading: false, currentStepIndex: 0 });
     }
   }, [userId]);
 

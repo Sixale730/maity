@@ -31,7 +31,8 @@ export class CoachService {
    */
   static async getConversations(userId: string, limit?: number): Promise<unknown[] | null> {
     let query = supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -57,7 +58,8 @@ export class CoachService {
    */
   static async getConversationById(conversationId: string): Promise<any> {
     const { data, error } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .select('*')
       .eq('id', conversationId)
       .single();
@@ -78,7 +80,8 @@ export class CoachService {
    */
   static async createConversation(userId: string, topic?: string): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .insert({
         user_id: userId,
         topic: topic ?? null,
@@ -106,7 +109,8 @@ export class CoachService {
     updates: ConversationUpdate
   ): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .update(updates)
       .eq('id', conversationId)
       .select()
@@ -175,7 +179,8 @@ export class CoachService {
     const to = from + pageSize - 1;
 
     const { data, error, count } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -205,7 +210,8 @@ export class CoachService {
    */
   static async searchConversations(userId: string, searchTerm: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .select('*')
       .eq('user_id', userId)
       .or(`topic.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`)
@@ -226,7 +232,8 @@ export class CoachService {
    */
   static async deleteConversation(conversationId: string): Promise<{ success: boolean }> {
     const { error } = await supabase
-      .from('maity.coach_conversations')
+      .schema('maity')
+      .from('coach_conversations')
       .delete()
       .eq('id', conversationId);
 

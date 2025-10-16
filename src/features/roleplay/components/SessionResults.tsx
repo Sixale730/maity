@@ -177,8 +177,8 @@ export function SessionResults({
       // Dividir por comas y limpiar espacios
       improvements = evaluation.improvements
         .split(',')
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
+        .map((item: string) => item.trim())
+        .filter((item: string) => item.length > 0);
     }
   } else if (!isProcessing) {
     improvements = [
@@ -721,7 +721,7 @@ export function SessionResults({
                   <div>
                     <p className="text-sm sm:text-base font-medium text-yellow-400 mb-2 sm:mb-3">Áreas de Mejora</p>
                     <ul className="space-y-2">
-                      {improvements.map((improvement, idx) => (
+                      {improvements.map((improvement: string, idx: number) => (
                         <li key={idx} className="flex items-start gap-2 text-sm sm:text-base text-gray-300">
                           <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 mt-1 flex-shrink-0" />
                           <span>{improvement}</span>

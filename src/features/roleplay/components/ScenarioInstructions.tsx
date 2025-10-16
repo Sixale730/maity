@@ -248,7 +248,7 @@ export function ScenarioInstructions({
             <span>Objetivos</span>
           </div>
           <ul className="space-y-1 ml-5">
-            {instructions.objectives.map((objective, idx) => (
+            {instructions.objectives.map((objective: string, idx: number) => (
               <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
                 <CheckCircle className="h-3 w-3 text-green-400 mt-0.5 flex-shrink-0" />
                 <span>{objective}</span>
@@ -264,7 +264,7 @@ export function ScenarioInstructions({
             <span>Tips para {profile}</span>
           </div>
           <ul className="space-y-1 ml-5">
-            {instructions.tips[profile].map((tip, idx) => (
+            {instructions.tips[profile].map((tip: string, idx: number) => (
               <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
                 <span className="text-blue-400">•</span>
                 <span>{tip}</span>

@@ -39,5 +39,5 @@
       "@maity/shared/*": ["./packages/shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "src/types/**/*.d.ts"]
 }

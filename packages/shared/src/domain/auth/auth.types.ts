@@ -48,6 +48,9 @@ export interface UserStatus {
   /** Whether onboarding is completed */
   onboarding_completed: boolean;
 
+  /** Whether platform tour is completed */
+  platform_tour_completed: boolean | null;
+
   /** User's role in the company */
   role: UserRole | null;
 

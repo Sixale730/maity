@@ -48,6 +48,31 @@ interface SkillData {
   fullMark: 100;
 }
 
+interface VoiceAgentProfile {
+  id: string;
+  name: string;
+  description: string;
+  key_focus: string;
+  communication_style: string;
+  personality_traits: any;
+  is_active: boolean;
+}
+
+interface UserVoiceProgress {
+  id: string;
+  user_id: string;
+  profile_id: string;
+  scenarios_completed: number;
+  scenarios_failed: number;
+  total_sessions: number;
+  current_difficulty_level: number;
+  current_scenario_order: number;
+  average_score: number | null;
+  best_score: number | null;
+  streak_days: number;
+  last_session_date: string | null;
+}
+
 
 const skillsData: SkillData[] = [
   { skill: "Liderazgo", value: 85, fullMark: 100 },
@@ -232,7 +257,7 @@ function HexagonCard({ card, onProfileClick }: { card: RoleCard; onProfileClick?
 export function RoleplayProgress() {
   const [roleCards, setRoleCards] = useState<RoleCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [_userProgress, setUserProgress] = useState<any>(null);
+  const [_userProgress, setUserProgress] = useState<UserVoiceProgress[] | null>(null);
 
   useEffect(() => {
     fetchUserProgress();
@@ -245,7 +270,7 @@ export function RoleplayProgress() {
 
       // Fetch all profiles using RPC
       const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_voice_agent_profiles');
+        .rpc('get_voice_agent_profiles') as { data: VoiceAgentProfile[] | null; error: any };
 
       console.log('Profiles fetched:', profiles, 'Error:', profilesError);
 
@@ -255,7 +280,7 @@ export function RoleplayProgress() {
 
       // Fetch user's progress using RPC
       const { data: userProgress, error: progressError } = await supabase
-        .rpc('get_user_voice_progress', { p_auth_id: user.id });
+        .rpc('get_user_voice_progress', { p_auth_id: user.id }) as { data: UserVoiceProgress[] | null; error: any };
 
       console.log('User progress fetched:', userProgress, 'Error:', progressError);
 

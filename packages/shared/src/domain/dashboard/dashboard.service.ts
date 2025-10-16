@@ -10,7 +10,7 @@ export class DashboardService {
    * Uses the get_admin_dashboard_stats RPC function
    * @returns Promise with admin stats
    */
-  static async getAdminStats(): Promise<unknown> {
+  static async getAdminStats() {
     const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
 
     if (error) {
@@ -26,7 +26,7 @@ export class DashboardService {
    * Uses the get_admin_monthly_data RPC function
    * @returns Promise with monthly data
    */
-  static async getAdminMonthlyData(): Promise<unknown> {
+  static async getAdminMonthlyData() {
     const { data, error } = await supabase.rpc('get_admin_monthly_data');
 
     if (error) {
@@ -42,7 +42,7 @@ export class DashboardService {
    * Uses the get_admin_session_status RPC function
    * @returns Promise with session status data
    */
-  static async getAdminSessionStatus(): Promise<unknown> {
+  static async getAdminSessionStatus() {
     const { data, error } = await supabase.rpc('get_admin_session_status');
 
     if (error) {
@@ -67,7 +67,8 @@ export class DashboardService {
   }> {
     // Get user's sessions
     const { data: sessions, error: sessionsError } = await supabase
-      .from('maity.voice_sessions')
+      .schema('maity')
+      .from('voice_sessions')
       .select('*')
       .eq('user_id', userId);
 
@@ -103,7 +104,8 @@ export class DashboardService {
    */
   static async getRecentActivity(userId: string, limit: number = 10): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.voice_sessions')
+      .schema('maity')
+      .from('voice_sessions')
       .select('*')
       .eq('user_id', userId)
       .order('started_at', { ascending: false })
