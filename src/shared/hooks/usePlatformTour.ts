@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, AuthService } from '@maity/shared';
+import { AuthService } from '@maity/shared';
 
 interface PlatformTourState {
   isRunning: boolean;

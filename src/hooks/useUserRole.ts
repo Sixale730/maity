@@ -25,9 +25,9 @@ export const useUserRole = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(hasValidCache ? roleCache.profile : null);
   const [loading, setLoading] = useState(!hasValidCache);
   const [error, setError] = useState<string | null>(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const appUrl = getAppUrl();
+  const _location = useLocation();
+  const _navigate = useNavigate();
+  const _appUrl = getAppUrl();
 
   const getUserRole = async (skipLoading = false) => {
     try {

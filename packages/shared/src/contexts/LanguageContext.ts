@@ -1,4 +1,4 @@
-import { Language, translations, getTranslation } from '../constants/translations';
+import { Language, getTranslation } from '../constants/translations';
 
 export interface LanguageContextType {
   language: Language;
