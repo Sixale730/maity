@@ -8,7 +8,7 @@ import { supabase } from '@maity/shared';
 import { useToast } from '@/ui/components/ui/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { useUserRole } from '@/hooks/useUserRole';
-import { env } from '@maity/shared';
+import { env } from '@/lib/env';
 import { Card } from '@/ui/components/ui/card';
 import { Label } from '@/ui/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/components/ui/select';

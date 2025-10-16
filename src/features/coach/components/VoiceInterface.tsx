@@ -4,7 +4,8 @@ import { Input } from '@/ui/components/ui/input';
 import { ScrollArea } from '@/ui/components/ui/scroll-area';
 import { Mic, MicOff, Send, MessageCircle, Loader2, Volume2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useElevenLabsChat, useVoiceConversation, env } from '@maity/shared';
+import { useElevenLabsChat, useVoiceConversation } from '@maity/shared';
+import { env } from '@/lib/env';
 import type { AgentState } from '../types';
 
 interface VoiceInterfaceProps {

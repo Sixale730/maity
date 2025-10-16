@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { env } from '@maity/shared';
+import { env } from '@/lib/env';
 import type { AgentState } from '../types';
 
 interface ElevenLabsVoiceProps {

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, AuthService, env } from "@maity/shared";
+import { supabase, AuthService } from "@maity/shared";
+import { env } from "@/lib/env";
 import { MaityLogo } from "@/shared/components/MaityLogo";
 
 // Helper function to call finalize-invite API

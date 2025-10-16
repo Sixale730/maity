@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthService, env } from "@maity/shared";
+import { AuthService } from "@maity/shared";
+import { env } from "@/lib/env";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { Button } from "@/ui/components/ui/button";
