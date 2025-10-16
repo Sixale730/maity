@@ -38,6 +38,31 @@ interface RoleplayRoadmapProps {
   userId?: string;
 }
 
+// Type for voice_profile_scenarios query result
+type VoiceProfileScenarioRow = {
+  id: string;
+  profile_id: string;
+  scenario_id: string;
+  difficulty_id: string;
+  min_score_to_pass: number | null;
+  voice_agent_profiles: {
+    id: string;
+    name: string;
+  };
+  voice_scenarios: {
+    id: string;
+    name: string;
+    code: string;
+    order_index: number;
+  };
+  voice_difficulty_levels: {
+    id: string;
+    level: number;
+    name: string;
+    code: string;
+  };
+};
+
 export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
   const [loading, setLoading] = useState(true);
   const [scenarioProgress, setScenarioProgress] = useState<ScenarioProgress[]>([]);
@@ -50,11 +75,13 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
   }, [userId]);
 
   const loadProgress = async () => {
+    if (!userId) return; // Guard: userId is required
+
     try {
       setLoading(true);
 
       // Cargar todos los escenarios disponibles con sus perfiles y dificultades
-      const { data: allScenarios, error: scenariosError } = await supabase
+      const { data: allScenariosRaw, error: scenariosError } = await supabase
         .schema('maity')
         .from('voice_profile_scenarios')
         .select(`
@@ -84,14 +111,17 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
         .eq('voice_scenarios.is_active', true)
         .order('voice_scenarios.order_index');
 
-      if (scenariosError) {
+      if (scenariosError || !allScenariosRaw) {
         console.error('Error loading scenarios:', scenariosError);
-        throw scenariosError;
+        throw scenariosError || new Error('No scenarios data');
       }
 
+      // Type assertion for the query result
+      const allScenarios = allScenariosRaw as VoiceProfileScenarioRow[];
+
       console.log('📊 Roadmap - Scenarios loaded:', {
-        count: allScenarios?.length || 0,
-        sample: allScenarios?.[0]
+        count: allScenarios.length,
+        sample: allScenarios[0]
       });
 
       // Cargar las sesiones completadas del usuario
@@ -115,7 +145,7 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
       // Procesar los datos para crear el progreso por escenario
       const progressMap = new Map<string, ScenarioProgress>();
 
-      allScenarios?.forEach((scenario, index) => {
+      allScenarios.forEach((scenario, index) => {
         try {
           // Validar que todas las relaciones existan y tengan las propiedades necesarias
           if (!scenario?.voice_scenarios?.id ||

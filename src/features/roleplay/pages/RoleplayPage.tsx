@@ -92,7 +92,7 @@ export function RoleplayPage() {
     });
 
     // Actualizar los resultados con la evaluación real
-    setSessionResults(prev => ({
+    setSessionResults((prev: any) => ({
       ...prev,
       score: evaluationScore,
       passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
@@ -125,7 +125,7 @@ export function RoleplayPage() {
     console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
 
     // Actualizar resultados con error
-    setSessionResults(prev => ({
+    setSessionResults((prev: any) => ({
       ...prev,
       isProcessing: false,
       error: errorMessage
@@ -178,7 +178,7 @@ export function RoleplayPage() {
         return;
       }
 
-      setUserId(userData.id);
+      setUserId(userData.id as string);
       // Usar email o nickname si name está vacío
       const displayName = userData.name?.trim() ||
                          userData.nickname?.trim() ||
@@ -204,7 +204,7 @@ export function RoleplayPage() {
       const { data: existingQuestionnaire, error: questionnaireError } = await supabase
         .from('voice_pre_practice_questionnaire')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('user_id', userData.id as string)
         .order('answered_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -223,11 +223,18 @@ export function RoleplayPage() {
           practice_start_profile: existingQuestionnaire.practice_start_profile
         });
 
-        setQuestionnaireData({
-          mostDifficultProfile: existingQuestionnaire.most_difficult_profile,
-          practiceStartProfile: existingQuestionnaire.practice_start_profile,
-          questionnaireId: existingQuestionnaire.id
-        });
+        if (existingQuestionnaire.most_difficult_profile &&
+            existingQuestionnaire.practice_start_profile &&
+            existingQuestionnaire.id) {
+          setQuestionnaireData({
+            mostDifficultProfile: existingQuestionnaire.most_difficult_profile as 'CEO' | 'CTO' | 'CFO',
+            practiceStartProfile: existingQuestionnaire.practice_start_profile as 'CEO' | 'CTO' | 'CFO',
+            questionnaireId: existingQuestionnaire.id
+          });
+        } else {
+          console.warn('📋 Cuestionario incompleto, mostrando cuestionario nuevo');
+          setShowQuestionnaire(true);
+        }
       }
     } catch (error) {
       console.error('Error checking questionnaire:', error);
@@ -454,7 +461,7 @@ export function RoleplayPage() {
         );
 
         console.log('✅ [RoleplayPage] Voice session creada de emergencia exitosamente:', newSessionId);
-        effectiveSessionId = newSessionId;
+        effectiveSessionId = newSessionId || undefined;
         setCurrentSessionId(newSessionId); // Actualizar el estado para futuras referencias
       } catch (error) {
         console.error('❌ [RoleplayPage] Error inesperado al crear sesión de emergencia:', error);

@@ -44,13 +44,14 @@ export class AuthService {
     }
 
     // Handle different response formats
+    // RPC returns string directly, but handle legacy object/array formats for backwards compatibility
     let phase: string;
     if (typeof data === 'string') {
       phase = data.toUpperCase();
-    } else if (data && hasProperty(data, 'phase')) {
-      phase = String(data.phase).toUpperCase();
+    } else if (data && typeof data === 'object' && hasProperty(data, 'phase')) {
+      phase = String((data as Record<string, unknown>).phase).toUpperCase();
     } else if (Array.isArray(data) && data[0] && hasProperty(data[0], 'phase')) {
-      phase = String(data[0].phase).toUpperCase();
+      phase = String((data[0] as Record<string, unknown>).phase).toUpperCase();
     } else {
       phase = '';
     }
@@ -68,7 +69,7 @@ export class AuthService {
       console.error('Error getting user status:', error);
       throw error;
     }
-    return data ?? [];
+    return (data ?? []) as UserStatus[];
   }
 
   /**

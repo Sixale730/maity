@@ -145,11 +145,19 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
       try {
         if (userRole === 'admin') {
           // Load real data for admin
-          const [stats, monthlyData, statusData] = await Promise.all([
+          const [statsRaw, monthlyData, statusData] = await Promise.all([
             DashboardService.getAdminStats(),
             DashboardService.getAdminMonthlyData(),
             DashboardService.getAdminSessionStatus()
           ]);
+
+          // Type assertion for stats
+          const stats = statsRaw as unknown as {
+            totalSessions?: number;
+            activeSessions?: number;
+            completionRate?: number;
+            avgMood?: number;
+          } | null;
 
           // Generate daily data based on recent activity (last 7 days)
           const dailyData = [
@@ -202,11 +210,19 @@ export const useDashboardDataByRole = (userRole: UserRole, companyId?: string) =
     try {
       if (userRole === 'admin') {
         // Reload real data for admin
-        const [stats, monthlyData, statusData] = await Promise.all([
+        const [statsRaw, monthlyData, statusData] = await Promise.all([
           DashboardService.getAdminStats(),
           DashboardService.getAdminMonthlyData(),
           DashboardService.getAdminSessionStatus()
         ]);
+
+        // Type assertion for stats
+        const stats = statsRaw as unknown as {
+          totalSessions?: number;
+          activeSessions?: number;
+          completionRate?: number;
+          avgMood?: number;
+        } | null;
 
         const dailyData = [
           { day: "Lun", sessions: Math.floor(Math.random() * 20) + 5 },

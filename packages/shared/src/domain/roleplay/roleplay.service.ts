@@ -33,7 +33,7 @@ export class RoleplayService {
     const { data, error } = await supabase.rpc('create_voice_session', {
       p_user_id: userId,
       p_profile_name: profileName,
-      p_questionnaire_id: questionnaireId ?? null
+      p_questionnaire_id: questionnaireId || ''
     });
 
     if (error) {
@@ -94,7 +94,8 @@ export class RoleplayService {
    */
   static async getSessions(userId: string, limit?: number): Promise<unknown[] | null> {
     let query = supabase
-      .from('maity.voice_sessions')
+      .schema('maity')
+      .from('voice_sessions')
       .select('*')
       .eq('user_id', userId)
       .order('started_at', { ascending: false });
@@ -120,7 +121,8 @@ export class RoleplayService {
    */
   static async getSessionById(sessionId: string): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.voice_sessions')
+      .schema('maity')
+      .from('voice_sessions')
       .select('*')
       .eq('id', sessionId)
       .single();
@@ -144,7 +146,8 @@ export class RoleplayService {
     updates: SessionUpdate
   ): Promise<unknown> {
     const { data, error } = await supabase
-      .from('maity.voice_sessions')
+      .schema('maity')
+      .from('voice_sessions')
       .update(updates)
       .eq('id', sessionId)
       .select()
@@ -176,7 +179,8 @@ export class RoleplayService {
    */
   static async getProfiles(): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.practice_profiles')
+      .schema('maity')
+      .from('practice_profiles')
       .select('*')
       .order('name');
 
@@ -195,7 +199,8 @@ export class RoleplayService {
    */
   static async getScenariosByProfile(profileId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.practice_scenarios')
+      .schema('maity')
+      .from('practice_scenarios')
       .select('*')
       .eq('profile_id', profileId)
       .order('difficulty_level');
@@ -215,7 +220,8 @@ export class RoleplayService {
    */
   static async getUserProgress(userId: string): Promise<unknown[] | null> {
     const { data, error } = await supabase
-      .from('maity.voice_progress')
+      .schema('maity')
+      .from('voice_progress')
       .select('*')
       .eq('user_id', userId);
 

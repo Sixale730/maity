@@ -83,8 +83,14 @@ const InvitationConflict = () => {
 
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user?.id) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const { data: result, error } = await supabase.rpc('handle_company_invitation', {
-        user_auth_id: (await supabase.auth.getUser()).data.user?.id,
+        user_auth_id: user.id,
         company_slug: conflictData.target_company.id,
         invitation_source: conflictData.invitation_source || window.location.href,
         force_assign: true

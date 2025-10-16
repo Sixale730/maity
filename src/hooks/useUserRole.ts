@@ -19,8 +19,8 @@ export const useUserRole = () => {
   // Initialize loading based on cache availability
   const hasValidCache = roleCache && (Date.now() - roleCache.timestamp) < CACHE_DURATION;
 
-  const [userRole, setUserRole] = useState<UserRole>(hasValidCache ? roleCache.role : null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(hasValidCache ? roleCache.profile : null);
+  const [userRole, setUserRole] = useState<UserRole>(hasValidCache && roleCache ? roleCache.role : null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(hasValidCache && roleCache ? roleCache.profile : null);
   const [loading, setLoading] = useState(!hasValidCache);
   const [error, setError] = useState<string | null>(null);
 

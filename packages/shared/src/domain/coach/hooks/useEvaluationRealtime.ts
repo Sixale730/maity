@@ -88,7 +88,7 @@ export function useEvaluationRealtime({
           hasResult: !!initialData.result
         });
 
-        setEvaluation(initialData);
+        setEvaluation(initialData as Evaluation);
         setIsLoading(false);
 
         // If already complete/error, trigger callbacks
@@ -119,7 +119,7 @@ export function useEvaluationRealtime({
             if (polledData.status === 'complete' || polledData.status === 'error') {
               console.log('[useEvaluationRealtime] ✅ Polling: evaluación finalizada, limpiando interval');
 
-              setEvaluation(polledData);
+              setEvaluation(polledData as Evaluation);
 
               if (polledData.status === 'complete' && onComplete && polledData.result) {
                 console.log('✅ [Evaluation via Polling] Completada:', polledData.result);
@@ -248,7 +248,7 @@ export async function createEvaluation(
   const { data, error } = await supabase.rpc('create_evaluation', {
     p_request_id: requestId,
     p_user_id: maityUserId,
-    p_session_id: sessionId || null
+    p_session_id: sessionId // undefined if not provided
   });
 
   if (error) {

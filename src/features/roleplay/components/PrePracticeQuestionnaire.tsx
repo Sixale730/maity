@@ -85,7 +85,7 @@ export function PrePracticeQuestionnaire({
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error || !data?.id) throw error || new Error('No ID returned');
 
       // Llamar callback con los datos
       onComplete({

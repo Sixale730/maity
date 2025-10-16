@@ -96,7 +96,7 @@ export default function DemoTraining() {
 
       if (!userData) return;
 
-      setUserId(userData.id);
+      setUserId(userData.id as string);
       const displayName = userData.name?.trim() ||
                          userData.nickname?.trim() ||
                          userData.email?.split('@')[0] ||
@@ -174,7 +174,7 @@ export default function DemoTraining() {
       const { data: sessionId, error: sessionError } = await supabase.rpc('create_voice_session', {
         p_user_id: userId,
         p_profile_name: config.profile,
-        p_questionnaire_id: null // Demo no requiere cuestionario
+        p_questionnaire_id: '' // Demo no requiere cuestionario
       });
 
       if (sessionError) {
@@ -211,7 +211,7 @@ export default function DemoTraining() {
         ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
         : 0);
 
-    setSessionResults(prev => ({
+    setSessionResults((prev: any) => ({
       ...prev,
       score: evaluationScore,
       passed: evaluationScore >= 60,
@@ -237,7 +237,7 @@ export default function DemoTraining() {
 
   const handleEvaluationError = (errorMessage: string) => {
     console.error('❌ [DemoTraining] Error en evaluación:', errorMessage);
-    setSessionResults(prev => ({
+    setSessionResults((prev: any) => ({
       ...prev,
       isProcessing: false,
       error: errorMessage
