@@ -184,16 +184,15 @@ npm run test:coverage
 │           └── utils/           # Utility functions
 │
 ├── api/                         # Serverless API Functions (API Layer)
-│   ├── accept-invite.js         # Process invitation links (sets cookie)
-│   ├── complete-short-evaluation.js  # Complete short evaluations
-│   ├── decode-opus.js           # Audio decoding
-│   ├── elevenlabs-conversation-token.js  # ElevenLabs token generation
-│   ├── elevenlabs-signed-url.js # Generate signed URLs for ElevenLabs
-│   ├── evaluation-complete.js   # Update evaluation results from n8n
-│   ├── finalize-invite.js       # Link user to company (consumes cookie)
-│   ├── tally-link.js            # Generate Tally form URLs with OTK tokens
-│   ├── tally-webhook.js         # Handle Tally form submissions
-│   └── test-tally-fields.js     # Test endpoint (remove in production)
+│   ├── accept-invite.ts         # Process invitation links (sets cookie)
+│   ├── complete-short-evaluation.ts  # Complete short evaluations
+│   ├── decode-opus.ts           # Audio decoding
+│   ├── elevenlabs-conversation-token.ts  # ElevenLabs token generation
+│   ├── elevenlabs-signed-url.ts # Generate signed URLs for ElevenLabs
+│   ├── evaluation-complete.ts   # Update evaluation results from n8n
+│   ├── finalize-invite.ts       # Link user to company (consumes cookie)
+│   ├── tally-link.ts            # Generate Tally form URLs with OTK tokens
+│   └── tally-webhook.ts         # Handle Tally form submissions
 │
 └── supabase/
     └── migrations/              # Database schema and functions (86 migrations)

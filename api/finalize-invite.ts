@@ -9,10 +9,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { parse as parseCookie } from 'cookie';
-import { setCors } from '../lib/cors';
-import { ApiError, withErrorHandler, validateMethod } from './types/errors';
-import { getEnv } from './types/common';
-import { Invitation, User, UserInsert } from './types/database';
+import { setCors } from '../lib/cors.js';
+import { ApiError, withErrorHandler, validateMethod } from './types/errors.js';
+import { getEnv } from './types/common.js';
+import { Invitation, User, UserInsert } from './types/database.js';
 
 /**
  * Clear invite cookie from response

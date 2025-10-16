@@ -7,10 +7,10 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { setCors } from '../lib/cors';
-import { ApiError, withErrorHandler, validateMethod } from './types/errors';
-import { getEnv } from './types/common';
-import { OtkData } from './types/database';
+import { setCors } from '../lib/cors.js';
+import { ApiError, withErrorHandler, validateMethod } from './types/errors.js';
+import { getEnv } from './types/common.js';
+import { OtkData } from './types/database.js';
 
 /**
  * Handler for Tally link generation
