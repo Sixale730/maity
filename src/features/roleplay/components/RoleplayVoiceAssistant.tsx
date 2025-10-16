@@ -413,20 +413,25 @@ export function RoleplayVoiceAssistant({
             }
           }, 500); // Esperar 500ms para que los últimos mensajes se procesen
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
           console.error('❌ Conversation error:', error);
 
+          // Type guard for error with message
+          const errorMessage = typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : String(error);
+
           // Manejo específico para errores de cuota/límites
-          if (error?.message?.includes('quota') ||
-              error?.message?.includes('limit') ||
-              error?.message?.includes('rate') ||
-              error?.message?.includes('429') ||
-              error?.message?.includes('insufficient')) {
+          if (errorMessage.includes('quota') ||
+              errorMessage.includes('limit') ||
+              errorMessage.includes('rate') ||
+              errorMessage.includes('429') ||
+              errorMessage.includes('insufficient')) {
             console.error('⚠️ Límite de ElevenLabs alcanzado');
             setError('Se ha alcanzado el límite de uso de ElevenLabs. Por favor, intenta más tarde o contacta al administrador.');
           }
           // Manejo específico para errores de WebSocket
-          else if (error?.message?.includes('WebSocket') || error?.message?.includes('CLOSING') || error?.message?.includes('CLOSED')) {
+          else if (errorMessage.includes('WebSocket') || errorMessage.includes('CLOSING') || errorMessage.includes('CLOSED')) {
             console.log('🔄 WebSocket error detected, cleaning up...');
 
             // Si la sesión se cortó muy rápido, probablemente es límite de cuota

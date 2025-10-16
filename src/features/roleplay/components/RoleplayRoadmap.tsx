@@ -109,7 +109,7 @@ export function RoleplayRoadmap({ userId }: RoleplayRoadmapProps) {
         `)
         .eq('voice_agent_profiles.is_active', true)
         .eq('voice_scenarios.is_active', true)
-        .order('voice_scenarios.order_index');
+        .order('voice_scenarios.order_index', { ascending: true });
 
       if (scenariosError || !allScenariosRaw) {
         console.error('Error loading scenarios:', scenariosError);

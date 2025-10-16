@@ -147,7 +147,7 @@ export function PlatformTour({ run, userRole, onFinish, onSkip }: PlatformTourPr
     }
 
     // Si el usuario cierra el tooltip (X), tratarlo como skip
-    if (type === EVENTS.TOOLTIP_CLOSE) {
+    if (type === 'close') {
       onSkip();
       return;
     }

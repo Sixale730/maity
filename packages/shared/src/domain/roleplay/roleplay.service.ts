@@ -182,7 +182,7 @@ export class RoleplayService {
       .schema('maity')
       .from('practice_profiles')
       .select('*')
-      .order('name');
+      .order('name', { ascending: true });
 
     if (error) {
       console.error('Error fetching practice profiles:', error);
@@ -203,7 +203,7 @@ export class RoleplayService {
       .from('practice_scenarios')
       .select('*')
       .eq('profile_id', profileId)
-      .order('difficulty_level');
+      .order('difficulty_level', { ascending: true });
 
     if (error) {
       console.error('Error fetching scenarios:', error);

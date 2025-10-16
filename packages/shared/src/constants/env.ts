@@ -13,7 +13,7 @@ interface EnvConfig {
 export const getEnv = (platform: 'web' | 'mobile'): EnvConfig => {
   if (platform === 'mobile') {
     // For React Native with Expo - use process.env which Expo inlines at build time
-    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+    const isDev = typeof (globalThis as any).__DEV__ !== 'undefined' ? (globalThis as any).__DEV__ : false;
     return {
       supabaseUrl: (process.env as any).EXPO_PUBLIC_SUPABASE_URL || 'https://nhlrtflkxoojvhbyocet.supabase.co',
       supabaseAnonKey: (process.env as any).EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5obHJ0ZmxreG9vanZoYnlvY2V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNjY3MTUsImV4cCI6MjA2Nzc0MjcxNX0.u7FqcLjO1sVxy-L3yrHp0JkC0WKv9xCQxFBwsVixqbw',

@@ -168,7 +168,7 @@ export function ScenarioInstructions({
       }
     };
 
-    return baseInstructions[scenarioCode] || baseInstructions.first_visit;
+    return baseInstructions[scenarioCode as keyof typeof baseInstructions] || baseInstructions.first_visit;
   };
 
   const instructions = getInstructions();
