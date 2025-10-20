@@ -13,10 +13,19 @@ interface FinalizeInviteResult {
   error?: unknown;
 }
 
+function getEnvValue(key: string): string | undefined {
+  // For React Native: convert VITE_ prefix to EXPO_PUBLIC_
+  const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
+
+  // Try process.env first (works in both Vite and React Native)
+  return process.env[key] || process.env[expoKey];
+}
+
 export async function finalizeInvite(accessToken: string): Promise<FinalizeInviteResult> {
-    const isLocal = location.hostname === "localhost";
+    const isLocal = typeof location !== 'undefined' && location.hostname === "localhost";
+    const envApiUrl = getEnvValue('VITE_API_URL');
     const API_BASE =
-      (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) ||
+      (envApiUrl && envApiUrl.trim()) ||
       (isLocal ? "http://localhost:8080" : ""); // "" = same-origin en prod
 
     try {

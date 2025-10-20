@@ -44,11 +44,24 @@ export interface EnvConfig {
 }
 
 /**
+ * Gets environment variable value from the appropriate source
+ * Uses process.env which works in both Vite and React Native
+ * For React Native: converts VITE_ prefix to EXPO_PUBLIC_
+ */
+function getEnvValue(key: string): string | undefined {
+  // For React Native: convert VITE_ prefix to EXPO_PUBLIC_
+  const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
+
+  // Try process.env (works in both Vite and React Native)
+  return process.env[key] || process.env[expoKey];
+}
+
+/**
  * Gets a required environment variable
  * Throws an error if the variable is not defined
  */
 function getRequired(key: string): string {
-  const value = import.meta.env[key];
+  const value = getEnvValue(key);
   if (!value) {
     throw new Error(
       `Missing required environment variable: ${key}\n` +
@@ -64,7 +77,7 @@ function getRequired(key: string): string {
  * Returns undefined if not set
  */
 function getOptional(key: string): string | undefined {
-  return import.meta.env[key] || undefined;
+  return getEnvValue(key) || undefined;
 }
 
 /**
@@ -96,9 +109,9 @@ function loadEnvironment(): EnvConfig {
     corsOrigins: getOptional('VITE_CORS_ORIGINS'),
     cookieDomain: getOptional('VITE_COOKIE_DOMAIN'),
 
-    // Environment detection
-    isDevelopment: import.meta.env.DEV,
-    isProduction: import.meta.env.PROD,
+    // Environment detection (use NODE_ENV which works everywhere)
+    isDevelopment: process.env.NODE_ENV !== 'production',
+    isProduction: process.env.NODE_ENV === 'production',
   };
 }
 
