@@ -187,11 +187,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     // Update evaluation record
     const evaluationUpdate = {
       status: status || 'complete',
-      score: finalScore,
       result: result || null,
       error_message: errorMsg || null,
       updated_at: new Date().toISOString(),
-      completed_at: new Date().toISOString(),
     };
 
     console.log('[evaluation-complete] 💾 Updating evaluation...');
