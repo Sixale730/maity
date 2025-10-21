@@ -22,4 +22,21 @@ config.resolver.nodeModulesPaths = [
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
 
+// 4. Configure resolver to handle TypeScript files from workspace packages
+config.resolver.sourceExts = ['js', 'jsx', 'json', 'ts', 'tsx'];
+
+// 5. Enable processing of workspace packages (allow Metro to transform @maity/shared)
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    experimentalImportSupport: false,
+    inlineRequires: true,
+  },
+});
+
+// 6. Tell Metro to watch and transform our shared package
+config.watchFolders = [
+  workspaceRoot,
+  path.resolve(workspaceRoot, 'packages/shared'),
+];
+
 module.exports = config;
