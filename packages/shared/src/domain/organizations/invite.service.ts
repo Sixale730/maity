@@ -19,10 +19,9 @@ function getEnvValue(key: string): string | undefined {
     return (import.meta.env as any)[key];
   }
 
-  // Fallback for React Native or Node.js environments
+  // Fallback for Node.js environments (API/Server)
   if (typeof process !== 'undefined' && process.env) {
-    const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
-    return (process.env as any)[key] || (process.env as any)[expoKey];
+    return (process.env as any)[key];
   }
 
   return undefined;
