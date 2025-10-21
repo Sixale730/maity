@@ -14,11 +14,18 @@ interface FinalizeInviteResult {
 }
 
 function getEnvValue(key: string): string | undefined {
-  // For React Native: convert VITE_ prefix to EXPO_PUBLIC_
-  const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
+  // Check if we're in Vite environment
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return (import.meta.env as any)[key];
+  }
 
-  // Try process.env first (works in both Vite and React Native)
-  return process.env[key] || process.env[expoKey];
+  // Fallback for React Native or Node.js environments
+  if (typeof process !== 'undefined' && process.env) {
+    const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
+    return (process.env as any)[key] || (process.env as any)[expoKey];
+  }
+
+  return undefined;
 }
 
 export async function finalizeInvite(accessToken: string): Promise<FinalizeInviteResult> {

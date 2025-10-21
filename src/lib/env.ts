@@ -45,15 +45,11 @@ export interface EnvConfig {
 
 /**
  * Gets environment variable value from the appropriate source
- * Uses process.env which works in both Vite and React Native
- * For React Native: converts VITE_ prefix to EXPO_PUBLIC_
+ * Uses import.meta.env for Vite
  */
 function getEnvValue(key: string): string | undefined {
-  // For React Native: convert VITE_ prefix to EXPO_PUBLIC_
-  const expoKey = key.replace('VITE_', 'EXPO_PUBLIC_');
-
-  // Try process.env (works in both Vite and React Native)
-  return process.env[key] || process.env[expoKey];
+  // For Vite: use import.meta.env
+  return (import.meta.env as any)[key];
 }
 
 /**
@@ -109,9 +105,9 @@ function loadEnvironment(): EnvConfig {
     corsOrigins: getOptional('VITE_CORS_ORIGINS'),
     cookieDomain: getOptional('VITE_COOKIE_DOMAIN'),
 
-    // Environment detection (use NODE_ENV which works everywhere)
-    isDevelopment: process.env.NODE_ENV !== 'production',
-    isProduction: process.env.NODE_ENV === 'production',
+    // Environment detection (use import.meta.env for Vite)
+    isDevelopment: import.meta.env.DEV,
+    isProduction: import.meta.env.PROD,
   };
 }
 
