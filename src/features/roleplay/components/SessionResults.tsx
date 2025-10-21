@@ -218,34 +218,63 @@ export function SessionResults({
 
     const data = [];
 
+    // Debug: Log para ver qué datos tenemos
+    console.log('[SessionResults] evaluacionDesglose:', evaluacionDesglose);
+
     // Claridad
     if (evaluacionDesglose.Claridad) {
       Object.entries(evaluacionDesglose.Claridad).forEach(([key, value]) => {
-        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+        // Convertir valor asegurándose de que sea numérico
+        const numValue = parseFloat(String(value));
+        if (!isNaN(numValue)) {
+          data.push({
+            dimension: key.replace(/_/g, ' '),
+            value: numValue * 10
+          });
+        }
       });
     }
 
     // Estructura
     if (evaluacionDesglose.Estructura) {
       Object.entries(evaluacionDesglose.Estructura).forEach(([key, value]) => {
-        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+        const numValue = parseFloat(String(value));
+        if (!isNaN(numValue)) {
+          data.push({
+            dimension: key.replace(/_/g, ' '),
+            value: numValue * 10
+          });
+        }
       });
     }
 
     // Alineación Emocional
     if (evaluacionDesglose.Alineacion_Emocional) {
       Object.entries(evaluacionDesglose.Alineacion_Emocional).forEach(([key, value]) => {
-        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+        const numValue = parseFloat(String(value));
+        if (!isNaN(numValue)) {
+          data.push({
+            dimension: key.replace(/_/g, ' '),
+            value: numValue * 10
+          });
+        }
       });
     }
 
     // Influencia
     if (evaluacionDesglose.Influencia) {
       Object.entries(evaluacionDesglose.Influencia).forEach(([key, value]) => {
-        data.push({ dimension: key, value: parseFloat(String(value)) * 10 });
+        const numValue = parseFloat(String(value));
+        if (!isNaN(numValue)) {
+          data.push({
+            dimension: key.replace(/_/g, ' '),
+            value: numValue * 10
+          });
+        }
       });
     }
 
+    console.log('[SessionResults] radarSubdimensionsData:', data);
     return data;
   }, [evaluacionDesglose, isProcessing]);
 

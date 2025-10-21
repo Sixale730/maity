@@ -7,9 +7,9 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { setCors } from '../lib/cors.js';
-import { ApiError, withErrorHandler, validateMethod } from '../../lib/types/api/errors.js';
-import { getEnv } from '../../lib/types/api/common.js';
-import { elevenlabsSignedUrlRequestSchema } from '../../lib/types/api/schemas.js';
+import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors.js';
+import { getEnv } from '../lib/types/api/common.js';
+import { elevenlabsSignedUrlRequestSchema } from '../lib/types/api/schemas.js';
 
 /**
  * Handler for ElevenLabs signed URL generation
