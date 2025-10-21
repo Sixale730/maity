@@ -10,8 +10,11 @@ const config = getDefaultConfig(projectRoot);
 // Explicitly set project root
 config.projectRoot = projectRoot;
 
-// 1. Watch all files within the monorepo
-config.watchFolders = [workspaceRoot];
+// 1. Watch all files within the monorepo including the shared package
+config.watchFolders = [
+  workspaceRoot,
+  path.resolve(workspaceRoot, 'packages/shared'),
+];
 
 // 2. Let Metro know where to resolve packages and in what order
 config.resolver.nodeModulesPaths = [
@@ -25,7 +28,13 @@ config.resolver.disableHierarchicalLookup = true;
 // 4. Configure resolver to handle TypeScript files from workspace packages
 config.resolver.sourceExts = ['js', 'jsx', 'json', 'ts', 'tsx'];
 
-// 5. Enable processing of workspace packages (allow Metro to transform @maity/shared)
+// 5. Add extra node modules that should be transformed
+// This is crucial for monorepo packages
+config.resolver.extraNodeModules = {
+  '@maity/shared': path.resolve(workspaceRoot, 'packages/shared/src'),
+};
+
+// 6. Enable transformation for workspace packages
 config.transformer.getTransformOptions = async () => ({
   transform: {
     experimentalImportSupport: false,
@@ -33,10 +42,7 @@ config.transformer.getTransformOptions = async () => ({
   },
 });
 
-// 6. Tell Metro to watch and transform our shared package
-config.watchFolders = [
-  workspaceRoot,
-  path.resolve(workspaceRoot, 'packages/shared'),
-];
+// 7. Make sure Metro knows to transform our shared package
+config.transformer.babelTransformerPath = require.resolve('metro-react-native-babel-transformer');
 
 module.exports = config;
