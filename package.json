@@ -13,7 +13,6 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "vercel dev --listen 3000",
-    "mobile": "cd packages/mobile && npm start",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
