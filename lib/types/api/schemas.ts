@@ -33,9 +33,18 @@ export const evaluationCompleteRequestSchema = z.object({
         })
         .passthrough()
         .optional(),
-      Fortalezas: z.record(z.string()).passthrough().optional(),
-      Errores: z.record(z.string()).passthrough().optional(),
-      Recomendaciones: z.record(z.string()).passthrough().optional(),
+      Fortalezas: z.object({
+        Cita: z.string().optional(),
+        Feedback: z.string().optional(),
+      }).passthrough().optional(),
+      Errores: z.object({
+        Cita: z.string().optional(),
+        Feedback: z.string().optional(),
+      }).passthrough().optional(),
+      Recomendaciones: z.object({
+        Cita: z.string().optional(),
+        Feedback: z.string().optional(),
+      }).passthrough().optional(),
       Resumen: z.string().optional(),
       objective_feedback: z.string().optional(),
     })

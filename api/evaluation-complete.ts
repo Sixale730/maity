@@ -147,7 +147,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     }
 
     // Calculate score from new evaluation structure
-    let finalScore: number = result?.score || 0;
+    let finalScore: number = (result?.score as number) || 0;
     let passed = false;
 
     if (result?.Evaluacion) {
