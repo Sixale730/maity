@@ -1,5 +1,6 @@
+import { getAppUrl } from '../constants/appUrl';
+
 const FALLBACK_ORIGIN = "http://localhost:8080";
-const CANONICAL_ORIGIN = "https://www.maity.com.mx";
 
 export const resolveBaseOrigin = (appUrl?: string): string => {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -82,8 +83,14 @@ const normalizeFallback = (fallback: string, baseOrigin: string) => {
 
 export const isCanonicalUrl = (url: string): boolean => {
   try {
+    const canonicalOrigin = getAppUrl();
+    if (!canonicalOrigin) {
+      console.warn('[urlHelpers] No se pudo obtener canonical origin');
+      return false;
+    }
     const parsedUrl = new URL(url);
-    return parsedUrl.origin === CANONICAL_ORIGIN;
+    const canonical = new URL(canonicalOrigin);
+    return parsedUrl.origin === canonical.origin;
   } catch (error) {
     console.warn('[urlHelpers] URL inválida para validación canónica', { url, error });
     return false;
@@ -92,14 +99,28 @@ export const isCanonicalUrl = (url: string): boolean => {
 
 export const toCanonicalUrl = (url: string): string => {
   try {
+    const canonicalOrigin = getAppUrl();
+    if (!canonicalOrigin) {
+      console.warn('[urlHelpers] No se pudo obtener canonical origin, usando fallback');
+      return url;
+    }
     const parsedUrl = new URL(url);
-    return `${CANONICAL_ORIGIN}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    const origin = new URL(canonicalOrigin).origin;
+    return `${origin}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
   } catch (error) {
     console.warn('[urlHelpers] No se pudo convertir a URL canónica', { url, error });
-    return CANONICAL_ORIGIN;
+    return getAppUrl() || FALLBACK_ORIGIN;
   }
 };
 
 export const getCanonicalOrigin = (): string => {
-  return CANONICAL_ORIGIN;
+  const appUrl = getAppUrl();
+  if (appUrl) {
+    try {
+      return new URL(appUrl).origin;
+    } catch (error) {
+      console.warn('[urlHelpers] No se pudo parsear appUrl en getCanonicalOrigin', { appUrl, error });
+    }
+  }
+  return FALLBACK_ORIGIN;
 };
