@@ -2,29 +2,23 @@ module.exports = function(api) {
   api.cache(true);
   return {
     presets: [
-      ['babel-preset-expo', {
-        jsxImportSource: 'react'
-      }]
+      'babel-preset-expo',
+      '@babel/preset-typescript'
     ],
     plugins: [
-      // Transform TypeScript
-      ['@babel/plugin-transform-typescript', {
-        isTSX: true,
-        allowDeclareFields: true
-      }],
-      // Transform class properties
+      // Loose mode for better React Native compatibility
       ['@babel/plugin-proposal-class-properties', { loose: true }],
-      // Transform private methods
       ['@babel/plugin-proposal-private-methods', { loose: true }],
-      // Transform private property in object
       ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-      // Transform runtime for helpers
-      ['@babel/plugin-transform-runtime', {
-        helpers: true,
-        regenerator: false
+      // Optional chaining and nullish coalescing
+      '@babel/plugin-proposal-optional-chaining',
+      '@babel/plugin-proposal-nullish-coalescing-operator',
+      // Transform classes to functions (this is key!)
+      ['@babel/plugin-transform-classes', {
+        loose: true
       }],
-      // Reanimated plugin must be last
-      'react-native-reanimated/plugin',
+      // Reanimated must be last
+      'react-native-reanimated/plugin'
     ],
   };
 };
