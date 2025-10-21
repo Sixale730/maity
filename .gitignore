@@ -31,6 +31,10 @@ dist-ssr
 *.zip
 nul
 
+# Environment files for Vercel
+.env.vercel
+vercel-env.json
+
 # JDK/Java
 jdk-*
 openjdk*
