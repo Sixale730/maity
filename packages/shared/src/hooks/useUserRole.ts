@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSupabase } from '../services/supabase/client';
+import { getSupabase } from '../api/client/supabase';
 import { UserRole, UserProfile } from '../types/user.types';
 
 // Simple cache to avoid unnecessary API calls
