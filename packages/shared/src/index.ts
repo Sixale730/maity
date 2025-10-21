@@ -36,7 +36,9 @@ export { OrganizationService } from './domain/organizations/organization.service
 export * from './domain/organizations/organization.types';
 export * from './domain/organizations/invite.service';
 export * from './domain/organizations/company.persistence';
+export { AutojoinService, type AutojoinResult } from './domain/organizations/autojoin.service';
 export * from './domain/organizations/hooks/useCompanyAssociation';
+export * from './domain/organizations/hooks/useAutojoinCheck';
 
 // ===== Domain: Users =====
 export * from './domain/users/tally.service';

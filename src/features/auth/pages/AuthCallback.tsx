@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, AuthService } from "@maity/shared";
+import { supabase, AuthService, AutojoinService } from "@maity/shared";
 import { env } from "@/lib/env";
 import { MaityLogo } from "@/shared/components/MaityLogo";
 
@@ -94,6 +94,34 @@ export default function AuthCallback() {
         console.log("[AuthCb] Ensuring user exists in database...");
         await AuthService.ensureUser();
         console.log("[AuthCb] User ensured successfully");
+
+        // AUTOJOIN: Try domain-based autojoin BEFORE checking invite cookie
+        console.log("[AuthCb] Attempting autojoin by email domain...");
+        try {
+          const autojoinResult = await AutojoinService.tryAutojoinByDomain(session.user.email || '');
+
+          if (AutojoinService.isSuccessful(autojoinResult)) {
+            console.log("[AuthCb] ✅ Autojoin successful:", {
+              company_id: autojoinResult.company_id,
+              company_name: autojoinResult.company_name,
+              domain: autojoinResult.domain,
+              method: 'autojoin'
+            });
+            // User successfully auto-joined company - skip invite flow
+          } else if (AutojoinService.userAlreadyHasCompany(autojoinResult)) {
+            console.log("[AuthCb] User already has company, skipping autojoin");
+            // User already assigned to company - continue normally
+          } else if (AutojoinService.noMatchingDomain(autojoinResult)) {
+            console.log("[AuthCb] No matching domain for autojoin, will try invite flow");
+            // No autojoin available - continue to invite flow
+          } else {
+            console.log("[AuthCb] Autojoin failed:", autojoinResult.error);
+            // Autojoin failed for other reason - continue to invite flow
+          }
+        } catch (error) {
+          console.error("[AuthCb] Autojoin error:", error);
+          // On error, continue to invite flow as fallback
+        }
 
         // 1) Procesar invitación via API (si hay cookie)
         console.log("[AuthCb] Checking for invite cookie...");

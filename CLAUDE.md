@@ -105,10 +105,39 @@ Required:
 - `NO_COMPANY`/`PENDING`: Needs invitation
 - `UNAUTHORIZED`: Not logged in
 
-### Invitation System
-1. Accept Invite (`/api/accept-invite`): Sets HttpOnly cookie
-2. User Login → OAuth flow
-3. Finalize Invite (`/api/finalize-invite`): Links user to company
+### Organization Assignment
+
+Maity uses a **hybrid system** for assigning users to organizations:
+
+#### 1. Autojoin by Domain (Primary Method)
+- **When**: User completes OAuth login
+- **How**: Extracts domain from email (e.g., `user@acme.com` → `acme.com`)
+- **Process**:
+  1. Checks if `maity.companies` has `domain = 'acme.com'` AND `auto_join_enabled = true`
+  2. If match found AND user has NO `company_id` → Auto-assigns to company with role `user`
+  3. If NO match OR user already has company → Falls back to invite system
+- **Service**: `AutojoinService.tryAutojoinByDomain(email)`
+- **RPC**: `try_autojoin_by_domain(p_email)`
+- **Hook**: `useAutojoinCheck()` - Check if user has company
+
+#### 2. Invitation System (Fallback Method)
+- **When**: No autojoin match OR special cases (manager invites, etc.)
+- **Process**:
+  1. Accept Invite (`/api/accept-invite`): Sets HttpOnly cookie with invite token
+  2. User Login → OAuth flow
+  3. Finalize Invite (`/api/finalize-invite`): Reads cookie, links user to company
+- **Service**: `finalizeInvite(accessToken)`
+- **RPC**: `accept_invite(p_invite_token)`
+
+#### Auth Callback Flow (src/features/auth/pages/AuthCallback.tsx)
+```
+OAuth Success → ensureUser()
+             → try autojoin by domain
+             → if no autojoin: try finalize invite (cookie)
+             → if no invite: redirect to /pending
+             → check my_roles() and my_phase()
+             → redirect to appropriate page
+```
 
 ## Database Functions (Supabase RPC)
 
@@ -128,7 +157,33 @@ $$ SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION public.my_function TO authenticated;
 ```
 
-Key functions: `my_phase()`, `my_roles()`, `get_user_role()`, `get_user_info()`, `otk()`, `create_evaluation()`
+Key functions: `my_phase()`, `my_roles()`, `get_user_role()`, `get_user_info()`, `otk()`, `create_evaluation()`, `try_autojoin_by_domain()`
+
+### Autojoin Configuration
+
+**Database Schema** (`maity.companies`):
+- `domain` (TEXT): Email domain for autojoin (e.g., `acme.com`)
+- `auto_join_enabled` (BOOLEAN): Enable/disable autojoin for this domain
+
+**Security:**
+- Only ONE company can claim a domain for autojoin (unique constraint)
+- Only users WITHOUT existing `company_id` can autojoin (prevents transfers)
+- Autojoin users always receive `user` role (not admin/manager)
+- RLS policies: Users see own company, admins see/edit all
+
+**Admin Configuration:**
+To enable autojoin for a company:
+```sql
+UPDATE maity.companies
+SET domain = 'acme.com',
+    auto_join_enabled = true
+WHERE id = 'company-uuid';
+```
+
+**Typical Use Cases:**
+- Corporate domains: `@company.com` → Company organization
+- Educational: `@university.edu` → University organization
+- Teams: `@team.startup.io` → Team workspace
 
 ## Code Conventions
 
