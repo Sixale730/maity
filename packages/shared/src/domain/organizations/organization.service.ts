@@ -243,11 +243,19 @@ export class OrganizationService {
    * Create a new company with invite tokens
    * Uses the create_company RPC function
    * @param companyName - Name of the company to create
+   * @param domain - Optional domain for autojoin (e.g., "acme.com")
+   * @param autoJoinEnabled - Whether autojoin is enabled for the domain
    * @returns Promise with created company data
    */
-  static async createCompany(companyName: string): Promise<unknown> {
+  static async createCompany(
+    companyName: string,
+    domain?: string | null,
+    autoJoinEnabled?: boolean
+  ): Promise<unknown> {
     const { data, error } = await supabase.rpc('create_company', {
-      company_name: companyName
+      p_company_name: companyName,
+      p_domain: domain || null,
+      p_auto_join_enabled: autoJoinEnabled || false
     });
 
     if (error) {

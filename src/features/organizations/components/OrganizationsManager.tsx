@@ -31,6 +31,10 @@ export function OrganizationsManager() {
   const [newCompanyName, setNewCompanyName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
+  // Create company autojoin state
+  const [createDomain, setCreateDomain] = useState("");
+  const [createAutojoinEnabled, setCreateAutojoinEnabled] = useState(false);
+
   // Autojoin configuration state
   const [isAutojoinDialogOpen, setIsAutojoinDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -77,13 +81,30 @@ export function OrganizationsManager() {
       return;
     }
 
+    // Validate domain format if provided
+    const domainValue = createDomain.trim().toLowerCase();
+    if (domainValue && (domainValue.includes("@") || domainValue.includes(" "))) {
+      toast({
+        title: "Error",
+        description: "El dominio no debe incluir @ ni espacios. Ejemplo: acme.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await OrganizationService.createCompany(newCompanyName.trim());
+      await OrganizationService.createCompany(
+        newCompanyName.trim(),
+        domainValue || null,
+        domainValue ? createAutojoinEnabled : false
+      );
 
       // Refrescar la lista completa para obtener los tokens de invitación
       await fetchCompanies();
 
       setNewCompanyName("");
+      setCreateDomain("");
+      setCreateAutojoinEnabled(false);
       setIsDialogOpen(false);
 
       toast({
@@ -97,6 +118,8 @@ export function OrganizationsManager() {
         title: "Error",
         description: errorMessage.toLowerCase().includes("duplicate")
           ? "Ya existe una empresa con ese nombre"
+          : errorMessage.toLowerCase().includes("domain")
+          ? errorMessage
           : "No se pudo crear la empresa",
         variant: "destructive",
       });
@@ -254,6 +277,47 @@ export function OrganizationsManager() {
                   onChange={(event) => setNewCompanyName(event.target.value)}
                 />
               </div>
+
+              <div>
+                <Label htmlFor="createDomain">Dominio de Email (Opcional)</Label>
+                <Input
+                  id="createDomain"
+                  placeholder="acme.com"
+                  value={createDomain}
+                  onChange={(e) => setCreateDomain(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Solo el dominio, sin @ (ejemplo: gmail.com, acme.com)
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="create-auto-join-enabled">Habilitar Autojoin</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Los usuarios con este dominio se unirán automáticamente
+                  </p>
+                </div>
+                <Switch
+                  id="create-auto-join-enabled"
+                  checked={createAutojoinEnabled}
+                  onCheckedChange={setCreateAutojoinEnabled}
+                  disabled={!createDomain.trim()}
+                />
+              </div>
+
+              {createDomain && createAutojoinEnabled && (
+                <div className="bg-muted p-3 rounded-md">
+                  <p className="text-sm">
+                    <strong>Vista previa:</strong> Los usuarios con email{" "}
+                    <code className="bg-background px-1 py-0.5 rounded">
+                      usuario@{createDomain.trim().toLowerCase()}
+                    </code>{" "}
+                    se unirán automáticamente con rol de usuario.
+                  </p>
+                </div>
+              )}
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
