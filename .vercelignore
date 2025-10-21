@@ -1,5 +1,12 @@
+# Ignore all packages except shared
 packages/mobile
 packages/mobile/**
+packages/api
+packages/api/**
+packages/web
+packages/web/**
+
+# Dependencies
 node_modules
 *.md
 .github
