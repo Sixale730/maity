@@ -1,7 +1,8 @@
 import { supabase } from '../../api/client/supabase';
-import type { UserRole, UserPhase, UserStatus } from './auth.types';
+import type { UserRole, UserPhase, UserStatus, PostLoginOptions, PostLoginResult } from './auth.types';
 import type { Session, User } from '@supabase/supabase-js';
 import { hasProperty } from '../../types/supabase-helpers';
+import { AutojoinService } from '../organizations/autojoin.service';
 
 /**
  * AuthService - Encapsulates authentication and user status operations
@@ -119,6 +120,190 @@ export class AuthService {
     const { error } = await supabase.rpc('mark_tour_completed');
     if (error) {
       console.error('Error marking tour completed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper function to call finalize-invite API
+   * @private
+   */
+  private static async finalizeInvite(accessToken: string, apiUrl: string): Promise<any> {
+    const response = await fetch(`${apiUrl}/api/finalize-invite`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Handles all post-login processing for both OAuth and email/password flows
+   *
+   * This centralizes the logic for:
+   * - Ensuring user exists in database
+   * - Attempting domain-based autojoin
+   * - Processing invitation cookies
+   * - Determining user phase and roles
+   * - Calculating appropriate redirect destination
+   *
+   * @param options - Configuration options for post-login processing
+   * @returns Result with destination path and metadata
+   *
+   * @example
+   * ```typescript
+   * // After OAuth code exchange or email/password login
+   * const result = await AuthService.handlePostLogin({
+   *   returnTo: '/dashboard',
+   *   apiUrl: 'https://api.example.com'
+   * });
+   * navigate(result.destination, { replace: true });
+   * ```
+   */
+  static async handlePostLogin(options: PostLoginOptions & { apiUrl: string }): Promise<PostLoginResult> {
+    const {
+      returnTo,
+      skipInviteCheck = false,
+      apiUrl
+    } = options;
+
+    console.log('[AuthService.handlePostLogin] Starting post-login processing');
+
+    try {
+      // Step 1: Get current session
+      const session = await this.getSession();
+      if (!session) {
+        throw new Error('No session found after login');
+      }
+
+      console.log('[AuthService.handlePostLogin] Session found:', session.user.email);
+
+      // Step 2: Ensure user exists in database
+      console.log('[AuthService.handlePostLogin] Ensuring user exists in database...');
+      await this.ensureUser();
+      console.log('[AuthService.handlePostLogin] User ensured successfully');
+
+      const result: PostLoginResult = {
+        destination: '/dashboard', // Default destination
+      };
+
+      // Step 3: Attempt domain-based autojoin BEFORE checking invite cookie
+      console.log('[AuthService.handlePostLogin] Attempting autojoin by email domain...');
+      try {
+        const autojoinResult = await AutojoinService.tryAutojoinByDomain(session.user.email || '');
+
+        if (AutojoinService.isSuccessful(autojoinResult)) {
+          console.log('[AuthService.handlePostLogin] ✅ Autojoin successful:', {
+            company_id: autojoinResult.company_id,
+            company_name: autojoinResult.company_name,
+            domain: autojoinResult.domain,
+            method: 'autojoin'
+          });
+          result.autoJoined = true;
+          // User successfully auto-joined company - skip invite flow
+        } else if (AutojoinService.userAlreadyHasCompany(autojoinResult)) {
+          console.log('[AuthService.handlePostLogin] User already has company, skipping autojoin');
+          // User already assigned to company - continue normally
+        } else if (AutojoinService.noMatchingDomain(autojoinResult)) {
+          console.log('[AuthService.handlePostLogin] No matching domain for autojoin, will try invite flow');
+          // No autojoin available - continue to invite flow
+        } else {
+          console.log('[AuthService.handlePostLogin] Autojoin failed:', autojoinResult.error);
+          // Autojoin failed for other reason - continue to invite flow
+        }
+      } catch (error) {
+        console.error('[AuthService.handlePostLogin] Autojoin error:', error);
+        // On error, continue to invite flow as fallback
+      }
+
+      // Step 4: Process invitation via API (if cookie exists and not skipped)
+      if (!skipInviteCheck) {
+        console.log('[AuthService.handlePostLogin] Checking for invite cookie...');
+
+        try {
+          const inviteResult = await this.finalizeInvite(session.access_token, apiUrl);
+          console.log('[AuthService.handlePostLogin] Finalize invite result:', inviteResult);
+
+          if (inviteResult.success && inviteResult.note !== 'NO_INVITE_COOKIE') {
+            console.log('[AuthService.handlePostLogin] User linked to company:', {
+              company_id: inviteResult.company_id,
+              role_assigned: inviteResult.role_assigned
+            });
+            result.inviteProcessed = true;
+          } else {
+            console.log('[AuthService.handlePostLogin] No invite to process');
+          }
+        } catch (error) {
+          console.error('[AuthService.handlePostLogin] Finalize invite error:', error);
+          // Don't redirect on invite error, continue with normal flow
+        }
+      }
+
+      // Step 5: Check user roles first (admin/manager get priority)
+      console.log('[AuthService.handlePostLogin] Checking user roles...');
+      try {
+        const roles = await this.getMyRoles();
+        console.log('[AuthService.handlePostLogin] User roles:', roles);
+        result.roles = roles;
+
+        if (roles && Array.isArray(roles)) {
+          // If user has admin or manager role, go directly to dashboard
+          if (roles.includes('admin') || roles.includes('manager')) {
+            console.log('[AuthService.handlePostLogin] User has admin/manager role - redirecting to dashboard');
+            result.destination = '/dashboard';
+            return result;
+          }
+          console.log('[AuthService.handlePostLogin] User does not have admin/manager role, continuing to phase check');
+        }
+      } catch (error) {
+        console.log('[AuthService.handlePostLogin] Error getting roles:', error);
+        // Continue to phase check even if roles fail
+      }
+
+      // Step 6: Check user phase to determine destination
+      console.log('[AuthService.handlePostLogin] Checking user phase...');
+      const phase = await this.getMyPhase();
+      console.log('[AuthService.handlePostLogin] User phase:', phase, 'returnTo:', returnTo);
+      result.phase = phase;
+
+      // Step 7: Determine final destination based on phase and returnTo
+      // If user is ACTIVE and has returnTo, use it
+      if (phase === 'ACTIVE' && returnTo && returnTo.startsWith('/')) {
+        console.log('[AuthService.handlePostLogin] Redirecting to returnTo:', returnTo);
+        result.destination = returnTo;
+        return result;
+      }
+
+      // Otherwise, redirect based on phase
+      if (phase === 'ACTIVE') {
+        console.log('[AuthService.handlePostLogin] User is ACTIVE - redirecting to dashboard');
+        result.destination = '/dashboard';
+      } else if (phase === 'REGISTRATION') {
+        console.log('[AuthService.handlePostLogin] User needs REGISTRATION - redirecting to registration');
+        result.destination = '/registration';
+      } else if (phase === 'NO_COMPANY' || phase === 'PENDING') {
+        console.log('[AuthService.handlePostLogin] User has NO_COMPANY/PENDING - redirecting to pending');
+        result.destination = '/pending';
+      } else {
+        // Unknown phase - error state
+        console.warn('[AuthService.handlePostLogin] Unknown phase:', phase);
+        result.destination = '/user-status-error';
+      }
+
+      console.log('[AuthService.handlePostLogin] Post-login processing completed:', result);
+      return result;
+
+    } catch (error) {
+      console.error('[AuthService.handlePostLogin] Unexpected error during post-login:', error);
       throw error;
     }
   }

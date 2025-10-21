@@ -28,7 +28,16 @@ export * from './utils/jwt';
 
 // ===== Domain: Auth =====
 export { AuthService, buildRedirectTo } from './domain/auth/auth.service';
-export type { UserPhase, LoginCredentials, SignUpData, OAuthProvider } from './domain/auth/auth.types';
+export type {
+  UserPhase,
+  LoginCredentials,
+  SignUpData,
+  OAuthProvider,
+  PostLoginOptions,
+  PostLoginResult,
+  UserRole,
+  UserStatus
+} from './domain/auth/auth.types';
 export * from './domain/auth/hooks/useStatusValidation';
 
 // ===== Domain: Organizations =====

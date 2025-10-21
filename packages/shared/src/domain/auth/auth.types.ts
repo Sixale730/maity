@@ -79,3 +79,37 @@ export interface SignUpData {
  * OAuth provider types supported by the platform
  */
 export type OAuthProvider = 'google' | 'microsoft';
+
+/**
+ * Options for post-login processing
+ */
+export interface PostLoginOptions {
+  /** Path to return to after login (optional) */
+  returnTo?: string | null;
+
+  /** Skip invite cookie check (used when invite already processed) */
+  skipInviteCheck?: boolean;
+
+  /** Access token for API calls (optional, will get from session if not provided) */
+  accessToken?: string;
+}
+
+/**
+ * Result of post-login processing
+ */
+export interface PostLoginResult {
+  /** Destination path to navigate to */
+  destination: string;
+
+  /** Whether user was auto-joined to a company */
+  autoJoined?: boolean;
+
+  /** Whether an invite was processed */
+  inviteProcessed?: boolean;
+
+  /** User's current phase */
+  phase?: UserPhase;
+
+  /** User's roles */
+  roles?: UserRole[];
+}

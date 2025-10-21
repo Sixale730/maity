@@ -12,7 +12,7 @@ import { Separator } from "@/ui/components/ui/separator";
 
 import { useToast } from "@/shared/hooks/use-toast";
 
-import { supabase } from "@maity/shared";
+import { supabase, AuthService } from "@maity/shared";
 
 import { resolveBaseOrigin, rebaseUrlToOrigin, getAppUrl } from "@maity/shared";
 
@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import MaityLogo from "@/shared/components/MaityLogo";
 
 import { Eye, EyeOff } from "lucide-react";
+
+import { env } from "@/lib/env";
 
 // Missing type and utility definitions
 // getErrorMessage defined for future error handling
@@ -166,7 +168,7 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
         if (error) throw error;
 
-        console.log('[DEBUG] handleEmailAuth:passwordLoginSuccess', { userEmail: email, redirectTarget });
+        console.log('[DEBUG] handleEmailAuth:passwordLoginSuccess', { userEmail: email, returnTo });
 
         toast({
 
@@ -176,11 +178,16 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
         });
 
-        // Preservar returnTo en la navegación al callback
-        const callbackUrl = returnTo
-          ? `/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
-          : '/auth/callback';
-        navigate(callbackUrl, { replace: true });
+        // Use centralized post-login service
+        console.log('[Auth] Calling handlePostLogin service...');
+        const result = await AuthService.handlePostLogin({
+          returnTo,
+          apiUrl: env.apiUrl,
+          skipInviteCheck: false
+        });
+
+        console.log('[Auth] Post-login processing completed:', result);
+        navigate(result.destination, { replace: true });
 
         return;
 
@@ -223,11 +230,16 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
             description: 'Tu cuenta ha sido creada exitosamente.',
           });
 
-          // Navegar al callback para proceso de onboarding
-          const callbackUrl = returnTo
-            ? `/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
-            : '/auth/callback';
-          navigate(callbackUrl, { replace: true });
+          // Use centralized post-login service for signup flow too
+          console.log('[Auth] Calling handlePostLogin service after signup...');
+          const result = await AuthService.handlePostLogin({
+            returnTo,
+            apiUrl: env.apiUrl,
+            skipInviteCheck: false
+          });
+
+          console.log('[Auth] Post-login processing completed:', result);
+          navigate(result.destination, { replace: true });
         }
 
       }

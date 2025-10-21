@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService, buildRedirectTo } from '../auth.service';
 import { supabase } from '../../../api/client/supabase';
+import { AutojoinService } from '../../organizations/autojoin.service';
 
 // Mock the supabase client
 vi.mock('../../../api/client/supabase', () => ({
@@ -19,6 +20,19 @@ vi.mock('../../../api/client/supabase', () => ({
     }
   }
 }));
+
+// Mock AutojoinService
+vi.mock('../../organizations/autojoin.service', () => ({
+  AutojoinService: {
+    tryAutojoinByDomain: vi.fn(),
+    isSuccessful: vi.fn(),
+    userAlreadyHasCompany: vi.fn(),
+    noMatchingDomain: vi.fn(),
+  }
+}));
+
+// Mock global fetch
+global.fetch = vi.fn();
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -491,6 +505,403 @@ describe('AuthService', () => {
       });
 
       await expect(AuthService.markTourCompleted()).rejects.toThrow('Failed to mark tour completed');
+    });
+  });
+
+  describe('handlePostLogin', () => {
+    const mockSession = {
+      access_token: 'test-access-token',
+      refresh_token: 'test-refresh-token',
+      user: {
+        id: 'user-123',
+        email: 'user@acme.com',
+        aud: 'authenticated',
+        role: 'authenticated',
+        email_confirmed_at: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+        app_metadata: {},
+        user_metadata: {},
+        identities: []
+      }
+    };
+
+    const mockApiUrl = 'https://api.test.com';
+
+    beforeEach(() => {
+      // Setup default mocks
+      vi.mocked(supabase.auth.getSession).mockResolvedValue({
+        data: { session: mockSession },
+        error: null
+      });
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      // Default autojoin mock: no matching domain
+      vi.mocked(AutojoinService.tryAutojoinByDomain).mockResolvedValue({
+        success: false,
+        error: 'NO_MATCHING_DOMAIN'
+      });
+      vi.mocked(AutojoinService.isSuccessful).mockReturnValue(false);
+      vi.mocked(AutojoinService.noMatchingDomain).mockReturnValue(true);
+      vi.mocked(AutojoinService.userAlreadyHasCompany).mockReturnValue(false);
+
+      // Default fetch mock: no invite cookie
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, note: 'NO_INVITE_COOKIE' })
+      } as Response);
+    });
+
+    it('should throw error when no session exists', async () => {
+      vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+        data: { session: null },
+        error: null
+      });
+
+      await expect(
+        AuthService.handlePostLogin({ apiUrl: mockApiUrl })
+      ).rejects.toThrow('No session found after login');
+    });
+
+    it('should redirect to /dashboard when user has admin role', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['admin'], error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/dashboard');
+      expect(result.roles).toEqual(['admin']);
+    });
+
+    it('should redirect to /dashboard when user has manager role', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['manager'], error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/dashboard');
+      expect(result.roles).toEqual(['manager']);
+    });
+
+    it('should redirect to /dashboard when user phase is ACTIVE', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/dashboard');
+      expect(result.phase).toBe('ACTIVE');
+    });
+
+    it('should redirect to /registration when user phase is REGISTRATION', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: [], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'REGISTRATION', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/registration');
+      expect(result.phase).toBe('REGISTRATION');
+    });
+
+    it('should redirect to /pending when user phase is NO_COMPANY', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: [], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'NO_COMPANY', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/pending');
+      expect(result.phase).toBe('NO_COMPANY');
+    });
+
+    it('should redirect to /pending when user phase is PENDING', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: [], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'PENDING', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/pending');
+      expect(result.phase).toBe('PENDING');
+    });
+
+    it('should redirect to /user-status-error when phase is unknown', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: [], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'UNKNOWN_PHASE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/user-status-error');
+    });
+
+    it('should redirect to returnTo when user is ACTIVE and returnTo is provided', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({
+        apiUrl: mockApiUrl,
+        returnTo: '/custom/path'
+      });
+
+      expect(result.destination).toBe('/custom/path');
+    });
+
+    it('should set autoJoined flag when autojoin is successful', async () => {
+      vi.mocked(AutojoinService.tryAutojoinByDomain).mockResolvedValueOnce({
+        success: true,
+        company_id: 'company-123',
+        company_name: 'ACME Corp',
+        domain: 'acme.com'
+      });
+      vi.mocked(AutojoinService.isSuccessful).mockReturnValue(true);
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.autoJoined).toBe(true);
+      expect(AutojoinService.tryAutojoinByDomain).toHaveBeenCalledWith('user@acme.com');
+    });
+
+    it('should set inviteProcessed flag when invite is finalized', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          company_id: 'company-456',
+          role_assigned: 'user',
+          note: 'INVITE_PROCESSED'
+        })
+      } as Response);
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.inviteProcessed).toBe(true);
+      expect(global.fetch).toHaveBeenCalledWith(
+        `${mockApiUrl}/api/finalize-invite`,
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'include'
+        })
+      );
+    });
+
+    it('should skip invite check when skipInviteCheck is true', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      await AuthService.handlePostLogin({
+        apiUrl: mockApiUrl,
+        skipInviteCheck: true
+      });
+
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should continue normally when autojoin fails', async () => {
+      vi.mocked(AutojoinService.tryAutojoinByDomain).mockRejectedValueOnce(
+        new Error('Autojoin error')
+      );
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      // Should still complete successfully
+      expect(result.destination).toBe('/dashboard');
+      expect(result.autoJoined).toBeUndefined();
+    });
+
+    it('should continue normally when invite finalization fails', async () => {
+      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('API error'));
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      // Should still complete successfully
+      expect(result.destination).toBe('/dashboard');
+      expect(result.inviteProcessed).toBeUndefined();
+    });
+
+    it('should call ensureUser to create user record', async () => {
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(supabase.rpc).toHaveBeenCalledWith('ensure_user');
+    });
+
+    it('should handle user already has company scenario from autojoin', async () => {
+      vi.mocked(AutojoinService.tryAutojoinByDomain).mockResolvedValueOnce({
+        success: false,
+        error: 'USER_ALREADY_HAS_COMPANY'
+      });
+      vi.mocked(AutojoinService.isSuccessful).mockReturnValue(false);
+      vi.mocked(AutojoinService.userAlreadyHasCompany).mockReturnValue(true);
+      vi.mocked(AutojoinService.noMatchingDomain).mockReturnValue(false);
+
+      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
+        if (funcName === 'ensure_user') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (funcName === 'my_roles') {
+          return Promise.resolve({ data: ['user'], error: null });
+        }
+        if (funcName === 'my_phase') {
+          return Promise.resolve({ data: 'ACTIVE', error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
+
+      expect(result.destination).toBe('/dashboard');
+      expect(result.autoJoined).toBeUndefined();
     });
   });
 });
