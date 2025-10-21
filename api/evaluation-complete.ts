@@ -13,7 +13,6 @@ import { setCors } from '../lib/cors.js';
 import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors.js';
 import { getEnv } from '../lib/types/api/common.js';
 import { evaluationCompleteRequestSchema, EvaluationCompleteRequest } from '../lib/types/api/schemas.js';
-import { EvaluationDimension } from '../lib/types/api/database.js';
 
 /**
  * Calculate average score from evaluation dimension
@@ -148,28 +147,29 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     }
 
     // Calculate score from new evaluation structure
-    let finalScore = result?.score || 0;
+    let finalScore: number = result?.score || 0;
     let passed = false;
 
     if (result?.Evaluacion) {
-      const overallScore = calculateOverallScore(result.Evaluacion);
+      const evaluacion = result.Evaluacion as any; // Type assertion for nested optional properties
+      const overallScore = calculateOverallScore(evaluacion);
       if (overallScore > 0) {
         finalScore = overallScore;
       }
       console.log('[evaluation-complete] 📊 Calculated scores:', {
         overall: overallScore,
         dimensions: {
-          claridad: result.Evaluacion.Claridad
-            ? calculateDimensionAverage(result.Evaluacion.Claridad)
+          claridad: evaluacion.Claridad
+            ? calculateDimensionAverage(evaluacion.Claridad)
             : null,
-          estructura: result.Evaluacion.Estructura
-            ? calculateDimensionAverage(result.Evaluacion.Estructura)
+          estructura: evaluacion.Estructura
+            ? calculateDimensionAverage(evaluacion.Estructura)
             : null,
-          alineacion: result.Evaluacion.Alineacion_Emocional
-            ? calculateDimensionAverage(result.Evaluacion.Alineacion_Emocional)
+          alineacion: evaluacion.Alineacion_Emocional
+            ? calculateDimensionAverage(evaluacion.Alineacion_Emocional)
             : null,
-          influencia: result.Evaluacion.Influencia
-            ? calculateDimensionAverage(result.Evaluacion.Influencia)
+          influencia: evaluacion.Influencia
+            ? calculateDimensionAverage(evaluacion.Influencia)
             : null,
         },
       });

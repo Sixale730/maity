@@ -168,12 +168,17 @@ export function SessionResults({
   const objectiveFeedback = evaluation?.objective_feedback || null;
 
   // Extraer subdimensiones de Evaluacion para desglose
+  console.log('[SessionResults] Raw evaluation prop:', evaluation);
+  console.log('[SessionResults] evaluation?.Evaluacion:', evaluation?.Evaluacion);
+
   const evaluacionDesglose = evaluation?.Evaluacion ? {
     Claridad: evaluation.Evaluacion.Claridad || null,
     Estructura: evaluation.Evaluacion.Estructura || null,
     Alineacion_Emocional: evaluation.Evaluacion.Alineacion_Emocional || null,
     Influencia: evaluation.Evaluacion.Influencia || null
   } : null;
+
+  console.log('[SessionResults] evaluacionDesglose created:', evaluacionDesglose);
 
   // Fallback removed - using new structure only (Fortalezas, Errores, Recomendaciones)
 
