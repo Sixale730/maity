@@ -17,13 +17,26 @@ import { EvaluationDimension } from '../../lib/types/api/database.js';
 
 /**
  * Calculate average score from evaluation dimension
+ * Handles both old structure (Apertura/Desarrollo/Cierre) and new structure (dynamic fields)
  */
-function calculateDimensionAverage(dimension: EvaluationDimension): number {
+function calculateDimensionAverage(dimension: any): number {
   const scores: number[] = [];
 
-  if (dimension.Apertura !== undefined) scores.push(dimension.Apertura);
-  if (dimension.Desarrollo !== undefined) scores.push(dimension.Desarrollo);
-  if (dimension.Cierre !== undefined) scores.push(dimension.Cierre);
+  // Iterate over all properties in the dimension
+  for (const [key, value] of Object.entries(dimension)) {
+    // Skip non-score fields
+    if (key === 'Puntuacion_Total' || key === 'Comentarios') continue;
+
+    // Convert string to number if needed
+    if (typeof value === 'string') {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue)) {
+        scores.push(numValue);
+      }
+    } else if (typeof value === 'number') {
+      scores.push(value);
+    }
+  }
 
   if (scores.length === 0) return 0;
   return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);

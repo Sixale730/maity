@@ -26,46 +26,18 @@ export const evaluationCompleteRequestSchema = z.object({
       areas: z.record(z.number()).optional(),
       Evaluacion: z
         .object({
-          Claridad: z
-            .object({
-              Apertura: z.number().optional(),
-              Desarrollo: z.number().optional(),
-              Cierre: z.number().optional(),
-              Puntuacion_Total: z.number().optional(),
-              Comentarios: z.string().optional(),
-            })
-            .optional(),
-          Estructura: z
-            .object({
-              Apertura: z.number().optional(),
-              Desarrollo: z.number().optional(),
-              Cierre: z.number().optional(),
-              Puntuacion_Total: z.number().optional(),
-              Comentarios: z.string().optional(),
-            })
-            .optional(),
-          Alineacion_Emocional: z
-            .object({
-              Apertura: z.number().optional(),
-              Desarrollo: z.number().optional(),
-              Cierre: z.number().optional(),
-              Puntuacion_Total: z.number().optional(),
-              Comentarios: z.string().optional(),
-            })
-            .optional(),
-          Influencia: z
-            .object({
-              Apertura: z.number().optional(),
-              Desarrollo: z.number().optional(),
-              Cierre: z.number().optional(),
-              Puntuacion_Total: z.number().optional(),
-              Comentarios: z.string().optional(),
-            })
-            .optional(),
+          Claridad: z.record(z.union([z.number(), z.string()])).optional(),
+          Estructura: z.record(z.union([z.number(), z.string()])).optional(),
+          Alineacion_Emocional: z.record(z.union([z.number(), z.string()])).optional(),
+          Influencia: z.record(z.union([z.number(), z.string()])).optional(),
         })
+        .passthrough()
         .optional(),
+      Fortalezas: z.record(z.string()).passthrough().optional(),
+      Errores: z.record(z.string()).passthrough().optional(),
+      Recomendaciones: z.record(z.string()).passthrough().optional(),
       Resumen: z.string().optional(),
-      Recomendaciones: z.array(z.string()).optional(),
+      objective_feedback: z.string().optional(),
     })
     .passthrough()
     .optional(),
