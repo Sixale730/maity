@@ -6,6 +6,8 @@ import { supabase } from '../../api/client/supabase';
 export interface CompanyUpdate {
   name?: string;
   slug?: string;
+  domain?: string;
+  auto_join_enabled?: boolean;
 }
 
 /**

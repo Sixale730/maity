@@ -7,11 +7,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/ui/components/ui/input";
 import { Label } from "@/ui/components/ui/label";
 import { Badge } from "@/ui/components/ui/badge";
+import { Switch } from "@/ui/components/ui/switch";
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
 import type { Database } from "@maity/shared";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Trash2, Settings2 } from "lucide-react";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
 
@@ -19,6 +20,8 @@ type Company = SupabaseCompany & {
   registration_url?: string;
   user_invite_token?: string;
   manager_invite_token?: string;
+  domain?: string | null;
+  auto_join_enabled?: boolean | null;
 };
 
 export function OrganizationsManager() {
@@ -27,6 +30,14 @@ export function OrganizationsManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  // Autojoin configuration state
+  const [isAutojoinDialogOpen, setIsAutojoinDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [autojoinDomain, setAutojoinDomain] = useState("");
+  const [autojoinEnabled, setAutojoinEnabled] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+
   const { toast } = useToast();
   const appUrl = getAppUrl();
 
@@ -134,6 +145,66 @@ export function OrganizationsManager() {
     }
   };
 
+  const openAutojoinDialog = (company: Company) => {
+    setEditingCompany(company);
+    setAutojoinDomain(company.domain || "");
+    setAutojoinEnabled(company.auto_join_enabled || false);
+    setIsAutojoinDialogOpen(true);
+  };
+
+  const saveAutojoinConfig = async () => {
+    if (!editingCompany) return;
+
+    // Validate domain format
+    const domainValue = autojoinDomain.trim().toLowerCase();
+    if (domainValue && (domainValue.includes("@") || domainValue.includes(" "))) {
+      toast({
+        title: "Error",
+        description: "El dominio no debe incluir @ ni espacios. Ejemplo: acme.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaveLoading(true);
+
+    try {
+      await OrganizationService.update(editingCompany.id, {
+        domain: domainValue || null,
+        auto_join_enabled: domainValue ? autojoinEnabled : false,
+      });
+
+      // Update local state
+      setCompanies((prev) =>
+        prev.map((c) =>
+          c.id === editingCompany.id
+            ? {
+                ...c,
+                domain: domainValue || null,
+                auto_join_enabled: domainValue ? autojoinEnabled : false,
+              }
+            : c
+        )
+      );
+
+      toast({
+        title: "Éxito",
+        description: "Configuración de autojoin actualizada correctamente",
+      });
+
+      setIsAutojoinDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving autojoin config:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo guardar la configuración",
+        variant: "destructive",
+      });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="flex-1 p-6 space-y-6">
@@ -211,6 +282,7 @@ export function OrganizationsManager() {
                   <TableHead>Nombre</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Autojoin</TableHead>
                   <TableHead>Links de Invitación</TableHead>
                   <TableHead>Creado</TableHead>
                   <TableHead className="w-[100px]">Acciones</TableHead>
@@ -230,6 +302,25 @@ export function OrganizationsManager() {
                       <Badge variant={company.is_active ? "default" : "destructive"}>
                         {company.is_active ? "Activa" : "Inactiva"}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex flex-col gap-2">
+                        {company.domain && company.auto_join_enabled ? (
+                          <Badge variant="default" className="w-fit">
+                            ✓ {company.domain}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No configurado</span>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAutojoinDialog(company)}
+                        >
+                          <Settings2 className="h-3 w-3 mr-1" />
+                          Configurar
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="flex flex-col gap-2">
@@ -300,6 +391,73 @@ export function OrganizationsManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Autojoin Configuration Dialog */}
+      <Dialog open={isAutojoinDialogOpen} onOpenChange={setIsAutojoinDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar Autojoin</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="domain">Dominio de Email</Label>
+              <Input
+                id="domain"
+                placeholder="acme.com"
+                value={autojoinDomain}
+                onChange={(e) => setAutojoinDomain(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Solo el dominio, sin @ (ejemplo: gmail.com, acme.com)
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="auto-join-enabled">Habilitar Autojoin</Label>
+                <p className="text-xs text-muted-foreground">
+                  Los usuarios con este dominio se unirán automáticamente
+                </p>
+              </div>
+              <Switch
+                id="auto-join-enabled"
+                checked={autojoinEnabled}
+                onCheckedChange={setAutojoinEnabled}
+                disabled={!autojoinDomain.trim()}
+              />
+            </div>
+
+            {autojoinDomain && autojoinEnabled && (
+              <div className="bg-muted p-3 rounded-md">
+                <p className="text-sm">
+                  <strong>Vista previa:</strong> Los usuarios con email{" "}
+                  <code className="bg-background px-1 py-0.5 rounded">
+                    usuario@{autojoinDomain.trim().toLowerCase()}
+                  </code>{" "}
+                  se unirán automáticamente a{" "}
+                  <strong>{editingCompany?.name}</strong> con rol de usuario.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAutojoinDialogOpen(false)}
+                disabled={saveLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={saveAutojoinConfig}
+                disabled={saveLoading}
+              >
+                {saveLoading ? "Guardando..." : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
