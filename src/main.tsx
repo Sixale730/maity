@@ -12,11 +12,14 @@ initializeSupabase({
   anonKey: env.supabaseAnonKey,
 });
 
-// Canonical redirect: fuerza siempre la URL canónica en producción
-// Solo hacer redirect en producción (no en desarrollo local)
-const isProduction = !location.hostname.includes('localhost') && !location.hostname.includes('127.0.0.1');
+// Canonical redirect: fuerza siempre la URL canónica SOLO en el dominio de producción
+// NO redirigir en localhost, ni en Vercel preview URLs
+const isLocalhost = location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1');
+const isVercelPreview = location.hostname.includes('vercel.app');
 
-if (isProduction) {
+// SOLO aplicar canonical redirect si estamos en un dominio custom (producción)
+// y ese dominio NO es el canónico esperado
+if (!isLocalhost && !isVercelPreview) {
   try {
     // Parse canonical URL from environment
     const canonicalUrl = new URL(env.canonicalUrl);
