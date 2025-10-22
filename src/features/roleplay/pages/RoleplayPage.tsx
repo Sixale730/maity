@@ -31,6 +31,7 @@ export function RoleplayPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [forceN8nEvaluation, setForceN8nEvaluation] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [questionnaireData, setQuestionnaireData] = useState<{
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
@@ -805,6 +806,12 @@ export function RoleplayPage() {
     setQuestionnaireData(data);
     setShowQuestionnaire(false);
 
+    // En móviles, abrir automáticamente las instrucciones
+    const isMobile = window.innerWidth < 1024; // lg breakpoint
+    if (isMobile) {
+      setInstructionsOpen(true);
+    }
+
     toast({
       title: "Configuración guardada",
       description: `Comenzando práctica con ${data.practiceStartProfile}`,
@@ -992,10 +999,14 @@ export function RoleplayPage() {
                 <div className="flex-1 flex flex-col lg:items-center lg:justify-center overflow-y-auto lg:overflow-visible">
                   {/* Mobile Instructions - Collapsible */}
                   <div className="lg:hidden mb-4">
-                    <details className="bg-white/5 rounded-lg overflow-hidden">
+                    <details
+                      className="bg-white/5 rounded-lg overflow-hidden"
+                      open={instructionsOpen}
+                      onToggle={(e) => setInstructionsOpen((e.target as HTMLDetailsElement).open)}
+                    >
                       <summary className="px-4 py-3 cursor-pointer text-white font-medium text-sm flex items-center justify-between">
                         <span>📋 Instrucciones del Escenario</span>
-                        <span className="text-xs">▼</span>
+                        <span className="text-xs">{instructionsOpen ? '▲' : '▼'}</span>
                       </summary>
                       <div className="px-4 pb-4">
                         <ScenarioInstructions

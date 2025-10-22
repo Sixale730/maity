@@ -15,7 +15,8 @@ import {
   History,
   Map,
   Play,
-  Mic
+  Mic,
+  Briefcase
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@maity/shared";
@@ -49,6 +50,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.coach", url: "/coach", icon: MessageCircle },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.demo", url: "/demo", icon: Play },
       { title: "nav.demo_training", url: "/demo-training", icon: Mic },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
@@ -74,8 +76,8 @@ const getNavigationByRole = (role: UserRole) => {
     // 'user' role
     return [
       ...baseItems,
-      { title: "nav.plan", url: "/plan", icon: Target },
-      { title: "nav.achievements", url: "/logros", icon: Trophy },
+      { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
+      { title: "nav.achievements", url: "/logros", icon: Trophy, disabled: true },
     ];
   }
 };
@@ -175,29 +177,44 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
           )}
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1 px-2">
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild
-                    isActive={isActive(item.url)}
-                    className={`
-                      w-full transition-all duration-200 rounded-lg
-                      ${isActive(item.url) 
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/30' 
-                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:shadow-sidebar-primary/10'
-                      }
-                      ${state === "collapsed" ? 'justify-center p-2' : 'justify-start px-3 py-2'}
-                    `}
-                  >
-                    <Link to={item.url} className={`flex items-center ${state === "collapsed" ? '' : 'gap-3'}`}>
-                      <item.icon className={`h-5 w-5 ${isActive(item.url) ? 'text-white' : ''}`} />
-                      {state !== "collapsed" && (
-                        <span className="font-medium transition-colors">{t(item.title)}</span>
+              {navigationItems.map((item) => {
+                const isDisabled = 'disabled' in item && item.disabled;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild={!isDisabled}
+                      isActive={isActive(item.url)}
+                      disabled={isDisabled}
+                      className={`
+                        w-full transition-all duration-200 rounded-lg
+                        ${isDisabled
+                          ? 'opacity-50 cursor-not-allowed hover:bg-transparent'
+                          : isActive(item.url)
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/30'
+                            : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md hover:shadow-sidebar-primary/10'
+                        }
+                        ${state === "collapsed" ? 'justify-center p-2' : 'justify-start px-3 py-2'}
+                      `}
+                    >
+                      {isDisabled ? (
+                        <div className={`flex items-center ${state === "collapsed" ? '' : 'gap-3'}`}>
+                          <item.icon className="h-5 w-5" />
+                          {state !== "collapsed" && (
+                            <span className="font-medium">{t(item.title)}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <Link to={item.url} className={`flex items-center ${state === "collapsed" ? '' : 'gap-3'}`}>
+                          <item.icon className={`h-5 w-5 ${isActive(item.url) ? 'text-white' : ''}`} />
+                          {state !== "collapsed" && (
+                            <span className="font-medium transition-colors">{t(item.title)}</span>
+                          )}
+                        </Link>
                       )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

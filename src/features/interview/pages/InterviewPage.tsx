@@ -1,0 +1,246 @@
+import { useState, useEffect } from 'react';
+import { SidebarTrigger } from '@/ui/components/ui/sidebar';
+import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
+import { supabase, AuthService } from '@maity/shared';
+import { env } from '@/lib/env';
+import { useToast } from '@/ui/components/ui/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
+import { Badge } from '@/ui/components/ui/badge';
+import { Briefcase, CheckCircle2 } from 'lucide-react';
+
+export function InterviewPage() {
+  const { toast } = useToast();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [userId, setUserId] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const user = await AuthService.getUser();
+        if (!user) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'No se pudo obtener la información del usuario.',
+          });
+          return;
+        }
+
+        setUserId(user.id);
+
+        // Obtener nombre del usuario
+        const { data: profile } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.name) {
+          setUserName(profile.name);
+        }
+      } catch (error) {
+        console.error('Error al inicializar usuario:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Ocurrió un error al cargar la información del usuario.',
+        });
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    initializeUser();
+  }, [toast]);
+
+  const handleSessionStart = async (): Promise<string | null> => {
+    try {
+      // Crear nueva sesión en la base de datos
+      const { data, error } = await supabase
+        .from('interview_sessions')
+        .insert({
+          user_id: userId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      setCurrentSessionId(data.id);
+      return data.id;
+    } catch (error) {
+      console.error('Error al crear sesión de entrevista:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo iniciar la sesión de entrevista.',
+      });
+      return null;
+    }
+  };
+
+  const handleSessionEnd = async (
+    transcript: string,
+    duration: number,
+    sessionId?: string
+  ) => {
+    try {
+      const idToUpdate = sessionId || currentSessionId;
+      if (!idToUpdate) {
+        throw new Error('No se encontró el ID de la sesión');
+      }
+
+      // Actualizar la sesión en la base de datos
+      const { error } = await supabase
+        .from('interview_sessions')
+        .update({
+          ended_at: new Date().toISOString(),
+          duration_seconds: duration,
+          raw_transcript: transcript,
+          status: 'completed',
+        })
+        .eq('id', idToUpdate);
+
+      if (error) throw error;
+
+      toast({
+        title: '¡Entrevista finalizada!',
+        description: 'Tu sesión ha sido guardada exitosamente.',
+      });
+
+      setCurrentSessionId(null);
+    } catch (error) {
+      console.error('Error al finalizar sesión:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Ocurrió un error al guardar la sesión.',
+      });
+    }
+  };
+
+  if (isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Check if agent ID is configured
+  if (!env.elevenLabsInterviewAgentId) {
+    return (
+      <div className="flex items-center justify-center h-screen p-4">
+        <Card className="max-w-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <Briefcase className="h-6 w-6" />
+              Configuración requerida
+            </CardTitle>
+            <CardDescription>
+              La entrevista no está configurada correctamente. Por favor, contacta al administrador.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                  Mi Primer Entrevista
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                  Practica tus habilidades de entrevista con IA
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* Left Column - Instructions */}
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                    Instrucciones
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <div className="space-y-2">
+                    <Badge variant="outline" className="text-xs">Paso 1</Badge>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Haz clic en "Iniciar Entrevista" para comenzar la conversación con el asistente de IA.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Badge variant="outline" className="text-xs">Paso 2</Badge>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Habla de forma natural. El asistente te hará preguntas típicas de una entrevista laboral.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Badge variant="outline" className="text-xs">Paso 3</Badge>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Cuando termines, haz clic en "Finalizar" para guardar tu sesión.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Consejos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                  <p>• Responde con ejemplos concretos de tu experiencia</p>
+                  <p>• Mantén un tono profesional pero natural</p>
+                  <p>• No hay respuestas incorrectas, esto es práctica</p>
+                  <p>• Tómate tu tiempo para pensar antes de responder</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Voice Assistant */}
+            <div className="lg:col-span-2">
+              <Card className="h-full min-h-[500px] sm:min-h-[600px]">
+                <CardContent className="p-4 sm:p-6 h-full">
+                  <RoleplayVoiceAssistant
+                    userName={userName}
+                    userId={userId}
+                    sessionId={currentSessionId || undefined}
+                    onSessionStart={handleSessionStart}
+                    onSessionEnd={handleSessionEnd}
+                    scenarioName="Entrevista de Práctica"
+                    scenarioCode="interview"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default InterviewPage;

@@ -40,6 +40,8 @@ const DemoTrainingPage = lazy(() => import("./features/roleplay").then(m => ({ d
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
 
+const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
+
 const OrganizationsPage = lazy(() => import("./features/organizations").then(m => ({ default: m.OrganizationsPage })));
 const TeamPage = lazy(() => import("./features/organizations").then(m => ({ default: m.TeamPage })));
 const UsersPage = lazy(() => import("./features/organizations").then(m => ({ default: m.UsersPage })));
@@ -85,6 +87,7 @@ const App = () => (
                       <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/coach" element={<CoachPage />} />
                       <Route path="/roleplay" element={<RoleplayPage />} />
+                      <Route path="/primera-entrevista" element={<InterviewPage />} />
                       <Route path="/progress" element={<MyProgressPage />} />
                       <Route path="/sessions" element={<SessionsPage />} />
                       <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />

@@ -112,6 +112,7 @@ const translations = {
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
     'nav.roleplay': 'Sala de entrenamiento',
+    'nav.first_interview': 'Mi primer entrevista',
     'nav.demo': 'Demo',
     'nav.demo_training': 'Demo Entrenamiento',
     'nav.roleplay_progress': 'Mi Progreso',

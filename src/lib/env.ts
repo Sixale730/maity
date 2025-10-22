@@ -25,6 +25,7 @@ export interface EnvConfig {
   // ElevenLabs Configuration (optional)
   elevenLabsApiKey?: string;
   elevenLabsAgentId?: string;
+  elevenLabsInterviewAgentId?: string;
 
   // n8n Integration (optional)
   n8nWebhookUrl?: string;
@@ -96,6 +97,7 @@ function loadEnvironment(): EnvConfig {
     // Optional integrations
     elevenLabsApiKey: getOptional('VITE_ELEVENLABS_API_KEY_TEST'),
     elevenLabsAgentId: getOptional('VITE_ELEVENLABS_AGENT_ID_TEST'),
+    elevenLabsInterviewAgentId: getOptional('VITE_ELEVENLABS_INTERVIEW_AGENT_ID'),
     n8nWebhookUrl: getOptional('VITE_N8N_WEBHOOK_URL'),
     n8nBackendSecret: getOptional('VITE_N8N_BACKEND_SECRET'),
     tallyFormUrl: getOptional('VITE_TALLY_FORM_URL'),
