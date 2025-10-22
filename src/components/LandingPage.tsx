@@ -123,9 +123,9 @@ const LandingPage = () => {
               {t('hero.badge')}
             </Badge>
             <h1 className="font-geist font-bold text-3xl sm:text-4xl lg:text-6xl text-foreground mb-4 sm:mb-6 leading-tight">
-              <MaityLogo variant="full" size="md" className="inline-block mr-1 sm:mr-2 sm:hidden" />
-              <MaityLogo variant="full" size="lg" className="hidden sm:inline-block lg:hidden mr-2" />
-              <MaityLogo variant="full" size="xl" className="hidden lg:inline-block mr-2" />
+              <MaityLogo variant="full" size="md" className="inline-block align-middle mr-1 sm:mr-2 sm:hidden scale-[0.85]" />
+              <MaityLogo variant="full" size="lg" className="hidden sm:inline-block sm:align-middle lg:hidden mr-2 scale-[0.85]" />
+              <MaityLogo variant="full" size="xl" className="hidden lg:inline-block lg:align-middle mr-2 scale-[0.85]" />
               {" "}{t('hero.title_part1')}{" "}
               <span className="text-primary">{t('hero.title_part2')}</span>
             </h1>
@@ -153,7 +153,7 @@ const LandingPage = () => {
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="font-geist font-bold text-2xl sm:text-3xl lg:text-4xl text-foreground mb-3 sm:mb-4 flex items-center justify-center gap-2 flex-wrap">
               <span>{t('features.title')}</span>
-              <MaityLogo variant="full" size="sm" />
+              <MaityLogo variant="full" size="sm" className="align-middle" />
               <span>?</span>
             </h2>
             <p className="font-inter text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
@@ -209,7 +209,7 @@ const LandingPage = () => {
                 {t('benefits.title')}
               </h2>
               <p className="font-inter text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">
-                <MaityLogo variant="symbol" size="sm" className="inline-block mr-1" /> {t('benefits.description')}
+                <MaityLogo variant="symbol" size="sm" className="inline-block align-middle mr-1" /> {t('benefits.description')}
               </p>
 
               <div className="space-y-4 sm:space-y-6">
@@ -252,7 +252,7 @@ const LandingPage = () => {
               {t('testimonials.title')}
             </h2>
             <p className="font-inter text-base sm:text-lg text-muted-foreground px-4">
-              {t('testimonials.subtitle')} <MaityLogo variant="symbol" size="sm" className="inline-block" />
+              {t('testimonials.subtitle')} <MaityLogo variant="symbol" size="sm" className="inline-block align-middle" />
             </p>
           </div>
 
@@ -335,7 +335,7 @@ const LandingPage = () => {
             <MaityLogo variant="full" size="sm" className="sm:hidden" />
             <MaityLogo variant="full" size="md" className="hidden sm:block" />
             <p className="font-inter text-sm sm:text-base text-muted-foreground text-center md:text-right">
-              © 2024 <MaityLogo variant="symbol" size="sm" className="inline-block mx-1" />. {t('footer.copyright')}
+              © 2024 <MaityLogo variant="symbol" size="sm" className="inline-block align-middle mx-1" />. {t('footer.copyright')}
             </p>
           </div>
         </div>
