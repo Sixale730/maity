@@ -36,7 +36,11 @@ All colors MUST be HSL.
     /* Red accent colors for Maity branding */
     --red-primary: 340 100% 50%;        /* #ff0050 */
     --red-muted: 340 100% 35%;          /* #b30038 */
+    --red-light: 340 100% 57%;          /* #ff2a70 - Medium lighter red for balanced gradients */
     --red-subtle: 340 100% 95%;         /* #ffe6f0 */
+
+    /* Blue accent colors for Maity branding */
+    --blue-light: 229 93% 72%;          /* #6c83f6 - Medium lighter blue for balanced gradients */
 
     /* Platinum color */
     --platinum: 210 11% 71%;            /* #b3b8c4 */

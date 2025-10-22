@@ -125,6 +125,25 @@ export class AuthService {
   }
 
   /**
+   * Checks if a user with the given email exists in the system
+   * @param email - Email address to check
+   * @returns true if user exists, false otherwise
+   */
+  static async checkUserExistsByEmail(email: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc('check_user_exists_by_email', {
+      p_email: email
+    });
+
+    if (error) {
+      console.error('Error checking if user exists:', error);
+      // On error, return true to avoid false positives (fail safe)
+      return true;
+    }
+
+    return data === true;
+  }
+
+  /**
    * Helper function to call finalize-invite API
    * @private
    */

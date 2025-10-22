@@ -245,16 +245,58 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
       }
 
     } catch (error: unknown) {
+      const errorMessage = (error as Error)?.message || '';
 
-      toast({
+      // Handle specific authentication errors
+      if (isLogin && errorMessage.toLowerCase().includes('invalid login credentials')) {
+        // Check if user exists to provide more specific error message
+        try {
+          const userExists = await AuthService.checkUserExistsByEmail(email);
 
-        title: 'Error',
+          if (!userExists) {
+            // User doesn't exist - offer to create account
+            toast({
+              title: 'Cuenta no encontrada',
+              description: 'No existe una cuenta con este email. ¿Quieres crear una?',
+              variant: 'destructive',
+            });
 
-        description: (error as Error)?.message || 'Ocurrio un error inesperado.',
-
-        variant: 'destructive',
-
-      });
+            // Automatically switch to signup mode after a short delay
+            setTimeout(() => {
+              setIsLogin(false);
+            }, 2000);
+          } else {
+            // User exists but password is wrong
+            toast({
+              title: 'Contraseña incorrecta',
+              description: 'Por favor verifica tu contraseña e intenta nuevamente.',
+              variant: 'destructive',
+            });
+          }
+        } catch (checkError) {
+          // Fallback to generic message if check fails
+          console.error('Error checking user existence:', checkError);
+          toast({
+            title: 'Error de autenticación',
+            description: 'Credenciales inválidas. Por favor verifica tu email y contraseña.',
+            variant: 'destructive',
+          });
+        }
+      } else if (errorMessage.toLowerCase().includes('email not confirmed')) {
+        // Email not confirmed error
+        toast({
+          title: 'Email no confirmado',
+          description: 'Por favor confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.',
+          variant: 'destructive',
+        });
+      } else {
+        // Other errors - show generic message
+        toast({
+          title: 'Error',
+          description: errorMessage || 'Ocurrió un error inesperado.',
+          variant: 'destructive',
+        });
+      }
 
     } finally {
 
@@ -495,7 +537,11 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
             <Button
               type="submit"
-              className={`w-full font-inter ${!isLogin ? 'bg-[hsl(var(--red-primary))] hover:bg-[hsl(var(--red-muted))] text-white' : ''}`}
+              className={`w-full font-inter ${
+                isLogin
+                  ? 'bg-gradient-to-r from-[hsl(var(--blue-light))] to-[hsl(var(--primary))] hover:from-[hsl(var(--primary))] hover:to-[hsl(var(--primary))] text-white border-0'
+                  : 'bg-gradient-to-r from-[hsl(var(--red-light))] to-[hsl(var(--red-primary))] hover:from-[hsl(var(--red-primary))] hover:to-[hsl(var(--red-muted))] text-white border-0'
+              }`}
               disabled={loading}
             >
 
