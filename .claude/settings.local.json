@@ -53,7 +53,8 @@
       "Bash(npm --version)",
       "Bash(node:*)",
       "Bash(xargs:*)",
-      "Bash(npm outdated)"
+      "Bash(npm outdated)",
+      "mcp__supabase__get_logs"
     ],
     "deny": [],
     "ask": []
