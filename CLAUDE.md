@@ -479,3 +479,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 - Cada vez que recuperes datos de la DB, exponer función RPC a public con wrapper
 - Cada sección debe tener su propia ruta
 - Memoriza proceso para agregar nuevas rutas
+- Cuando vayamos a implementar algo que tenga que ver con la base de datos c:\maity\docs\database-structure-and-rls.md analiza ese documento antes de realizar la implementacion y basarte en lo que ya hay antes de las modificaciones

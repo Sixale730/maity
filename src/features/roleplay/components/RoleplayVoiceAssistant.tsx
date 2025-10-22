@@ -12,7 +12,9 @@ interface RoleplayVoiceAssistantProps {
   userId?: string;
   scenarioCode?: string;
   scenarioName?: string;
+  scenarioDescription?: string; // Optional: custom description to show instead of profile-based one
   sessionId?: string;
+  agentId?: string; // Optional: custom ElevenLabs agent ID (defaults to roleplay agent)
   onSessionStart?: () => Promise<string | null>;
   onSessionEnd?: (transcript: string, duration: number, sessionId?: string, messages?: Array<{
     id: string;
@@ -37,7 +39,9 @@ export function RoleplayVoiceAssistant({
   userId: _userId,
   scenarioCode = 'first_visit',
   scenarioName = 'Primera Visita',
+  scenarioDescription,
   sessionId,
+  agentId: customAgentId,
   onSessionStart,
   onSessionEnd,
   profileDescription,
@@ -172,7 +176,8 @@ export function RoleplayVoiceAssistant({
   const getSignedUrl = async (): Promise<string | null> => {
     try {
       const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY_TEST;
-      const agentId = import.meta.env.VITE_ELEVENLABS_AGENT_ID_TEST;
+      // Use custom agent ID if provided, otherwise use default roleplay agent
+      const agentId = customAgentId || import.meta.env.VITE_ELEVENLABS_AGENT_ID_TEST;
 
       if (!apiKey || !agentId) {
         throw new Error('Configuración de prueba incompleta');
@@ -571,13 +576,19 @@ export function RoleplayVoiceAssistant({
         {/* Title */}
         <div className="text-center space-y-2 sm:space-y-3">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-            Práctica con {selectedProfile}
+            {scenarioName}
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
-            {selectedProfile === 'CEO' && 'Enfocado en visión estratégica y ROI'}
-            {selectedProfile === 'CTO' && 'Enfocado en arquitectura técnica y capacidades'}
-            {selectedProfile === 'CFO' && 'Enfocado en números y presupuesto'}
-          </p>
+          {scenarioDescription ? (
+            <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
+              {scenarioDescription}
+            </p>
+          ) : (
+            <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
+              {selectedProfile === 'CEO' && 'Enfocado en visión estratégica y ROI'}
+              {selectedProfile === 'CTO' && 'Enfocado en arquitectura técnica y capacidades'}
+              {selectedProfile === 'CFO' && 'Enfocado en números y presupuesto'}
+            </p>
+          )}
         </div>
 
         {/* Main Button Area */}

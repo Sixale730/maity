@@ -18,8 +18,8 @@ export function InterviewPage() {
   useEffect(() => {
     const initializeUser = async () => {
       try {
-        const user = await AuthService.getUser();
-        if (!user) {
+        const authUser = await AuthService.getUser();
+        if (!authUser) {
           toast({
             variant: 'destructive',
             title: 'Error',
@@ -28,16 +28,26 @@ export function InterviewPage() {
           return;
         }
 
-        setUserId(user.id);
-
-        // Obtener nombre del usuario
-        const { data: profile } = await supabase
+        // Obtener el ID de maity.users usando auth_id
+        const { data: profile, error: profileError } = await supabase
+          .schema('maity')
           .from('users')
-          .select('name')
-          .eq('id', user.id)
+          .select('id, name')
+          .eq('auth_id', authUser.id)
           .single();
 
-        if (profile?.name) {
+        if (profileError || !profile) {
+          console.error('Error al obtener perfil de usuario:', profileError);
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'No se pudo obtener el perfil del usuario.',
+          });
+          return;
+        }
+
+        setUserId(profile.id); // Ahora usamos el id de maity.users
+        if (profile.name) {
           setUserName(profile.name);
         }
       } catch (error) {
@@ -59,6 +69,7 @@ export function InterviewPage() {
     try {
       // Crear nueva sesión en la base de datos
       const { data, error } = await supabase
+        .schema('maity')
         .from('interview_sessions')
         .insert({
           user_id: userId,
@@ -96,6 +107,7 @@ export function InterviewPage() {
 
       // Actualizar la sesión en la base de datos
       const { error } = await supabase
+        .schema('maity')
         .from('interview_sessions')
         .update({
           ended_at: new Date().toISOString(),
@@ -225,12 +237,14 @@ export function InterviewPage() {
               <Card className="h-full min-h-[500px] sm:min-h-[600px]">
                 <CardContent className="p-4 sm:p-6 h-full">
                   <RoleplayVoiceAssistant
+                    agentId={env.elevenLabsInterviewAgentId}
                     userName={userName}
                     userId={userId}
                     sessionId={currentSessionId || undefined}
                     onSessionStart={handleSessionStart}
                     onSessionEnd={handleSessionEnd}
-                    scenarioName="Entrevista de Práctica"
+                    scenarioName="Mi Primer Entrevista"
+                    scenarioDescription="Practica tus habilidades de entrevista con IA"
                     scenarioCode="interview"
                   />
                 </CardContent>
