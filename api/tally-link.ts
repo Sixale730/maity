@@ -85,6 +85,20 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     url.searchParams.set('auth_id', authId);
     url.searchParams.set('otk', otk.token);
 
+    // Get origin from request to redirect back to correct environment (preview/prod)
+    let origin = req.headers.origin as string | undefined;
+    if (!origin && req.headers.referer) {
+      try {
+        const refererUrl = new URL(req.headers.referer as string);
+        origin = refererUrl.origin;
+      } catch {
+        // Invalid referer URL, ignore
+      }
+    }
+    if (origin) {
+      url.searchParams.set('returnUrl', `${origin}/dashboard`);
+    }
+
     console.log('Generated Tally link:', {
       authId,
       hasToken: !!otk.token,
