@@ -50,6 +50,8 @@ export * from './domain/organizations/hooks/useCompanyAssociation';
 export * from './domain/organizations/hooks/useAutojoinCheck';
 
 // ===== Domain: Users =====
+export { UserService } from './domain/users/user.service';
+export * from './domain/users/user.types';
 export * from './domain/users/tally.service';
 export * from './domain/users/hooks/useFormResponses';
 export * from './domain/users/hooks/useOnboardingStatus';

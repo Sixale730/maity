@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/ui/car
 import { Button } from "@/ui/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/ui/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/ui/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/ui/components/ui/alert-dialog";
 import { Input } from "@/ui/components/ui/input";
 import { Label } from "@/ui/components/ui/label";
 import { Badge } from "@/ui/components/ui/badge";
@@ -11,7 +11,7 @@ import { Switch } from "@/ui/components/ui/switch";
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
-import type { Database } from "@maity/shared";
+import type { Database, CompanyDeletionImpact } from "@maity/shared";
 import { Copy, Plus, Trash2, Settings2 } from "lucide-react";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
@@ -30,6 +30,11 @@ export function OrganizationsManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [deletionImpact, setDeletionImpact] = useState<CompanyDeletionImpact | null>(null);
 
   // Create company autojoin state
   const [createDomain, setCreateDomain] = useState("");
@@ -126,18 +131,50 @@ export function OrganizationsManager() {
     }
   };
 
-  const deleteCompany = async (company: Company) => {
-    setDeleteLoading(company.id);
+  const openDeleteDialog = async (company: Company) => {
+    try {
+      // Get deletion impact
+      const impact = await OrganizationService.getCompanyDeletionImpact(company.id);
+      setDeletionImpact(impact);
+      setCompanyToDelete(company);
+      setDeleteDialogOpen(true);
+
+      // Check if company has users
+      if (impact && impact.total_users > 0) {
+        toast({
+          title: "Advertencia",
+          description: `Esta empresa tiene ${impact.total_users} usuario${impact.total_users !== 1 ? 's' : ''} asignado${impact.total_users !== 1 ? 's' : ''}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking deletion impact:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo verificar el impacto de la eliminación",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteCompany = async () => {
+    if (!companyToDelete) return;
+
+    setDeleteLoading(companyToDelete.id);
 
     try {
-      await OrganizationService.deleteCompany(company.id);
+      await OrganizationService.deleteCompany(companyToDelete.id);
 
-      setCompanies((prev) => prev.filter((c) => c.id !== company.id));
+      setCompanies((prev) => prev.filter((c) => c.id !== companyToDelete.id));
 
       toast({
         title: "Éxito",
         description: "Empresa eliminada correctamente",
       });
+
+      setDeleteDialogOpen(false);
+      setCompanyToDelete(null);
+      setDeletionImpact(null);
     } catch (error) {
       console.error("Error deleting company:", error);
       const message = error instanceof Error ? error.message : "No se pudo eliminar la empresa";
@@ -421,32 +458,15 @@ export function OrganizationsManager() {
                       {new Date(company.created_at).toLocaleDateString("es-ES")}
                     </TableCell>
                     <TableCell className="py-4">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled={deleteLoading === company.id}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            {deleteLoading === company.id ? "..." : "Eliminar"}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Eliminar empresa</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              ¿Estás seguro que quieres eliminar "{company.name}"? Esta acción no se puede deshacer y eliminará todos los datos asociados.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteCompany(company)}>
-                              Confirmar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => openDeleteDialog(company)}
+                        disabled={deleteLoading === company.id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        {deleteLoading === company.id ? "..." : "Eliminar"}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -522,6 +542,60 @@ export function OrganizationsManager() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Company Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Empresa</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                ¿Estás seguro que quieres eliminar <strong>{companyToDelete?.name}</strong>?
+              </p>
+              {deletionImpact && deletionImpact.total_users > 0 && (
+                <div className="bg-destructive/10 p-3 rounded-md border border-destructive/20">
+                  <p className="font-semibold text-destructive mb-2">
+                    Esta empresa tiene usuarios asignados:
+                  </p>
+                  <ul className="text-sm space-y-1">
+                    {deletionImpact.admins > 0 && (
+                      <li>• {deletionImpact.admins} administrador{deletionImpact.admins !== 1 ? 'es' : ''}</li>
+                    )}
+                    {deletionImpact.managers > 0 && (
+                      <li>• {deletionImpact.managers} manager{deletionImpact.managers !== 1 ? 's' : ''}</li>
+                    )}
+                    {deletionImpact.users > 0 && (
+                      <li>• {deletionImpact.users} usuario{deletionImpact.users !== 1 ? 's' : ''}</li>
+                    )}
+                  </ul>
+                  <p className="text-sm mt-2 text-destructive font-medium">
+                    Estos usuarios perderán su asignación a la empresa pero NO serán eliminados.
+                  </p>
+                </div>
+              )}
+              {deletionImpact && deletionImpact.total_users === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Esta empresa no tiene usuarios asignados.
+                </p>
+              )}
+              <p className="text-destructive font-medium">
+                Esta acción es permanente y no se puede deshacer.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading === companyToDelete?.id}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteCompany}
+              disabled={deleteLoading === companyToDelete?.id}
+            >
+              {deleteLoading === companyToDelete?.id ? "Eliminando..." : "Confirmar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

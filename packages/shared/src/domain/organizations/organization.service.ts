@@ -271,6 +271,25 @@ export class OrganizationService {
   }
 
   /**
+   * Get deletion impact for a company
+   * Shows count of users assigned to company
+   * @param companyId - UUID of the company
+   * @returns Promise with deletion impact analysis
+   */
+  static async getCompanyDeletionImpact(companyId: string): Promise<any> {
+    const { data, error } = await supabase.rpc('get_company_deletion_impact', {
+      p_company_id: companyId
+    });
+
+    if (error) {
+      console.error('Error getting company deletion impact:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
    * Delete a company
    * Uses the delete_company RPC function
    * @param companyId - UUID of the company to delete

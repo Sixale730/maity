@@ -825,21 +825,21 @@ export function RoleplayPage() {
 
         {/* Modal de Transcripción */}
         <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
             <DialogHeader>
-              <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
-              <DialogDescription className="text-gray-400">
+              <DialogTitle className="text-white text-base sm:text-lg">Transcripción de la Sesión</DialogTitle>
+              <DialogDescription className="text-gray-400 text-sm">
                 {currentScenario?.scenarioName} • Perfil {questionnaireData?.practiceStartProfile}
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               {currentTranscript ? (
-                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+                <div className="bg-gray-800/50 rounded-lg p-3 sm:p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
                   <TranscriptViewer transcript={currentTranscript} />
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-400">
-                  <p>No hay transcripción disponible para esta sesión</p>
+                <div className="text-center py-6 sm:py-8 text-gray-400">
+                  <p className="text-sm sm:text-base">No hay transcripción disponible para esta sesión</p>
                 </div>
               )}
             </div>
@@ -870,19 +870,19 @@ export function RoleplayPage() {
       <div className="flex-1 h-screen bg-black overflow-hidden flex flex-col">
         <main className="w-full h-full flex flex-col">
           {/* Header */}
-          <div className="p-4 pb-2">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="text-white hover:bg-white/10" />
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-white">Roleplay de Ventas</h1>
-                <p className="text-sm text-white/70">
+          <div className="p-3 sm:p-4 pb-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <SidebarTrigger className="text-white hover:bg-white/10 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Roleplay de Ventas</h1>
+                <p className="text-xs sm:text-sm text-white/70 truncate">
                   {questionnaireData && currentScenario
                     ? `${questionnaireData.practiceStartProfile} - Escenario ${currentScenario.scenarioOrder}: ${currentScenario.scenarioName}`
                     : 'Practica tus habilidades de venta'}
                 </p>
               </div>
               {isAdmin && (
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                   <button
                     onClick={() => {
                       setForceN8nEvaluation(!forceN8nEvaluation);
@@ -894,13 +894,14 @@ export function RoleplayPage() {
                         variant: "default"
                       });
                     }}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                       forceN8nEvaluation
                         ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
                         : 'bg-white/10 hover:bg-white/20 text-white'
                     }`}
                   >
-                    {forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}
+                    <span className="hidden sm:inline">{forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}</span>
+                    <span className="sm:hidden">{forceN8nEvaluation ? '🔓' : '🔒'}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -913,13 +914,14 @@ export function RoleplayPage() {
                         variant: "default"
                       });
                     }}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                       testMode
                         ? 'bg-purple-500 hover:bg-purple-600 text-white'
                         : 'bg-white/10 hover:bg-white/20 text-white'
                     }`}
                   >
-                    {testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}
+                    <span className="hidden sm:inline">{testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}</span>
+                    <span className="sm:hidden">{testMode ? '🧪' : '🧪'}</span>
                   </button>
                 </div>
               )}
@@ -927,13 +929,13 @@ export function RoleplayPage() {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex gap-4 px-4 overflow-hidden">
+          <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 px-3 sm:px-4 overflow-hidden">
             {isInitialLoading ? (
               // Loading state during initial check
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-white">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                  <p className="text-xl">Cargando...</p>
+                  <p className="text-base sm:text-xl">Cargando...</p>
                 </div>
               </div>
             ) : !questionnaireData ? (
@@ -942,23 +944,25 @@ export function RoleplayPage() {
                 <TabsList className="mx-auto mb-4 bg-white/10">
                   <TabsTrigger value="start" className="text-white data-[state=active]:bg-white/20">
                     <Mic className="w-4 h-4 mr-2" />
-                    Iniciar Práctica
+                    <span className="hidden sm:inline">Iniciar Práctica</span>
+                    <span className="sm:hidden">Iniciar</span>
                   </TabsTrigger>
                   <TabsTrigger value="roadmap" className="text-white data-[state=active]:bg-white/20">
                     <Map className="w-4 h-4 mr-2" />
-                    Mi Progreso
+                    <span className="hidden sm:inline">Mi Progreso</span>
+                    <span className="sm:hidden">Progreso</span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="start" className="flex-1 overflow-auto flex items-center justify-center">
                   <div className="text-center text-white max-w-2xl px-4">
-                    <h2 className="text-3xl font-bold mb-4">Bienvenido al Roleplay de Ventas</h2>
-                    <p className="text-lg mb-8 text-white/80">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Bienvenido al Roleplay de Ventas</h2>
+                    <p className="text-base sm:text-lg mb-6 sm:mb-8 text-white/80">
                       Practica tus habilidades de venta con diferentes perfiles ejecutivos.
                       Completa el cuestionario inicial para comenzar tu sesión personalizada.
                     </p>
                     <button
                       onClick={() => setShowQuestionnaire(true)}
-                      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transform transition hover:scale-105"
+                      className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transform transition hover:scale-105"
                     >
                       Comenzar Práctica
                     </button>
@@ -972,8 +976,8 @@ export function RoleplayPage() {
               </Tabs>
             ) : questionnaireData && currentScenario ? (
               <>
-                {/* Left Column - Instructions */}
-                <div className="w-1/3 overflow-y-auto">
+                {/* Left Column - Instructions (Hidden on mobile, show in tabs or accordion) */}
+                <div className="hidden lg:block lg:w-1/3 overflow-y-auto">
                   <ScenarioInstructions
                     scenarioName={currentScenario.scenarioName}
                     scenarioCode={currentScenario.scenarioCode}
@@ -985,7 +989,27 @@ export function RoleplayPage() {
                 </div>
 
                 {/* Right Column - Voice Assistant */}
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex flex-col lg:items-center lg:justify-center overflow-y-auto lg:overflow-visible">
+                  {/* Mobile Instructions - Collapsible */}
+                  <div className="lg:hidden mb-4">
+                    <details className="bg-white/5 rounded-lg overflow-hidden">
+                      <summary className="px-4 py-3 cursor-pointer text-white font-medium text-sm flex items-center justify-between">
+                        <span>📋 Instrucciones del Escenario</span>
+                        <span className="text-xs">▼</span>
+                      </summary>
+                      <div className="px-4 pb-4">
+                        <ScenarioInstructions
+                          scenarioName={currentScenario.scenarioName}
+                          scenarioCode={currentScenario.scenarioCode}
+                          profile={questionnaireData.practiceStartProfile}
+                          scenarioOrder={currentScenario.scenarioOrder}
+                          minScoreToPass={currentScenario.minScoreToPass}
+                          userInstructions={currentScenario.userInstructions}
+                        />
+                      </div>
+                    </details>
+                  </div>
+
                   <RoleplayVoiceAssistant
                     selectedProfile={questionnaireData.practiceStartProfile}
                     questionnaireId={questionnaireData.questionnaireId}
@@ -1012,8 +1036,8 @@ export function RoleplayPage() {
               // Loading state when questionnaire data exists but scenario is not ready
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-white">
-                  <p className="text-xl mb-4">Preparando tu sesión de práctica...</p>
-                  <p className="text-white/70">Cargando escenario...</p>
+                  <p className="text-base sm:text-xl mb-4">Preparando tu sesión de práctica...</p>
+                  <p className="text-sm sm:text-base text-white/70">Cargando escenario...</p>
                 </div>
               </div>
             )}
@@ -1023,21 +1047,21 @@ export function RoleplayPage() {
 
       {/* Modal de Transcripción */}
       <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Transcripción de la Sesión</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle className="text-white text-base sm:text-lg">Transcripción de la Sesión</DialogTitle>
+            <DialogDescription className="text-gray-400 text-sm">
               {currentScenario?.scenarioName} • Perfil {questionnaireData?.practiceStartProfile}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             {currentTranscript ? (
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
+              <div className="bg-gray-800/50 rounded-lg p-3 sm:p-6 border border-gray-700 max-h-[60vh] overflow-y-auto">
                 <TranscriptViewer transcript={currentTranscript} />
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <p>No hay transcripción disponible para esta sesión</p>
+              <div className="text-center py-6 sm:py-8 text-gray-400">
+                <p className="text-sm sm:text-base">No hay transcripción disponible para esta sesión</p>
               </div>
             )}
           </div>
