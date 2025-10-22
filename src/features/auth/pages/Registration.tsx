@@ -90,8 +90,9 @@ const Registration: React.FC = () => {
         return;
       }
 
-      const { url: tallyUrl } = await response.json();
+      const { data } = await response.json();
       console.log('[Registration] Redirecting to Tally form...');
+      const tallyUrl = data.url;
 
       // Redirect to Tally form
       window.location.href = tallyUrl;

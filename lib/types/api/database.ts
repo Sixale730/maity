@@ -150,9 +150,13 @@ export interface Otk {
 
 /**
  * OTK data returned from RPC function
+ * Note: The otk() RPC function uses RETURNS TABLE, so Supabase returns an array
  */
 export interface OtkData {
   token: string;
+  email: string;
+  company_id: string | null;
+  role: string;
   expires_at: string;
 }
 

@@ -72,7 +72,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       throw ApiError.database('Failed to generate one-time key', otkError);
     }
 
-    const otk = otkData as OtkData;
+    // RPC functions with RETURNS TABLE return an array, get first element
+    const otkArray = otkData as OtkData[];
+    const otk = otkArray?.[0];
 
     if (!otk || !otk.token) {
       throw ApiError.internal('OTK generation returned invalid data');
