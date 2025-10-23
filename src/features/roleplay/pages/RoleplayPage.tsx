@@ -6,6 +6,7 @@ import { ScenarioInstructions } from '../components/ScenarioInstructions';
 import { SessionResults } from '../components/SessionResults';
 import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
 import { TranscriptViewer } from '../components/TranscriptViewer';
+import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
 import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { env } from '@/lib/env';
 import { useToast } from '@/ui/components/ui/use-toast';
@@ -36,6 +37,13 @@ export function RoleplayPage() {
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
     questionnaireId: string;
+  } | null>(null);
+
+  // Estado para admin override (selección manual de perfil y escenario)
+  const [adminOverride, setAdminOverride] = useState<{
+    profile: 'CEO' | 'CTO' | 'CFO';
+    scenarioCode: string;
+    scenarioName: string;
   } | null>(null);
 
   // Estado para el escenario actual con información completa
@@ -153,11 +161,29 @@ export function RoleplayPage() {
     checkUserAndQuestionnaire();
   }, []);
 
+  // Efecto combinado para detectar cambios en questionnaireData o adminOverride
   useEffect(() => {
-    if (questionnaireData && userId) {
+    // Admin mode: solo necesitamos adminOverride y userId
+    if (isAdmin && adminOverride && userId) {
+      console.log('🔐 [useEffect] Admin override detectado, cargando escenario...');
+      fetchCurrentScenario();
+      return;
+    }
+
+    // Normal mode: necesitamos questionnaireData y userId
+    if (!isAdmin && questionnaireData && userId) {
+      console.log('👤 [useEffect] Modo normal, cargando escenario...');
       fetchCurrentScenario();
     }
-  }, [questionnaireData, userId]);
+  }, [questionnaireData, userId, isAdmin, adminOverride]);
+
+  // Helper function para obtener el perfil actual (admin override o questionnaire)
+  const getCurrentProfile = (): 'CEO' | 'CTO' | 'CFO' | null => {
+    if (isAdmin && adminOverride) {
+      return adminOverride.profile;
+    }
+    return questionnaireData?.practiceStartProfile || null;
+  };
 
   const checkUserAndQuestionnaire = async () => {
     try {
@@ -246,9 +272,59 @@ export function RoleplayPage() {
   };
 
   const fetchCurrentScenario = async () => {
-    if (!userId || !questionnaireData) return;
+    if (!userId) return;
 
     try {
+      // Si hay adminOverride, usar esa configuración en lugar del progreso
+      if (isAdmin && adminOverride) {
+        console.log('🔐 [ADMIN MODE] Usando configuración manual:', {
+          profile: adminOverride.profile,
+          scenarioCode: adminOverride.scenarioCode,
+          scenarioName: adminOverride.scenarioName
+        });
+
+        const config = await RoleplayService.getProfileScenarioConfig(
+          adminOverride.profile,
+          adminOverride.scenarioCode
+        );
+
+        if (config && Array.isArray(config) && config.length > 0) {
+          const scenarioInfo = config[0];
+
+          setCurrentScenario({
+            scenarioName: scenarioInfo.scenario_name,
+            scenarioCode: scenarioInfo.scenario_code,
+            scenarioOrder: scenarioInfo.scenario_order,
+            minScoreToPass: parseFloat(scenarioInfo.min_score_to_pass),
+            isLocked: false, // Admin nunca tiene escenarios bloqueados
+            progressId: '', // No usar progreso en modo admin
+            userInstructions: scenarioInfo.scenario_instructions || null,
+            objectives: scenarioInfo.objectives || '',
+            // Información del perfil
+            profileDescription: scenarioInfo.profile_description,
+            profileKeyFocus: scenarioInfo.profile_key_focus,
+            profileCommunicationStyle: scenarioInfo.profile_communication_style,
+            profilePersonalityTraits: scenarioInfo.profile_personality_traits,
+            // Información de dificultad
+            difficultyLevel: scenarioInfo.difficulty_level,
+            difficultyName: scenarioInfo.difficulty_name,
+            difficultyMood: scenarioInfo.difficulty_mood,
+            difficultyObjectionFrequency: scenarioInfo.difficulty_objection_frequency,
+            difficultyTimePressure: scenarioInfo.difficulty_time_pressure,
+            difficultyInterruptionTendency: scenarioInfo.difficulty_interruption_tendency
+          });
+
+          // NO actualizar questionnaireData aquí para evitar ciclo infinito
+          // El perfil en adminOverride es suficiente para el modo admin
+
+          console.log('✅ [ADMIN MODE] Escenario configurado:', scenarioInfo.scenario_name);
+          return;
+        }
+      }
+
+      // Flujo normal para usuarios no-admin o sin override
+      if (!questionnaireData) return;
+
       // Obtener o crear progreso del usuario
       const progress = await RoleplayService.getOrCreateProgress(userId, questionnaireData.practiceStartProfile);
 
@@ -306,23 +382,35 @@ export function RoleplayPage() {
   const handleSessionStart = async () => {
     console.log('🎯 [RoleplayPage] Iniciando sesión de práctica...');
 
-    if (!userId || !questionnaireData) {
-      console.error('❌ [RoleplayPage] No se puede iniciar sesión sin userId o questionnaireData');
+    // En modo admin, usar adminOverride.profile; en modo normal, usar questionnaireData
+    const profileToUse = (isAdmin && adminOverride)
+      ? adminOverride.profile
+      : questionnaireData?.practiceStartProfile;
+
+    if (!userId || !profileToUse) {
+      console.error('❌ [RoleplayPage] No se puede iniciar sesión sin userId o perfil', {
+        userId,
+        profileToUse,
+        isAdmin,
+        hasAdminOverride: !!adminOverride,
+        hasQuestionnaireData: !!questionnaireData
+      });
       return null;
     }
 
     try {
       console.log('🎯 [RoleplayPage] Creando voice_session con:', {
         p_user_id: userId,
-        p_profile_name: questionnaireData.practiceStartProfile,
-        p_questionnaire_id: questionnaireData.questionnaireId,
+        p_profile_name: profileToUse,
+        p_questionnaire_id: questionnaireData?.questionnaireId || '',
+        isAdminMode: isAdmin && !!adminOverride,
         timestamp: new Date().toISOString()
       });
 
       const sessionId = await RoleplayService.createSession(
         userId,
-        questionnaireData.practiceStartProfile,
-        questionnaireData.questionnaireId
+        profileToUse,
+        questionnaireData?.questionnaireId || ''
       );
 
       if (sessionId && typeof sessionId === 'string') {
@@ -330,7 +418,7 @@ export function RoleplayPage() {
           sessionId,
           sessionIdType: typeof sessionId,
           userId,
-          profile: questionnaireData.practiceStartProfile,
+          profile: profileToUse,
           timestamp: new Date().toISOString()
         });
 
@@ -615,7 +703,7 @@ export function RoleplayPage() {
           // Mostrar resultados
           setSessionResults({
             sessionId: effectiveSessionId,
-            profile: questionnaireData?.practiceStartProfile,
+            profile: getCurrentProfile(),
             scenarioName: currentScenario?.scenarioName,
             objectives: currentScenario?.objectives,
             duration,
@@ -682,7 +770,7 @@ export function RoleplayPage() {
           test: testMode, // Flag para modo de prueba en n8n
           metadata: {
             user_id: userId,
-            profile: questionnaireData?.practiceStartProfile,
+            profile: getCurrentProfile(),
             scenario: currentScenario?.scenarioName,
             scenario_code: currentScenario?.scenarioCode,
             objectives: currentScenario?.objectives,
@@ -818,6 +906,32 @@ export function RoleplayPage() {
     });
   };
 
+  // Handler para cambios de perfil/escenario en modo admin
+  const handleAdminProfileScenarioChange = (
+    profile: 'CEO' | 'CTO' | 'CFO',
+    scenarioCode: string,
+    scenarioName: string
+  ) => {
+    console.log('🔐 [ADMIN] Cambio de perfil/escenario:', { profile, scenarioCode, scenarioName });
+
+    setAdminOverride({
+      profile,
+      scenarioCode,
+      scenarioName
+    });
+
+    // Resetear sesión cuando cambia el escenario
+    setCurrentSessionId(null);
+    setShowResults(false);
+    setSessionResults(null);
+
+    toast({
+      title: "Configuración de Admin",
+      description: `${profile} - ${scenarioName}`,
+      variant: "default"
+    });
+  };
+
   // Si estamos mostrando resultados, mostrar esa pantalla
   if (showResults && sessionResults) {
     return (
@@ -889,47 +1003,56 @@ export function RoleplayPage() {
                 </p>
               </div>
               {isAdmin && (
-                <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setForceN8nEvaluation(!forceN8nEvaluation);
-                      toast({
-                        title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
-                        description: forceN8nEvaluation
-                          ? `Se aplicará validación de ${MIN_USER_MESSAGES} mensajes`
-                          : "Se enviará a n8n sin importar el número de mensajes",
-                        variant: "default"
-                      });
-                    }}
-                    className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      forceN8nEvaluation
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                        : 'bg-white/10 hover:bg-white/20 text-white'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">{forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}</span>
-                    <span className="sm:hidden">{forceN8nEvaluation ? '🔓' : '🔒'}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTestMode(!testMode);
-                      toast({
-                        title: testMode ? "Modo Test Desactivado" : "Modo Test Activado",
-                        description: testMode
-                          ? "Webhook normal (test: false)"
-                          : "Webhook de prueba (test: true)",
-                        variant: "default"
-                      });
-                    }}
-                    className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      testMode
-                        ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                        : 'bg-white/10 hover:bg-white/20 text-white'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">{testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}</span>
-                    <span className="sm:hidden">{testMode ? '🧪' : '🧪'}</span>
-                  </button>
+                <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                  <div className="flex gap-1 sm:gap-2">
+                    <button
+                      onClick={() => {
+                        setForceN8nEvaluation(!forceN8nEvaluation);
+                        toast({
+                          title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
+                          description: forceN8nEvaluation
+                            ? `Se aplicará validación de ${MIN_USER_MESSAGES} mensajes`
+                            : "Se enviará a n8n sin importar el número de mensajes",
+                          variant: "default"
+                        });
+                      }}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        forceN8nEvaluation
+                          ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                          : 'bg-white/10 hover:bg-white/20 text-white'
+                      }`}
+                    >
+                      <span className="hidden sm:inline">{forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}</span>
+                      <span className="sm:hidden">{forceN8nEvaluation ? '🔓' : '🔒'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setTestMode(!testMode);
+                        toast({
+                          title: testMode ? "Modo Test Desactivado" : "Modo Test Activado",
+                          description: testMode
+                            ? "Webhook normal (test: false)"
+                            : "Webhook de prueba (test: true)",
+                          variant: "default"
+                        });
+                      }}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        testMode
+                          ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                          : 'bg-white/10 hover:bg-white/20 text-white'
+                      }`}
+                    >
+                      <span className="hidden sm:inline">{testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}</span>
+                      <span className="sm:hidden">{testMode ? '🧪' : '🧪'}</span>
+                    </button>
+                  </div>
+                  {/* Admin Selector - Solo mostrar si ya se completó el cuestionario */}
+                  {questionnaireData && (
+                    <AdminRoleplaySelector
+                      onProfileScenarioChange={handleAdminProfileScenarioChange}
+                      defaultProfile={questionnaireData.practiceStartProfile}
+                    />
+                  )}
                 </div>
               )}
             </div>

@@ -232,4 +232,47 @@ export class RoleplayService {
 
     return data;
   }
+
+  /**
+   * Get all available scenarios (for admin testing)
+   * @returns Promise with array of all scenarios
+   */
+  static async getAllScenarios(): Promise<unknown[] | null> {
+    const { data, error } = await supabase
+      .schema('maity')
+      .from('voice_scenarios')
+      .select('*')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching all scenarios:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
+   * Get specific profile + scenario configuration for admin testing
+   * @param profileName - Profile name (CEO, CTO, CFO)
+   * @param scenarioCode - Scenario code
+   * @returns Promise with scenario configuration data
+   */
+  static async getProfileScenarioConfig(
+    profileName: string,
+    scenarioCode: string
+  ): Promise<unknown> {
+    const { data, error } = await supabase.rpc('get_admin_scenario_config', {
+      p_profile_name: profileName,
+      p_scenario_code: scenarioCode
+    });
+
+    if (error) {
+      console.error('Error getting profile scenario config:', error);
+      throw error;
+    }
+
+    return data;
+  }
 }

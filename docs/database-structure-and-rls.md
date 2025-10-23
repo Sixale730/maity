@@ -591,6 +591,101 @@ RETURNS JSON
 
 ---
 
+#### public.get_admin_scenario_config
+
+**Purpose:** Gets complete profile + scenario configuration for admin testing. Allows administrators to test any profile and scenario combination without progression restrictions.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.get_admin_scenario_config(
+  p_profile_name TEXT,
+  p_scenario_code TEXT
+)
+RETURNS TABLE(
+  -- Scenario info
+  scenario_id uuid,
+  scenario_name varchar,
+  scenario_code varchar,
+  scenario_order integer,
+  scenario_context text,
+  scenario_skill text,
+  scenario_instructions text,
+  scenario_rules text,
+  scenario_closing text,
+  objectives text,
+  -- Profile info
+  profile_id uuid,
+  profile_name varchar,
+  profile_description text,
+  profile_key_focus text,
+  profile_communication_style text,
+  profile_area text,
+  profile_impact text,
+  profile_personality_traits jsonb,
+  -- Difficulty info
+  difficulty_level integer,
+  difficulty_name varchar,
+  difficulty_mood varchar,
+  difficulty_objection_frequency numeric,
+  difficulty_time_pressure boolean,
+  difficulty_interruption_tendency numeric,
+  min_score_to_pass numeric
+)
+```
+
+**Parameters:**
+- `p_profile_name` - Profile name (CEO, CTO, CFO)
+- `p_scenario_code` - Scenario code (e.g., 'first_visit', 'product_demo')
+
+**Behavior:**
+1. Validates profile exists and is active
+2. Validates scenario exists and is active
+3. Uses first difficulty level (Easy) by default
+4. Returns complete configuration with all profile, scenario, and difficulty data
+5. Raises exceptions if profile or scenario not found
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- `SET search_path TO 'maity', 'public'`
+- Should only be called by administrators for testing purposes
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.get_admin_scenario_config(TEXT, TEXT) TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data, error } = await supabase.rpc('get_admin_scenario_config', {
+  p_profile_name: 'CEO',
+  p_scenario_code: 'first_visit'
+});
+
+// Returns complete configuration:
+// {
+//   scenario_id: 'uuid',
+//   scenario_name: 'Primera Visita',
+//   scenario_code: 'first_visit',
+//   scenario_context: 'Full context...',
+//   scenario_skill: 'escucha activa...',
+//   profile_name: 'CEO',
+//   profile_description: 'Description...',
+//   difficulty_level: 1,
+//   ...
+// }
+```
+
+**Use Cases:**
+- Admin testing of roleplay scenarios
+- Quality assurance of scenario configurations
+- Debugging profile + scenario combinations
+- Testing without affecting user progress
+
+**Related Migration:**
+- `create_get_admin_scenario_config_function.sql`
+
+---
+
 #### maity.otk (One-Time Keys)
 
 **Purpose:** Temporary tokens for Tally form submissions.
@@ -654,6 +749,8 @@ USING (is_active = true)
 GRANT SELECT ON maity.voice_agent_profiles TO authenticated;
 ```
 
+**Note:** This table must be readable by all authenticated users to allow the admin selector and scenario loading to work properly.
+
 **Usage in Roleplay:**
 These fields are sent to configure the AI agent:
 - `profile` → `name`
@@ -704,6 +801,17 @@ CREATE TABLE maity.voice_scenarios (
 USING (is_active = true)
 ```
 
+**GRANT Permissions:**
+```sql
+-- Read-only for authenticated users
+GRANT SELECT ON maity.voice_scenarios TO authenticated;
+```
+
+**Note:** This table must be readable by all authenticated users to allow:
+- Admin selector to list all available scenarios
+- Users to view scenario information
+- Proper scenario loading in roleplay sessions
+
 **Usage in Roleplay:**
 These fields are sent to configure the practice session:
 - `scenario` → `name`
@@ -711,6 +819,9 @@ These fields are sent to configure the practice session:
 - `scenario_context` → `context`
 - `scenario_instructions` → `instructions`
 - Additional: `rules`, `closing`, `objectives`
+
+**Related Migrations:**
+- `grant_permissions_voice_scenarios.sql` - Grants SELECT permissions to authenticated role
 
 ---
 

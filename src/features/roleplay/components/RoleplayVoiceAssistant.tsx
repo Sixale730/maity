@@ -4,6 +4,7 @@ import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-re
 import { Conversation } from '@elevenlabs/client';
 import { ParticleSphere } from '@/features/coach/components/ParticleSphere';
 import { MAITY_COLORS } from '@maity/shared';
+import { env } from '@/lib/env';
 
 interface RoleplayVoiceAssistantProps {
   selectedProfile?: 'CEO' | 'CTO' | 'CFO';
@@ -175,9 +176,9 @@ export function RoleplayVoiceAssistant({
   // Get signed URL - USANDO VARIABLES DE TEST
   const getSignedUrl = async (): Promise<string | null> => {
     try {
-      const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY_TEST;
+      const apiKey = env.elevenLabsApiKey;
       // Use custom agent ID if provided, otherwise use default roleplay agent
-      const agentId = customAgentId || import.meta.env.VITE_ELEVENLABS_AGENT_ID_TEST;
+      const agentId = customAgentId || env.elevenLabsAgentId;
 
       if (!apiKey || !agentId) {
         throw new Error('Configuración de prueba incompleta');
