@@ -480,3 +480,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 - Cada sección debe tener su propia ruta
 - Memoriza proceso para agregar nuevas rutas
 - Cuando vayamos a implementar algo que tenga que ver con la base de datos c:\maity\docs\database-structure-and-rls.md analiza ese documento antes de realizar la implementacion y basarte en lo que ya hay antes de las modificaciones
+- siempre que hagas modificaciones de cualquier cosa que tenga que ver con la db actualiza el archivo c:\maity\docs\database-structure-and-rls.md con los cambios para que siempre este actualizado
