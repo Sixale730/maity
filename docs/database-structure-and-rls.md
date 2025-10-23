@@ -1,7 +1,7 @@
 # Database Structure & RLS Policies Reference
 
 **Last Updated:** October 23, 2025
-**Version:** 1.1
+**Version:** 1.2
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 ---
@@ -626,11 +626,21 @@ CREATE TABLE maity.voice_agent_profiles (
   key_focus text,
   communication_style text,
   personality_traits jsonb,
+  area text, -- Role area (e.g., 'Finanzas', 'Tecnología')
+  impact text, -- Role impact (e.g., 'impacto financiero', 'decisiones técnicas')
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 ```
+
+**Key Columns:**
+- `name` - Profile name (CEO, CTO, CFO)
+- `communication_style` - Communication style of the profile
+- `area` - Area of responsibility (e.g., "Finanzas", "Tecnología")
+- `impact` - Impact of the role (e.g., "impacto financiero", "decisiones técnicas")
+- `key_focus` - Key focus areas
+- `personality_traits` - JSONB with personality characteristics
 
 **RLS Policies:**
 ```sql
@@ -643,6 +653,13 @@ USING (is_active = true)
 -- Read-only for authenticated users
 GRANT SELECT ON maity.voice_agent_profiles TO authenticated;
 ```
+
+**Usage in Roleplay:**
+These fields are sent to configure the AI agent:
+- `profile` → `name`
+- `style` → `communication_style`
+- `role_area` → `area`
+- `role_impact` → `impact`
 
 ---
 
@@ -657,8 +674,12 @@ CREATE TABLE maity.voice_scenarios (
   name varchar NOT NULL,
   code varchar UNIQUE NOT NULL, -- 'first_visit', 'product_demo'
   order_index integer NOT NULL,
-  base_context text NOT NULL,
-  objectives text, -- JSON format
+  context text NOT NULL, -- Scenario context (renamed from base_context)
+  objectives text NOT NULL, -- Scenario objectives (JSON format)
+  skill text, -- Main skill practiced (e.g., 'escucha activa y descubrimiento de necesidades')
+  instructions text, -- Specific instructions for the scenario
+  rules text, -- Rules for the scenario
+  closing text, -- Closing message/script for the scenario
   estimated_duration integer DEFAULT 300, -- seconds
   category varchar, -- 'discovery', 'presentation', 'negotiation'
   is_active boolean DEFAULT true,
@@ -667,11 +688,29 @@ CREATE TABLE maity.voice_scenarios (
 );
 ```
 
+**Key Columns:**
+- `name` - Scenario name (e.g., "Primera Visita", "Demostración de Producto")
+- `code` - Unique code identifier
+- `context` - Full context description for the scenario
+- `skill` - Main skill being practiced
+- `instructions` - Specific instructions for the user
+- `rules` - Rules that govern the scenario
+- `closing` - Closing script or message
+- `objectives` - Learning objectives (text/JSON format)
+
 **RLS Policies:**
 ```sql
 -- Public read access to active scenarios
 USING (is_active = true)
 ```
+
+**Usage in Roleplay:**
+These fields are sent to configure the practice session:
+- `scenario` → `name`
+- `scenario_skill` → `skill`
+- `scenario_context` → `context`
+- `scenario_instructions` → `instructions`
+- Additional: `rules`, `closing`, `objectives`
 
 ---
 
