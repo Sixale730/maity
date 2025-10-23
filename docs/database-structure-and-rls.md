@@ -1,7 +1,7 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** October 22, 2025
-**Version:** 1.0
+**Last Updated:** October 23, 2025
+**Version:** 1.1
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 ---
@@ -14,6 +14,7 @@
    - [Authentication Flow](#authentication-flow)
 3. [Database Tables](#database-tables)
    - [Authentication & Users](#authentication--users)
+   - [RPC Functions (Stored Procedures)](#rpc-functions-stored-procedures)
    - [Voice/Roleplay System](#voiceroleplay-system)
    - [Evaluations & Interviews](#evaluations--interviews)
    - [Forms & Documents](#forms--documents)
@@ -375,6 +376,218 @@ CREATE TABLE maity.invite_links (
 ```
 
 **Note:** RLS policies TBD based on manager invite workflow.
+
+---
+
+### RPC Functions (Stored Procedures)
+
+#### public.create_company
+
+**Purpose:** Creates a new company with automatic generation of invite tokens and optional autojoin configuration.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.create_company(
+  p_company_name text,
+  p_domain text DEFAULT NULL,
+  p_auto_join_enabled boolean DEFAULT false
+)
+RETURNS TABLE(
+  id uuid,
+  name text,
+  slug text,
+  plan text,
+  timezone text,
+  is_active boolean,
+  created_at timestamp with time zone,
+  domain text,
+  auto_join_enabled boolean
+)
+```
+
+**Parameters:**
+- `p_company_name` - Name of the company (required)
+- `p_domain` - Email domain for autojoin (optional, e.g., "acme.com")
+- `p_auto_join_enabled` - Enable autojoin for the domain (default: false)
+
+**Behavior:**
+1. Generates a URL-friendly slug from company name
+2. Validates domain format (no @ symbol, no spaces, lowercase)
+3. Creates company record with autojoin settings
+4. Generates two invite tokens (USER and MANAGER)
+5. Creates two invite_links records
+6. Returns complete company data including autojoin fields
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- `SET search_path TO 'maity', 'public'` - Prevents SQL injection
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.create_company(text, text, boolean) TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data, error } = await supabase.rpc('create_company', {
+  p_company_name: 'Acme Corp',
+  p_domain: 'acme.com',
+  p_auto_join_enabled: true
+});
+
+// Returns:
+// {
+//   id: 'uuid',
+//   name: 'Acme Corp',
+//   slug: 'acme-corp',
+//   domain: 'acme.com',
+//   auto_join_enabled: true,
+//   ...
+// }
+```
+
+**Validations:**
+- Domain cannot contain @ or spaces
+- Domain is automatically converted to lowercase
+- If no domain provided, auto_join_enabled is forced to false
+- Raises exception if domain format is invalid
+
+**Related Migration:**
+- `update_create_company_with_autojoin_support.sql`
+
+---
+
+#### public.get_companies_with_invite_tokens
+
+**Purpose:** Returns all companies with their invite tokens and autojoin configuration.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.get_companies_with_invite_tokens()
+RETURNS TABLE (
+  id uuid,
+  name text,
+  slug text,
+  plan text,
+  timezone text,
+  is_active boolean,
+  created_at timestamp with time zone,
+  domain text,
+  auto_join_enabled boolean,
+  user_invite_token text,
+  manager_invite_token text
+)
+```
+
+**Behavior:**
+1. Joins `maity.companies` with `maity.invite_links`
+2. Aggregates invite tokens by audience type (USER, MANAGER)
+3. Returns autojoin configuration fields
+4. Orders by creation date (newest first)
+
+**Security:**
+- `SECURITY DEFINER` - Admin-level access required
+- `SET search_path = maity, public`
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.get_companies_with_invite_tokens() TO authenticated;
+```
+
+**RLS Note:** Access controlled by policies on `maity.companies` table. Only platform admins should be able to see all companies.
+
+**Example Usage (TypeScript):**
+```typescript
+const { data: companies, error } = await supabase.rpc('get_companies_with_invite_tokens');
+
+// Returns array:
+// [
+//   {
+//     id: 'uuid',
+//     name: 'Acme Corp',
+//     slug: 'acme-corp',
+//     domain: 'acme.com',
+//     auto_join_enabled: true,
+//     user_invite_token: 'token123...',
+//     manager_invite_token: 'token456...',
+//     ...
+//   }
+// ]
+```
+
+**Use Cases:**
+- Admin dashboard displaying all companies
+- Company management interface
+- Invite link generation for users and managers
+
+**Related Migration:**
+- `update_get_companies_with_invite_tokens_add_autojoin.sql`
+
+---
+
+#### public.try_autojoin_by_domain
+
+**Purpose:** Attempts to automatically assign a user to a company based on their email domain.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.try_autojoin_by_domain(p_email TEXT)
+RETURNS JSON
+```
+
+**Parameters:**
+- `p_email` - User's email address
+
+**Returns JSON with:**
+```json
+{
+  "success": true/false,
+  "error": "ERROR_CODE",
+  "message": "Human-readable message",
+  "company_id": "uuid",
+  "company_name": "Company Name",
+  "company_slug": "company-slug",
+  "role_assigned": "user",
+  "method": "autojoin",
+  "domain": "domain.com"
+}
+```
+
+**Behavior:**
+1. Validates user is authenticated
+2. Extracts domain from email (everything after @)
+3. Checks if user already has a company (blocks if yes)
+4. Looks for active company with matching domain and autojoin enabled
+5. If match found:
+   - Assigns user to company
+   - Sets user status to ACTIVE
+   - Creates user_role record with 'user' role
+   - Logs action in user_company_history
+6. Returns success/failure with details
+
+**Error Codes:**
+- `UNAUTHORIZED` - User not authenticated
+- `INVALID_EMAIL` - Email is null or empty
+- `INVALID_EMAIL_FORMAT` - Cannot extract domain
+- `USER_NOT_FOUND` - User doesn't exist in maity.users
+- `USER_ALREADY_HAS_COMPANY` - User already assigned to company
+- `NO_MATCHING_DOMAIN` - No company found with autojoin for domain
+- `UNEXPECTED_ERROR` - Database or runtime error
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- Only assigns 'user' role (not admin/manager)
+- Requires user to be authenticated
+- Prevents transfers (blocks if user has company)
+
+**Related Tables:**
+- `maity.users`
+- `maity.companies` (domain, auto_join_enabled)
+- `maity.user_roles`
+- `maity.user_company_history`
+
+**Related Migration:**
+- `20251021_create_try_autojoin_by_domain_function.sql`
 
 ---
 
