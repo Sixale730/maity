@@ -14,6 +14,7 @@ import LoadingFallback from "@/components/LoadingFallback";
 import { IndexPage } from "./features/dashboard";
 import { AuthPage, AuthCallbackPage } from "./features/auth";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
 
 // Lazy-loaded routes (loaded on demand)
 const RegistrationPage = lazy(() => import("./features/auth").then(m => ({ default: m.RegistrationPage })));
@@ -36,6 +37,10 @@ const RoleplayPage = lazy(() => import("./features/roleplay").then(m => ({ defau
 const SessionResultsPage = lazy(() => import("./features/roleplay").then(m => ({ default: m.SessionResultsPage })));
 const SessionsPage = lazy(() => import("./features/roleplay").then(m => ({ default: m.SessionsPage })));
 const DemoTrainingPage = lazy(() => import("./features/roleplay").then(m => ({ default: m.DemoTrainingPage })));
+
+const TechWeekPage = lazy(() => import("./features/tech-week").then(m => ({ default: m.TechWeekPage })));
+const TechWeekSessionsPage = lazy(() => import("./features/tech-week").then(m => ({ default: m.TechWeekSessionsPage })));
+const TechWeekResultsPage = lazy(() => import("./features/tech-week").then(m => ({ default: m.TechWeekResultsPage })));
 
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
@@ -104,6 +109,11 @@ const App = () => (
                       <Route path="/logros" element={<AchievementsPage />} />
                       <Route path="/demo" element={<DemoPage />} />
                       <Route path="/demo-training" element={<DemoTrainingPage />} />
+
+                      {/* Tech Week Routes (Admin Only) */}
+                      <Route path="/tech-week" element={<AdminRoute><TechWeekPage /></AdminRoute>} />
+                      <Route path="/tech-week/sessions" element={<AdminRoute><TechWeekSessionsPage /></AdminRoute>} />
+                      <Route path="/tech-week/sessions/:sessionId" element={<AdminRoute><TechWeekResultsPage /></AdminRoute>} />
                     </Route>
                   </Route>
 

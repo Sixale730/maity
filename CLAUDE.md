@@ -372,6 +372,34 @@ Environment variables:
 - `VITE_N8N_WEBHOOK_URL`, `N8N_BACKEND_SECRET`
 - `VITE_ELEVENLABS_API_KEY_TEST`, `VITE_ELEVENLABS_AGENT_ID_TEST`
 
+### Tech Week - Admin Practice Section
+Tech Week is a specialized voice practice feature for admin-only testing and demonstration.
+
+**Key Features:**
+- Simplified flow (no questionnaire, single scenario)
+- Pink/rose color theme for visual distinction
+- Admin-only access via `AdminRoute` component
+- Uses dedicated agent ID: `agent_3301k8nsyp5jeqfb84n0y0p5jd2g`
+
+**Architecture:**
+- Location: `src/features/tech-week/`
+- Routes: `/tech-week`, `/tech-week/sessions`, `/tech-week/sessions/:sessionId`
+- Database: `voice_agent_profiles` (Tech Week), `voice_scenarios` (tech_week_general)
+- Agent ID: `VITE_ELEVENLABS_TECH_WEEK_AGENT_ID`
+
+**Components:**
+- `TechWeekPage` - Main practice page
+- `TechWeekVoiceAssistant` - Voice interaction (pink theme)
+- `TechWeekParticleSphere` - Animated orb with pink colors
+- `TechWeekInstructions` - Scenario instructions
+- `TechWeekResultsPage` - Session results
+- `TechWeekSessionsPage` - Session history
+
+**Access Control:**
+- Protected by `AdminRoute` component
+- Only users with `admin` role can access
+- Automatically redirects non-admins to dashboard
+
 ### Security
 - HttpOnly cookies for invites
 - CORS validation on all API endpoints

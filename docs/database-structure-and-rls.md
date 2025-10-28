@@ -710,7 +710,7 @@ CREATE TABLE maity.otk (
 
 #### maity.voice_agent_profiles
 
-**Purpose:** AI agent profiles for roleplay practice (CEO, CTO, CFO).
+**Purpose:** AI agent profiles for roleplay practice (CEO, CTO, CFO) and specialized features (Tech Week).
 
 **Schema:**
 ```sql
@@ -822,6 +822,62 @@ These fields are sent to configure the practice session:
 
 **Related Migrations:**
 - `grant_permissions_voice_scenarios.sql` - Grants SELECT permissions to authenticated role
+- `20251028102938_create_tech_week_profile_and_scenario.sql` - Creates Tech Week profile and scenario
+
+---
+
+#### Tech Week - Specialized Voice Practice
+
+**Purpose:** Admin-only voice practice feature for Tech Week events and demonstrations.
+
+**Key Components:**
+- Profile: `Tech Week` in `voice_agent_profiles`
+- Scenario: `tech_week_general` in `voice_scenarios`
+- ElevenLabs Agent ID: `agent_3301k8nsyp5jeqfb84n0y0p5jd2g`
+
+**Database Schema:**
+```sql
+-- Profile entry
+INSERT INTO maity.voice_agent_profiles (name, description, key_focus, communication_style)
+VALUES (
+  'Tech Week',
+  'Agente especializado para sesiones de Tech Week - eventos de tecnología y práctica intensiva.',
+  'Evaluación técnica, presentación de proyectos, y práctica de habilidades de comunicación en contextos tecnológicos.',
+  'Profesional y técnico, con enfoque en innovación y colaboración.'
+);
+
+-- Scenario entry
+INSERT INTO maity.voice_scenarios (name, code, order_index, context, instructions, objectives)
+VALUES (
+  'Tech Week - Sesión General',
+  'tech_week_general',
+  1,
+  'Estás participando en un evento de Tech Week...',
+  'Durante esta sesión, el agente Tech Week interactuará contigo...',
+  '["Comunicar ideas técnicas de forma clara", "Responder preguntas con confianza", "Demostrar profesionalismo"]'
+);
+```
+
+**Access Control:**
+- Routes protected by `AdminRoute` component
+- Only users with `admin` role can access
+- Frontend routes: `/tech-week`, `/tech-week/sessions`, `/tech-week/sessions/:sessionId`
+
+**Features:**
+- Simplified flow (no questionnaire)
+- Single scenario configuration
+- Pink/rose color theme (visual distinction)
+- Full session persistence and evaluation
+- Uses same `voice_sessions` table as roleplay
+- n8n evaluation workflow integration
+
+**Environment Variables:**
+- `VITE_ELEVENLABS_TECH_WEEK_AGENT_ID` - Tech Week specific agent ID
+
+**Related Files:**
+- `src/features/tech-week/` - Feature implementation
+- `src/components/AdminRoute.tsx` - Admin protection
+- Migration: `20251028102938_create_tech_week_profile_and_scenario.sql`
 
 ---
 

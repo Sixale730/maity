@@ -60,6 +60,9 @@ export * from './domain/users/hooks/useOnboardingStatus';
 export { RoleplayService } from './domain/roleplay/roleplay.service';
 export * from './domain/roleplay/roleplay.types';
 
+// ===== Domain: Tech Week =====
+export { TechWeekService, type TechWeekSessionUpdate } from './domain/tech-week';
+
 // ===== Domain: Coach =====
 export { CoachService } from './domain/coach/coach.service';
 export * from './domain/coach/coach.types';

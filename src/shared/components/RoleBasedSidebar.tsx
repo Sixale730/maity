@@ -16,7 +16,8 @@ import {
   Map,
   Play,
   Mic,
-  Briefcase
+  Briefcase,
+  Zap
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@maity/shared";
@@ -50,6 +51,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.coach", url: "/coach", icon: MessageCircle },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "Tech Week", url: "/tech-week", icon: Zap },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.demo", url: "/demo", icon: Play },
       { title: "nav.demo_training", url: "/demo-training", icon: Mic },

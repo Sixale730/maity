@@ -103,14 +103,40 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
-    // Fetch evaluation from database
-    console.log('[evaluation-complete] 🔍 Fetching evaluation...');
-    const { data: evaluation, error: fetchError } = await supabase
+    // Check if this is a Tech Week evaluation first
+    console.log('[evaluation-complete] 🔍 Checking if Tech Week evaluation...', {
+      request_id,
+      timestamp: new Date().toISOString()
+    });
+    const { data: techWeekEvaluation, error: techWeekFetchError } = await supabase
       .schema('maity')
-      .from('evaluations')
-      .select('request_id, status, user_id, session_id')
+      .from('tech_week_evaluations')
+      .select('request_id, status, user_id, session_id, created_at')
       .eq('request_id', request_id)
       .maybeSingle();
+
+    const isTechWeek = !!techWeekEvaluation && !techWeekFetchError;
+
+    if (isTechWeek) {
+      console.log('[evaluation-complete] ✨ Tech Week evaluation detected', {
+        request_id,
+        status: techWeekEvaluation.status,
+        created_at: techWeekEvaluation.created_at
+      });
+    } else if (techWeekFetchError) {
+      console.warn('[evaluation-complete] ⚠️ Error checking Tech Week table:', techWeekFetchError);
+    }
+
+    // Fetch evaluation from appropriate table
+    console.log('[evaluation-complete] 🔍 Fetching evaluation...');
+    const { data: evaluation, error: fetchError } = isTechWeek
+      ? { data: techWeekEvaluation, error: techWeekFetchError }
+      : await supabase
+          .schema('maity')
+          .from('evaluations')
+          .select('request_id, status, user_id, session_id')
+          .eq('request_id', request_id)
+          .maybeSingle();
 
     if (fetchError) {
       console.error('[evaluation-complete] ❌ Database fetch error:', fetchError);
@@ -118,7 +144,27 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     }
 
     if (!evaluation) {
-      console.error('[evaluation-complete] ❌ Evaluation not found:', request_id);
+      // Enhanced diagnostic: Check both tables when not found
+      console.error('[evaluation-complete] ❌ Evaluation not found in primary table');
+
+      // Check if it exists in the OTHER table (for debugging)
+      const { data: otherTableCheck } = isTechWeek
+        ? await supabase.schema('maity').from('evaluations').select('request_id').eq('request_id', request_id).maybeSingle()
+        : await supabase.schema('maity').from('tech_week_evaluations').select('request_id').eq('request_id', request_id).maybeSingle();
+
+      console.error('[evaluation-complete] ❌ Evaluation not found - Diagnostic info:', {
+        request_id,
+        checked_primary_table: isTechWeek ? 'tech_week_evaluations' : 'evaluations',
+        found_in_other_table: !!otherTableCheck,
+        other_table: isTechWeek ? 'evaluations' : 'tech_week_evaluations',
+        possible_causes: [
+          'Evaluation was never created in database',
+          'Frontend sent webhook before evaluation commit',
+          'RPC function failed silently',
+          'Wrong table being queried'
+        ]
+      });
+
       throw ApiError.notFound('Evaluation');
     }
 
@@ -127,6 +173,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       currentStatus: evaluation.status,
       user_id: evaluation.user_id,
       session_id: evaluation.session_id || 'none',
+      type: isTechWeek ? 'tech-week' : 'roleplay',
     });
 
     // Idempotency check: only allow updates from pending or processing
@@ -184,40 +231,46 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       threshold: 70,
     });
 
-    // Update evaluation record
+    // Update evaluation record in appropriate table
     const evaluationUpdate = {
       status: status || 'complete',
+      score: finalScore,
+      passed: passed,
       result: result || null,
       error_message: errorMsg || null,
       updated_at: new Date().toISOString(),
     };
 
-    console.log('[evaluation-complete] 💾 Updating evaluation...');
+    const tableName = isTechWeek ? 'tech_week_evaluations' : 'evaluations';
+
+    console.log(`[evaluation-complete] 💾 Updating ${tableName}...`);
     const { data: updatedEvaluation, error: updateError } = await supabase
       .schema('maity')
-      .from('evaluations')
+      .from(tableName)
       .update(evaluationUpdate)
       .eq('request_id', request_id)
       .select()
       .single();
 
     if (updateError) {
-      console.error('[evaluation-complete] ❌ Failed to update evaluation:', updateError);
-      throw ApiError.database('Failed to update evaluation', updateError);
+      console.error(`[evaluation-complete] ❌ Failed to update ${tableName}:`, updateError);
+      throw ApiError.database(`Failed to update ${tableName}`, updateError);
     }
 
-    console.log('[evaluation-complete] ✅ Evaluation updated successfully');
+    console.log(`[evaluation-complete] ✅ ${tableName} updated successfully`);
 
-    // Update associated voice_session if it exists
+    // Update associated session if it exists
     if (evaluation.session_id) {
+      const sessionTableName = isTechWeek ? 'tech_week_sessions' : 'voice_sessions';
+
       console.log(
-        '[evaluation-complete] 🔄 Updating associated voice_session:',
+        `[evaluation-complete] 🔄 Updating associated ${sessionTableName}:`,
         evaluation.session_id
       );
 
       const { error: sessionUpdateError } = await supabase
         .schema('maity')
-        .from('voice_sessions')
+        .from(sessionTableName)
         .update({
           score: finalScore,
           passed: passed,
@@ -230,12 +283,12 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
       if (sessionUpdateError) {
         console.error(
-          '[evaluation-complete] ⚠️ Failed to update voice_session:',
+          `[evaluation-complete] ⚠️ Failed to update ${sessionTableName}:`,
           sessionUpdateError
         );
         // Don't throw - evaluation is already updated
       } else {
-        console.log('[evaluation-complete] ✅ Voice session updated successfully', {
+        console.log(`[evaluation-complete] ✅ ${sessionTableName} updated successfully`, {
           session_id: evaluation.session_id,
           score: finalScore,
           passed,
