@@ -33,7 +33,7 @@ export class RoleplayService {
     const { data, error } = await supabase.rpc('create_voice_session', {
       p_user_id: userId,
       p_profile_name: profileName,
-      p_questionnaire_id: questionnaireId || ''
+      p_questionnaire_id: questionnaireId || null
     });
 
     if (error) {
