@@ -232,14 +232,24 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     });
 
     // Update evaluation record in appropriate table
-    const evaluationUpdate = {
-      status: status || 'complete',
-      score: finalScore,
-      passed: passed,
-      result: result || null,
-      error_message: errorMsg || null,
-      updated_at: new Date().toISOString(),
-    };
+    // Tech Week evaluations table has score/passed columns, but roleplay evaluations table does not
+    const evaluationUpdate = isTechWeek
+      ? {
+          // Tech Week: includes score and passed columns
+          status: status || 'complete',
+          score: finalScore,
+          passed: passed,
+          result: result || null,
+          error_message: errorMsg || null,
+          updated_at: new Date().toISOString(),
+        }
+      : {
+          // Roleplay: only has result, no score/passed columns
+          status: status || 'complete',
+          result: result || null,
+          error_message: errorMsg || null,
+          updated_at: new Date().toISOString(),
+        };
 
     const tableName = isTechWeek ? 'tech_week_evaluations' : 'evaluations';
 
@@ -303,10 +313,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       evaluation: {
         request_id: updatedEvaluation.request_id,
         status: updatedEvaluation.status,
-        score: updatedEvaluation.score,
+        score: finalScore,
         passed,
         updated_at: updatedEvaluation.updated_at,
-        completed_at: updatedEvaluation.completed_at,
       },
     });
   } catch (error) {
