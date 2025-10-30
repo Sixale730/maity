@@ -133,22 +133,50 @@ export function SessionResults({
       : 0;
   }, [transcript]);
 
+  // Calculate dimension scores from Evaluacion structure (real data from n8n)
+  const calculateMainDimensionScore = (dimension: any): number | null => {
+    if (!dimension) return null;
+    const scores: number[] = [];
+
+    Object.entries(dimension).forEach(([key, value]) => {
+      // Skip non-score fields
+      if (key === 'Puntuacion_Total' || key === 'Comentarios') return;
+
+      // Convert string to number if needed (scores come as "1"-"10" from n8n)
+      const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+      if (!isNaN(numValue)) {
+        scores.push(numValue * 10); // Convert 1-10 scale to 0-100
+      }
+    });
+
+    if (scores.length === 0) return null;
+    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+  };
+
   // Usar datos reales de la evaluación si están disponibles
   // Nueva estructura: dimension_scores (escala 0-100)
-  // Si no hay datos y la sesión está completa, mostrar valores de ejemplo
   const hasEvaluation = evaluation && (
     evaluation.dimension_scores ||
     evaluation.clarity ||
     evaluation.structure ||
     evaluation.connection ||
-    evaluation.influence
+    evaluation.influence ||
+    evaluation.Evaluacion
   );
 
   const metrics = {
-    clarity: evaluation?.dimension_scores?.clarity ?? evaluation?.clarity ?? (!isProcessing && !hasEvaluation ? 75 : null),
-    structure: evaluation?.dimension_scores?.structure ?? evaluation?.structure ?? (!isProcessing && !hasEvaluation ? 80 : null),
-    connection: evaluation?.dimension_scores?.connection ?? evaluation?.connection ?? (!isProcessing && !hasEvaluation ? 70 : null),
-    influence: evaluation?.dimension_scores?.influence ?? evaluation?.influence ?? (!isProcessing && !hasEvaluation ? 72 : null)
+    clarity: evaluation?.dimension_scores?.clarity ??
+             evaluation?.clarity ??
+             calculateMainDimensionScore(evaluation?.Evaluacion?.Claridad),
+    structure: evaluation?.dimension_scores?.structure ??
+               evaluation?.structure ??
+               calculateMainDimensionScore(evaluation?.Evaluacion?.Estructura),
+    connection: evaluation?.dimension_scores?.connection ??
+                evaluation?.connection ??
+                calculateMainDimensionScore(evaluation?.Evaluacion?.Alineacion_Emocional),
+    influence: evaluation?.dimension_scores?.influence ??
+               evaluation?.influence ??
+               calculateMainDimensionScore(evaluation?.Evaluacion?.Influencia)
   };
 
   // Calcular score desde las métricas si no viene explícito
