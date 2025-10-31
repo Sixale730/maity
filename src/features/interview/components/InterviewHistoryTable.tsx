@@ -116,7 +116,7 @@ export function InterviewHistoryTable({ sessions, isLoading }: InterviewHistoryT
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate(`/primera-entrevista/resultados/${session.session_id}`)}
+                  onClick={() => navigate(`/primera-entrevista/sesion/${session.session_id}`)}
                   disabled={!session.evaluation_status || session.evaluation_status === 'pending'}
                 >
                   <Eye className="h-4 w-4 mr-2" />

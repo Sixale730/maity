@@ -27,6 +27,8 @@ export const translations = {
     'nav.my_team': 'Mi Equipo',
     'nav.plan': 'Plan',
     'nav.achievements': 'Logros',
+    'nav.first_interview': 'Mi Primera Entrevista',
+    'nav.interview_history': 'Historial de Entrevistas',
 
     // Hero Section
     'hero.badge': 'IA · Mentoría · Crecimiento Diario',
@@ -133,6 +135,8 @@ export const translations = {
     'nav.my_team': 'My Team',
     'nav.plan': 'Plan',
     'nav.achievements': 'Achievements',
+    'nav.first_interview': 'My First Interview',
+    'nav.interview_history': 'Interview History',
 
     // Hero Section
     'hero.badge': 'AI · Mentoring · Daily Growth',

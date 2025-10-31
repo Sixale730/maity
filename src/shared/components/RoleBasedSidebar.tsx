@@ -53,6 +53,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
       { title: "Tech Week", url: "/tech-week", icon: Zap },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
+      { title: "nav.interview_history", url: "/primera-entrevista/historial", icon: History },
       { title: "nav.demo", url: "/demo", icon: Play },
       { title: "nav.demo_training", url: "/demo-training", icon: Mic },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
