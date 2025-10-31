@@ -46,6 +46,8 @@ const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
 
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
+const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
+const InterviewResultsPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewResultsPage })));
 
 const OrganizationsPage = lazy(() => import("./features/organizations").then(m => ({ default: m.OrganizationsPage })));
 const TeamPage = lazy(() => import("./features/organizations").then(m => ({ default: m.TeamPage })));
@@ -114,6 +116,10 @@ const App = () => (
                       <Route path="/tech-week" element={<AdminRoute><TechWeekPage /></AdminRoute>} />
                       <Route path="/tech-week/sessions" element={<AdminRoute><TechWeekSessionsPage /></AdminRoute>} />
                       <Route path="/tech-week/sessions/:sessionId" element={<AdminRoute><TechWeekResultsPage /></AdminRoute>} />
+
+                      {/* Interview Routes (Admin Only) */}
+                      <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />
+                      <Route path="/primera-entrevista/resultados/:sessionId" element={<AdminRoute><InterviewResultsPage /></AdminRoute>} />
                     </Route>
                   </Route>
 

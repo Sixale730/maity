@@ -1,7 +1,7 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** October 23, 2025
-**Version:** 1.2
+**Last Updated:** October 31, 2025
+**Version:** 1.3
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 ---
@@ -1285,10 +1285,13 @@ CREATE TABLE maity.interview_sessions (
   score integer CHECK (score >= 0 AND score <= 100),
   processed_feedback jsonb,
   status text DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed', 'cancelled')),
+  evaluation_id uuid REFERENCES maity.interview_evaluations(request_id) ON DELETE SET NULL,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 ```
+
+**Note:** The `evaluation_id` field links to `interview_evaluations.request_id` to track the analysis status.
 
 **RLS Policies:**
 ```sql
@@ -1357,6 +1360,124 @@ const { data: session } = await supabase
   .select('id')
   .single();
 ```
+
+---
+
+#### maity.interview_evaluations
+
+**Purpose:** AI-generated analysis of interview sessions (processed via n8n).
+
+**Schema:**
+```sql
+CREATE TABLE maity.interview_evaluations (
+  request_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id uuid REFERENCES maity.interview_sessions(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid REFERENCES maity.users(id) ON DELETE CASCADE NOT NULL,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'complete', 'error')),
+  analysis_text text,
+  interviewee_name text,
+  error_message text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+```
+
+**Key Relationships:**
+- `request_id`: Primary key used for n8n workflow tracking
+- `session_id`: Links to `interview_sessions.id`
+- `user_id`: References `maity.users.id` (not auth_id!)
+- `status`: Workflow state (pending → processing → complete/error)
+- `analysis_text`: AI-generated narrative analysis from n8n
+- `interviewee_name`: User name extracted from interview transcript
+
+**RLS Policies:**
+```sql
+-- Admins can view all interview evaluations
+USING (
+  EXISTS (
+    SELECT 1 FROM maity.user_roles ur
+    JOIN maity.users u ON u.id = ur.user_id
+    WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+  )
+)
+
+-- Users can view their own interview evaluations
+USING (
+  user_id IN (
+    SELECT id FROM maity.users WHERE auth_id = auth.uid()
+  )
+)
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT ON maity.interview_evaluations TO authenticated;
+-- Note: INSERT/UPDATE handled via RPC functions or service role (n8n webhook)
+```
+
+**RPC Functions:**
+```sql
+-- Create interview evaluation (returns request_id for n8n tracking)
+public.create_interview_evaluation(p_session_id UUID, p_user_id UUID) RETURNS UUID
+
+-- Get interview sessions history (admin sees all, users see own)
+public.get_interview_sessions_history(p_user_id UUID DEFAULT NULL) RETURNS TABLE (
+  session_id UUID,
+  user_id UUID,
+  user_name TEXT,
+  interviewee_name TEXT,
+  started_at TIMESTAMPTZ,
+  ended_at TIMESTAMPTZ,
+  duration_seconds INTEGER,
+  status TEXT,
+  evaluation_status TEXT,
+  analysis_preview TEXT,
+  created_at TIMESTAMPTZ
+)
+```
+
+**Example Usage:**
+```typescript
+// Create evaluation after session ends
+const requestId = await InterviewService.createEvaluation(sessionId, userId);
+
+// Send transcript to n8n for analysis
+const webhookUrl = env.n8nInterviewWebhookUrl;
+await fetch(webhookUrl, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    request_id: requestId,
+    session_id: sessionId,
+    transcript: transcript,
+    metadata: {
+      user_id: userId,
+      user_name: userName,
+      duration_seconds: duration,
+    }
+  })
+});
+
+// Monitor evaluation status with realtime hook
+const { evaluation, isLoading } = useInterviewEvaluationRealtime({
+  requestId,
+  onComplete: (analysis) => {
+    console.log('Analysis completed:', analysis);
+  }
+});
+```
+
+**Workflow:**
+1. Frontend creates evaluation record (status='pending')
+2. Frontend sends transcript to n8n webhook
+3. n8n processes with LLM
+4. n8n calls `/api/interview-analysis-complete` with analysis
+5. Backend updates evaluation (status='complete', analysis_text)
+6. Frontend receives realtime update
+
+**API Endpoint:**
+- `/api/interview-analysis-complete` - Receives analysis from n8n
+- Webhook URL: https://aca-maity.lemonglacier-45d07388.eastus2.azurecontainerapps.io/webhook/analysis
 
 ---
 

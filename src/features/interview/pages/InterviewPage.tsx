@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
-import { supabase, AuthService } from '@maity/shared';
+import { supabase, AuthService, InterviewService } from '@maity/shared';
 import { env } from '@/lib/env';
 import { useToast } from '@/ui/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
-import { Briefcase, CheckCircle2 } from 'lucide-react';
+import { Briefcase, CheckCircle2, Loader2 } from 'lucide-react';
 
 export function InterviewPage() {
   const { toast } = useToast();
@@ -14,6 +14,7 @@ export function InterviewPage() {
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isProcessingAnalysis, setIsProcessingAnalysis] = useState(false);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -105,8 +106,10 @@ export function InterviewPage() {
         throw new Error('No se encontró el ID de la sesión');
       }
 
-      // Actualizar la sesión en la base de datos
-      const { error } = await supabase
+      setIsProcessingAnalysis(true);
+
+      // 1. Actualizar la sesión con transcript y duración
+      const { error: updateError } = await supabase
         .schema('maity')
         .from('interview_sessions')
         .update({
@@ -117,16 +120,56 @@ export function InterviewPage() {
         })
         .eq('id', idToUpdate);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // 2. Crear evaluación
+      console.log('[InterviewPage] 📝 Creando evaluación...');
+      const requestId = await InterviewService.createEvaluation(idToUpdate, userId);
+      console.log('[InterviewPage] ✅ Evaluación creada:', requestId);
+
+      // 3. Enviar transcript a n8n para análisis
+      const webhookUrl = env.n8nInterviewWebhookUrl;
+
+      if (webhookUrl && webhookUrl.length > 0) {
+        console.log('[InterviewPage] 📤 Enviando transcript a n8n para análisis...');
+
+        const webhookPayload = {
+          request_id: requestId,
+          session_id: idToUpdate,
+          transcript: transcript,
+          metadata: {
+            user_id: userId,
+            user_name: userName,
+            duration_seconds: duration,
+            timestamp: new Date().toISOString(),
+          }
+        };
+
+        // Fire and forget - no esperamos respuesta del webhook
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookPayload),
+        }).catch(error => {
+          console.error('❌ [InterviewPage] Error al enviar a n8n:', error);
+          console.log('ℹ️ [InterviewPage] La evaluación quedará pendiente.');
+        });
+      } else {
+        console.warn('⚠️ [InterviewPage] Webhook de análisis no configurado.');
+      }
 
       toast({
         title: '¡Entrevista finalizada!',
-        description: 'Tu sesión ha sido guardada exitosamente.',
+        description: 'Tu sesión ha sido guardada. El análisis se procesará en breve.',
       });
 
       setCurrentSessionId(null);
+      setIsProcessingAnalysis(false);
     } catch (error) {
       console.error('Error al finalizar sesión:', error);
+      setIsProcessingAnalysis(false);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -187,6 +230,21 @@ export function InterviewPage() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+          {/* Processing Analysis Banner */}
+          {isProcessingAnalysis && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-3">
+              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+              <div>
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Procesando análisis de entrevista...
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  Esto puede tomar algunos minutos. Puedes cerrar esta página y regresar después.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Left Column - Instructions */}
             <div className="lg:col-span-1 space-y-4 sm:space-y-6">
