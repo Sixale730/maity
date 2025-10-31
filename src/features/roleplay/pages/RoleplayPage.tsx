@@ -9,7 +9,7 @@ import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
 import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { env } from '@/lib/env';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
 import {

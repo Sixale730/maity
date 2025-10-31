@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/ui/components/ui/radio-group';
 import { Label } from '@/ui/components/ui/label';
 import { ChevronRight, Users, Target } from 'lucide-react';
 import { supabase } from '@maity/shared';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface PrePracticeQuestionnaireProps {
   isOpen: boolean;

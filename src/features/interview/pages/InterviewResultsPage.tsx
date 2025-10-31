@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewAnalysis } from '../components/InterviewAnalysis';
 import { InterviewService, InterviewSessionDetails, useInterviewEvaluationRealtime } from '@maity/shared';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { ArrowLeft, Briefcase, Loader2 } from 'lucide-react';
 
 export function InterviewResultsPage() {

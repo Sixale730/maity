@@ -60,6 +60,11 @@ export * from './domain/users/hooks/useOnboardingStatus';
 export { RoleplayService } from './domain/roleplay/roleplay.service';
 export * from './domain/roleplay/roleplay.types';
 
+// ===== Domain: Interview =====
+export { InterviewService } from './domain/interview/interview.service';
+export * from './domain/interview/interview.types';
+export * from './domain/interview/hooks/useInterviewEvaluationRealtime';
+
 // ===== Domain: Tech Week =====
 export { TechWeekService, type TechWeekSessionUpdate } from './domain/tech-week';
 

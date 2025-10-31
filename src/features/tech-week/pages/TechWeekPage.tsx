@@ -16,7 +16,7 @@ import { TechWeekVoiceAssistant } from '../components/TechWeekVoiceAssistant';
 import { TechWeekInstructions } from '../components/TechWeekInstructions';
 import { Button } from '@/ui/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from '@/ui/components/ui/use-toast';
+import { toast } from '@/shared/hooks/use-toast';
 import { env } from '@/lib/env';
 
 export function TechWeekPage() {

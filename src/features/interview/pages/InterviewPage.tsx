@@ -3,7 +3,7 @@ import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
 import { supabase, AuthService, InterviewService } from '@maity/shared';
 import { env } from '@/lib/env';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
 import { Briefcase, CheckCircle2, Loader2 } from 'lucide-react';

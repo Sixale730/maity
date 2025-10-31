@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { TechWeekService, supabase } from '@maity/shared';
-import { toast } from '@/ui/components/ui/use-toast';
+import { toast } from '@/shared/hooks/use-toast';
 import { TechWeekSessionResults } from '../components/TechWeekSessionResults';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 

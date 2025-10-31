@@ -5,7 +5,7 @@ import { SessionResults } from '@/features/roleplay/components/SessionResults';
 import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
 import { AdminTextChat } from '@/features/roleplay/components/AdminTextChat';
 import { supabase } from '@maity/shared';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { useUserRole } from '@/hooks/useUserRole';
 import { env } from '@/lib/env';

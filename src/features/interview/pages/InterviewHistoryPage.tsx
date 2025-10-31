@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewHistoryTable } from '../components/InterviewHistoryTable';
 import { InterviewService, InterviewSessionWithEvaluation } from '@maity/shared';
-import { useToast } from '@/ui/components/ui/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { Briefcase, Plus, RefreshCw } from 'lucide-react';
 
 export function InterviewHistoryPage() {
