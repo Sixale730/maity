@@ -127,6 +127,12 @@ export function InterviewPage() {
       const requestId = await InterviewService.createEvaluation(idToUpdate, userId);
       console.log('[InterviewPage] ✅ Evaluación creada:', requestId);
 
+      // 3. Navegar a la página de resultados
+      console.log('[InterviewPage] 🔄 Redirigiendo a resultados...');
+      setTimeout(() => {
+        navigate(`/primera-entrevista/sesion/${idToUpdate}`);
+      }, 1000);
+
       // 3. Enviar transcript a n8n para análisis
       const webhookUrl = env.n8nInterviewWebhookUrl;
 
