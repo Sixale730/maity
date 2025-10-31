@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
 import { supabase, AuthService, InterviewService } from '@maity/shared';
@@ -9,6 +10,7 @@ import { Badge } from '@/ui/components/ui/badge';
 import { Briefcase, CheckCircle2, Loader2 } from 'lucide-react';
 
 export function InterviewPage() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [userId, setUserId] = useState<string>('');
@@ -130,7 +132,7 @@ export function InterviewPage() {
       // 3. Navegar a la página de resultados
       console.log('[InterviewPage] 🔄 Redirigiendo a resultados...');
       setTimeout(() => {
-        navigate(`/primera-entrevista/sesion/${idToUpdate}`);
+        navigate(`/primera-entrevista/resultados/${idToUpdate}`);
       }, 1000);
 
       // 3. Enviar transcript a n8n para análisis

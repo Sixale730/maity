@@ -112,7 +112,8 @@ const translations = {
     'nav.dashboard': 'Dashboard',
     'nav.coach': 'Coach',
     'nav.roleplay': 'Sala de entrenamiento',
-    'nav.first_interview': 'Mi primer entrevista',
+    'nav.first_interview': 'Mi Primera Entrevista',
+    'nav.interview_history': 'Historial de Entrevistas',
     'nav.demo': 'Demo',
     'nav.demo_training': 'Demo Entrenamiento',
     'nav.roleplay_progress': 'Mi Progreso',
@@ -191,6 +192,8 @@ const translations = {
     'nav.start_free': 'Start Free',
     'nav.navigation': 'Navigation',
     'nav.logout': 'Logout',
+    'nav.first_interview': 'My First Interview',
+    'nav.interview_history': 'Interview History',
     
     // Hero Section
     'hero.badge': 'AI · Mentoring · Daily Growth',
