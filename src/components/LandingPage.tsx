@@ -76,9 +76,6 @@ const LandingPage = () => {
               <Button variant="outline" className="font-inter text-sm lg:text-base" asChild>
                 <Link to="/auth">{t('nav.login')}</Link>
               </Button>
-              <Button className="font-inter text-sm lg:text-base" asChild>
-                <Link to="/auth">{t('nav.start_free')}</Link>
-              </Button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -106,9 +103,6 @@ const LandingPage = () => {
               </Button>
               <Button variant="outline" className="w-full font-inter" asChild>
                 <Link to="/auth">{t('nav.login')}</Link>
-              </Button>
-              <Button className="w-full font-inter" asChild>
-                <Link to="/auth">{t('nav.start_free')}</Link>
               </Button>
             </div>
           )}

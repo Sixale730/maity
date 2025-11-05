@@ -380,35 +380,6 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardContent>
         </Card>
 
-        {/* Personal Weekly Activity */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <CardTitle>{t('dashboard.user.weekly_activity')}</CardTitle>
-            <CardDescription>
-              {t('dashboard.user.weekly_description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sessions" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={3}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 8 }}
-                    name={t('dashboard.user.my_sessions')}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
       </div>
     </main>
   );
