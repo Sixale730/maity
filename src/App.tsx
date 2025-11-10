@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { UserProvider } from "@/contexts/UserContext";
+import { ViewRoleProvider } from "@/contexts/ViewRoleContext";
 import { PlatformTourProvider } from "@/contexts/PlatformTourContext";
 import LoadingFallback from "@/components/LoadingFallback";
 
@@ -71,9 +72,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <UserProvider>
-            <PlatformTourProvider>
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
+            <ViewRoleProvider>
+              <PlatformTourProvider>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
                   {/* Critical routes (no lazy loading) */}
                   <Route path="/" element={<IndexPage />} />
                   <Route path="/auth" element={<AuthPage />} />
@@ -128,6 +130,7 @@ const App = () => (
                 </Routes>
               </Suspense>
             </PlatformTourProvider>
+          </ViewRoleProvider>
           </UserProvider>
         </BrowserRouter>
       </TooltipProvider>

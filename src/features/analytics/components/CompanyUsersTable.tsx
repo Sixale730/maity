@@ -30,15 +30,17 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Eye,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface CompanyUsersTableProps {
   companies: CompanyWithUsers[];
+  onSessionClick?: (sessionId: string) => void;
 }
 
-export function CompanyUsersTable({ companies }: CompanyUsersTableProps) {
+export function CompanyUsersTable({ companies, onSessionClick }: CompanyUsersTableProps) {
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
     new Set()
   );
@@ -246,6 +248,7 @@ export function CompanyUsersTable({ companies }: CompanyUsersTableProps) {
                                         <TableHead>Escenario</TableHead>
                                         <TableHead>Score</TableHead>
                                         <TableHead>Duración</TableHead>
+                                        <TableHead className="w-[50px]"></TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -276,6 +279,18 @@ export function CompanyUsersTable({ companies }: CompanyUsersTableProps) {
                                           </TableCell>
                                           <TableCell className="text-xs">
                                             {formatDuration(session.duration)}
+                                          </TableCell>
+                                          <TableCell>
+                                            {onSessionClick && (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0"
+                                                onClick={() => onSessionClick(session.sessionId)}
+                                              >
+                                                <Eye className="h-4 w-4" />
+                                              </Button>
+                                            )}
                                           </TableCell>
                                         </TableRow>
                                       ))}

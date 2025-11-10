@@ -1,4 +1,5 @@
 import { UserRole, UserProfile } from "@/contexts/UserContext";
+import { useViewRole } from "@/contexts/ViewRoleContext";
 import { PlatformAdminDashboard } from "./dashboards/PlatformAdminDashboard";
 import { UserDashboard } from "./dashboards/UserDashboard";
 import TeamDashboard from "./dashboards/TeamDashboard";
@@ -237,14 +238,18 @@ interface DashboardContentProps {
 
 export function DashboardContent({ userRole, userProfile }: DashboardContentProps) {
   const { language } = useLanguage();
+  const { viewRole } = useViewRole();
 
   console.log('DashboardContent rendering, current language:', language);
 
+  // Use viewRole for display, fallback to userRole for backwards compatibility
+  const effectiveRole = viewRole || userRole;
+
   // Default dashboard component based on role
   const getDefaultDashboard = () => {
-    if (userRole === 'admin') {
+    if (effectiveRole === 'admin') {
       return <PlatformAdminDashboard />;
-    } else if (userRole === 'manager') {
+    } else if (effectiveRole === 'manager') {
       return (
         <OrgAdminDashboard
           userName={userProfile?.name}

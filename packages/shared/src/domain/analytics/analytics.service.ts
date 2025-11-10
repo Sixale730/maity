@@ -149,4 +149,24 @@ export class AnalyticsService {
 
     return data;
   }
+
+  /**
+   * Get session details for admin
+   * Returns session type and full details for navigation
+   * Only accessible by admins
+   */
+  static async getSessionDetailsAdmin(
+    sessionId: string
+  ): Promise<{ type: 'roleplay' | 'tech_week' | 'interview' }> {
+    const { data, error } = await supabase.rpc('get_session_details_admin', {
+      p_session_id: sessionId,
+    });
+
+    if (error) {
+      console.error('Error fetching session details:', error);
+      throw error;
+    }
+
+    return data;
+  }
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { useSessionsByCompanyUser } from '../hooks/useSessionsByCompanyUser';
 import { StatsCard } from '../components/StatsCard';
@@ -9,7 +10,8 @@ import { ProfileScenarioStats } from '../components/ProfileScenarioStats';
 import { CompanyUsersTable } from '../components/CompanyUsersTable';
 import { AnalyticsFilters } from '../components/AnalyticsFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
-import type { AnalyticsFilters as FiltersType } from '@maity/shared';
+import { AnalyticsService, type AnalyticsFilters as FiltersType } from '@maity/shared';
+import { toast } from '@/shared/hooks/use-toast';
 import {
   Users,
   MessageSquare,
@@ -23,6 +25,7 @@ import {
 import { Skeleton } from '@/ui/components/ui/skeleton';
 
 export default function AnalyticsPage() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FiltersType>({
     type: 'all',
   });
@@ -37,6 +40,39 @@ export default function AnalyticsPage() {
     startDate: filters.startDate,
     endDate: filters.endDate,
   });
+
+  const handleSessionClick = async (sessionId: string) => {
+    try {
+      const sessionDetails = await AnalyticsService.getSessionDetailsAdmin(sessionId);
+
+      // Navigate based on session type
+      if (sessionDetails.type === 'tech_week') {
+        navigate(`/tech-week/sessions/${sessionId}`);
+      } else if (sessionDetails.type === 'interview') {
+        navigate(`/primera-entrevista/resultados/${sessionId}`);
+      } else {
+        navigate(`/sessions/${sessionId}`);
+      }
+    } catch (error) {
+      console.error('Error getting session details:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo cargar los detalles de la sesión',
+      });
+    }
+  };
+
+  const handleRecentSessionClick = (session: any) => {
+    // SessionListItem already has type field, so we can navigate directly
+    if (session.type === 'interview') {
+      navigate(`/primera-entrevista/resultados/${session.id}`);
+    } else {
+      // For roleplay sessions, check if it's tech week by checking profile name
+      // This is a simplified approach - ideally we'd have a flag in SessionListItem
+      navigate(`/sessions/${session.id}`);
+    }
+  };
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -159,7 +195,10 @@ export default function AnalyticsPage() {
             {/* Recent Sessions */}
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">Sesiones Recientes</h2>
-              <SessionsTable sessions={data.recentSessions} />
+              <SessionsTable
+                sessions={data.recentSessions}
+                onSessionClick={handleRecentSessionClick}
+              />
             </div>
           </>
         )
@@ -181,7 +220,10 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             detailedData && (
-              <CompanyUsersTable companies={detailedData.companies} />
+              <CompanyUsersTable
+                companies={detailedData.companies}
+                onSessionClick={handleSessionClick}
+              />
             )
           )}
         </TabsContent>

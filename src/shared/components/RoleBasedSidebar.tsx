@@ -22,6 +22,7 @@ import {
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@maity/shared";
 import { UserRole } from "@/contexts/UserContext";
+import { useViewRole } from "@/contexts/ViewRoleContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
 import {
@@ -95,9 +96,12 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { viewRole } = useViewRole();
   const currentPath = location.pathname;
 
-  const navigationItems = getNavigationByRole(userRole);
+  // Use viewRole for display, but keep userRole for backwards compatibility
+  const effectiveRole = viewRole || userRole;
+  const navigationItems = getNavigationByRole(effectiveRole);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -163,7 +167,7 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-sidebar-primary animate-pulse" />
                 <p className="text-xs text-sidebar-foreground/70 font-medium uppercase tracking-wider">
-                  {getRoleLabel(userRole)}
+                  {getRoleLabel(effectiveRole)}
                 </p>
               </div>
             </div>
