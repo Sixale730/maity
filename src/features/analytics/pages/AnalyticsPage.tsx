@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
+import { useSessionsByCompanyUser } from '../hooks/useSessionsByCompanyUser';
 import { StatsCard } from '../components/StatsCard';
 import { SessionsTable } from '../components/SessionsTable';
 import { ScoreDistributionChart } from '../components/ScoreDistributionChart';
 import { CompanyStatsTable } from '../components/CompanyStatsTable';
 import { ProfileScenarioStats } from '../components/ProfileScenarioStats';
+import { CompanyUsersTable } from '../components/CompanyUsersTable';
 import { AnalyticsFilters } from '../components/AnalyticsFilters';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import type { AnalyticsFilters as FiltersType } from '@maity/shared';
 import {
   Users,
@@ -14,6 +17,8 @@ import {
   CheckCircle2,
   Clock,
   BarChart3,
+  Building2,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Skeleton } from '@/ui/components/ui/skeleton';
 
@@ -23,6 +28,15 @@ export default function AnalyticsPage() {
   });
 
   const { data, isLoading, error } = useAnalyticsData(filters);
+  const {
+    data: detailedData,
+    isLoading: isLoadingDetailed,
+    error: errorDetailed,
+  } = useSessionsByCompanyUser({
+    companyId: filters.companyId,
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+  });
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -61,6 +75,22 @@ export default function AnalyticsPage() {
       <div className="bg-card p-4 rounded-lg border">
         <AnalyticsFilters filters={filters} onFiltersChange={setFilters} />
       </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview" className="gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            Resumen
+          </TabsTrigger>
+          <TabsTrigger value="detailed" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            Detalle por Empresa
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
 
       {/* Overview Stats */}
       {isLoading ? (
@@ -134,6 +164,28 @@ export default function AnalyticsPage() {
           </>
         )
       )}
+        </TabsContent>
+
+        {/* Detailed Tab */}
+        <TabsContent value="detailed" className="space-y-6">
+          {errorDetailed ? (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+              <h2 className="font-semibold mb-2">Error al cargar vista detallada</h2>
+              <p className="text-sm">{errorDetailed.message}</p>
+            </div>
+          ) : isLoadingDetailed ? (
+            <div className="space-y-4">
+              <Skeleton className="h-48" />
+              <Skeleton className="h-48" />
+              <Skeleton className="h-48" />
+            </div>
+          ) : (
+            detailedData && (
+              <CompanyUsersTable companies={detailedData.companies} />
+            )
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import type {
   AnalyticsDashboardData,
   AnalyticsFilters,
   SessionListItem,
+  SessionsByCompanyUserData,
 } from './analytics.types';
 
 export class AnalyticsService {
@@ -124,5 +125,28 @@ export class AnalyticsService {
     }
 
     return data || [];
+  }
+
+  /**
+   * Get detailed sessions organized by company and user
+   * Only accessible by admins
+   */
+  static async getSessionsByCompanyUser(
+    companyId?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<SessionsByCompanyUserData> {
+    const { data, error } = await supabase.rpc('get_sessions_by_company_user', {
+      p_company_id: companyId || null,
+      p_start_date: startDate || null,
+      p_end_date: endDate || null,
+    });
+
+    if (error) {
+      console.error('Error fetching sessions by company user:', error);
+      throw error;
+    }
+
+    return data;
   }
 }

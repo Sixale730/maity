@@ -84,3 +84,43 @@ export interface AnalyticsDashboardData {
   timeline: SessionTimeline[];
   recentSessions: SessionListItem[];
 }
+
+// Detailed view types
+export interface SessionDetail {
+  sessionId: string;
+  startedAt: string;
+  endedAt: string | null;
+  duration: number | null;
+  score: number | null;
+  passed: boolean | null;
+  status: string;
+  profileName: string;
+  scenarioName: string;
+  minScoreToPass: number | null;
+}
+
+export interface UserWithSessions {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  totalSessions: number;
+  averageScore: number;
+  passRate: number;
+  totalDuration: number;
+  lastSessionDate: string;
+  sessions: SessionDetail[];
+}
+
+export interface CompanyWithUsers {
+  companyId: string;
+  companyName: string;
+  totalUsers: number;
+  totalSessions: number;
+  averageScore: number;
+  passRate: number;
+  users: UserWithSessions[];
+}
+
+export interface SessionsByCompanyUserData {
+  companies: CompanyWithUsers[];
+}
