@@ -81,6 +81,10 @@ export * from './domain/coach/hooks/useEvaluationRealtime';
 export { DashboardService } from './domain/dashboard/dashboard.service';
 export * from './domain/dashboard/dashboard.types';
 
+// ===== Domain: Analytics =====
+export { AnalyticsService } from './domain/analytics/analytics.service';
+export * from './domain/analytics/analytics.types';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 

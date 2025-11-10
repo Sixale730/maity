@@ -24,7 +24,7 @@ const OnboardingSuccessPage = lazy(() => import("./features/auth").then(m => ({ 
 
 const DashboardPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.DashboardPage })));
 const MyProgressPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.MyProgressPage })));
-const AnalyticsPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.AnalyticsPage })));
+const AdminAnalyticsPage = lazy(() => import("./features/analytics").then(m => ({ default: m.AnalyticsPage })));
 const ReportsPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.ReportsPage })));
 const TrendsPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.TrendsPage })));
 const PlansPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.PlansPage })));
@@ -98,7 +98,7 @@ const App = () => (
                       <Route path="/progress" element={<MyProgressPage />} />
                       <Route path="/sessions" element={<SessionsPage />} />
                       <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
-                      <Route path="/analytics" element={<AnalyticsPage />} />
+                      <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
                       <Route path="/organizations" element={<OrganizationsPage />} />
                       <Route path="/usuarios" element={<UsersPage />} />
                       <Route path="/team" element={<TeamPage />} />

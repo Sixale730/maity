@@ -686,6 +686,164 @@ const { data, error } = await supabase.rpc('get_admin_scenario_config', {
 
 ---
 
+#### public.get_analytics_dashboard
+
+**Purpose:** Returns comprehensive analytics data for admin dashboard, aggregating statistics from interviews and roleplay sessions.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.get_analytics_dashboard(
+  p_company_id UUID DEFAULT NULL,
+  p_type TEXT DEFAULT 'all',
+  p_start_date TIMESTAMPTZ DEFAULT NULL,
+  p_end_date TIMESTAMPTZ DEFAULT NULL,
+  p_profile_id UUID DEFAULT NULL,
+  p_scenario_id UUID DEFAULT NULL
+)
+RETURNS JSON
+```
+
+**Parameters:**
+- `p_company_id` - Filter by specific company (NULL = all companies)
+- `p_type` - Filter by session type: 'interview', 'roleplay', or 'all'
+- `p_start_date` - Filter sessions started after this date
+- `p_end_date` - Filter sessions started before this date
+- `p_profile_id` - Filter roleplay sessions by profile (CEO, CTO, CFO)
+- `p_scenario_id` - Filter roleplay sessions by scenario
+
+**Returns JSON with:**
+```json
+{
+  "overview": {
+    "totalInterviews": 50,
+    "totalRoleplaySessions": 200,
+    "averageScore": 75.5,
+    "passRate": 68.2,
+    "totalDuration": 50000,
+    "averageDuration": 200
+  },
+  "sessionsByCompany": [
+    {
+      "companyId": "uuid",
+      "companyName": "Company Name",
+      "interviewCount": 10,
+      "roleplayCount": 40,
+      "averageScore": 78.0,
+      "passRate": 72.5
+    }
+  ],
+  "sessionsByProfile": [
+    {
+      "profileId": "uuid",
+      "profileName": "CEO",
+      "sessionCount": 80,
+      "averageScore": 72.0,
+      "passRate": 65.0
+    }
+  ],
+  "sessionsByScenario": [
+    {
+      "scenarioId": "uuid",
+      "scenarioName": "Primera Visita",
+      "sessionCount": 50,
+      "averageScore": 70.0,
+      "passRate": 60.0
+    }
+  ],
+  "scoreDistribution": [
+    { "range": "0-20", "count": 5 },
+    { "range": "21-40", "count": 15 },
+    { "range": "41-60", "count": 30 },
+    { "range": "61-80", "count": 45 },
+    { "range": "81-100", "count": 25 }
+  ],
+  "timeline": [
+    {
+      "date": "2025-01-01",
+      "interviewCount": 2,
+      "roleplayCount": 8,
+      "averageScore": 75.0
+    }
+  ],
+  "recentSessions": [
+    {
+      "id": "uuid",
+      "type": "roleplay",
+      "userId": "uuid",
+      "userName": "John Doe",
+      "companyId": "uuid",
+      "companyName": "Company Name",
+      "profileName": "CEO",
+      "scenarioName": "Primera Visita",
+      "score": 75,
+      "passed": true,
+      "duration": 180,
+      "status": "completed",
+      "startedAt": "2025-01-10T10:00:00Z",
+      "endedAt": "2025-01-10T10:03:00Z"
+    }
+  ]
+}
+```
+
+**Behavior:**
+1. Verifies user has admin role
+2. Aggregates data from `interview_sessions` and `voice_sessions` tables
+3. Joins with related tables for enriched data
+4. Applies filters based on parameters
+5. Calculates statistics, distributions, and trends
+6. Returns last 20 recent sessions
+7. Returns top 10 companies by total sessions
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- `SET search_path = maity, public`
+- Admin role required (verified at start of function)
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.get_analytics_dashboard(UUID, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, UUID, UUID) TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data, error } = await supabase.rpc('get_analytics_dashboard', {
+  p_company_id: null, // All companies
+  p_type: 'all', // All types
+  p_start_date: null, // No start filter
+  p_end_date: null, // No end filter
+  p_profile_id: null, // All profiles
+  p_scenario_id: null // All scenarios
+});
+
+// Returns complete analytics dashboard data
+console.log(data.overview.totalInterviews);
+console.log(data.sessionsByCompany);
+console.log(data.scoreDistribution);
+```
+
+**Use Cases:**
+- Admin analytics dashboard
+- Company performance comparison
+- Score distribution analysis
+- Profile and scenario effectiveness tracking
+- Trend analysis over time
+- Recent activity monitoring
+
+**Related Migration:**
+- `create_analytics_functions_for_admin.sql`
+
+**Related Tables:**
+- `maity.interview_sessions`
+- `maity.voice_sessions`
+- `maity.users`
+- `maity.companies`
+- `maity.voice_agent_profiles`
+- `maity.voice_scenarios`
+- `maity.voice_profile_scenarios`
+
+---
+
 #### maity.otk (One-Time Keys)
 
 **Purpose:** Temporary tokens for Tally form submissions.
