@@ -16,7 +16,10 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  Clock
+  Clock,
+  User,
+  Building2,
+  Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -45,6 +48,13 @@ interface SessionResultsProps {
   onViewTranscript: () => void;
   canProceedNext: boolean;
   onNextScenario?: () => void;
+  showRetryButton?: boolean; // Optional, defaults to true
+  // Admin viewing other user's session
+  isViewingOtherUser?: boolean;
+  sessionUserName?: string;
+  sessionUserEmail?: string;
+  sessionCompanyName?: string;
+  sessionStartedAt?: string;
 }
 
 const chartConfig = {
@@ -109,7 +119,13 @@ export function SessionResults({
   onRetry,
   onViewTranscript,
   canProceedNext,
-  onNextScenario
+  onNextScenario,
+  showRetryButton = true,
+  isViewingOtherUser = false,
+  sessionUserName,
+  sessionUserEmail,
+  sessionCompanyName,
+  sessionStartedAt
 }: SessionResultsProps) {
   const navigate = useNavigate();
 
@@ -339,6 +355,62 @@ export function SessionResults({
             {scenarioName} • Perfil {profile}
           </p>
         </div>
+
+        {/* User Info Banner for Admins - Below Title */}
+        {isViewingOtherUser && (
+          <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-600/40 p-5 sm:p-6">
+            <div className="space-y-4">
+              <h3 className="text-lg sm:text-xl font-bold text-blue-300 flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Sesión de Usuario
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Usuario */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm">
+                    <User className="h-4 w-4" />
+                    <span>Usuario</span>
+                  </div>
+                  <div className="text-white text-lg font-semibold">
+                    {sessionUserName || sessionUserEmail}
+                  </div>
+                  {sessionUserName && sessionUserEmail && (
+                    <div className="text-gray-400 text-sm">{sessionUserEmail}</div>
+                  )}
+                </div>
+
+                {/* Empresa */}
+                {sessionCompanyName && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
+                      <Building2 className="h-4 w-4" />
+                      <span>Empresa</span>
+                    </div>
+                    <div className="text-white text-lg font-semibold">
+                      {sessionCompanyName}
+                    </div>
+                  </div>
+                )}
+
+                {/* Fecha y Hora */}
+                {sessionStartedAt && (
+                  <div className="space-y-2 sm:col-span-2">
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
+                      <Calendar className="h-4 w-4" />
+                      <span>Fecha y Hora</span>
+                    </div>
+                    <div className="text-white text-lg font-semibold">
+                      {new Date(sessionStartedAt).toLocaleString('es-MX', {
+                        dateStyle: 'full',
+                        timeStyle: 'short'
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Score Principal */}
         <Card className={`bg-gray-900/50 border ${isProcessing ? 'border-blue-500/20' : getScoreBg(displayScore || 0)} p-4 sm:p-6 lg:p-8`}>
@@ -816,14 +888,16 @@ export function SessionResults({
         {/* Acciones */}
         <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Button
-              onClick={onRetry}
-              variant="outline"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
-            >
-              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-              Repetir Escenario
-            </Button>
+            {showRetryButton && (
+              <Button
+                onClick={onRetry}
+                variant="outline"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
+              >
+                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                Repetir Escenario
+              </Button>
+            )}
 
             <Button
               onClick={onViewTranscript}
@@ -850,7 +924,7 @@ export function SessionResults({
                 className="flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-sm sm:text-base h-10 sm:h-11"
               >
                 <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
-                ¡Perfil Completado!
+                ¡Nivel Completado!
               </Button>
             )}
           </div>

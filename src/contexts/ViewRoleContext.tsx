@@ -24,7 +24,7 @@ interface ViewRoleContextType {
 const ViewRoleContext = createContext<ViewRoleContextType | undefined>(undefined);
 
 export function ViewRoleProvider({ children }: { children: React.ReactNode }) {
-  const { role: actualRole } = useUser();
+  const { userRole: actualRole } = useUser();
   const [viewRole, setViewRoleState] = useState<UserRole | null>(actualRole);
 
   // Sync viewRole with actualRole when actualRole changes

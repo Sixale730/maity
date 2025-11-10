@@ -19,8 +19,8 @@ import type { UserRole } from '@maity/shared';
 export function AdminViewRoleSelector() {
   const { actualRole, viewRole, setViewRole, isViewingAsOtherRole } = useViewRole();
 
-  // Only show for admins
-  if (actualRole !== 'admin') {
+  // Only show for admins (wait for role to load)
+  if (!actualRole || actualRole !== 'admin') {
     return null;
   }
 

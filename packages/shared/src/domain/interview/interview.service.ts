@@ -118,11 +118,11 @@ export class InterviewService {
       }
     }
 
-    // Fetch user details
+    // Fetch user details with company
     const { data: userData, error: userError } = await supabase
       .schema('maity')
       .from('users')
-      .select('id, name, email')
+      .select('id, name, email, companies(name)')
       .eq('id', session.user_id)
       .maybeSingle();
 
@@ -134,7 +134,12 @@ export class InterviewService {
     return {
       ...(session as InterviewSession),
       evaluation,
-      user: userData || undefined,
+      user: userData ? {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        company_name: (userData as any).companies?.name || null,
+      } : undefined,
     };
   }
 

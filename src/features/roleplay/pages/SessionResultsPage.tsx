@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@maity/shared';
+import { useUser } from '@/contexts/UserContext';
 import { SessionResults } from '@/features/roleplay/components/SessionResults';
 import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
 import { Button } from '@/ui/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User, Building2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,10 @@ import {
 
 interface SessionData {
   id: string;
+  user_id: string;
+  user_name: string | null;
+  user_email: string | null;
+  company_name: string | null;
   profile_name: string;
   scenario_name: string;
   objectives: string | null;
@@ -31,10 +36,14 @@ interface SessionData {
 export default function SessionResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { userProfile } = useUser();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+
+  // Check if admin is viewing another user's session
+  const isViewingOtherUser = sessionData && userProfile && sessionData.user_id !== userProfile.id;
 
   useEffect(() => {
     if (sessionId) {
@@ -47,16 +56,10 @@ export default function SessionResultsPage() {
       setLoading(true);
       setError(null);
 
-      // Get authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setError('Usuario no autenticado');
-        return;
-      }
-
-      // Fetch session data using RPC
+      // Fetch single session by ID using new RPC function
+      // RLS policies ensure users see only their own sessions, admins see all
       const { data: sessions, error: fetchError } = await supabase
-        .rpc('get_user_sessions_history', { p_auth_id: user.id });
+        .rpc('get_session_by_id', { p_session_id: sessionId });
 
       if (fetchError) {
         console.error('Error fetching session:', fetchError);
@@ -64,15 +67,12 @@ export default function SessionResultsPage() {
         return;
       }
 
-      // Find the specific session
-      const session = sessions?.find((s: any) => s.id === sessionId);
-
-      if (!session) {
+      if (!sessions || sessions.length === 0) {
         setError('Sesión no encontrada');
         return;
       }
 
-      setSessionData(session);
+      setSessionData(sessions[0]);
     } catch (err) {
       console.error('Error:', err);
       setError('Ocurrió un error al cargar la sesión');
@@ -91,7 +91,12 @@ export default function SessionResultsPage() {
   };
 
   const handleBack = () => {
-    navigate('/sessions');
+    // Use browser history if available, otherwise go to sessions
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/sessions');
+    }
   };
 
   if (loading) {
@@ -153,6 +158,12 @@ export default function SessionResultsPage() {
         onRetry={handleRetry}
         onViewTranscript={handleViewTranscript}
         canProceedNext={false}
+        showRetryButton={!isViewingOtherUser}
+        isViewingOtherUser={isViewingOtherUser}
+        sessionUserName={sessionData.user_name || undefined}
+        sessionUserEmail={sessionData.user_email || undefined}
+        sessionCompanyName={sessionData.company_name || undefined}
+        sessionStartedAt={sessionData.started_at}
       />
 
       {/* Modal de Transcripción */}

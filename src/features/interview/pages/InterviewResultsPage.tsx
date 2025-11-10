@@ -5,12 +5,23 @@ import { Button } from '@/ui/components/ui/button';
 import { InterviewAnalysis } from '../components/InterviewAnalysis';
 import { InterviewService, InterviewSessionDetails, useInterviewEvaluationRealtime } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
-import { ArrowLeft, Briefcase, Loader2 } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import { ArrowLeft, Briefcase, Loader2, User, Building2 } from 'lucide-react';
 
 export function InterviewResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userProfile } = useUser();
+
+  // Helper function for back navigation
+  const handleBackNavigation = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/primera-entrevista/historial');
+    }
+  };
 
   const [session, setSession] = useState<InterviewSessionDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +95,9 @@ export function InterviewResultsPage() {
     }
   }, [realtimeEvaluation]);
 
+  // Check if admin is viewing another user's session
+  const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -100,7 +114,7 @@ export function InterviewResultsPage() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center space-y-4">
           <p className="text-lg font-medium text-destructive">{error || 'Sesión no encontrada'}</p>
-          <Button onClick={() => navigate('/primera-entrevista/historial')}>
+          <Button onClick={handleBackNavigation}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al historial
           </Button>
@@ -132,7 +146,7 @@ export function InterviewResultsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/primera-entrevista/historial')}
+            onClick={handleBackNavigation}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Historial
@@ -143,6 +157,34 @@ export function InterviewResultsPage() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+          {/* User Info Banner for Admins */}
+          {isViewingOtherUser && session.user && (
+            <div className="mb-6 bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-700/30 rounded-full p-2">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm sm:text-base font-semibold text-white mb-1">
+                    Entrevista de Usuario
+                  </h3>
+                  <div className="space-y-1 text-xs sm:text-sm text-gray-300">
+                    <div className="flex items-center gap-2">
+                      <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{session.user.name || session.user.email}</span>
+                    </div>
+                    {session.user.company_name && (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{session.user.company_name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <InterviewAnalysis session={session} isLoading={isRealtimeLoading} />
         </div>
       </main>

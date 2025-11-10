@@ -70,24 +70,23 @@ export class TechWeekService {
   }
 
   /**
-   * Get a specific Tech Week session by ID
+   * Get a specific Tech Week session by ID with user information
+   * Uses RPC function that respects RLS policies
    * @param sessionId - Session UUID
-   * @returns Promise with session data
+   * @returns Promise with session data including user info
    */
   static async getSessionById(sessionId: string): Promise<unknown> {
-    const { data, error } = await supabase
-      .schema('maity')
-      .from('tech_week_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
+    const { data, error } = await supabase.rpc('get_tech_week_session_by_id', {
+      p_session_id: sessionId
+    });
 
     if (error) {
       console.error('Error fetching Tech Week session:', error);
       throw error;
     }
 
-    return data;
+    // RPC returns array, get first element
+    return data && data.length > 0 ? data[0] : null;
   }
 
   /**

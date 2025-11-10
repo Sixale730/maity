@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { TechWeekService, supabase } from '@maity/shared';
 import { toast } from '@/shared/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
 import { TechWeekSessionResults } from '../components/TechWeekSessionResults';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -13,11 +14,15 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
  */
 export function TechWeekResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const { userProfile } = useUser();
 
   const [session, setSession] = useState<any>(null);
   const [evaluation, setEvaluation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluationLoading, setIsEvaluationLoading] = useState(false);
+
+  // Check if admin is viewing another user's session
+  const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
 
   // Load session and evaluation
   useEffect(() => {
@@ -140,6 +145,7 @@ export function TechWeekResultsPage() {
       sessionData={session}
       evaluationData={evaluation}
       isEvaluationLoading={isEvaluationLoading}
+      isViewingOtherUser={isViewingOtherUser}
       onRetry={() => {
         // Reload evaluation
         TechWeekService.getEvaluationBySessionId(sessionId!)

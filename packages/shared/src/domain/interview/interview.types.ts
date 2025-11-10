@@ -65,6 +65,7 @@ export interface InterviewSessionDetails extends InterviewSession {
     id: string;
     name: string;
     email: string;
+    company_name?: string | null;
   };
 }
 

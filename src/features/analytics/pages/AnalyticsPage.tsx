@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'No se pudo cargar los detalles de la sesión',
+        description: `No se pudo cargar los detalles de la sesión: ${error instanceof Error ? error.message : 'Error desconocido'}`,
       });
     }
   };

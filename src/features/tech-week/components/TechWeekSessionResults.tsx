@@ -26,6 +26,8 @@ import {
   Quote,
   AlertCircle,
   TrendingUp,
+  User,
+  Building2,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -53,6 +55,7 @@ interface TechWeekSessionResultsProps {
   evaluationData?: any;
   isEvaluationLoading?: boolean;
   onRetry?: () => void;
+  isViewingOtherUser?: boolean;
 }
 
 /**
@@ -99,8 +102,19 @@ export function TechWeekSessionResults({
   evaluationData,
   isEvaluationLoading = false,
   onRetry,
+  isViewingOtherUser = false,
 }: TechWeekSessionResultsProps) {
   const navigate = useNavigate();
+
+  // Helper function for back navigation
+  const handleBackNavigation = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/tech-week');
+    }
+  };
+
   const [expandedDimensions, setExpandedDimensions] = useState<Record<string, boolean>>({});
 
   // Extract evaluation result
@@ -195,7 +209,7 @@ export function TechWeekSessionResults({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/tech-week')}
+                onClick={handleBackNavigation}
                 className="hover:bg-gray-800"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -214,6 +228,38 @@ export function TechWeekSessionResults({
           </div>
         </div>
       </div>
+
+      {/* User Info Banner for Admins */}
+      {isViewingOtherUser && sessionData && (
+        <div className="container mx-auto px-4 pt-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-700/30 rounded-full p-2">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm sm:text-base font-semibold text-white mb-1">
+                    Sesión de Usuario
+                  </h3>
+                  <div className="space-y-1 text-xs sm:text-sm text-gray-300">
+                    <div className="flex items-center gap-2">
+                      <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{sessionData.user_name || sessionData.user_email}</span>
+                    </div>
+                    {sessionData.company_name && (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{sessionData.company_name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
@@ -642,18 +688,20 @@ export function TechWeekSessionResults({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              onClick={() => navigate('/tech-week')}
-              size="lg"
-              style={{
-                backgroundColor: PINK_COLORS.hotPink,
-                color: 'white',
-              }}
-              className="hover:opacity-90"
-            >
-              <Zap className="mr-2 h-5 w-5" />
-              Nueva Práctica
-            </Button>
+            {!isViewingOtherUser && (
+              <Button
+                onClick={() => navigate('/tech-week')}
+                size="lg"
+                style={{
+                  backgroundColor: PINK_COLORS.hotPink,
+                  color: 'white',
+                }}
+                className="hover:opacity-90"
+              >
+                <Zap className="mr-2 h-5 w-5" />
+                Nueva Práctica
+              </Button>
+            )}
             <Button
               onClick={() => navigate('/tech-week/sessions')}
               variant="outline"
