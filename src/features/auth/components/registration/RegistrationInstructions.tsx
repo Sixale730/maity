@@ -66,17 +66,20 @@ export function RegistrationInstructions({ onStart }: RegistrationInstructionsPr
         </Card>
       </div>
 
-      {/* Video Placeholder */}
+      {/* Video */}
       <Card className="bg-muted/50">
         <CardContent className="p-0">
-          <div className="aspect-video flex items-center justify-center bg-muted rounded-lg">
-            <div className="text-center space-y-2 p-6">
-              <div className="w-16 h-16 mx-auto rounded-full border-4 border-muted-foreground/20 flex items-center justify-center">
-                <span className="text-3xl text-muted-foreground">!</span>
-              </div>
-              <p className="font-semibold text-muted-foreground">Video no disponible</p>
-              <p className="text-sm text-muted-foreground/70">Este video no se encuentra disponible</p>
-            </div>
+          <div className="aspect-video rounded-lg overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/Nf3Y_SEuhbw"
+              title="Autoevaluación Maity - Video introductorio"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
           </div>
         </CardContent>
       </Card>
