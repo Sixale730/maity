@@ -3,11 +3,9 @@ import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
 import { ParticleSphere } from './ParticleSphere';
-import { MAITY_COLORS, CoachService, getUserInfo } from '@maity/shared';
+import { MAITY_COLORS, CoachService, UserService, createEvaluation, supabase } from '@maity/shared';
 import { env } from '@/lib/env';
 import { toast } from '@/shared/hooks/use-toast';
-import { createEvaluation } from '../../roleplay/services/roleplay.service';
-import { supabase } from '@maity/shared';
 import {
   Dialog,
   DialogContent,
@@ -127,13 +125,13 @@ export function MaityVoiceAssistant() {
 
     try {
       // Create voice session in database
-      const userInfo = await getUserInfo();
+      const userInfo = await UserService.getUserInfo();
       if (!userInfo) {
         throw new Error('No se pudo obtener información del usuario');
       }
 
       const session = await CoachService.createVoiceSession(
-        userInfo.id,
+        userInfo.user_id,
         userInfo.company_id || undefined
       );
 
@@ -251,7 +249,7 @@ export function MaityVoiceAssistant() {
       setIsEvaluating(true);
 
       // Create evaluation record
-      const userInfo = await getUserInfo();
+      const userInfo = await UserService.getUserInfo();
       if (!userInfo) {
         throw new Error('No se pudo obtener información del usuario');
       }
@@ -259,7 +257,7 @@ export function MaityVoiceAssistant() {
       const requestId = crypto.randomUUID();
       const { data: _evaluationData, error: createError } = await createEvaluation(
         requestId,
-        userInfo.id,
+        userInfo.user_id,
         sessionId
       );
 

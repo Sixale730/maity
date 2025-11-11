@@ -1,5 +1,5 @@
 import { supabase } from '../../api/client/supabase';
-import type { UserManagement, UserStatusType, UserOperationResponse } from './user.types';
+import type { UserManagement, UserStatusType, UserOperationResponse, UserInfo } from './user.types';
 import type { UserRole } from '../auth/auth.types';
 
 /**
@@ -129,5 +129,25 @@ export class UserService {
     }
 
     return data as UserOperationResponse;
+  }
+
+  /**
+   * Get current user info
+   * @returns Promise with user info
+   */
+  static async getUserInfo(): Promise<UserInfo | null> {
+    const { data, error } = await supabase.rpc('get_user_info');
+
+    if (error) {
+      console.error('Error getting user info:', error);
+      throw error;
+    }
+
+    // RPC returns array with single row, get first element
+    if (Array.isArray(data) && data.length > 0) {
+      return data[0] as UserInfo;
+    }
+
+    return null;
   }
 }
