@@ -65,6 +65,10 @@ export { InterviewService } from './domain/interview/interview.service';
 export * from './domain/interview/interview.types';
 export * from './domain/interview/hooks/useInterviewEvaluationRealtime';
 
+// ===== Domain: Registration =====
+export { RegistrationFormService } from './domain/registration/registration.service';
+export * from './domain/registration/registration.types';
+
 // ===== Domain: Tech Week =====
 export { TechWeekService, type TechWeekSessionUpdate } from './domain/tech-week';
 
