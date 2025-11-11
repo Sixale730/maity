@@ -214,10 +214,10 @@ export function ScenarioInstructions({
     );
   }
 
-  // Fallback: mostrar instrucciones hardcodeadas
+  // Fallback: mostrar instrucciones genéricas
   return (
     <Card className="bg-gray-900/50 border-gray-800 p-4 h-full">
-      <div className="space-y-3 h-full flex flex-col">
+      <div className="space-y-4 h-full flex flex-col">
         {/* Header */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -226,11 +226,11 @@ export function ScenarioInstructions({
             </div>
             <div className="flex-1">
               <h3 className="text-base font-semibold text-white">
-                Escenario {scenarioOrder}: {instructions.title}
+                Sala de Entrenamiento
               </h3>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-400">
-                  Perfil {profile} • Score: {minScoreToPass}%
+                  Escenario {scenarioOrder} • Perfil {profile}
                 </p>
                 <div className="flex items-center gap-1 text-xs text-gray-400">
                   <Clock className="h-3 w-3" />
@@ -241,42 +241,48 @@ export function ScenarioInstructions({
           </div>
         </div>
 
-        {/* Objetivos */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-300">
-            <Target className="h-4 w-4 text-green-400" />
-            <span>Objetivos</span>
+        {/* Instrucciones Genéricas */}
+        <div className="flex-1 space-y-4">
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-200">
+              ¿Cómo funciona la sala de entrenamiento?
+            </h4>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Practica tus habilidades de comunicación en un entorno seguro.
+              Mantén una conversación natural con el agente de inteligencia artificial
+              que simulará diferentes situaciones profesionales.
+            </p>
           </div>
-          <ul className="space-y-1 ml-5">
-            {instructions.objectives.map((objective: string, idx: number) => (
-              <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
-                <CheckCircle className="h-3 w-3 text-green-400 mt-0.5 flex-shrink-0" />
-                <span>{objective}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
 
-        {/* Tips específicos del perfil */}
-        <div className="space-y-2 flex-1">
-          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-300">
-            <Info className="h-4 w-4 text-blue-400" />
-            <span>Tips para {profile}</span>
-          </div>
-          <ul className="space-y-1 ml-5">
-            {instructions.tips[profile].map((tip: string, idx: number) => (
-              <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
-                <span className="text-blue-400">•</span>
-                <span>{tip}</span>
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-200">
+              Consejos para tu sesión:
+            </h4>
+            <ul className="space-y-1.5">
+              <li className="flex items-start gap-2 text-xs text-gray-400">
+                <span className="text-blue-400 mt-0.5">✓</span>
+                <span>Habla con claridad y naturalidad</span>
               </li>
-            ))}
-          </ul>
+              <li className="flex items-start gap-2 text-xs text-gray-400">
+                <span className="text-blue-400 mt-0.5">✓</span>
+                <span>Mantén un tono profesional y respetuoso</span>
+              </li>
+              <li className="flex items-start gap-2 text-xs text-gray-400">
+                <span className="text-blue-400 mt-0.5">✓</span>
+                <span>Escucha activamente y responde con atención</span>
+              </li>
+              <li className="flex items-start gap-2 text-xs text-gray-400">
+                <span className="text-blue-400 mt-0.5">✓</span>
+                <span>No te preocupes por errores, es parte del aprendizaje</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Recordatorio */}
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mt-auto">
-          <p className="text-xs text-yellow-400">
-            💡 El agente evaluará tu comunicación y técnica de ventas. Mantén un tono profesional y escucha activamente.
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-auto">
+          <p className="text-xs text-blue-400">
+            💡 Esta es tu oportunidad de practicar sin presión. Aprovecha el tiempo para mejorar tus habilidades.
           </p>
         </div>
       </div>

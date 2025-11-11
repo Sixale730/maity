@@ -21,11 +21,11 @@ export function LikertScale({
   const color = CompetencyColors[area];
 
   const options: { value: LikertValue; label: string }[] = [
-    { value: 1, label: 'Nunca' },
-    { value: 2, label: 'Rara vez' },
-    { value: 3, label: 'A veces' },
-    { value: 4, label: 'Frecuentemente' },
-    { value: 5, label: 'Siempre' },
+    { value: 1, label: 'Nada que ver conmigo 😢' },
+    { value: 2, label: 'A veces lo hago, pero me cuesta 😐' },
+    { value: 3, label: 'Lo hago con normalidad 😊' },
+    { value: 4, label: 'Casi siempre lo aplico bien 😄' },
+    { value: 5, label: 'Totalmente, así soy ✨' },
   ];
 
   useEffect(() => {
@@ -41,10 +41,14 @@ export function LikertScale({
 
   return (
     <div className="w-full space-y-6">
-      {/* Scale Labels */}
-      <div className="flex justify-between text-xs text-muted-foreground px-2">
-        <span>Nunca</span>
-        <span>Siempre</span>
+      {/* Helper Text */}
+      <div className="space-y-3">
+        <p className="text-sm text-center text-muted-foreground">
+          Selecciona el número que describe mejor tu comportamiento en cada afirmación ✨
+        </p>
+        <p className="text-sm text-center text-muted-foreground">
+          💝 Responde con honestidad y deja que Maity te guíe hacia una comunicación más poderosa.
+        </p>
       </div>
 
       {/* Scale Buttons */}
@@ -105,13 +109,6 @@ export function LikertScale({
             </span>
           </motion.button>
         ))}
-      </div>
-
-      {/* Helper Text */}
-      <div className="text-center">
-        <p className="text-sm text-muted-foreground">
-          Selecciona el número que mejor describa tu frecuencia
-        </p>
       </div>
     </div>
   );
