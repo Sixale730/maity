@@ -7,7 +7,7 @@ import { SessionResults } from '../components/SessionResults';
 import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
 import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
-import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
+import { supabase, AuthService, RoleplayService, createEvaluation } from '@maity/shared';
 import { env } from '@/lib/env';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
@@ -78,84 +78,7 @@ export function RoleplayPage() {
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
   // Estado para la evaluación
-  const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [_isEvaluating, setIsEvaluating] = useState(false);
-
-  // Callbacks memorizados para evitar re-renders infinitos
-  const handleEvaluationComplete = useCallback(async (result: any) => {
-    console.log('✅ [RoleplayPage] Evaluación completada:', result);
-
-    // Calcular score si no viene explícito (por si acaso)
-    const evaluationScore = result.score ??
-      (result.clarity !== undefined && result.structure !== undefined &&
-       result.connection !== undefined && result.influence !== undefined
-        ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
-        : 0);
-
-    console.log('📊 [RoleplayPage] Score calculado:', {
-      scoreFromResult: result.score,
-      scoreCalculated: evaluationScore,
-      clarity: result.clarity,
-      structure: result.structure,
-      connection: result.connection,
-      influence: result.influence
-    });
-
-    // Actualizar los resultados con la evaluación real
-    setSessionResults((prev: any) => ({
-      ...prev,
-      score: evaluationScore,
-      passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
-      isProcessing: false,
-      evaluation: result  // Pasar el result completo con todos los campos
-    }));
-
-    // Actualizar voice_session con los resultados
-    if (currentSessionId) {
-      const { error: updateError } = await supabase
-        .schema('maity')
-        .from('voice_sessions')
-        .update({
-          score: evaluationScore,
-          processed_feedback: result,
-          status: 'completed',
-          ended_at: new Date().toISOString()
-        })
-        .eq('id', currentSessionId);
-
-      if (updateError) {
-        console.error('❌ [RoleplayPage] Error actualizando voice_session:', updateError);
-      }
-    }
-
-    setIsEvaluating(false);
-  }, [currentScenario, currentSessionId]);
-
-  const handleEvaluationError = useCallback((errorMessage: string) => {
-    console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
-
-    // Actualizar resultados con error
-    setSessionResults((prev: any) => ({
-      ...prev,
-      isProcessing: false,
-      error: errorMessage
-    }));
-
-    toast({
-      title: "Error en evaluación",
-      description: errorMessage,
-      variant: "destructive"
-    });
-
-    setIsEvaluating(false);
-  }, [toast]);
-
-  // Hook para escuchar actualizaciones de evaluación en tiempo real
-  const { evaluation: _evaluation, isLoading: _evaluationLoading, error: _evaluationError } = useEvaluationRealtime({
-    requestId: evaluationRequestId || '',
-    onComplete: handleEvaluationComplete,
-    onError: handleEvaluationError
-  });
 
   useEffect(() => {
     checkUserAndQuestionnaire();
@@ -622,7 +545,6 @@ export function RoleplayPage() {
       }
 
       console.log('✅ [RoleplayPage] Evaluation creada:', evaluationData);
-      setEvaluationRequestId(requestId);
 
       // 3. Guardar duration y transcript en voice_session inmediatamente
       if (effectiveSessionId) {

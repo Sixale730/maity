@@ -160,7 +160,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       *,
       profile_scenario:voice_profile_scenarios(
         profile:voice_agent_profiles(name),
-        scenario:voice_scenarios(name, difficulty, objectives)
+        scenario:voice_scenarios(name, objectives)
       )
     `
     )
