@@ -8,8 +8,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors';
-import { getEnv } from '../lib/types/api/common';
+import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors.js';
+import { getEnv } from '../lib/types/api/common.js';
 
 /**
  * Read raw request body (needed for HMAC verification)
