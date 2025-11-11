@@ -339,9 +339,9 @@ export function SessionResults({
   let calculatedScore = score;
   if (calculatedScore === null && (metrics.clarity !== null || metrics.structure !== null || metrics.connection !== null || metrics.influence !== null)) {
     const values = [metrics.clarity, metrics.structure, metrics.connection, metrics.influence].filter(v => v !== null);
-    if (values.length === 4) {
-      // Promediar dimensiones (todas en escala 0-100)
-      calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / 4);
+    if (values.length > 0) {
+      // Promediar dimensiones disponibles (todas en escala 0-100)
+      calculatedScore = Math.round(values.reduce((sum, val) => sum + val, 0) / values.length);
     }
   }
 
