@@ -214,24 +214,24 @@ export interface EvaluationParams {
 export interface EvaluationResult {
   Evaluacion: {
     Claridad: {
-      Simplicidad: number;
-      Adaptacion: number;
-      Verificacion: number;
+      Simplicidad: number | string;
+      Adaptacion: number | string;
+      Verificacion: number | string;
     };
     Estructura: {
-      Refuerzos: number;
-      Memorabilidad: number;
-      Organizacion: number;
+      Refuerzos: number | string;
+      Memorabilidad: number | string;
+      Organizacion: number | string;
     };
     Alineacion_Emocional: {
-      Inspiracion_Motivacion: number;
-      Congruencia: number;
-      Confianza: number;
+      Inspiracion_Motivacion: number | string;
+      Congruencia: number | string;
+      Confianza: number | string;
     };
     Influencia: {
-      CTA: number;
-      Influencia: number;
-      Orientacion: number;
+      CTA: number | string;
+      Influencia: number | string;
+      Orientacion: number | string;
     };
   };
   Fortalezas: {
@@ -247,6 +247,7 @@ export interface EvaluationResult {
     Feedback: string;
   };
   Objetivo: string;
+  objective_feedback?: string;
 }
 
 export interface ScoreCalculation {
@@ -397,8 +398,15 @@ function calculateCost(usage?: {
 
 export function calculateScores(evaluationResult: EvaluationResult): ScoreCalculation {
   try {
-    const avgDimension = (dim: Record<string, number>) => {
-      const values = Object.values(dim).filter((v) => typeof v === 'number');
+    const avgDimension = (dim: Record<string, number | string>) => {
+      const values = Object.values(dim)
+        .map((v) => {
+          // Convert strings to numbers if needed
+          const num = typeof v === 'string' ? parseFloat(v) : v;
+          return typeof num === 'number' && !isNaN(num) ? num : null;
+        })
+        .filter((v): v is number => v !== null);
+
       if (values.length === 0) return 0;
       const sum = values.reduce((a, b) => a + b, 0);
       return (sum / values.length) * 10; // Convertir 1-10 a 0-100
@@ -411,16 +419,16 @@ export function calculateScores(evaluationResult: EvaluationResult): ScoreCalcul
     );
     const influencia = avgDimension(evaluationResult.Evaluacion?.Influencia || {});
 
-    const overallScore = (claridad + estructura + alineacion + influencia) / 4;
+    const overallScore = Math.round((claridad + estructura + alineacion + influencia) / 4);
     const passed = overallScore >= 70;
 
     return {
       overallScore,
       passed,
-      claridad,
-      estructura,
-      alineacion,
-      influencia,
+      claridad: Math.round(claridad),
+      estructura: Math.round(estructura),
+      alineacion: Math.round(alineacion),
+      influencia: Math.round(influencia),
     };
   } catch (error) {
     console.error({
