@@ -23,12 +23,17 @@ const Registration: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    void init();
-  }, []);
+    if (!initialized) {
+      setInitialized(true);
+      void init();
+    }
+  }, [initialized]);
 
   const init = async () => {
+    console.log('[Registration] 🚀 Starting init...');
     try {
       // 1) Session required
       const session = await AuthService.getSession();
@@ -48,7 +53,12 @@ const Registration: React.FC = () => {
       }
 
       const userStatus = statusData[0];
-      console.log('[Registration] User status:', userStatus);
+      console.log('[Registration] User status:', {
+        id: userStatus.id,
+        company_id: userStatus.company_id,
+        registration_form_completed: userStatus.registration_form_completed,
+        phase: userStatus.phase
+      });
 
       // Already completed registration? -> Dashboard
       if (userStatus.registration_form_completed) {
@@ -65,6 +75,7 @@ const Registration: React.FC = () => {
       }
 
       // Ready to show form
+      console.log('[Registration] ✅ Ready to show form, userId:', userStatus.id);
       setUserId(userStatus.id);
       setLoading(false);
     } catch (error) {

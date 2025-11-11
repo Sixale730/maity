@@ -68,12 +68,21 @@ export function CoachPage() {
       setCurrentTranscript(transcript);
 
       // Actualizar sesión con transcript
-      await CoachService.updateVoiceSession(sessionId, {
+      const updateResult = await CoachService.updateVoiceSession(sessionId, {
         duration_seconds: duration,
         raw_transcript: transcript,
         status: 'completed',
         ended_at: new Date().toISOString()
       });
+
+      console.log('✅ [Coach] Sesión actualizada:', {
+        sessionId: updateResult?.id,
+        status: updateResult?.status,
+        hasTranscript: !!updateResult?.raw_transcript
+      });
+
+      // Wait for DB transaction to complete (prevents race condition)
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Verificar mínimo 3 mensajes de usuario
       const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
