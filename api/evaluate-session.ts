@@ -316,24 +316,21 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Calculate scores from evaluation result
   const { overallScore, passed } = calculateScores(evaluationResult);
 
-  // Save evaluation to database
+  // Update evaluation in database (frontend already created it)
   const { data: _evaluation, error: evalError } = await supabase
     .schema('maity')
     .from('evaluations')
-    .insert({
-      request_id: requestId,
-      user_id: userId,
-      session_id: session.id,
+    .update({
       status: 'complete',
       result: evaluationResult,
-      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
+    .eq('request_id', requestId)
     .select()
     .single();
 
   if (evalError) {
-    console.error('Error creating evaluation:', evalError);
+    console.error('Error updating evaluation:', evalError);
     throw ApiError.database('Failed to save evaluation', evalError);
   }
 
