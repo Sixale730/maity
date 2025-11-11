@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { AuthService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
@@ -20,6 +21,7 @@ import { NativeRegistrationForm } from '../components/registration/NativeRegistr
 const Registration: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -95,6 +97,11 @@ const Registration: React.FC = () => {
       title: '¡Registro completado!',
       description: 'Tu evaluación diagnóstico ha sido guardada exitosamente.',
     });
+
+    // Invalidate React Query cache to ensure fresh data in dashboard
+    queryClient.invalidateQueries({ queryKey: ['formResponses'] });
+    queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
+    queryClient.invalidateQueries({ queryKey: ['user', 'status'] });
 
     // Redirect to dashboard
     setTimeout(() => {

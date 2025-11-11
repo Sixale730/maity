@@ -259,7 +259,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       </Card>
 
       {/* Individual Competency Bar Charts */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Claridad Bar Chart */}
         <Card>
           <CardHeader className="pb-3">
@@ -285,6 +285,56 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* Adaptación Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Adaptación</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.adaptacion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#1bea9a" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Persuasión Bar Chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Persuasión</CardTitle>
+            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={competencyBars.persuasion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis
+                    dataKey="pregunta"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" fill="#9b4dca" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
         {/* Estructura Bar Chart */}
         <Card>
           <CardHeader className="pb-3">
@@ -303,23 +353,23 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                   />
                   <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#1bea9a" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="value" fill="#ff8c42" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Inspiración y Confianza Bar Chart */}
+        {/* Propósito Bar Chart */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Inspiración y Confianza</CardTitle>
+            <CardTitle className="text-lg">Propósito</CardTitle>
             <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.inspiracion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <BarChart data={competencyBars.proposito} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                   <XAxis
                     dataKey="pregunta"
@@ -328,23 +378,23 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                   />
                   <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#ff0050" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="value" fill="#ffd93d" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Influencia Bar Chart */}
+        {/* Empatía Bar Chart */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Influencia</CardTitle>
+            <CardTitle className="text-lg">Empatía</CardTitle>
             <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.influencia} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <BarChart data={competencyBars.empatia} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                   <XAxis
                     dataKey="pregunta"
@@ -353,7 +403,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                   />
                   <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#e7e7e9" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="value" fill="#8b4513" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
