@@ -124,15 +124,11 @@ export function MaityVoiceAssistant() {
     }
 
     try {
-      // Create voice session in database
+      // Create voice session in database (RPC gets user automatically)
       const userInfo = await UserService.getUserInfo();
-      if (!userInfo) {
-        throw new Error('No se pudo obtener información del usuario');
-      }
 
       const session = await CoachService.createVoiceSession(
-        userInfo.user_id,
-        userInfo.company_id || undefined
+        userInfo?.company_id || undefined
       );
 
       setSessionId(session.id);

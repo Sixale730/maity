@@ -252,27 +252,23 @@ export class CoachService {
   /**
    * Create a new voice session for Coach
    * Unlike Roleplay, Coach sessions don't require a profile_scenario_id
-   * @param userId - User's UUID from maity.users table
+   * Uses RPC function to bypass RLS issues
    * @param companyId - Optional company ID
    * @returns Promise with created session
    */
-  static async createVoiceSession(userId: string, companyId?: string): Promise<any> {
-    const { data, error } = await supabase
-      .schema('maity')
-      .from('voice_sessions')
-      .insert({
-        user_id: userId,
-        company_id: companyId ?? null,
-        profile_scenario_id: null, // Coach doesn't use scenarios
-        status: 'in_progress',
-        started_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+  static async createVoiceSession(companyId?: string): Promise<any> {
+    const { data, error } = await supabase.rpc('create_coach_voice_session', {
+      p_company_id: companyId ?? null
+    });
 
     if (error) {
       console.error('Error creating voice session:', error);
       throw error;
+    }
+
+    // RPC returns array with single row, get first element
+    if (Array.isArray(data) && data.length > 0) {
+      return data[0];
     }
 
     return data;
