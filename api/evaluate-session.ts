@@ -171,7 +171,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const { data: basicSession, error: basicError } = await supabase
     .schema('maity')
     .from('voice_sessions')
-    .select('id, user_id, status, raw_transcript')
+    .select('id, user_id, status, raw_transcript, profile_scenario_id')
     .eq('id', body.session_id)
     .maybeSingle();
 
@@ -182,38 +182,80 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     basicSessionId: basicSession?.id,
     basicSessionUserId: basicSession?.user_id,
     hasTranscript: !!basicSession?.raw_transcript,
+    profileScenarioId: basicSession?.profile_scenario_id,
+    isCoachSession: !basicSession?.profile_scenario_id,
   });
 
-  // Fetch session with metadata (LEFT JOIN to support Coach sessions without scenarios)
-  const { data: session, error: sessionError } = await supabase
-    .schema('maity')
-    .from('voice_sessions')
-    .select(
-      `
-      *,
-      profile_scenario:voice_profile_scenarios!left(
-        profile:voice_agent_profiles(name),
-        scenario:voice_scenarios(name, objectives)
-      )
-    `
-    )
-    .eq('id', body.session_id)
-    .single();
-
-  if (sessionError || !session) {
+  // Check if basicSession was found
+  if (basicError || !basicSession) {
     console.error({
       event: 'session_lookup_failed',
       sessionId: body.session_id,
       userId,
-      error: sessionError,
-      errorCode: sessionError?.code,
-      errorMessage: sessionError?.message,
-      errorDetails: sessionError?.details,
-      errorHint: sessionError?.hint,
-      basicSessionFound: !!basicSession,
+      error: basicError,
+      errorCode: basicError?.code,
+      errorMessage: basicError?.message,
       timestamp: new Date().toISOString(),
     });
     throw ApiError.notFound('Session');
+  }
+
+  // For Coach sessions (no profile_scenario_id), use basicSession directly
+  // For Roleplay sessions, fetch with JOINs to get scenario metadata
+  let session: any;
+
+  if (!basicSession.profile_scenario_id) {
+    // Coach session - no JOINs needed, use basicSession
+    console.log({
+      event: 'coach_session_detected',
+      sessionId: basicSession.id,
+      message: 'Using simplified query for Coach session',
+      timestamp: new Date().toISOString(),
+    });
+
+    session = {
+      ...basicSession,
+      profile_scenario: null, // No scenario for Coach sessions
+    };
+  } else {
+    // Roleplay session - fetch with JOINs to get metadata
+    console.log({
+      event: 'roleplay_session_detected',
+      sessionId: basicSession.id,
+      profileScenarioId: basicSession.profile_scenario_id,
+      message: 'Using JOIN query for Roleplay session',
+      timestamp: new Date().toISOString(),
+    });
+
+    const { data: roleplaySession, error: roleplayError } = await supabase
+      .schema('maity')
+      .from('voice_sessions')
+      .select(
+        `
+        *,
+        profile_scenario:voice_profile_scenarios!left(
+          profile:voice_agent_profiles(name),
+          scenario:voice_scenarios(name, objectives)
+        )
+      `
+      )
+      .eq('id', body.session_id)
+      .maybeSingle();
+
+    if (roleplayError || !roleplaySession) {
+      console.error({
+        event: 'roleplay_session_lookup_failed',
+        sessionId: body.session_id,
+        userId,
+        error: roleplayError,
+        errorCode: roleplayError?.code,
+        errorMessage: roleplayError?.message,
+        timestamp: new Date().toISOString(),
+      });
+      throw ApiError.notFound('Session with scenario metadata');
+    }
+
+    session = roleplaySession;
   }
 
   console.log({
@@ -222,6 +264,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     hasProfileScenario: !!session.profile_scenario,
     hasTranscript: !!session.raw_transcript,
     status: session.status,
+    isCoachSession: !session.profile_scenario_id,
     timestamp: new Date().toISOString(),
   });
 
