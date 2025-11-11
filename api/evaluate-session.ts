@@ -163,7 +163,25 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     event: 'session_lookup_started',
     sessionId: body.session_id,
     userId,
+    usingServiceRole: true,
     timestamp: new Date().toISOString(),
+  });
+
+  // First, try to find the session without joins to verify it exists
+  const { data: basicSession, error: basicError } = await supabase
+    .schema('maity')
+    .from('voice_sessions')
+    .select('id, user_id, status, raw_transcript')
+    .eq('id', body.session_id)
+    .maybeSingle();
+
+  console.log({
+    event: 'basic_session_lookup',
+    found: !!basicSession,
+    basicError,
+    basicSessionId: basicSession?.id,
+    basicSessionUserId: basicSession?.user_id,
+    hasTranscript: !!basicSession?.raw_transcript,
   });
 
   // Fetch session with metadata (LEFT JOIN to support Coach sessions without scenarios)
@@ -191,6 +209,8 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       errorCode: sessionError?.code,
       errorMessage: sessionError?.message,
       errorDetails: sessionError?.details,
+      errorHint: sessionError?.hint,
+      basicSessionFound: !!basicSession,
       timestamp: new Date().toISOString(),
     });
     throw ApiError.notFound('Session');
