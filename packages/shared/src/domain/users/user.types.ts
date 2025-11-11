@@ -67,3 +67,19 @@ export interface CompanyDeletionImpact {
   users: number;
   can_delete: boolean;
 }
+
+/**
+ * User info returned by get_user_info RPC
+ */
+export interface UserInfo {
+  user_id: string;
+  auth_id: string;
+  email: string;
+  name: string;
+  status: string;
+  company_id: string | null;
+  company_name: string | null;
+  company_slug: string | null;
+  registration_form_completed: boolean;
+  onboarding_completed_at: string | null;
+}

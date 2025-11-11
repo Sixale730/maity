@@ -3,7 +3,16 @@ import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
 import { ParticleSphere } from './ParticleSphere';
-import { MAITY_COLORS } from '@maity/shared';
+import { MAITY_COLORS, CoachService, UserService, createEvaluation, supabase } from '@maity/shared';
+import { env } from '@/lib/env';
+import { toast } from '@/shared/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/ui/components/ui/dialog';
 
 export function MaityVoiceAssistant() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -21,6 +30,15 @@ export function MaityVoiceAssistant() {
     source: 'user' | 'ai';
     message: string;
   }>>([]);
+
+  // Session tracking para evaluación
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+
+  // Evaluation results
+  const [showResults, setShowResults] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evaluationResults, setEvaluationResults] = useState<any>(null);
 
   // Ref para el scroll del chat
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -106,6 +124,22 @@ export function MaityVoiceAssistant() {
     }
 
     try {
+      // Create voice session in database
+      const userInfo = await UserService.getUserInfo();
+      if (!userInfo) {
+        throw new Error('No se pudo obtener información del usuario');
+      }
+
+      const session = await CoachService.createVoiceSession(
+        userInfo.user_id,
+        userInfo.company_id || undefined
+      );
+
+      setSessionId(session.id);
+      setSessionStartTime(new Date());
+
+      console.log('✅ [Coach] Voice session created:', session.id);
+
       // Start conversation session
       const newConversation = await Conversation.startSession({
         signedUrl: signedUrl,
@@ -156,16 +190,153 @@ export function MaityVoiceAssistant() {
 
   // End conversation
   const endConversation = async () => {
-    if (conversation) {
+    if (!conversation) return;
+
+    try {
+      // End the ElevenLabs conversation
       await conversation.endSession();
       setConversation(null);
       setIsConnected(false);
       setIsSpeaking(false);
-      setError(null);
-      setTranscript('');
-      setAgentResponse('');
-      setConversationHistory([]);
+
+      // Check if we have a valid session and conversation history
+      if (!sessionId || !sessionStartTime || conversationHistory.length === 0) {
+        console.log('⚠️ [Coach] No session data or conversation history');
+        resetState();
+        return;
+      }
+
+      // Calculate duration
+      const duration = Math.round((Date.now() - sessionStartTime.getTime()) / 1000);
+
+      // Format transcript from conversation history
+      const transcript = conversationHistory
+        .map(msg => {
+          const speaker = msg.source === 'user' ? 'Usuario' : 'Maity';
+          return `${speaker}: ${msg.message}`;
+        })
+        .join('\n');
+
+      console.log('📝 [Coach] Formatted transcript:', {
+        sessionId,
+        duration,
+        messageCount: conversationHistory.length,
+        transcriptLength: transcript.length
+      });
+
+      // Update session with transcript and duration
+      await CoachService.updateVoiceSession(sessionId, {
+        duration_seconds: duration,
+        raw_transcript: transcript,
+        status: 'completed',
+        ended_at: new Date().toISOString()
+      });
+
+      // Check if conversation is too short (less than 3 user messages)
+      const userMessageCount = conversationHistory.filter(m => m.source === 'user').length;
+      if (userMessageCount < 3) {
+        console.log('⚠️ [Coach] Sesión muy corta, no se evaluará');
+        toast({
+          title: "Sesión completada",
+          description: "La sesión fue muy breve para una evaluación completa.",
+          variant: "default"
+        });
+        resetState();
+        return;
+      }
+
+      // Show evaluating state
+      setIsEvaluating(true);
+
+      // Create evaluation record
+      const userInfo = await UserService.getUserInfo();
+      if (!userInfo) {
+        throw new Error('No se pudo obtener información del usuario');
+      }
+
+      const requestId = crypto.randomUUID();
+      const { data: _evaluationData, error: createError } = await createEvaluation(
+        requestId,
+        userInfo.user_id,
+        sessionId
+      );
+
+      if (createError) {
+        console.error('❌ [Coach] Error al crear evaluation:', createError);
+        throw new Error('Error al crear evaluación');
+      }
+
+      console.log('✅ [Coach] Evaluation record created');
+
+      // Get auth session for Bearer token
+      const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !authSession) {
+        console.error('❌ [Coach] Error obteniendo sesión de auth:', sessionError);
+        throw new Error('Error de autenticación');
+      }
+
+      // Call OpenAI evaluation API
+      console.log('🔄 [Coach] Llamando API de evaluación...');
+
+      const evaluationResponse = await fetch(`${env.apiUrl}/api/evaluate-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession.access_token}`
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          request_id: requestId
+        })
+      });
+
+      if (!evaluationResponse.ok) {
+        const errorData = await evaluationResponse.json().catch(() => null);
+        console.error('❌ [Coach] Error de API:', {
+          status: evaluationResponse.status,
+          errorData
+        });
+        throw new Error(errorData?.message || `Error ${evaluationResponse.status}`);
+      }
+
+      const { evaluation } = await evaluationResponse.json();
+
+      console.log('✅ [Coach] Evaluación completada:', {
+        score: evaluation.score,
+        passed: evaluation.passed
+      });
+
+      // Show results
+      setEvaluationResults({
+        score: evaluation.score,
+        passed: evaluation.passed,
+        result: evaluation.result,
+        duration,
+        messageCount: conversationHistory.length
+      });
+      setShowResults(true);
+
+    } catch (error) {
+      console.error('❌ [Coach] Error al finalizar sesión:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error al procesar la sesión',
+      });
+    } finally {
+      setIsEvaluating(false);
     }
+  };
+
+  // Reset state after session
+  const resetState = () => {
+    setError(null);
+    setTranscript('');
+    setAgentResponse('');
+    setConversationHistory([]);
+    setSessionId(null);
+    setSessionStartTime(null);
   };
 
   return (
@@ -476,6 +647,143 @@ export function MaityVoiceAssistant() {
           </div>
         </div>
       )}
+
+      {/* Evaluating Loading Modal */}
+      <Dialog open={isEvaluating} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Evaluando sesión...</DialogTitle>
+            <DialogDescription className="text-center pt-4">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: MAITY_COLORS.primary }} />
+              <p className="text-gray-400">
+                Analizando tu conversación con inteligencia artificial.
+                <br />
+                Esto puede tomar unos segundos.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Results Modal */}
+      <Dialog open={showResults} onOpenChange={(open) => {
+        setShowResults(open);
+        if (!open) {
+          resetState();
+        }
+      }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Resultados de la Sesión</DialogTitle>
+            <DialogDescription>
+              Análisis de tu conversación con Maity
+            </DialogDescription>
+          </DialogHeader>
+
+          {evaluationResults && (
+            <div className="space-y-6 py-4">
+              {/* Score Display */}
+              <div className="text-center">
+                <div className="inline-block p-8 rounded-full" style={{
+                  backgroundColor: `${MAITY_COLORS.primary}10`,
+                  border: `2px solid ${MAITY_COLORS.primary}`
+                }}>
+                  <div className="text-5xl font-bold" style={{ color: MAITY_COLORS.primary }}>
+                    {evaluationResults.score}
+                  </div>
+                  <div className="text-sm text-gray-400 mt-2">Puntuación</div>
+                </div>
+              </div>
+
+              {/* Session Stats */}
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  <div className="text-2xl font-bold text-white">{evaluationResults.duration}s</div>
+                  <div className="text-sm text-gray-400">Duración</div>
+                </div>
+                <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  <div className="text-2xl font-bold text-white">{evaluationResults.messageCount}</div>
+                  <div className="text-sm text-gray-400">Mensajes</div>
+                </div>
+              </div>
+
+              {/* Evaluation Details */}
+              {evaluationResults.result && (
+                <div className="space-y-4">
+                  {/* Summary */}
+                  {evaluationResults.result.summary && (
+                    <div>
+                      <h4 className="font-semibold text-white mb-2">Resumen</h4>
+                      <p className="text-gray-300 text-sm">{evaluationResults.result.summary}</p>
+                    </div>
+                  )}
+
+                  {/* Strengths */}
+                  {evaluationResults.result.strengths && evaluationResults.result.strengths.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2" style={{ color: MAITY_COLORS.primary }}>
+                        Fortalezas
+                      </h4>
+                      <ul className="space-y-2">
+                        {evaluationResults.result.strengths.map((strength: string, idx: number) => (
+                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span style={{ color: MAITY_COLORS.primary }}>✓</span>
+                            <span>{strength}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Areas for Improvement */}
+                  {evaluationResults.result.areas_for_improvement && evaluationResults.result.areas_for_improvement.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-yellow-500 mb-2">Áreas de Mejora</h4>
+                      <ul className="space-y-2">
+                        {evaluationResults.result.areas_for_improvement.map((area: string, idx: number) => (
+                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span className="text-yellow-500">→</span>
+                            <span>{area}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Recommendations */}
+                  {evaluationResults.result.recommendations && evaluationResults.result.recommendations.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-blue-400 mb-2">Recomendaciones</h4>
+                      <ul className="space-y-2">
+                        {evaluationResults.result.recommendations.map((rec: string, idx: number) => (
+                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span className="text-blue-400">💡</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Close Button */}
+              <div className="pt-4">
+                <Button
+                  onClick={() => {
+                    setShowResults(false);
+                    resetState();
+                  }}
+                  className="w-full"
+                  style={{ backgroundColor: MAITY_COLORS.primary }}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
