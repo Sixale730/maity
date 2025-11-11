@@ -28,7 +28,10 @@ export interface EnvConfig {
   elevenLabsInterviewAgentId?: string;
   elevenLabsTechWeekAgentId?: string;
 
-  // n8n Integration (optional)
+  // OpenAI Configuration (optional)
+  openaiModel?: string;
+
+  // n8n Integration (optional - being deprecated)
   n8nWebhookUrl?: string;
   n8nInterviewWebhookUrl?: string;
   n8nBackendSecret?: string;
@@ -101,6 +104,7 @@ function loadEnvironment(): EnvConfig {
     elevenLabsAgentId: getOptional('VITE_ELEVENLABS_AGENT_ID_TEST'),
     elevenLabsInterviewAgentId: getOptional('VITE_ELEVENLABS_INTERVIEW_AGENT_ID'),
     elevenLabsTechWeekAgentId: getOptional('VITE_ELEVENLABS_TECH_WEEK_AGENT_ID'),
+    openaiModel: getOptional('VITE_OPENAI_MODEL') || 'gpt-4o-mini',
     n8nWebhookUrl: getOptional('VITE_N8N_WEBHOOK_URL'),
     n8nInterviewWebhookUrl: getOptional('VITE_N8N_INTERVIEW_WEBHOOK_URL'),
     n8nBackendSecret: getOptional('VITE_N8N_BACKEND_SECRET'),
