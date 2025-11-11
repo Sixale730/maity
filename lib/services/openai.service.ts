@@ -272,7 +272,7 @@ async function sleep(ms: number): Promise<void> {
 
 async function callOpenAIWithRetry(
   openai: OpenAI,
-  params: OpenAI.Chat.ChatCompletionCreateParams,
+  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream'> & { stream?: false | null },
   maxRetries = 3
 ): Promise<OpenAI.Chat.ChatCompletion> {
   let lastError: Error | null = null;
@@ -285,7 +285,7 @@ async function callOpenAIWithRetry(
         {
           timeout: 25000, // 25 seconds
         }
-      );
+      ) as OpenAI.Chat.ChatCompletion;
 
       return response;
     } catch (error: any) {
