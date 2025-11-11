@@ -6,8 +6,8 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors.js';
-import { getEnvOptional } from '../lib/types/api/common.js';
+import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors';
+import { getEnvOptional } from '../lib/types/api/common';
 
 /**
  * Custom CORS handler for GET requests

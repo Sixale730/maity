@@ -7,8 +7,8 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { OpusDecoder } from 'opus-decoder';
-import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors.js';
-import { decodeOpusRequestSchema } from '../lib/types/api/schemas.js';
+import { ApiError, withErrorHandler, validateMethod } from '../lib/types/api/errors';
+import { decodeOpusRequestSchema } from '../lib/types/api/schemas';
 
 /**
  * Custom CORS handler for decode-opus

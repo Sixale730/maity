@@ -15,18 +15,18 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { setCors } from '../lib/cors.js';
+import { setCors } from '../lib/cors';
 import {
   ApiError,
   withErrorHandler,
   validateMethod,
-} from '../lib/types/api/errors.js';
-import { getEnv } from '../lib/types/api/common.js';
+} from '../lib/types/api/errors';
+import { getEnv } from '../lib/types/api/common';
 import {
   evaluateRoleplaySession,
   parseTranscript,
   calculateScores,
-} from '../lib/services/openai.service.js';
+} from '../lib/services/openai.service';
 
 // ============================================================================
 // SCHEMAS
