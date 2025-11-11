@@ -7,7 +7,7 @@ import { SessionResults } from '../components/SessionResults';
 import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
 import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
-import { supabase, AuthService, RoleplayService, createEvaluation } from '@maity/shared';
+import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { env } from '@/lib/env';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
@@ -78,7 +78,84 @@ export function RoleplayPage() {
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
   // Estado para la evaluación
+  const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [_isEvaluating, setIsEvaluating] = useState(false);
+
+  // Callbacks memorizados para evitar re-renders infinitos
+  const handleEvaluationComplete = useCallback(async (result: any) => {
+    console.log('✅ [RoleplayPage] Evaluación completada:', result);
+
+    // Calcular score si no viene explícito (por si acaso)
+    const evaluationScore = result.score ??
+      (result.clarity !== undefined && result.structure !== undefined &&
+       result.connection !== undefined && result.influence !== undefined
+        ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
+        : 0);
+
+    console.log('📊 [RoleplayPage] Score calculado:', {
+      scoreFromResult: result.score,
+      scoreCalculated: evaluationScore,
+      clarity: result.clarity,
+      structure: result.structure,
+      connection: result.connection,
+      influence: result.influence
+    });
+
+    // Actualizar los resultados con la evaluación real
+    setSessionResults((prev: any) => ({
+      ...prev,
+      score: evaluationScore,
+      passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
+      isProcessing: false,
+      evaluation: result  // Pasar el result completo con todos los campos
+    }));
+
+    // Actualizar voice_session con los resultados
+    if (currentSessionId) {
+      const { error: updateError } = await supabase
+        .schema('maity')
+        .from('voice_sessions')
+        .update({
+          score: evaluationScore,
+          processed_feedback: result,
+          status: 'completed',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', currentSessionId);
+
+      if (updateError) {
+        console.error('❌ [RoleplayPage] Error actualizando voice_session:', updateError);
+      }
+    }
+
+    setIsEvaluating(false);
+  }, [currentScenario, currentSessionId]);
+
+  const handleEvaluationError = useCallback((errorMessage: string) => {
+    console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
+
+    // Actualizar resultados con error
+    setSessionResults((prev: any) => ({
+      ...prev,
+      isProcessing: false,
+      error: errorMessage
+    }));
+
+    toast({
+      title: "Error en evaluación",
+      description: errorMessage,
+      variant: "destructive"
+    });
+
+    setIsEvaluating(false);
+  }, [toast]);
+
+  // Hook para escuchar actualizaciones de evaluación en tiempo real
+  const { evaluation: _evaluation, isLoading: _evaluationLoading, error: _evaluationError } = useEvaluationRealtime({
+    requestId: evaluationRequestId || '',
+    onComplete: handleEvaluationComplete,
+    onError: handleEvaluationError
+  });
 
   useEffect(() => {
     checkUserAndQuestionnaire();
@@ -545,6 +622,7 @@ export function RoleplayPage() {
       }
 
       console.log('✅ [RoleplayPage] Evaluation creada:', evaluationData);
+      setEvaluationRequestId(requestId);
 
       // 3. Guardar duration y transcript en voice_session inmediatamente
       if (effectiveSessionId) {
@@ -659,31 +737,117 @@ export function RoleplayPage() {
         return; // Salir sin enviar a n8n
       }
 
-      // 5. Llamar API de evaluación directamente (OpenAI)
-      console.log('📤 [RoleplayPage] Llamando API de evaluación con OpenAI...', {
+      // 5. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes o modo admin)
+      const n8nWebhookUrl = env.n8nWebhookUrl;
+
+      console.log('📤 [RoleplayPage] Enviando transcript a n8n para evaluación completa...', {
+        url: n8nWebhookUrl,
         requestId,
         sessionId: effectiveSessionId,
         sessionToLink,
         userMessageCount,
         forceN8nEvaluation,
+        testMode,
         bypassedValidation: forceN8nEvaluation && !hasSufficientContent,
         transcriptPreview: transcript.substring(0, 100) + '...'
       });
 
       if (forceN8nEvaluation && !hasSufficientContent) {
-        console.warn(`⚠️ [ADMIN MODE] Evaluando sin suficiente contenido (modo admin activado)`);
+        console.warn(`⚠️ [ADMIN MODE] Enviando a n8n sin suficiente contenido (modo admin activado)`);
       }
 
-      // Guardar transcripción para el modal
-      setCurrentTranscript(transcript);
+      if (testMode) {
+        console.warn('🧪 [TEST MODE] Webhook enviado en modo de prueba (test: true)');
+      }
 
-      // Mostrar estado de carga
+      // Enviar a n8n webhook si está configurado
+      if (n8nWebhookUrl && n8nWebhookUrl.length > 0) {
+        const webhookPayload = {
+          request_id: requestId,
+          session_id: sessionToLink || null,
+          transcript: transcript,
+          messages: messages || [], // Array de mensajes individuales de la conversación
+          test: testMode, // Flag para modo de prueba en n8n
+          metadata: {
+            user_id: userId,
+            profile: getCurrentProfile(),
+            scenario: currentScenario?.scenarioName,
+            scenario_code: currentScenario?.scenarioCode,
+            objectives: currentScenario?.objectives,
+            difficulty: currentScenario?.difficultyLevel,
+            duration_seconds: duration,
+            message_count: messages?.length || 0,
+            user_message_count: messages?.filter(m => m.source === 'user').length || 0,
+            ai_message_count: messages?.filter(m => m.source === 'ai').length || 0,
+            admin_bypass: forceN8nEvaluation && !hasSufficientContent
+          }
+        };
+
+        const bodyString = JSON.stringify(webhookPayload);
+
+        console.log('📤 [RoleplayPage] Enviando a n8n webhook:', {
+          url: n8nWebhookUrl,
+          requestId: webhookPayload.request_id,
+          testMode: webhookPayload.test,
+          adminBypass: webhookPayload.metadata.admin_bypass,
+          messageCount: webhookPayload.metadata.message_count
+        });
+
+        // LOG CRÍTICO: Verificar request_id y test flag justo antes de enviar
+        console.log('🔴 [CRITICAL] Payload details:', {
+          request_id: webhookPayload.request_id,
+          test: webhookPayload.test,
+          admin_bypass: webhookPayload.metadata.admin_bypass
+        });
+
+        fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: bodyString
+        }).then(async response => {
+          const responseText = await response.text();
+
+          console.log('📨 [RoleplayPage] Respuesta de n8n:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            headers: Object.fromEntries(response.headers.entries()),
+            bodyText: responseText
+          });
+
+          if (response.ok) {
+            console.log('✅ [RoleplayPage] Transcript enviado a n8n exitosamente');
+          } else {
+            console.error('❌ [RoleplayPage] Error al enviar a n8n:', response.status, response.statusText);
+          }
+
+          // Intenta parsear la respuesta como JSON
+          try {
+            const responseJson = JSON.parse(responseText);
+            console.log('📝 [RoleplayPage] Respuesta de n8n (JSON):', responseJson);
+          } catch (e) {
+            console.log('📝 [RoleplayPage] Respuesta de n8n (text):', responseText);
+          }
+        }).catch(error => {
+          console.error('❌ [RoleplayPage] Error de red al enviar a n8n:', error);
+          console.log('ℹ️ [RoleplayPage] Continuando sin n8n. La evaluación quedará pendiente.');
+        });
+      } else {
+        console.log('⚠️ [RoleplayPage] n8n webhook no configurado o usando placeholder. La evaluación quedará pendiente.');
+      }
+
+      // 6. Por ahora mostrar resultados temporales mientras se procesa
+      console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras n8n procesa...');
+      setCurrentTranscript(transcript); // Guardar transcripción para el modal
       setSessionResults({
         sessionId: effectiveSessionId,
         profile: questionnaireData?.practiceStartProfile,
         scenarioName: currentScenario?.scenarioName,
         objectives: currentScenario?.objectives,
-        score: null,
+        score: null, // Será actualizado cuando llegue la evaluación
         passed: null,
         duration: duration,
         isProcessing: true,
@@ -692,92 +856,7 @@ export function RoleplayPage() {
       });
       setShowResults(true);
 
-      // Obtener session para el Bearer token
-      const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !authSession) {
-        console.error('❌ [RoleplayPage] Error obteniendo sesión de auth:', sessionError);
-        toast({
-          variant: 'destructive',
-          title: 'Error de autenticación',
-          description: 'No se pudo verificar tu sesión. Por favor recarga la página.',
-        });
-
-        // Mostrar error en resultados
-        setSessionResults(prev => ({
-          ...prev,
-          isProcessing: false,
-          error: 'Error de autenticación'
-        }));
-        return;
-      }
-
-      // Llamar API de evaluación
-      try {
-        console.log('🔄 [RoleplayPage] Enviando solicitud a /api/evaluate-session...');
-
-        const evaluationResponse = await fetch(`${env.apiUrl}/api/evaluate-session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authSession.access_token}`
-          },
-          body: JSON.stringify({
-            session_id: effectiveSessionId,
-            request_id: requestId
-          })
-        });
-
-        if (!evaluationResponse.ok) {
-          const errorData = await evaluationResponse.json().catch(() => null);
-          console.error('❌ [RoleplayPage] Error de API:', {
-            status: evaluationResponse.status,
-            statusText: evaluationResponse.statusText,
-            errorData
-          });
-
-          throw new Error(errorData?.message || `Error ${evaluationResponse.status}: ${evaluationResponse.statusText}`);
-        }
-
-        const { evaluation } = await evaluationResponse.json();
-
-        console.log('✅ [RoleplayPage] Evaluación completada exitosamente:', {
-          requestId: evaluation.request_id,
-          score: evaluation.score,
-          passed: evaluation.passed
-        });
-
-        // Actualizar resultados con la evaluación
-        setSessionResults({
-          sessionId: effectiveSessionId,
-          profile: questionnaireData?.practiceStartProfile,
-          scenarioName: currentScenario?.scenarioName,
-          objectives: currentScenario?.objectives,
-          score: evaluation.score,
-          passed: evaluation.passed,
-          duration: duration,
-          isProcessing: false,
-          requestId: evaluation.request_id,
-          transcript: transcript,
-          evaluation: evaluation.result
-        });
-
-      } catch (error) {
-        console.error('❌ [RoleplayPage] Error al evaluar sesión:', error);
-
-        toast({
-          variant: 'destructive',
-          title: 'Error al evaluar',
-          description: error instanceof Error ? error.message : 'Error desconocido. Intenta de nuevo.',
-        });
-
-        // Mostrar error en resultados
-        setSessionResults(prev => ({
-          ...prev,
-          isProcessing: false,
-          error: error instanceof Error ? error.message : 'Error desconocido'
-        }));
-      }
+      // La evaluación real llegará por Realtime y actualizará los resultados
 
     } catch (error) {
       console.error('❌ [RoleplayPage] Error en handleSessionEnd:', error);

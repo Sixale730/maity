@@ -244,4 +244,124 @@ export class CoachService {
 
     return { success: true };
   }
+
+  // ============================================================================
+  // VOICE SESSION METHODS (for Coach voice evaluations)
+  // ============================================================================
+
+  /**
+   * Create a new voice session for Coach
+   * Unlike Roleplay, Coach sessions don't require a profile_scenario_id
+   * @param userId - User's UUID from maity.users table
+   * @param companyId - Optional company ID
+   * @returns Promise with created session
+   */
+  static async createVoiceSession(userId: string, companyId?: string): Promise<any> {
+    const { data, error } = await supabase
+      .schema('maity')
+      .from('voice_sessions')
+      .insert({
+        user_id: userId,
+        company_id: companyId ?? null,
+        profile_scenario_id: null, // Coach doesn't use scenarios
+        status: 'in_progress',
+        started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating voice session:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
+   * Update a voice session with transcript and duration
+   * @param sessionId - Session UUID
+   * @param updates - Fields to update
+   * @returns Promise with updated session
+   */
+  static async updateVoiceSession(
+    sessionId: string,
+    updates: {
+      duration_seconds?: number;
+      raw_transcript?: string;
+      score?: number;
+      passed?: boolean;
+      processed_feedback?: any;
+      status?: string;
+      ended_at?: string;
+    }
+  ): Promise<any> {
+    const { data, error } = await supabase
+      .schema('maity')
+      .from('voice_sessions')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sessionId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating voice session:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
+   * Get a voice session by ID
+   * @param sessionId - Session UUID
+   * @returns Promise with session data
+   */
+  static async getVoiceSession(sessionId: string): Promise<any> {
+    const { data, error } = await supabase
+      .schema('maity')
+      .from('voice_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching voice session:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
+   * Get all voice sessions for a user (Coach history)
+   * @param userId - User's UUID
+   * @param limit - Optional limit
+   * @returns Promise with array of sessions
+   */
+  static async getVoiceSessions(userId: string, limit?: number): Promise<any[] | null> {
+    let query = supabase
+      .schema('maity')
+      .from('voice_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .is('profile_scenario_id', null) // Only Coach sessions (no scenario)
+      .order('created_at', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching voice sessions:', error);
+      throw error;
+    }
+
+    return data;
+  }
 }
