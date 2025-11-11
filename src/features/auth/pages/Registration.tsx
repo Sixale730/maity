@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthService } from '@maity/shared';
@@ -25,14 +25,13 @@ const Registration: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (!initialized) {
-      setInitialized(true);
-      void init();
-    }
-  }, [initialized]);
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    void init();
+  }, []); // Empty deps - run only once on mount
 
   const init = async () => {
     console.log('[Registration] 🚀 Starting init...');
@@ -91,22 +90,32 @@ const Registration: React.FC = () => {
     }
   };
 
-  const handleFormComplete = () => {
+  const handleFormComplete = async () => {
     console.log('[Registration] ✅ Form completed successfully');
-    toast({
-      title: '¡Registro completado!',
-      description: 'Tu evaluación diagnóstico ha sido guardada exitosamente.',
-    });
 
-    // Invalidate React Query cache to ensure fresh data in dashboard
-    queryClient.invalidateQueries({ queryKey: ['formResponses'] });
-    queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
-    queryClient.invalidateQueries({ queryKey: ['user', 'status'] });
+    try {
+      // Invalidate and WAIT for queries to refetch
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['formResponses'] }),
+        queryClient.invalidateQueries({ queryKey: ['user', 'profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['user', 'status'] }),
+      ]);
 
-    // Redirect to dashboard
-    setTimeout(() => {
+      // Small delay to ensure Supabase RLS policies reflect the update
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      toast({
+        title: '¡Registro completado!',
+        description: 'Tu evaluación diagnóstico ha sido guardada exitosamente.',
+      });
+
+      // Navigate after everything is ready
       navigate('/dashboard', { replace: true });
-    }, 1000);
+    } catch (error) {
+      console.error('[Registration] Error invalidating queries:', error);
+      // Even on error, navigate to dashboard (user completed form successfully)
+      navigate('/dashboard', { replace: true });
+    }
   };
 
   if (loading || !userId) {

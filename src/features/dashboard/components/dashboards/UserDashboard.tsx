@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
 import { useFormResponses, supabase } from "@maity/shared";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
 
 const chartConfig = {
@@ -76,7 +76,20 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('user');
   const { radarData, competencyBars, loading: formLoading, error: formError } = useFormResponses();
-  const [avgDiagnosticScore, setAvgDiagnosticScore] = useState<number | null>(null);
+
+  // Calculate diagnostic score from registration form data (q5-q16, scale 1-5)
+  const diagnosticScore = useMemo(() => {
+    if (!radarData || radarData.length === 0) return null;
+
+    // radarData has 6 competencies, each is average of 2 questions scaled to 0-100
+    // Convert back to 1-5 scale and calculate overall average
+    const totalScore = radarData.reduce((acc, comp) => {
+      return acc + (comp.usuario / 20); // Convert 0-100 back to 0-5 scale
+    }, 0);
+
+    const avgScore = totalScore / radarData.length; // 6 competencies
+    return Math.round(avgScore * 10) / 10; // Round to 1 decimal
+  }, [radarData]);
 
   // Use radar data directly (no translation needed for generic area names)
   const translatedRadarData = radarData;
@@ -84,38 +97,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   console.log('Radar data:', radarData);
   console.log('Translated radar data:', translatedRadarData);
   console.log('Competency bars:', competencyBars);
-
-  // Fetch average diagnostic score
-  useEffect(() => {
-    const fetchAvgScore = async () => {
-      if (!userProfile?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .schema('maity')
-          .from('interview_sessions')
-          .select('score')
-          .eq('user_id', userProfile.id)
-          .eq('status', 'completed')
-          .not('score', 'is', null);
-
-        if (error) {
-          console.error('Error fetching diagnostic scores:', error);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          const scores = data.map(s => s.score as number);
-          const avg = scores.reduce((acc, score) => acc + score, 0) / scores.length;
-          setAvgDiagnosticScore(Math.round(avg * 10) / 10); // Round to 1 decimal
-        }
-      } catch (err) {
-        console.error('Error calculating average diagnostic score:', err);
-      }
-    };
-
-    fetchAvgScore();
-  }, [userProfile?.id]);
+  console.log('Diagnostic score:', diagnosticScore);
 
   if (loading || formLoading) {
     return (
@@ -160,10 +142,10 @@ export function UserDashboard({ userName }: UserDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">
-              {avgDiagnosticScore !== null ? `${avgDiagnosticScore}/10` : 'N/A'}
+              {diagnosticScore !== null ? `${diagnosticScore}/5` : 'N/A'}
             </div>
             <p className="text-xs text-green-700">
-              Promedio de evaluaciones
+              Promedio de evaluación diagnóstica
             </p>
           </CardContent>
         </Card>
@@ -411,64 +393,6 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         </Card>
       </div>
 
-      {/* Personal Progress Charts */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>{t('dashboard.user.monthly_progress')}</CardTitle>
-            <CardDescription>
-              {t('dashboard.user.monthly_description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="sessions" fill="hsl(var(--primary))" name={t('dashboard.user.my_sessions')} radius={4} />
-                  <Bar dataKey="completed" fill="hsl(var(--accent))" name={t('dashboard.charts.completed')} radius={4} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Personal Session Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.user.sessions_status')}</CardTitle>
-            <CardDescription>
-              {t('dashboard.user.status_description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-      </div>
     </main>
   );
 }
