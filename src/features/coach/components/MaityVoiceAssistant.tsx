@@ -57,8 +57,8 @@ export function MaityVoiceAssistant({
   // Flag para saber si el usuario clickeó "Finalizar"
   const userEndedSessionRef = useRef(false);
 
-  // State para la sesión actual
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  // Ref para la sesión actual (evita closure issues)
+  const currentSessionIdRef = useRef<string | null>(null);
 
   // Auto scroll al final del chat
   useEffect(() => {
@@ -132,7 +132,7 @@ export function MaityVoiceAssistant({
   const startConversation = async () => {
     console.log('🚀 [Coach] startConversation iniciado', {
       hasOnSessionStart: !!onSessionStart,
-      currentSessionId
+      currentSessionId: currentSessionIdRef.current
     });
 
     // Resetear el flag al iniciar una nueva sesión
@@ -145,6 +145,7 @@ export function MaityVoiceAssistant({
     setAgentResponse('');
     setSessionStartTime(null);
     sessionStartTimeRef.current = null;
+    currentSessionIdRef.current = null;
 
     setIsConnecting(true);
     setError(null);
@@ -157,20 +158,20 @@ export function MaityVoiceAssistant({
     }
 
     // Crear sesión de voz si tenemos onSessionStart
-    if (onSessionStart && !currentSessionId) {
+    if (onSessionStart && !currentSessionIdRef.current) {
       console.log('🎯 [Coach] Creando sesión de voz...');
       const newSessionId = await onSessionStart();
 
       if (newSessionId) {
         console.log('✅ [Coach] Sesión creada:', newSessionId);
-        setCurrentSessionId(newSessionId);
+        currentSessionIdRef.current = newSessionId;
       } else {
         console.warn('⚠️ [Coach] No se pudo crear sesión, continuando sin ella');
       }
     } else {
       console.log('⚠️ [Coach] No se creará sesión:', {
         hasOnSessionStart: !!onSessionStart,
-        currentSessionId,
+        currentSessionId: currentSessionIdRef.current,
         skipReason: !onSessionStart ? 'No hay onSessionStart' : 'Ya existe currentSessionId'
       });
     }
@@ -186,7 +187,7 @@ export function MaityVoiceAssistant({
       // Preparar variables dinámicas para ElevenLabs
       const dynamicVars = {
         user_name: userName || 'Usuario',
-        session_id: currentSessionId || ''
+        session_id: currentSessionIdRef.current || ''
       };
 
       console.log('🚀 Enviando variables dinámicas a ElevenLabs:', dynamicVars);
@@ -274,15 +275,16 @@ export function MaityVoiceAssistant({
               // Procesar la sesión como si el usuario la hubiera terminado
               setTimeout(() => {
                 setIsProcessing(false);
+                const sessionId = currentSessionIdRef.current;
                 console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
                   hasOnSessionEnd: !!onSessionEnd,
-                  currentSessionId,
+                  currentSessionId: sessionId,
                   transcriptLength: fullTranscriptRef.current.length,
                   duration: sessionDuration
                 });
 
                 if (onSessionEnd) {
-                  onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
+                  onSessionEnd(fullTranscriptRef.current, sessionDuration, sessionId || undefined, conversationHistory);
                 } else {
                   console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
                 }
@@ -434,15 +436,16 @@ export function MaityVoiceAssistant({
       // Transición rápida a resultados (500ms para cerrar suavemente)
       setTimeout(() => {
         setIsProcessing(false);
+        const sessionId = currentSessionIdRef.current;
         // Llamar callback con transcripción y duración
         console.log('📤 [Coach] Llamando onSessionEnd con:', {
           hasOnSessionEnd: !!onSessionEnd,
-          currentSessionId,
+          currentSessionId: sessionId,
           transcriptLength: fullTranscriptRef.current.length,
           duration
         });
         if (onSessionEnd) {
-          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
+          onSessionEnd(fullTranscriptRef.current, duration, sessionId || undefined, conversationHistory);
         } else {
           console.error('❌ [Coach] No hay onSessionEnd callback!');
         }
