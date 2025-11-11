@@ -3,11 +3,9 @@ import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
 import { ParticleSphere } from './ParticleSphere';
-import { MAITY_COLORS, CoachService, getUserInfo } from '@maity/shared';
+import { MAITY_COLORS, CoachService, getUserInfo, createEvaluation, supabase } from '@maity/shared';
 import { env } from '@/lib/env';
 import { toast } from '@/shared/hooks/use-toast';
-import { createEvaluation } from '../../roleplay/services/roleplay.service';
-import { supabase } from '@maity/shared';
 import {
   Dialog,
   DialogContent,
