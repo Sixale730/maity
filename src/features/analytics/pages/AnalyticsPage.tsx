@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAnalyticsData } from '../hooks/useAnalyticsData';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAnalyticsData, useSessionsList } from '../hooks/useAnalyticsData';
 import { useSessionsByCompanyUser } from '../hooks/useSessionsByCompanyUser';
 import { StatsCard } from '../components/StatsCard';
 import { SessionsTable } from '../components/SessionsTable';
@@ -21,14 +21,57 @@ import {
   BarChart3,
   Building2,
   LayoutDashboard,
+  List,
 } from 'lucide-react';
 import { Skeleton } from '@/ui/components/ui/skeleton';
 
 export default function AnalyticsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Restore state from URL params
+  const initialTab = searchParams.get('tab') || 'overview';
+  const initialPage = parseInt(searchParams.get('page') || '1', 10);
+  const initialType = searchParams.get('type') || 'all';
+  const initialCompanyId = searchParams.get('companyId') || undefined;
+  const initialProfileId = searchParams.get('profileId') || undefined;
+  const initialScenarioId = searchParams.get('scenarioId') || undefined;
+  const initialStartDate = searchParams.get('startDate') || undefined;
+  const initialEndDate = searchParams.get('endDate') || undefined;
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [filters, setFilters] = useState<FiltersType>({
-    type: 'all',
+    type: initialType as 'all' | 'interview' | 'roleplay',
+    companyId: initialCompanyId,
+    profileId: initialProfileId,
+    scenarioId: initialScenarioId,
+    startDate: initialStartDate,
+    endDate: initialEndDate,
   });
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const pageSize = 50;
+
+  // Update URL params whenever state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('tab', activeTab);
+    params.set('page', currentPage.toString());
+    params.set('type', filters.type || 'all');
+
+    if (filters.companyId) params.set('companyId', filters.companyId);
+    if (filters.profileId) params.set('profileId', filters.profileId);
+    if (filters.scenarioId) params.set('scenarioId', filters.scenarioId);
+    if (filters.startDate) params.set('startDate', filters.startDate);
+    if (filters.endDate) params.set('endDate', filters.endDate);
+
+    setSearchParams(params, { replace: true });
+  }, [activeTab, currentPage, filters, setSearchParams]);
+
+  // Reset page when filters change
+  const handleFiltersChange = (newFilters: FiltersType) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
 
   const { data, isLoading, error } = useAnalyticsData(filters);
   const {
@@ -40,6 +83,11 @@ export default function AnalyticsPage() {
     startDate: filters.startDate,
     endDate: filters.endDate,
   });
+  const {
+    data: allSessionsData,
+    isLoading: isLoadingAllSessions,
+    error: errorAllSessions,
+  } = useSessionsList(filters, currentPage, pageSize);
 
   const handleSessionClick = async (sessionId: string) => {
     try {
@@ -109,15 +157,26 @@ export default function AnalyticsPage() {
 
       {/* Filters */}
       <div className="bg-card p-4 rounded-lg border">
-        <AnalyticsFilters filters={filters} onFiltersChange={setFilters} />
+        <AnalyticsFilters filters={filters} onFiltersChange={handleFiltersChange} />
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+          setCurrentPage(1);
+        }}
+        className="space-y-6"
+      >
         <TabsList>
           <TabsTrigger value="overview" className="gap-2">
             <LayoutDashboard className="h-4 w-4" />
             Resumen
+          </TabsTrigger>
+          <TabsTrigger value="all-sessions" className="gap-2">
+            <List className="h-4 w-4" />
+            Todas las Sesiones
           </TabsTrigger>
           <TabsTrigger value="detailed" className="gap-2">
             <Building2 className="h-4 w-4" />
@@ -203,6 +262,29 @@ export default function AnalyticsPage() {
           </>
         )
       )}
+        </TabsContent>
+
+        {/* All Sessions Tab */}
+        <TabsContent value="all-sessions" className="space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Todas las Sesiones</h2>
+            {errorAllSessions ? (
+              <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+                <h2 className="font-semibold mb-2">Error al cargar sesiones</h2>
+                <p className="text-sm">{errorAllSessions.message}</p>
+              </div>
+            ) : (
+              <SessionsTable
+                sessions={allSessionsData?.sessions || []}
+                onSessionClick={handleRecentSessionClick}
+                totalSessions={allSessionsData?.total}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                isLoading={isLoadingAllSessions}
+              />
+            )}
+          </div>
         </TabsContent>
 
         {/* Detailed Tab */}

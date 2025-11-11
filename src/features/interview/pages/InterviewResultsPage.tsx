@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewAnalysis } from '../components/InterviewAnalysis';
-import { InterviewService, InterviewSessionDetails, useInterviewEvaluationRealtime } from '@maity/shared';
+import { InterviewService, InterviewSessionDetails, useInterviewEvaluationRealtime, PDFService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowLeft, Briefcase, Loader2, User, Building2 } from 'lucide-react';
+import { ArrowLeft, Briefcase, Loader2, User, Building2, Copy, Check, FileText, Download } from 'lucide-react';
 
 export function InterviewResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -26,6 +26,64 @@ export function InterviewResultsPage() {
   const [session, setSession] = useState<InterviewSessionDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Función para copiar el ID de sesión
+  const handleCopySessionId = async () => {
+    if (!sessionId) return;
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+  };
+
+  // Función para generar PDF
+  const handleGeneratePDF = async () => {
+    if (!session || !sessionId) return;
+    try {
+      setIsGeneratingPDF(true);
+
+      const duration = session.duration_seconds ||
+        (session.started_at && session.ended_at
+          ? Math.floor((new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000)
+          : 0);
+
+      await PDFService.generateSessionPDF(
+        {
+          sessionId,
+          userName: session.user?.name,
+          userEmail: session.user?.email,
+          companyName: session.user?.company_name,
+          sessionType: 'interview',
+          score: null, // Interview doesn't have numeric score
+          duration,
+          startedAt: session.started_at,
+        },
+        {
+          includeCharts: false,
+          chartElementIds: [],
+        }
+      );
+
+      toast({
+        title: 'PDF generado',
+        description: 'El reporte se ha descargado exitosamente',
+      });
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo generar el PDF. Por favor, intenta de nuevo.',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   // Setup realtime monitoring if evaluation exists
   const evaluationRequestId = session?.evaluation_id || '';
@@ -143,14 +201,35 @@ export function InterviewResultsPage() {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBackNavigation}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Historial
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              className="border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-green-400 border-t-transparent rounded-full" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  PDF
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBackNavigation}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Historial
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -168,7 +247,7 @@ export function InterviewResultsPage() {
                   <h3 className="text-sm sm:text-base font-semibold text-white mb-1">
                     Entrevista de Usuario
                   </h3>
-                  <div className="space-y-1 text-xs sm:text-sm text-gray-300">
+                  <div className="space-y-2 text-xs sm:text-sm text-gray-300">
                     <div className="flex items-center gap-2">
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
                       <span className="truncate">{session.user.name || session.user.email}</span>
@@ -179,6 +258,36 @@ export function InterviewResultsPage() {
                         <span className="truncate">{session.user.company_name}</span>
                       </div>
                     )}
+                    {/* ID de Sesión */}
+                    <div className="pt-2 border-t border-blue-700/30">
+                      <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+                        <FileText className="h-3 w-3 flex-shrink-0" />
+                        <span>ID de Sesión</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="text-white text-xs font-mono bg-gray-800/50 px-2 py-1 rounded border border-gray-700 flex-1 overflow-x-auto">
+                          {sessionId}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopySessionId}
+                          className="shrink-0 h-7 text-xs border-blue-600/40 hover:bg-blue-900/30"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              Copiado
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -19,9 +19,14 @@ import {
   Clock,
   User,
   Building2,
-  Calendar
+  Calendar,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { PDFService } from '@maity/shared';
+import { toast } from '@/shared/hooks/use-toast';
 import {
   RadarChart,
   PolarGrid,
@@ -104,7 +109,7 @@ const SUBDIMENSION_DESCRIPTIONS: Record<string, string> = {
 };
 
 export function SessionResults({
-  sessionId: _sessionId,
+  sessionId,
   profile,
   scenarioName,
   score,
@@ -131,6 +136,141 @@ export function SessionResults({
 
   // Estado para controlar qué dimensión está expandida
   const [expandedDimension, setExpandedDimension] = React.useState<string | null>(null);
+
+  // Estado para el botón de copiar
+  const [copied, setCopied] = React.useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
+
+  // Función para copiar el ID de sesión
+  const handleCopySessionId = async () => {
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+  };
+
+  // Función para generar PDF
+  const handleGeneratePDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+
+      // Prepare dimensions data
+      const dimensions: import('@maity/shared').DimensionData[] = [];
+
+      if (hasEvaluation && evaluation?.Evaluacion) {
+        // Claridad
+        if (metrics.clarity !== null) {
+          const subdimensions: Array<{ name: string; score: number }> = [];
+          const claridadData = evaluation.Evaluacion.Claridad;
+          if (claridadData) {
+            Object.entries(claridadData).forEach(([key, value]) => {
+              if (key !== 'Puntuacion_Total' && key !== 'Comentarios') {
+                const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+                if (!isNaN(numValue as number)) {
+                  const displayName = key.replace(/_/g, ' ');
+                  subdimensions.push({ name: displayName, score: (numValue as number) * 10 });
+                }
+              }
+            });
+          }
+          dimensions.push({ name: 'Claridad', score: metrics.clarity, subdimensions });
+        }
+
+        // Estructura
+        if (metrics.structure !== null) {
+          const subdimensions: Array<{ name: string; score: number }> = [];
+          const estructuraData = evaluation.Evaluacion.Estructura;
+          if (estructuraData) {
+            Object.entries(estructuraData).forEach(([key, value]) => {
+              if (key !== 'Puntuacion_Total' && key !== 'Comentarios') {
+                const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+                if (!isNaN(numValue as number)) {
+                  const displayName = key.replace(/_/g, ' ');
+                  subdimensions.push({ name: displayName, score: (numValue as number) * 10 });
+                }
+              }
+            });
+          }
+          dimensions.push({ name: 'Estructura', score: metrics.structure, subdimensions });
+        }
+
+        // Alineación Emocional
+        if (metrics.connection !== null) {
+          const subdimensions: Array<{ name: string; score: number }> = [];
+          const alineacionData = evaluation.Evaluacion.Alineacion_Emocional;
+          if (alineacionData) {
+            Object.entries(alineacionData).forEach(([key, value]) => {
+              if (key !== 'Puntuacion_Total' && key !== 'Comentarios') {
+                const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+                if (!isNaN(numValue as number)) {
+                  const displayName = key.replace(/_/g, ' ');
+                  subdimensions.push({ name: displayName, score: (numValue as number) * 10 });
+                }
+              }
+            });
+          }
+          dimensions.push({ name: 'Alineación Emocional', score: metrics.connection, subdimensions });
+        }
+
+        // Influencia
+        if (metrics.influence !== null) {
+          const subdimensions: Array<{ name: string; score: number }> = [];
+          const influenciaData = evaluation.Evaluacion.Influencia;
+          if (influenciaData) {
+            Object.entries(influenciaData).forEach(([key, value]) => {
+              if (key !== 'Puntuacion_Total' && key !== 'Comentarios') {
+                const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+                if (!isNaN(numValue as number)) {
+                  const displayName = key.replace(/_/g, ' ');
+                  subdimensions.push({ name: displayName, score: (numValue as number) * 10 });
+                }
+              }
+            });
+          }
+          dimensions.push({ name: 'Influencia', score: metrics.influence, subdimensions });
+        }
+      }
+
+      await PDFService.generateSessionPDF(
+        {
+          sessionId,
+          userName: sessionUserName,
+          userEmail: sessionUserEmail,
+          companyName: sessionCompanyName,
+          sessionType: 'roleplay',
+          profileName: profile,
+          scenarioName,
+          score: calculatedScore,
+          passed,
+          duration,
+          startedAt: sessionStartedAt,
+          wordCount: userWordCount,
+          dimensions: dimensions.length > 0 ? dimensions : undefined,
+        },
+        {
+          includeCharts: hasEvaluation,
+          chartElementIds: hasEvaluation ? ['radar-chart', 'radar-chart-subdimensions'] : [],
+        }
+      );
+
+      toast({
+        title: 'PDF generado',
+        description: 'El reporte se ha descargado exitosamente',
+      });
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo generar el PDF. Por favor, intenta de nuevo.',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   // Calcular conteo de palabras del usuario desde la transcripción
   const userWordCount = React.useMemo(() => {
@@ -247,7 +387,7 @@ export function SessionResults({
   }
 
   // Score real o temporal mientras se procesa
-  const displayScore = calculatedScore !== null ? calculatedScore : (isProcessing ? null : 75);
+  const displayScore = calculatedScore;
 
   // Preparar datos para el radar chart (4 dimensiones principales)
   const radarData = React.useMemo(() => {
@@ -407,6 +547,37 @@ export function SessionResults({
                     </div>
                   </div>
                 )}
+
+                {/* ID de Sesión */}
+                <div className="space-y-2 sm:col-span-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm">
+                    <FileText className="h-4 w-4" />
+                    <span>ID de Sesión</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <code className="text-white text-sm font-mono bg-gray-800/50 px-3 py-1.5 rounded border border-gray-700 flex-1 overflow-x-auto">
+                      {sessionId}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopySessionId}
+                      className="shrink-0 border-blue-600/40 hover:bg-blue-900/30"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-4 w-4 mr-1" />
+                          Copiado
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copiar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
@@ -593,7 +764,7 @@ export function SessionResults({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Gráfico de 4 Dimensiones Principales */}
-              <div>
+              <div id="radar-chart">
                 <h4 className="text-base sm:text-lg font-semibold text-white mb-3 text-center">Dimensiones Principales</h4>
                 <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -633,7 +804,7 @@ export function SessionResults({
 
               {/* Gráfico de Subdimensiones Detalladas */}
               {radarSubdimensionsData.length > 0 && (
-                <div>
+                <div id="radar-chart-subdimensions">
                   <h4 className="text-base sm:text-lg font-semibold text-white mb-3 text-center">Subdimensiones Detalladas</h4>
                   <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -678,7 +849,7 @@ export function SessionResults({
         {/* Métricas Detalladas - Una sola columna */}
         <div className="space-y-4 sm:space-y-6">
           {/* Análisis por Categoría con Desglose Integrado */}
-          <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+          <Card id="dimensions-section" className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
               <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
               Análisis por Categoría
@@ -906,6 +1077,26 @@ export function SessionResults({
             >
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
               Ver Transcripción
+            </Button>
+
+            {/* Download PDF Button */}
+            <Button
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              variant="outline"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-green-400 border-t-transparent rounded-full" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Descargar PDF
+                </>
+              )}
             </Button>
 
             {passed && canProceedNext && (

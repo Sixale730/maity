@@ -1,7 +1,7 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** October 31, 2025
-**Version:** 1.3
+**Last Updated:** November 10, 2025
+**Version:** 1.4
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 ---
@@ -841,6 +841,114 @@ console.log(data.scoreDistribution);
 - `maity.voice_agent_profiles`
 - `maity.voice_scenarios`
 - `maity.voice_profile_scenarios`
+
+---
+
+#### public.get_analytics_sessions_list
+
+**Purpose:** Returns paginated list of all sessions (interview + roleplay + tech_week) with filters. Enables viewing complete session history with pagination support.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.get_analytics_sessions_list(
+  p_company_id UUID DEFAULT NULL,
+  p_type TEXT DEFAULT 'all',
+  p_start_date TIMESTAMPTZ DEFAULT NULL,
+  p_end_date TIMESTAMPTZ DEFAULT NULL,
+  p_profile_id UUID DEFAULT NULL,
+  p_scenario_id UUID DEFAULT NULL,
+  p_page INT DEFAULT 1,
+  p_page_size INT DEFAULT 50
+)
+RETURNS JSON
+```
+
+**Parameters:**
+- `p_company_id`: Filter by specific company (null = all companies)
+- `p_type`: Session type filter ('all', 'interview', 'roleplay', 'tech_week')
+- `p_start_date`: Filter sessions starting from this date
+- `p_end_date`: Filter sessions up to this date
+- `p_profile_id`: Filter roleplay sessions by voice agent profile
+- `p_scenario_id`: Filter roleplay sessions by scenario
+- `p_page`: Page number (1-indexed)
+- `p_page_size`: Number of sessions per page (default: 50)
+
+**Returns:**
+```json
+{
+  "sessions": [
+    {
+      "id": "uuid",
+      "type": "interview|roleplay|tech_week",
+      "userId": "uuid",
+      "userName": "string",
+      "companyId": "uuid",
+      "companyName": "string",
+      "profileName": "string|null",
+      "scenarioName": "string|null",
+      "score": "number|null",
+      "passed": "boolean|null",
+      "duration": "number",
+      "status": "string",
+      "startedAt": "timestamp",
+      "endedAt": "timestamp"
+    }
+  ],
+  "total": 150
+}
+```
+
+**Access Control:**
+- ✅ Admin only (verified via `maity.user_roles`)
+- ❌ Raises exception if not admin
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.get_analytics_sessions_list TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data, error } = await supabase.rpc('get_analytics_sessions_list', {
+  p_company_id: null, // All companies
+  p_type: 'all', // All types
+  p_start_date: null,
+  p_end_date: null,
+  p_profile_id: null,
+  p_scenario_id: null,
+  p_page: 1,
+  p_page_size: 50
+});
+
+// Returns paginated sessions
+console.log(data.sessions); // Array of sessions
+console.log(data.total); // Total count for pagination
+```
+
+**Use Cases:**
+- Display all sessions in analytics dashboard
+- Session history with pagination
+- Search and filter across all session types
+- Export session data
+- User activity tracking
+
+**Related Migration:**
+- `create_get_analytics_sessions_list_function.sql`
+
+**Related Tables:**
+- `maity.interview_sessions`
+- `maity.voice_sessions`
+- `maity.tech_week_sessions`
+- `maity.users`
+- `maity.companies`
+- `maity.voice_agent_profiles`
+- `maity.voice_scenarios`
+
+**Notes:**
+- Automatically combines sessions from interview, roleplay, and tech_week tables
+- Ordered by `started_at DESC` (most recent first)
+- Includes total count for pagination UI
+- Only returns completed sessions (`status = 'completed'`)
 
 ---
 

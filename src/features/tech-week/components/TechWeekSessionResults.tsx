@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/car
 import { Button } from '@/ui/components/ui/button';
 import { Progress } from '@/ui/components/ui/progress';
 import { Badge } from '@/ui/components/ui/badge';
+import { PDFService } from '@maity/shared';
+import { toast } from '@/shared/hooks/use-toast';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -28,6 +30,10 @@ import {
   TrendingUp,
   User,
   Building2,
+  Copy,
+  Check,
+  FileText,
+  Download,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -105,6 +111,8 @@ export function TechWeekSessionResults({
   isViewingOtherUser = false,
 }: TechWeekSessionResultsProps) {
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Helper function for back navigation
   const handleBackNavigation = () => {
@@ -112,6 +120,96 @@ export function TechWeekSessionResults({
       navigate(-1);
     } else {
       navigate('/tech-week');
+    }
+  };
+
+  // Función para copiar el ID de sesión
+  const handleCopySessionId = async () => {
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+  };
+
+  // Función para generar PDF
+  const handleGeneratePDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+
+      // Prepare dimensions data
+      const dimensions: import('@maity/shared').DimensionData[] = [];
+
+      if (hasEvaluation && evaluation) {
+        const dimensionsList = [
+          { key: 'Claridad', name: 'Claridad', data: evaluation.Claridad },
+          { key: 'Estructura', name: 'Estructura', data: evaluation.Estructura },
+          { key: 'Alineacion_Emocional', name: 'Alineación Emocional', data: evaluation.Alineacion_Emocional },
+          { key: 'Influencia', name: 'Influencia', data: evaluation.Influencia },
+        ];
+
+        dimensionsList.forEach((dim) => {
+          if (dim.data) {
+            const subdimensions: Array<{ name: string; score: number }> = [];
+            let totalScore = 0;
+            let count = 0;
+
+            Object.entries(dim.data).forEach(([key, value]) => {
+              if (key !== 'Puntuacion_Total' && key !== 'Comentarios') {
+                const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+                if (typeof numValue === 'number' && !isNaN(numValue)) {
+                  const displayName = key.replace(/_/g, ' ');
+                  subdimensions.push({ name: displayName, score: numValue * 10 });
+                  totalScore += numValue;
+                  count++;
+                }
+              }
+            });
+
+            if (count > 0) {
+              const avgScore = Math.round((totalScore / count) * 10);
+              dimensions.push({ name: dim.name, score: avgScore, subdimensions });
+            }
+          }
+        });
+      }
+
+      await PDFService.generateSessionPDF(
+        {
+          sessionId,
+          userName: sessionData?.user_name,
+          userEmail: sessionData?.user_email,
+          companyName: sessionData?.company_name,
+          sessionType: 'tech_week',
+          profileName: 'Tech Week',
+          scenarioName: 'Práctica General',
+          score,
+          passed,
+          duration,
+          startedAt: sessionData?.started_at,
+          dimensions: dimensions.length > 0 ? dimensions : undefined,
+        },
+        {
+          includeCharts: hasEvaluation,
+          chartElementIds: hasEvaluation ? ['tech-week-radar-chart'] : [],
+        }
+      );
+
+      toast({
+        title: 'PDF generado',
+        description: 'El reporte se ha descargado exitosamente',
+      });
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo generar el PDF. Por favor, intenta de nuevo.',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -225,6 +323,26 @@ export function TechWeekSessionResults({
                 </p>
               </div>
             </div>
+            {/* Download PDF Button */}
+            <Button
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              variant="outline"
+              size="sm"
+              className="border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-green-400 border-t-transparent rounded-full" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar PDF
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -242,7 +360,7 @@ export function TechWeekSessionResults({
                   <h3 className="text-sm sm:text-base font-semibold text-white mb-1">
                     Sesión de Usuario
                   </h3>
-                  <div className="space-y-1 text-xs sm:text-sm text-gray-300">
+                  <div className="space-y-2 text-xs sm:text-sm text-gray-300">
                     <div className="flex items-center gap-2">
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
                       <span className="truncate">{sessionData.user_name || sessionData.user_email}</span>
@@ -253,6 +371,36 @@ export function TechWeekSessionResults({
                         <span className="truncate">{sessionData.company_name}</span>
                       </div>
                     )}
+                    {/* ID de Sesión */}
+                    <div className="pt-2 border-t border-blue-700/30">
+                      <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+                        <FileText className="h-3 w-3 flex-shrink-0" />
+                        <span>ID de Sesión</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="text-white text-xs font-mono bg-gray-800/50 px-2 py-1 rounded border border-gray-700 flex-1 overflow-x-auto">
+                          {sessionId}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopySessionId}
+                          className="shrink-0 h-7 text-xs border-blue-600/40 hover:bg-blue-900/30"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              Copiado
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -403,7 +551,7 @@ export function TechWeekSessionResults({
               )}
 
               {/* Main Radar Chart */}
-              <Card className="bg-gray-900/50 border-gray-800">
+              <Card id="tech-week-radar-chart" className="bg-gray-900/50 border-gray-800">
                 <CardHeader>
                   <CardTitle style={{ color: PINK_COLORS.hotPink }}>
                     Análisis por Dimensiones

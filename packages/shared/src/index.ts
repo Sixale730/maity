@@ -88,5 +88,8 @@ export * from './domain/analytics/analytics.types';
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 
+// ===== Services =====
+export { PDFService, type DimensionData, type SessionPDFData } from './services/pdf.service';
+
 // ===== Hooks =====
 export { useUserRole } from './hooks/useUserRole';
