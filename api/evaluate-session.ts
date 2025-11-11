@@ -151,14 +151,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Check rate limits
   await checkRateLimits(supabase, userId);
 
-  // Fetch session with metadata (JOIN to get profile and scenario details)
+  // Fetch session with metadata (LEFT JOIN to support Coach sessions without scenarios)
   const { data: session, error: sessionError } = await supabase
     .schema('maity')
     .from('voice_sessions')
     .select(
       `
       *,
-      profile_scenario:voice_profile_scenarios(
+      profile_scenario:voice_profile_scenarios!left(
         profile:voice_agent_profiles(name),
         scenario:voice_scenarios(name, objectives)
       )
@@ -190,9 +190,11 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   }
 
   // Extract metadata for evaluation
-  const profile = session.profile_scenario?.profile?.name || 'Unknown';
-  const scenario = session.profile_scenario?.scenario?.name || 'Unknown';
-  const objective = session.profile_scenario?.scenario?.objectives || '';
+  // For Coach sessions (no profile_scenario), use default values
+  const profile = session.profile_scenario?.profile?.name || 'Coach Maity';
+  const scenario = session.profile_scenario?.scenario?.name || 'Coaching Session';
+  const objective = session.profile_scenario?.scenario?.objectives ||
+    'Mejorar habilidades de comunicación general, desarrollar confianza y claridad en la expresión de ideas';
 
   console.log({
     event: 'evaluation_request_received',

@@ -1,7 +1,7 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** November 10, 2025
-**Version:** 1.4
+**Last Updated:** November 11, 2025
+**Version:** 1.5
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 ---
@@ -949,6 +949,94 @@ console.log(data.total); // Total count for pagination
 - Ordered by `started_at DESC` (most recent first)
 - Includes total count for pagination UI
 - Only returns completed sessions (`status = 'completed'`)
+
+---
+
+#### public.create_coach_voice_session
+
+**Purpose:** Creates a voice session for Coach (general coaching without predefined scenarios). Unlike Roleplay which requires profile and scenario selection, Coach sessions are general-purpose coaching sessions.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.create_coach_voice_session(
+  p_company_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+```
+
+**Parameters:**
+- `p_company_id` - Company ID for the session (optional, defaults to user's company_id)
+
+**Returns:**
+```json
+{
+  "id": "uuid",
+  "user_id": "uuid",
+  "company_id": "uuid",
+  "status": "in_progress"
+}
+```
+
+**Behavior:**
+1. Obtains `user_id` from authenticated user via `auth.uid()`
+2. Validates user exists in `maity.users`
+3. Uses provided `company_id` or falls back to user's company
+4. Creates session in `maity.voice_sessions` with:
+   - `profile_scenario_id` = NULL (Coach doesn't use scenarios)
+   - `status` = 'in_progress'
+   - All timestamps initialized to NOW()
+5. Returns session info as jsonb
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- `SET search_path = maity, public` - Prevents SQL injection
+- Automatically uses authenticated user's ID (no user_id parameter needed)
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.create_coach_voice_session TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+// Create Coach session
+const { data, error } = await supabase.rpc('create_coach_voice_session', {
+  p_company_id: userInfo?.company_id || null
+});
+
+if (error) {
+  console.error('Failed to create Coach session:', error);
+  return;
+}
+
+console.log('Coach session created:', data.id);
+// Returns: { id: "uuid", user_id: "uuid", company_id: "uuid", status: "in_progress" }
+```
+
+**Use Cases:**
+- General communication coaching
+- Practice sessions without specific scenarios
+- Skill development without predefined goals
+- Admin testing and demos
+
+**Differences from Roleplay:**
+- ❌ NO `profile_scenario_id` (NULL)
+- ❌ NO `questionnaire_id` (NULL)
+- ❌ NO predefined scenarios or profiles
+- ✅ Simpler creation (only company_id needed)
+- ✅ General-purpose coaching
+
+**Related Migration:**
+- `20251111123305_create_coach_voice_session_function.sql`
+
+**Related Tables:**
+- `maity.voice_sessions` - Where Coach sessions are stored
+- `maity.users` - User lookup via auth.uid()
+- `maity.companies` - Company association
+
+**Related Functions:**
+- `public.create_voice_session` - For Roleplay sessions (requires profile + scenario)
+- `/api/evaluate-session` - Evaluates Coach sessions via OpenAI
 
 ---
 
