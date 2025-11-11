@@ -136,7 +136,7 @@ export const useFormResponses = () => {
     ];
   }, []);
 
-  const fetchFormResponses = useCallback(async () => {
+  const fetchFormResponses = useCallback(async (retryCount = 0) => {
     try {
       setLoading(true);
       setError(null);
@@ -175,8 +175,16 @@ export const useFormResponses = () => {
 
       const formResponse = formResponses && formResponses.length > 0 ? formResponses[0] : null;
 
+      // Retry logic: if no data and no error, DB might not be propagated yet
+      if (!formResponse && !formError && retryCount < 3) {
+        const delay = 500 * (retryCount + 1); // 500ms, 1000ms, 1500ms
+        console.log(`[useFormResponses] No data found, retrying in ${delay}ms (attempt ${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchFormResponses(retryCount + 1);
+      }
+
       if (formError || !formResponse) {
-        console.log('No form responses found, using sample data. Error:', formError);
+        console.log('No form responses found after retries, using sample data. Error:', formError);
         setFormData(null);
         setError(null); // No error for sample data
 

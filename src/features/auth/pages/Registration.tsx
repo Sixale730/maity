@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { NativeRegistrationForm } from '../components/registration/NativeRegistrationForm';
@@ -22,6 +23,7 @@ const Registration: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { refreshUser } = useUser();
 
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -104,9 +106,14 @@ const Registration: React.FC = () => {
       // Small delay to ensure Supabase RLS policies reflect the update
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // Refresh UserContext to update phase to ACTIVE
+      console.log('[Registration] 🔄 Refreshing user context...');
+      await refreshUser();
+      console.log('[Registration] ✅ User context refreshed');
+
       toast({
         title: '¡Registro completado!',
-        description: 'Tu evaluación diagnóstico ha sido guardada exitosamente.',
+        description: 'Tu autoevaluación ha sido guardada exitosamente.',
       });
 
       // Navigate after everything is ready
@@ -137,7 +144,7 @@ const Registration: React.FC = () => {
         <Card>
           <CardHeader className="text-center border-b">
             <CardTitle className="text-2xl sm:text-3xl">
-              Evaluación Diagnóstico de Comunicación
+              Autoevaluación de Comunicación
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
               Completa este cuestionario para personalizar tu experiencia en Maity
