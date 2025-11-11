@@ -33,6 +33,10 @@ export enum ApiErrorCode {
 
   // Method errors
   METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED',
+
+  // Rate limiting errors
+  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
 }
 
 /**
@@ -106,6 +110,18 @@ export class ApiError extends Error {
 
   static alreadyUsed(resource = 'Token'): ApiError {
     return new ApiError(ApiErrorCode.ALREADY_USED, 410, `${resource} has already been used`);
+  }
+
+  static tooManyRequests(message = 'Too many requests'): ApiError {
+    return new ApiError(ApiErrorCode.RATE_LIMIT_EXCEEDED, 429, message);
+  }
+
+  static forbidden(message = 'Forbidden'): ApiError {
+    return new ApiError(ApiErrorCode.UNAUTHORIZED, 403, message);
+  }
+
+  static badRequest(message = 'Bad request', details?: unknown): ApiError {
+    return new ApiError(ApiErrorCode.INVALID_REQUEST, 400, message, details);
   }
 }
 

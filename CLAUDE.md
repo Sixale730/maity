@@ -364,13 +364,29 @@ Always use explicit types
 ## Important Notes
 
 ### Voice Evaluation System
-1. **Frontend**: Creates `voice_session` → ElevenLabs conversation → Creates `evaluation`
-2. **n8n**: Processes transcript with LLM
-3. **Backend**: Updates evaluation via `/api/evaluation-complete`
 
-Environment variables:
-- `VITE_N8N_WEBHOOK_URL`, `N8N_BACKEND_SECRET`
+**Current Architecture (OpenAI Direct):**
+1. **Frontend**: Creates `voice_session` → ElevenLabs conversation
+2. **Frontend**: Calls `/api/evaluate-session` with Bearer token
+3. **Backend**: Calls OpenAI API directly (gpt-4o-mini)
+4. **Backend**: Saves evaluation → Updates session
+5. **Frontend**: Receives result synchronously (3-10s)
+
+**Safeguards:**
+- **Rate limiting**: 5 evaluations/min per user
+- **Daily quota**: 50 evaluations/day per user
+- **Retry logic**: 3 attempts with exponential backoff
+- **Timeout**: 25s max per OpenAI call
+- **Cost tracking**: Logged in backend console
+
+**Environment variables:**
+- `OPENAI_API_KEY` (server-side only, required)
+- `VITE_OPENAI_MODEL` (optional, default: gpt-4o-mini)
 - `VITE_ELEVENLABS_API_KEY_TEST`, `VITE_ELEVENLABS_AGENT_ID_TEST`
+
+**Legacy (deprecated):**
+- n8n webhook system (being phased out)
+- `/api/evaluation-complete` endpoint (can be removed)
 
 ### Tech Week - Admin Practice Section
 Tech Week is a specialized voice practice feature for admin-only testing and demonstration.
