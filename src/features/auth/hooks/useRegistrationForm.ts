@@ -15,6 +15,7 @@ interface UseRegistrationFormProps {
 interface UseRegistrationFormReturn {
   currentStep: number;
   totalSteps: number;
+  answeredSteps: number;
   formData: Partial<RegistrationFormData>;
   currentStepInfo: FormStep;
   isFirstStep: boolean;
@@ -59,6 +60,12 @@ export function useRegistrationForm({
   const currentStepInfo = steps[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
+
+  // Calculate how many questions have been answered
+  const answeredSteps = steps.filter((step) => {
+    const answer = formData[step.questionId as keyof RegistrationFormData];
+    return answer !== undefined && answer !== null && answer !== '';
+  }).length;
 
   // Check if current question is answered
   const isCurrentQuestionAnswered = () => {
@@ -159,6 +166,7 @@ export function useRegistrationForm({
   return {
     currentStep,
     totalSteps,
+    answeredSteps,
     formData,
     currentStepInfo,
     isFirstStep,

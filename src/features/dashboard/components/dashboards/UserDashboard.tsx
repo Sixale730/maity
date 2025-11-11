@@ -137,7 +137,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Evaluación Diagnóstico</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-900">Autoevaluación</CardTitle>
             <span className="text-2xl">🎯</span>
           </CardHeader>
           <CardContent>
@@ -145,7 +145,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
               {diagnosticScore !== null ? `${diagnosticScore}/5` : 'N/A'}
             </div>
             <p className="text-xs text-green-700">
-              Promedio de evaluación diagnóstica
+              Promedio de autoevaluación
             </p>
           </CardContent>
         </Card>

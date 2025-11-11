@@ -4,15 +4,17 @@ import { cn } from '@maity/shared';
 interface ProgressIndicatorProps {
   currentStep: number; // 0-18
   totalSteps: number; // 19
+  answeredSteps: number; // Number of questions actually answered
   className?: string;
 }
 
 export function ProgressIndicator({
   currentStep,
   totalSteps,
+  answeredSteps,
   className,
 }: ProgressIndicatorProps) {
-  const progress = ((currentStep + 1) / totalSteps) * 100;
+  const progress = (answeredSteps / totalSteps) * 100;
 
   return (
     <div className={cn('w-full space-y-3', className)}>

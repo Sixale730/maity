@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { LikertScale } from './LikertScale';
 import { ProgressIndicator } from './ProgressIndicator';
 import { RegistrationInstructions } from './RegistrationInstructions';
+import { PhoneInput } from './PhoneInput';
 import { useRegistrationForm } from '../../hooks/useRegistrationForm';
 import {
   PersonalInfoQuestions,
@@ -32,6 +33,7 @@ export function NativeRegistrationForm({
   const {
     currentStep,
     totalSteps,
+    answeredSteps,
     formData,
     currentStepInfo,
     isFirstStep,
@@ -68,6 +70,9 @@ export function NativeRegistrationForm({
 
     const value = (formData[questionId as keyof typeof formData] as string) || '';
 
+    // Special handling for phone number (q3)
+    const isPhoneQuestion = questionId === 'q3';
+
     return (
       <motion.div
         key={questionId}
@@ -77,20 +82,30 @@ export function NativeRegistrationForm({
         transition={{ duration: 0.3 }}
         className="space-y-6"
       >
-        <div className="space-y-3">
-          <Label htmlFor={questionId} className="text-lg font-medium">
-            {question.label}
-          </Label>
-          <Input
+        {isPhoneQuestion ? (
+          <PhoneInput
             id={questionId}
-            type={question.type}
+            label={question.label}
             placeholder={question.placeholder}
             value={value}
-            onChange={(e) => setAnswer(questionId, e.target.value)}
-            className="text-base h-12"
-            autoFocus
+            onChange={(val) => setAnswer(questionId, val)}
           />
-        </div>
+        ) : (
+          <div className="space-y-3">
+            <Label htmlFor={questionId} className="text-lg font-medium">
+              {question.label}
+            </Label>
+            <Input
+              id={questionId}
+              type={question.type}
+              placeholder={question.placeholder}
+              value={value}
+              onChange={(e) => setAnswer(questionId, e.target.value)}
+              className="text-base h-12"
+              autoFocus
+            />
+          </div>
+        )}
 
         <div className="flex gap-3 justify-end">
           {!isFirstStep && (
@@ -270,7 +285,11 @@ export function NativeRegistrationForm({
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8 p-4 sm:p-6">
       {/* Progress Indicator */}
-      <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+      <ProgressIndicator
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        answeredSteps={answeredSteps}
+      />
 
       {/* Error Alert */}
       {error && (
