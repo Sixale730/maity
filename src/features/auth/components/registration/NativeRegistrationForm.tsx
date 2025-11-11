@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/ui/components/ui/button';
 import { Input } from '@/ui/components/ui/input';
@@ -7,6 +8,7 @@ import { Alert, AlertDescription } from '@/ui/components/ui/alert';
 import { ArrowLeft, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { LikertScale } from './LikertScale';
 import { ProgressIndicator } from './ProgressIndicator';
+import { RegistrationInstructions } from './RegistrationInstructions';
 import { useRegistrationForm } from '../../hooks/useRegistrationForm';
 import {
   PersonalInfoQuestions,
@@ -25,6 +27,8 @@ export function NativeRegistrationForm({
   userId,
   onComplete,
 }: NativeRegistrationFormProps) {
+  const [showInstructions, setShowInstructions] = useState(true);
+
   const {
     currentStep,
     totalSteps,
@@ -42,6 +46,20 @@ export function NativeRegistrationForm({
   } = useRegistrationForm({ userId, onComplete });
 
   const { questionId, type } = currentStepInfo;
+
+  // Handle start from instructions
+  const handleStart = () => {
+    setShowInstructions(false);
+  };
+
+  // Show instructions first
+  if (showInstructions) {
+    return (
+      <div className="w-full max-w-3xl mx-auto p-4 sm:p-6">
+        <RegistrationInstructions onStart={handleStart} />
+      </div>
+    );
+  }
 
   // Render Personal Info Question
   const renderPersonalInfo = () => {
