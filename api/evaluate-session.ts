@@ -118,10 +118,18 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   }
   const accessToken = authHeader.substring(7);
 
-  // Initialize Supabase client
+  // Initialize Supabase client with service role (bypasses RLS)
   const supabaseUrl = getEnv('SUPABASE_URL');
   const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    db: {
+      schema: 'maity'
+    }
+  });
 
   // Verify token and get auth user
   const {
@@ -151,6 +159,13 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Check rate limits
   await checkRateLimits(supabase, userId);
 
+  console.log({
+    event: 'session_lookup_started',
+    sessionId: body.session_id,
+    userId,
+    timestamp: new Date().toISOString(),
+  });
+
   // Fetch session with metadata (LEFT JOIN to support Coach sessions without scenarios)
   const { data: session, error: sessionError } = await supabase
     .schema('maity')
@@ -168,9 +183,27 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     .single();
 
   if (sessionError || !session) {
-    console.error('Session lookup error:', sessionError);
+    console.error({
+      event: 'session_lookup_failed',
+      sessionId: body.session_id,
+      userId,
+      error: sessionError,
+      errorCode: sessionError?.code,
+      errorMessage: sessionError?.message,
+      errorDetails: sessionError?.details,
+      timestamp: new Date().toISOString(),
+    });
     throw ApiError.notFound('Session');
   }
+
+  console.log({
+    event: 'session_lookup_success',
+    sessionId: session.id,
+    hasProfileScenario: !!session.profile_scenario,
+    hasTranscript: !!session.raw_transcript,
+    status: session.status,
+    timestamp: new Date().toISOString(),
+  });
 
   // Verify session ownership
   if (session.user_id !== userId) {
