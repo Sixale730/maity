@@ -219,7 +219,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const { overallScore, passed } = calculateScores(evaluationResult);
 
   // Save evaluation to database
-  const { data: evaluation, error: evalError } = await supabase
+  const { data: _evaluation, error: evalError } = await supabase
     .schema('maity')
     .from('evaluations')
     .insert({
