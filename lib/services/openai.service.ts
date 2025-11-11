@@ -279,17 +279,14 @@ async function callOpenAIWithRetry(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Timeout de 25s
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      // Use SDK's built-in timeout (25s)
+      const response = await openai.chat.completions.create(
+        params,
+        {
+          timeout: 25000, // 25 seconds
+        }
+      );
 
-      const response = await openai.chat.completions.create({
-        ...params,
-        // @ts-ignore - AbortSignal is supported but types might not reflect it
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
       return response;
     } catch (error: any) {
       lastError = error;
@@ -308,7 +305,9 @@ async function callOpenAIWithRetry(
       }
 
       // Timeout → retry
-      if (error?.name === 'AbortError' && attempt < maxRetries - 1) {
+      // OpenAI SDK timeout errors have code 'ETIMEDOUT' or error contains 'timeout'
+      if ((error?.code === 'ETIMEDOUT' || error?.message?.toLowerCase().includes('timeout'))
+          && attempt < maxRetries - 1) {
         console.warn({
           event: 'openai_timeout',
           attempt: attempt + 1,
