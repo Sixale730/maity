@@ -4,12 +4,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/componen
 import { Progress } from "@/ui/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/shared/components/LanguageSelector";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -23,7 +23,9 @@ import {
   Radar
 } from "recharts";
 import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
-import { useFormResponses } from "@maity/shared";
+import { useFormResponses, supabase } from "@maity/shared";
+import { useState, useEffect } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 const chartConfig = {
   sessions: {
@@ -70,9 +72,11 @@ interface UserDashboardProps {
 
 export function UserDashboard({ userName }: UserDashboardProps) {
   const { t } = useLanguage();
+  const { userProfile } = useUser();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('user');
   const { radarData, competencyBars, loading: formLoading, error: formError } = useFormResponses();
+  const [avgDiagnosticScore, setAvgDiagnosticScore] = useState<number | null>(null);
 
   // Use radar data directly (no translation needed for generic area names)
   const translatedRadarData = radarData;
@@ -80,6 +84,38 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   console.log('Radar data:', radarData);
   console.log('Translated radar data:', translatedRadarData);
   console.log('Competency bars:', competencyBars);
+
+  // Fetch average diagnostic score
+  useEffect(() => {
+    const fetchAvgScore = async () => {
+      if (!userProfile?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .schema('maity')
+          .from('interview_sessions')
+          .select('score')
+          .eq('user_id', userProfile.id)
+          .eq('status', 'completed')
+          .not('score', 'is', null);
+
+        if (error) {
+          console.error('Error fetching diagnostic scores:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const scores = data.map(s => s.score as number);
+          const avg = scores.reduce((acc, score) => acc + score, 0) / scores.length;
+          setAvgDiagnosticScore(Math.round(avg * 10) / 10); // Round to 1 decimal
+        }
+      } catch (err) {
+        console.error('Error calculating average diagnostic score:', err);
+      }
+    };
+
+    fetchAvgScore();
+  }, [userProfile?.id]);
 
   if (loading || formLoading) {
     return (
@@ -119,13 +155,15 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">{t('dashboard.user.my_sessions')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-900">Evaluación Diagnóstico</CardTitle>
             <span className="text-2xl">🎯</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{dashboardStats.totalSessions}</div>
+            <div className="text-2xl font-bold text-green-900">
+              {avgDiagnosticScore !== null ? `${avgDiagnosticScore}/10` : 'N/A'}
+            </div>
             <p className="text-xs text-green-700">
-              {t('dashboard.user.sessions_completed')}
+              Promedio de evaluaciones
             </p>
           </CardContent>
         </Card>

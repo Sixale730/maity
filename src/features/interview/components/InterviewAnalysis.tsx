@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
-import { FileText, User, Calendar, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { FileText, User, Calendar, Clock, Loader2, AlertCircle, Star } from 'lucide-react';
 import { InterviewSessionDetails } from '@maity/shared';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -69,6 +69,21 @@ export function InterviewAnalysis({ session, isLoading = false }: InterviewAnaly
           </div>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
+          {/* Score/Average */}
+          {session.score !== null && session.score !== undefined && (
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-50 dark:bg-yellow-950">
+                <Star className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Promedio</p>
+                <p className="text-sm text-muted-foreground">
+                  {session.score.toFixed(1)}/10
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* User Info */}
           {user && (
             <div className="flex items-center gap-3">
