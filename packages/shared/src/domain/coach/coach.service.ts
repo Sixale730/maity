@@ -266,11 +266,7 @@ export class CoachService {
       throw error;
     }
 
-    // RPC returns array with single row, get first element
-    if (Array.isArray(data) && data.length > 0) {
-      return data[0];
-    }
-
+    // RPC returns jsonb object directly
     return data;
   }
 

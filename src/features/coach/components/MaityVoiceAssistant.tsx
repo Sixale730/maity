@@ -1,20 +1,31 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/ui/components/ui/button';
 import { Phone, PhoneOff, Mic, Volume2, Loader2, MessageCircle } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
 import { ParticleSphere } from './ParticleSphere';
-import { MAITY_COLORS, CoachService, UserService, createEvaluation, supabase } from '@maity/shared';
-import { env } from '@/lib/env';
-import { toast } from '@/shared/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/ui/components/ui/dialog';
+import { MAITY_COLORS } from '@maity/shared';
 
-export function MaityVoiceAssistant() {
+interface MaityVoiceAssistantProps {
+  userName?: string;
+  onSessionStart?: () => Promise<string | null>;
+  onSessionEnd?: (
+    transcript: string,
+    duration: number,
+    sessionId?: string,
+    messages?: Array<{
+      id: string;
+      timestamp: Date;
+      source: 'user' | 'ai';
+      message: string;
+    }>
+  ) => void;
+}
+
+export function MaityVoiceAssistant({
+  userName,
+  onSessionStart,
+  onSessionEnd
+}: MaityVoiceAssistantProps) {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -31,17 +42,23 @@ export function MaityVoiceAssistant() {
     message: string;
   }>>([]);
 
-  // Session tracking para evaluación
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  // Estado para el proceso de finalización
+  const [isProcessing, setIsProcessing] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const sessionStartTimeRef = useRef<Date | null>(null); // Ref para evitar closure issues
+  const fullTranscriptRef = useRef<string>('');
 
-  // Evaluation results
-  const [showResults, setShowResults] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evaluationResults, setEvaluationResults] = useState<any>(null);
+  // Estado para rastrear si la conexión es segura
+  const [_isConnectionStable, setIsConnectionStable] = useState(false);
 
   // Ref para el scroll del chat
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Flag para saber si el usuario clickeó "Finalizar"
+  const userEndedSessionRef = useRef(false);
+
+  // State para la sesión actual
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Auto scroll al final del chat
   useEffect(() => {
@@ -57,6 +74,13 @@ export function MaityVoiceAssistant() {
       message
     };
     setConversationHistory(prev => [...prev, newMessage]);
+
+    // Agregar a la transcripción completa
+    if (source === 'user') {
+      fullTranscriptRef.current += `Usuario: ${message}\n`;
+    } else {
+      fullTranscriptRef.current += `Maity: ${message}\n`;
+    }
   };
 
   // Request microphone permission
@@ -106,6 +130,22 @@ export function MaityVoiceAssistant() {
 
   // Start conversation
   const startConversation = async () => {
+    console.log('🚀 [Coach] startConversation iniciado', {
+      hasOnSessionStart: !!onSessionStart,
+      currentSessionId
+    });
+
+    // Resetear el flag al iniciar una nueva sesión
+    userEndedSessionRef.current = false;
+
+    // Limpiar estados anteriores para una nueva sesión
+    setConversationHistory([]);
+    fullTranscriptRef.current = '';
+    setTranscript('');
+    setAgentResponse('');
+    setSessionStartTime(null);
+    sessionStartTimeRef.current = null;
+
     setIsConnecting(true);
     setError(null);
 
@@ -116,6 +156,25 @@ export function MaityVoiceAssistant() {
       return;
     }
 
+    // Crear sesión de voz si tenemos onSessionStart
+    if (onSessionStart && !currentSessionId) {
+      console.log('🎯 [Coach] Creando sesión de voz...');
+      const newSessionId = await onSessionStart();
+
+      if (newSessionId) {
+        console.log('✅ [Coach] Sesión creada:', newSessionId);
+        setCurrentSessionId(newSessionId);
+      } else {
+        console.warn('⚠️ [Coach] No se pudo crear sesión, continuando sin ella');
+      }
+    } else {
+      console.log('⚠️ [Coach] No se creará sesión:', {
+        hasOnSessionStart: !!onSessionStart,
+        currentSessionId,
+        skipReason: !onSessionStart ? 'No hay onSessionStart' : 'Ya existe currentSessionId'
+      });
+    }
+
     // Get signed URL
     const signedUrl = await getSignedUrl();
     if (!signedUrl) {
@@ -124,34 +183,175 @@ export function MaityVoiceAssistant() {
     }
 
     try {
-      // Create voice session in database (RPC gets user automatically)
-      const userInfo = await UserService.getUserInfo();
+      // Preparar variables dinámicas para ElevenLabs
+      const dynamicVars = {
+        user_name: userName || 'Usuario',
+        session_id: currentSessionId || ''
+      };
 
-      const session = await CoachService.createVoiceSession(
-        userInfo?.company_id || undefined
-      );
-
-      setSessionId(session.id);
-      setSessionStartTime(new Date());
-
-      console.log('✅ [Coach] Voice session created:', session.id);
+      console.log('🚀 Enviando variables dinámicas a ElevenLabs:', dynamicVars);
 
       // Start conversation session
       const newConversation = await Conversation.startSession({
         signedUrl: signedUrl,
+        dynamicVariables: dynamicVars,
         onConnect: () => {
-          console.log('Connected to Maity');
+          console.log('✅ Connected to Coach Maity');
+          const now = new Date();
           setIsConnected(true);
           setIsConnecting(false);
           setError(null);
+          setSessionStartTime(now);
+          sessionStartTimeRef.current = now; // Guardar también en ref para evitar closure issues
+
+          console.log('🕐 [onConnect] Session start time set:', {
+            stateValue: now,
+            refValue: sessionStartTimeRef.current
+          });
+
+          // Marcar la conexión como estable después de un breve retraso
+          setTimeout(() => {
+            setIsConnectionStable(true);
+            console.log('✅ Connection is now stable');
+          }, 1000);
         },
-        onDisconnect: () => {
-          console.log('Disconnected from Maity');
+        onDisconnect: (error?: any) => {
+          console.log('🔌 Disconnected from Coach Maity', error);
           setIsConnected(false);
+          setIsSpeaking(false);
+          setIsConnectionStable(false);
+
+          // Si el usuario clickeó "Finalizar", no hacer nada (ya se procesó)
+          if (userEndedSessionRef.current) {
+            console.log('✅ Sesión terminada por el usuario (botón Finalizar)');
+            return;
+          }
+
+          // Si ya estamos procesando, no hacer nada
+          if (isProcessing) {
+            console.log('⏳ Ya estamos procesando la sesión');
+            return;
+          }
+
+          // Esperar 500ms para permitir que los últimos mensajes se procesen
+          setTimeout(() => {
+            // Calcular duración de la sesión usando ref (evita closure issues)
+            const sessionDuration = sessionStartTimeRef.current
+              ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
+              : 0;
+
+            console.log('🕐 [onDisconnect] Estado de tiempo:', {
+              sessionStartTime,
+              sessionStartTimeRef: sessionStartTimeRef.current,
+              currentTime: new Date(),
+              calculatedDuration: sessionDuration
+            });
+
+            console.log('📊 [onDisconnect] Evaluando sesión:', {
+              sessionDuration,
+              transcriptLength: fullTranscriptRef.current.length,
+              messagesCount: conversationHistory.length,
+              userMessages: conversationHistory.filter(m => m.source === 'user').length,
+              aiMessages: conversationHistory.filter(m => m.source === 'ai').length
+            });
+
+            // Validar que hay contenido útil (mínimo 50 caracteres de transcripción)
+            const hasValidTranscript = fullTranscriptRef.current &&
+                                       fullTranscriptRef.current.trim().length > 50;
+
+            // Si hay transcripción válida, procesar SIEMPRE
+            if (hasValidTranscript) {
+              console.log('🤖 El agente terminó la sesión - procesando transcripción...', {
+                transcriptLength: fullTranscriptRef.current.length,
+                messagesCount: conversationHistory.length,
+                duration: sessionDuration,
+                reason: 'Transcripción válida detectada (>50 chars)'
+              });
+
+              // Marcar como procesando
+              setIsProcessing(true);
+
+              // Procesar la sesión como si el usuario la hubiera terminado
+              setTimeout(() => {
+                setIsProcessing(false);
+                console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
+                  hasOnSessionEnd: !!onSessionEnd,
+                  currentSessionId,
+                  transcriptLength: fullTranscriptRef.current.length,
+                  duration: sessionDuration
+                });
+
+                if (onSessionEnd) {
+                  onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
+                } else {
+                  console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
+                }
+              }, 100);
+
+              return;
+            }
+
+            // Si llegamos aquí, NO hay transcripción válida
+            console.warn('⚠️ [onDisconnect] Sesión sin contenido válido:', {
+              hasValidTranscript,
+              sessionDuration,
+              transcriptLength: fullTranscriptRef.current.length,
+              messagesCount: conversationHistory.length
+            });
+
+            if (!hasValidTranscript) {
+              setError('⚠️ No se detectó contenido en la conversación. Por favor, intenta nuevamente y asegúrate de hablar durante la sesión.');
+            } else if (error) {
+              console.error('❌ Desconexión inesperada con error:', error);
+              setError('La conexión se cerró inesperadamente. Por favor, intenta nuevamente.');
+            }
+          }, 500); // Esperar 500ms para que los últimos mensajes se procesen
         },
-        onError: (error) => {
-          console.error('Conversation error:', error);
-          setError('Error en la conversación');
+        onError: (error: unknown) => {
+          console.error('❌ Conversation error:', error);
+
+          // Type guard for error with message
+          const errorMessage = typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : String(error);
+
+          // Manejo específico para errores de cuota/límites
+          if (errorMessage.includes('quota') ||
+              errorMessage.includes('limit') ||
+              errorMessage.includes('rate') ||
+              errorMessage.includes('429') ||
+              errorMessage.includes('insufficient')) {
+            console.error('⚠️ Límite de ElevenLabs alcanzado');
+            setError('Se ha alcanzado el límite de uso de ElevenLabs. Por favor, intenta más tarde o contacta al administrador.');
+          }
+          // Manejo específico para errores de WebSocket
+          else if (errorMessage.includes('WebSocket') || errorMessage.includes('CLOSING') || errorMessage.includes('CLOSED')) {
+            console.log('🔄 WebSocket error detected, cleaning up...');
+
+            // Si la sesión se cortó muy rápido, probablemente es límite de cuota
+            const sessionDuration = sessionStartTime
+              ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+              : 0;
+
+            if (sessionDuration < 30) {
+              setError('La sesión se terminó prematuramente. Posible límite de cuota alcanzado.');
+            } else {
+              setError('Conexión perdida. Por favor, reinicia la sesión.');
+            }
+
+            // Limpiar la conexión actual
+            if (conversation) {
+              try {
+                conversation.endSession().catch(() => console.log('Session already ended'));
+              } catch (_e) {
+                console.log('Session cleanup error');
+              }
+            }
+            setConversation(null);
+          } else {
+            setError('Error en la conversación. Verifica tu conexión y límites de uso.');
+          }
+
           setIsConnecting(false);
           setIsConnected(false);
         },
@@ -171,8 +371,27 @@ export function MaityVoiceAssistant() {
             console.log('🤖 AGENT RESPONSE:', message);
           }
         },
-        onStatusChange: ({ status }) => {
+        onStatusChange: ({ status: _e }) => {
+          const status = _e;
           console.log('📊 Status changed to:', status);
+
+          // Manejar cambios de estado problemáticos
+          if (status === 'disconnecting' || status === 'disconnected') {
+            console.warn('⚠️ Connection status:', status);
+
+            // Si se desconecta inesperadamente durante una sesión activa
+            if (isConnected && !isProcessing && status === 'disconnected') {
+              console.error('❌ Unexpected disconnection during active session');
+              setIsConnected(false);
+              setConversation(null);
+              setError('La sesión se desconectó. Por favor, reinicia.');
+            }
+          }
+
+          // Log adicional para debugging
+          if (status === 'error') {
+            console.error('❌ Status error detected');
+          }
         }
       });
 
@@ -186,153 +405,52 @@ export function MaityVoiceAssistant() {
 
   // End conversation
   const endConversation = async () => {
-    if (!conversation) return;
+    if (conversation) {
+      // Marcar que el usuario terminó la sesión manualmente
+      userEndedSessionRef.current = true;
 
-    try {
-      // End the ElevenLabs conversation
-      await conversation.endSession();
+      // Marcar que estamos procesando para evitar errores de desconexión
+      setIsProcessing(true);
+
+      // Calcular duración usando ref (evita closure issues)
+      const duration = sessionStartTimeRef.current
+        ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
+        : 0;
+
+      try {
+        // Terminar sesión de ElevenLabs de forma segura
+        console.log('🛑 Terminando sesión de ElevenLabs...');
+        await conversation.endSession();
+        console.log('✅ Sesión terminada correctamente');
+      } catch (error) {
+        console.warn('⚠️ Error al terminar sesión (puede ya estar cerrada):', error);
+      }
+
+      // Limpiar estado
       setConversation(null);
       setIsConnected(false);
       setIsSpeaking(false);
 
-      // Check if we have a valid session and conversation history
-      if (!sessionId || !sessionStartTime || conversationHistory.length === 0) {
-        console.log('⚠️ [Coach] No session data or conversation history');
-        resetState();
-        return;
-      }
-
-      // Calculate duration
-      const duration = Math.round((Date.now() - sessionStartTime.getTime()) / 1000);
-
-      // Format transcript from conversation history
-      const transcript = conversationHistory
-        .map(msg => {
-          const speaker = msg.source === 'user' ? 'Usuario' : 'Maity';
-          return `${speaker}: ${msg.message}`;
-        })
-        .join('\n');
-
-      console.log('📝 [Coach] Formatted transcript:', {
-        sessionId,
-        duration,
-        messageCount: conversationHistory.length,
-        transcriptLength: transcript.length
-      });
-
-      // Update session with transcript and duration
-      await CoachService.updateVoiceSession(sessionId, {
-        duration_seconds: duration,
-        raw_transcript: transcript,
-        status: 'completed',
-        ended_at: new Date().toISOString()
-      });
-
-      // Check if conversation is too short (less than 3 user messages)
-      const userMessageCount = conversationHistory.filter(m => m.source === 'user').length;
-      if (userMessageCount < 3) {
-        console.log('⚠️ [Coach] Sesión muy corta, no se evaluará');
-        toast({
-          title: "Sesión completada",
-          description: "La sesión fue muy breve para una evaluación completa.",
-          variant: "default"
+      // Transición rápida a resultados (500ms para cerrar suavemente)
+      setTimeout(() => {
+        setIsProcessing(false);
+        // Llamar callback con transcripción y duración
+        console.log('📤 [Coach] Llamando onSessionEnd con:', {
+          hasOnSessionEnd: !!onSessionEnd,
+          currentSessionId,
+          transcriptLength: fullTranscriptRef.current.length,
+          duration
         });
-        resetState();
-        return;
-      }
+        if (onSessionEnd) {
+          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
+        } else {
+          console.error('❌ [Coach] No hay onSessionEnd callback!');
+        }
 
-      // Show evaluating state
-      setIsEvaluating(true);
-
-      // Create evaluation record
-      const userInfo = await UserService.getUserInfo();
-      if (!userInfo) {
-        throw new Error('No se pudo obtener información del usuario');
-      }
-
-      const requestId = crypto.randomUUID();
-      const { data: _evaluationData, error: createError } = await createEvaluation(
-        requestId,
-        userInfo.user_id,
-        sessionId
-      );
-
-      if (createError) {
-        console.error('❌ [Coach] Error al crear evaluation:', createError);
-        throw new Error('Error al crear evaluación');
-      }
-
-      console.log('✅ [Coach] Evaluation record created');
-
-      // Get auth session for Bearer token
-      const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !authSession) {
-        console.error('❌ [Coach] Error obteniendo sesión de auth:', sessionError);
-        throw new Error('Error de autenticación');
-      }
-
-      // Call OpenAI evaluation API
-      console.log('🔄 [Coach] Llamando API de evaluación...');
-
-      const evaluationResponse = await fetch(`${env.apiUrl}/api/evaluate-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authSession.access_token}`
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          request_id: requestId
-        })
-      });
-
-      if (!evaluationResponse.ok) {
-        const errorData = await evaluationResponse.json().catch(() => null);
-        console.error('❌ [Coach] Error de API:', {
-          status: evaluationResponse.status,
-          errorData
-        });
-        throw new Error(errorData?.message || `Error ${evaluationResponse.status}`);
-      }
-
-      const { evaluation } = await evaluationResponse.json();
-
-      console.log('✅ [Coach] Evaluación completada:', {
-        score: evaluation.score,
-        passed: evaluation.passed
-      });
-
-      // Show results
-      setEvaluationResults({
-        score: evaluation.score,
-        passed: evaluation.passed,
-        result: evaluation.result,
-        duration,
-        messageCount: conversationHistory.length
-      });
-      setShowResults(true);
-
-    } catch (error) {
-      console.error('❌ [Coach] Error al finalizar sesión:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Error al procesar la sesión',
-      });
-    } finally {
-      setIsEvaluating(false);
+        // Resetear el flag después de procesar
+        userEndedSessionRef.current = false;
+      }, 500);
     }
-  };
-
-  // Reset state after session
-  const resetState = () => {
-    setError(null);
-    setTranscript('');
-    setAgentResponse('');
-    setConversationHistory([]);
-    setSessionId(null);
-    setSessionStartTime(null);
   };
 
   return (
@@ -352,7 +470,18 @@ export function MaityVoiceAssistant() {
 
         {/* Main Button Area */}
         <div className="flex justify-center">
-          {!isConnected ? (
+          {isProcessing ? (
+            // Estado de procesamiento
+            <div className="flex flex-col items-center gap-6">
+              <div className="p-8 bg-blue-500/10 rounded-full">
+                <Loader2 className="w-16 h-16 text-blue-400 animate-spin" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-semibold text-white">Procesando tu sesión...</h3>
+                <p className="text-gray-400">Analizando la conversación y calculando resultados</p>
+              </div>
+            </div>
+          ) : !isConnected ? (
             <div className="relative">
               {/* Glow effect */}
               <div
@@ -643,143 +772,6 @@ export function MaityVoiceAssistant() {
           </div>
         </div>
       )}
-
-      {/* Evaluating Loading Modal */}
-      <Dialog open={isEvaluating} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">Evaluando sesión...</DialogTitle>
-            <DialogDescription className="text-center pt-4">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: MAITY_COLORS.primary }} />
-              <p className="text-gray-400">
-                Analizando tu conversación con inteligencia artificial.
-                <br />
-                Esto puede tomar unos segundos.
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-
-      {/* Results Modal */}
-      <Dialog open={showResults} onOpenChange={(open) => {
-        setShowResults(open);
-        if (!open) {
-          resetState();
-        }
-      }}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Resultados de la Sesión</DialogTitle>
-            <DialogDescription>
-              Análisis de tu conversación con Maity
-            </DialogDescription>
-          </DialogHeader>
-
-          {evaluationResults && (
-            <div className="space-y-6 py-4">
-              {/* Score Display */}
-              <div className="text-center">
-                <div className="inline-block p-8 rounded-full" style={{
-                  backgroundColor: `${MAITY_COLORS.primary}10`,
-                  border: `2px solid ${MAITY_COLORS.primary}`
-                }}>
-                  <div className="text-5xl font-bold" style={{ color: MAITY_COLORS.primary }}>
-                    {evaluationResults.score}
-                  </div>
-                  <div className="text-sm text-gray-400 mt-2">Puntuación</div>
-                </div>
-              </div>
-
-              {/* Session Stats */}
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <div className="text-2xl font-bold text-white">{evaluationResults.duration}s</div>
-                  <div className="text-sm text-gray-400">Duración</div>
-                </div>
-                <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <div className="text-2xl font-bold text-white">{evaluationResults.messageCount}</div>
-                  <div className="text-sm text-gray-400">Mensajes</div>
-                </div>
-              </div>
-
-              {/* Evaluation Details */}
-              {evaluationResults.result && (
-                <div className="space-y-4">
-                  {/* Summary */}
-                  {evaluationResults.result.summary && (
-                    <div>
-                      <h4 className="font-semibold text-white mb-2">Resumen</h4>
-                      <p className="text-gray-300 text-sm">{evaluationResults.result.summary}</p>
-                    </div>
-                  )}
-
-                  {/* Strengths */}
-                  {evaluationResults.result.strengths && evaluationResults.result.strengths.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2" style={{ color: MAITY_COLORS.primary }}>
-                        Fortalezas
-                      </h4>
-                      <ul className="space-y-2">
-                        {evaluationResults.result.strengths.map((strength: string, idx: number) => (
-                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                            <span style={{ color: MAITY_COLORS.primary }}>✓</span>
-                            <span>{strength}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Areas for Improvement */}
-                  {evaluationResults.result.areas_for_improvement && evaluationResults.result.areas_for_improvement.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-yellow-500 mb-2">Áreas de Mejora</h4>
-                      <ul className="space-y-2">
-                        {evaluationResults.result.areas_for_improvement.map((area: string, idx: number) => (
-                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                            <span className="text-yellow-500">→</span>
-                            <span>{area}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Recommendations */}
-                  {evaluationResults.result.recommendations && evaluationResults.result.recommendations.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-blue-400 mb-2">Recomendaciones</h4>
-                      <ul className="space-y-2">
-                        {evaluationResults.result.recommendations.map((rec: string, idx: number) => (
-                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                            <span className="text-blue-400">💡</span>
-                            <span>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Close Button */}
-              <div className="pt-4">
-                <Button
-                  onClick={() => {
-                    setShowResults(false);
-                    resetState();
-                  }}
-                  className="w-full"
-                  style={{ backgroundColor: MAITY_COLORS.primary }}
-                >
-                  Cerrar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
