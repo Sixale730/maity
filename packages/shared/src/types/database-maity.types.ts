@@ -25,6 +25,7 @@ export interface MaitySchema {
         onboarding_token: string | null;
         onboarding_token_expires_at: string | null;
         platform_tour_completed: boolean | null;
+        level: number;
       };
       Insert: {
         id?: string;
@@ -43,6 +44,7 @@ export interface MaitySchema {
         onboarding_token?: string | null;
         onboarding_token_expires_at?: string | null;
         platform_tour_completed?: boolean | null;
+        level?: number;
       };
       Update: {
         id?: string;
@@ -61,6 +63,7 @@ export interface MaitySchema {
         onboarding_token?: string | null;
         onboarding_token_expires_at?: string | null;
         platform_tour_completed?: boolean | null;
+        level?: number;
       };
       Relationships: [];
     };

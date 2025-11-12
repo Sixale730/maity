@@ -116,8 +116,8 @@ const Registration: React.FC = () => {
         description: 'Tu autoevaluación ha sido guardada exitosamente.',
       });
 
-      // Navigate after everything is ready
-      navigate('/dashboard', { replace: true });
+      // Navigate to levels intro page
+      navigate('/levels-intro', { replace: true });
     } catch (error) {
       console.error('[Registration] Error invalidating queries:', error);
       // Even on error, navigate to dashboard (user completed form successfully)

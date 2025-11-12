@@ -1,8 +1,12 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** November 11, 2025
-**Version:** 1.5
+**Last Updated:** November 12, 2025
+**Version:** 1.6
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
+
+**Recent Changes:**
+- Added `level` column to `maity.users` for gamification system (v1.6)
+- Updated `maity.form_responses` with all 20 questions including consent (q20)
 
 ---
 
@@ -171,9 +175,13 @@ CREATE TABLE maity.users (
   status text DEFAULT 'PENDING',
   registration_form_completed boolean DEFAULT false,
   platform_tour_completed boolean DEFAULT false,
+  level integer NOT NULL DEFAULT 1,
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT users_level_check CHECK (level >= 1 AND level <= 5)
 );
+
+CREATE INDEX idx_users_level ON maity.users(level);
 ```
 
 **Key Columns:**
@@ -181,6 +189,7 @@ CREATE TABLE maity.users (
 - `auth_id` - Links to Supabase Auth (unique)
 - `company_id` - Organization membership
 - `status` - User lifecycle state
+- `level` - User progression level (1-5): 1=Aprendiz, 2=Promesa, 3=Guerrero, 4=Maestro, 5=Leyenda
 
 **RLS Policies:**
 ```sql
@@ -1871,7 +1880,7 @@ GRANT SELECT ON maity.tally_submissions TO authenticated;
 
 #### maity.form_responses
 
-**Purpose:** Generic form responses storage.
+**Purpose:** Registration form responses (self-assessment questionnaire).
 
 **Schema:**
 ```sql
@@ -1879,15 +1888,60 @@ CREATE TABLE maity.form_responses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid UNIQUE REFERENCES maity.users(id),
   submitted_at timestamptz DEFAULT now(),
-  q1 text,
-  q2 text,
-  q3 text,
-  -- ... up to q12
+  -- Personal info (q1-q4)
+  q1 text,  -- Nombre
+  q2 text,  -- Apellido
+  q3 text,  -- Teléfono
+  q4 text,  -- Puesto
+  -- Likert scale questions (q5-q16): 1-5 scale
+  q5 integer,  -- CLARIDAD
+  q6 integer,  -- CLARIDAD
+  q7 integer,  -- ADAPTACIÓN
+  q8 integer,  -- ADAPTACIÓN
+  q9 integer,  -- PERSUASIÓN
+  q10 integer, -- PERSUASIÓN
+  q11 integer, -- ESTRUCTURA
+  q12 integer, -- ESTRUCTURA
+  q13 integer, -- PROPÓSITO
+  q14 integer, -- PROPÓSITO
+  q15 integer, -- EMPATÍA
+  q16 integer, -- EMPATÍA
+  -- Open-ended questions (q17-q19)
+  q17 text, -- Barreras de comunicación
+  q18 text, -- Explica tu trabajo
+  q19 text, -- Respuesta a persona saturada
+  -- Consent (q20)
+  q20 boolean, -- Consentimiento uso de datos
   raw jsonb
 );
 ```
 
-**Note:** RLS policies TBD based on usage.
+**Key Points:**
+- Total 20 questions: 4 personal + 12 Likert + 3 open + 1 consent
+- Likert questions measure 6 competencies (2 questions each)
+- q20 consent is required for form completion
+- One response per user (UNIQUE constraint on user_id)
+
+**RLS Policies:**
+```sql
+-- Users can view own responses
+USING (
+  user_id IN (
+    SELECT id FROM maity.users WHERE auth_id = auth.uid()
+  )
+)
+
+-- Admins/managers can view team responses
+USING (
+  has_role(auth.uid(), 'admin'::app_role) OR
+  has_role(auth.uid(), 'manager'::app_role)
+)
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT, UPDATE ON maity.form_responses TO authenticated;
+```
 
 ---
 

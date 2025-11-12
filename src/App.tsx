@@ -22,6 +22,7 @@ const RegistrationPage = lazy(() => import("./features/auth").then(m => ({ defau
 const OnboardingPage = lazy(() => import("./features/auth").then(m => ({ default: m.OnboardingPage })));
 const PendingPage = lazy(() => import("./features/auth").then(m => ({ default: m.PendingPage })));
 const OnboardingSuccessPage = lazy(() => import("./features/auth").then(m => ({ default: m.OnboardingSuccessPage })));
+const LevelsIntroPage = lazy(() => import("./features/levels").then(m => ({ default: m.LevelsIntroPage })));
 
 const DashboardPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.DashboardPage })));
 const MyProgressPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.MyProgressPage })));
@@ -86,6 +87,7 @@ const App = () => (
                   <Route path="/registration" element={<RegistrationPage />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/onboarding/success" element={<OnboardingSuccessPage />} />
+                  <Route path="/levels-intro" element={<LevelsIntroPage />} />
                   <Route path="/invitation-confirm" element={<InvitationConflict />} />
                   <Route path="/pending" element={<PendingPage />} />
                   <Route path="/invitation-required" element={<InvitationRequired />} />

@@ -1,6 +1,6 @@
 /**
  * Types for native registration form
- * 19 questions total: 4 personal + 12 Likert + 3 open-ended
+ * 20 questions total: 4 personal + 12 Likert + 3 open-ended + 1 consent
  */
 
 /**
@@ -161,6 +161,24 @@ export const OpenQuestions: OpenQuestion[] = [
 ];
 
 /**
+ * Consent question definition
+ */
+export interface ConsentQuestion {
+  id: string; // q20
+  text: string;
+  order: number;
+}
+
+/**
+ * Consent question (final step)
+ */
+export const ConsentQuestion: ConsentQuestion = {
+  id: 'q20',
+  text: 'Acepto el uso de mis respuestas con fines de desarrollo personal. No se compartirán sin mi permiso.',
+  order: 16,
+};
+
+/**
  * Personal info questions
  */
 export interface PersonalInfoQuestion {
@@ -233,6 +251,9 @@ export interface RegistrationFormData {
   q17: string; // Barreras de comunicación
   q18: string; // Explica tu trabajo
   q19: string; // Respuesta a persona saturada
+
+  // Consent (q20)
+  q20: boolean; // Consentimiento
 }
 
 /**
@@ -256,7 +277,7 @@ export interface RegistrationFormSubmission {
 /**
  * Form step type
  */
-export type FormStepType = 'personal' | 'likert' | 'open';
+export type FormStepType = 'personal' | 'likert' | 'open' | 'consent';
 
 /**
  * Form step definition
@@ -270,7 +291,7 @@ export interface FormStep {
 }
 
 /**
- * Generate all form steps (19 total)
+ * Generate all form steps (20 total)
  */
 export const getAllFormSteps = (): FormStep[] => {
   const steps: FormStep[] = [];
@@ -293,7 +314,7 @@ export const getAllFormSteps = (): FormStep[] => {
       type: 'likert',
       questionId: q.id,
       title: `Evaluación: ${q.area.toUpperCase()}`,
-      subtitle: `Pregunta ${index + 5} de 19`,
+      subtitle: `Pregunta ${index + 5} de 20`,
     });
   });
 
@@ -304,8 +325,17 @@ export const getAllFormSteps = (): FormStep[] => {
       type: 'open',
       questionId: q.id,
       title: 'Pregunta Abierta',
-      subtitle: `Pregunta ${index + 17} de 19`,
+      subtitle: `Pregunta ${index + 17} de 20`,
     });
+  });
+
+  // Consent step (19)
+  steps.push({
+    index: 19,
+    type: 'consent',
+    questionId: ConsentQuestion.id,
+    title: 'Consentimiento',
+    subtitle: 'Pregunta 20 de 20',
   });
 
   return steps;
@@ -315,7 +345,7 @@ export const getAllFormSteps = (): FormStep[] => {
  * Form progress state
  */
 export interface FormProgress {
-  currentStep: number; // 0-18
+  currentStep: number; // 0-19
   answers: Partial<RegistrationFormData>;
   isComplete: boolean;
 }

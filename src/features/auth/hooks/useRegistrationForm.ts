@@ -22,7 +22,7 @@ interface UseRegistrationFormReturn {
   isLastStep: boolean;
   isSubmitting: boolean;
   error: string | null;
-  setAnswer: (questionId: string, value: string | LikertValue) => void;
+  setAnswer: (questionId: string, value: string | LikertValue | boolean) => void;
   goToNextStep: () => void;
   goToPreviousStep: () => void;
   submitForm: () => Promise<void>;
@@ -71,13 +71,17 @@ export function useRegistrationForm({
   const isCurrentQuestionAnswered = () => {
     const questionId = currentStepInfo.questionId;
     const answer = formData[questionId as keyof RegistrationFormData];
+    // For boolean (consent), check if true. For others, check not empty
+    if (typeof answer === 'boolean') {
+      return answer === true;
+    }
     return answer !== undefined && answer !== null && answer !== '';
   };
 
   const canGoNext = isCurrentQuestionAnswered();
 
   // Set answer for a question
-  const setAnswer = useCallback((questionId: string, value: string | LikertValue) => {
+  const setAnswer = useCallback((questionId: string, value: string | LikertValue | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [questionId]: value,

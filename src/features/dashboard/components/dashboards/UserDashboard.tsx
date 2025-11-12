@@ -27,6 +27,7 @@ import { useFormResponses, supabase } from "@maity/shared";
 import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { Lightbulb, Users, Layout, Target, Heart, TrendingUp } from "lucide-react";
+import { getLevelInfo } from "@/features/levels";
 
 const chartConfig = {
   sessions: {
@@ -242,13 +243,15 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">{t('dashboard.user.upcoming')}</CardTitle>
-            <span className="text-2xl">📅</span>
+            <CardTitle className="text-sm font-medium text-blue-900">Mi Nivel</CardTitle>
+            <span className="text-3xl">{getLevelInfo(userProfile?.level || 1).icon}</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{dashboardStats.activeSessions}</div>
+            <div className={`text-2xl font-bold ${getLevelInfo(userProfile?.level || 1).color}`}>
+              {getLevelInfo(userProfile?.level || 1).name}
+            </div>
             <p className="text-xs text-blue-700">
-              {t('dashboard.user.sessions_scheduled')}
+              Nivel {userProfile?.level || 1} de 5
             </p>
           </CardContent>
         </Card>

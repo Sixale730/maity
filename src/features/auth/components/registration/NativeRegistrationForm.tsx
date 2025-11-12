@@ -5,6 +5,7 @@ import { Input } from '@/ui/components/ui/input';
 import { Textarea } from '@/ui/components/ui/textarea';
 import { Label } from '@/ui/components/ui/label';
 import { Alert, AlertDescription } from '@/ui/components/ui/alert';
+import { Checkbox } from '@/ui/components/ui/checkbox';
 import { ArrowLeft, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { LikertScale } from './LikertScale';
 import { ProgressIndicator } from './ProgressIndicator';
@@ -15,6 +16,7 @@ import {
   PersonalInfoQuestions,
   LikertQuestions,
   OpenQuestions,
+  ConsentQuestion,
   LikertValue,
   CompetencyArea,
 } from '@maity/shared';
@@ -251,32 +253,74 @@ export function NativeRegistrationForm({
             <ArrowLeft className="h-4 w-4 mr-2" />
             Atrás
           </Button>
-          {isLastStep ? (
-            <Button
-              type="button"
-              onClick={submitForm}
-              disabled={!canGoNext || isSubmitting}
-              className="min-w-[120px]"
+          <Button
+            type="button"
+            onClick={goToNextStep}
+            disabled={!canGoNext || isSubmitting}
+          >
+            Siguiente
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // Render Consent Question
+  const renderConsentQuestion = () => {
+    const value = formData[questionId as keyof typeof formData] as boolean;
+
+    return (
+      <motion.div
+        key={questionId}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
+      >
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <Checkbox
+              id={questionId}
+              checked={value || false}
+              onCheckedChange={(checked) => setAnswer(questionId, checked as boolean)}
+              className="mt-1"
+            />
+            <Label
+              htmlFor={questionId}
+              className="text-base font-medium text-gray-900 cursor-pointer leading-relaxed"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                'Finalizar'
-              )}
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={goToNextStep}
-              disabled={!canGoNext || isSubmitting}
-            >
-              Siguiente
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
+              {ConsentQuestion.text}
+            </Label>
+          </div>
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={goToPreviousStep}
+            disabled={isSubmitting}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Atrás
+          </Button>
+          <Button
+            type="button"
+            onClick={submitForm}
+            disabled={!canGoNext || isSubmitting}
+            className="min-w-[120px]"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              'Finalizar'
+            )}
+          </Button>
         </div>
       </motion.div>
     );
@@ -304,6 +348,7 @@ export function NativeRegistrationForm({
         {type === 'personal' && renderPersonalInfo()}
         {type === 'likert' && renderLikertQuestion()}
         {type === 'open' && renderOpenQuestion()}
+        {type === 'consent' && renderConsentQuestion()}
       </AnimatePresence>
     </div>
   );

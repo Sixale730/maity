@@ -388,6 +388,42 @@ Always use explicit types
 - n8n webhook system (being phased out)
 - `/api/evaluation-complete` endpoint (can be removed)
 
+### User Level System
+Maity includes a gamification system with 5 progression levels to motivate users.
+
+**Levels:**
+1. **Aprendiz** (Beginner) 🌱 - Starting level for all new users
+2. **Promesa** (Promise) ⭐ - Shows potential and consistent progress
+3. **Guerrero** (Warrior) ⚔️ - Faces challenges with courage
+4. **Maestro** (Master) 👑 - Achieved notable excellence
+5. **Leyenda** (Legend) 🏆 - Maximum mastery level
+
+**Database:**
+- Column: `maity.users.level` (INTEGER, default: 1)
+- Constraint: CHECK (level >= 1 AND level <= 5)
+- Index: `idx_users_level` for efficient queries
+
+**Architecture:**
+- Location: `src/features/levels/`
+- Components: `LevelBadge`, `LevelsTable`, `LevelsIntroPage`
+- Utils: `getLevelInfo()`, `getAllLevels()`, `getLevelName()`
+- Types: `LevelNumber`, `LevelInfo`, `LEVEL_NAMES`
+
+**User Flow:**
+1. User completes registration form (20 questions including consent)
+2. Redirected to `/levels-intro` page showing all 5 levels
+3. User sees they start as "Aprendiz" (Level 1)
+4. Dashboard displays current level in "Mi Nivel" card (replaces "Upcoming Sessions")
+
+**Registration Form:**
+- **20 questions total:** 4 personal + 12 Likert + 3 open-ended + 1 consent
+- **Question 20 (q20):** Consent checkbox - "Acepto el uso de mis respuestas con fines de desarrollo personal. No se compartirán sin mi permiso."
+- **Location:** `src/features/auth/pages/Registration.tsx`, `NativeRegistrationForm.tsx`
+- **Types:** `packages/shared/src/domain/registration/registration.types.ts`
+
+**Future Enhancement:**
+- Level progression logic to be determined (may be based on diagnostic score, completed sessions, or combination)
+
 ### Tech Week - Admin Practice Section
 Tech Week is a specialized voice practice feature for admin-only testing and demonstration.
 
