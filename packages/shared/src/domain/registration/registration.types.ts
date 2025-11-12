@@ -29,7 +29,7 @@ export const CompetencyColors: Record<CompetencyArea, string> = {
   [CompetencyArea.PERSUASION]: '#9b4dca', // Purple 🟪
   [CompetencyArea.ESTRUCTURA]: '#ff8c42', // Orange 🟧
   [CompetencyArea.PROPOSITO]: '#ffd93d', // Yellow 🟨
-  [CompetencyArea.EMPATIA]: '#8b4513', // Brown 🟫
+  [CompetencyArea.EMPATIA]: '#ef4444', // Red ❤️
 };
 
 /**
@@ -111,7 +111,7 @@ export const LikertQuestions: LikertQuestion[] = [
     text: 'Cuando comunico algo, dejo claro qué se espera después (acción, acuerdo o siguiente paso).',
     order: 10,
   },
-  // EMPATÍA (🟫)
+  // EMPATÍA (❤️)
   {
     id: 'q15',
     area: CompetencyArea.EMPATIA,

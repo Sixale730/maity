@@ -40,13 +40,6 @@ import {
 } from "@/ui/components/ui/sidebar";
 
 const getNavigationByRole = (role: UserRole) => {
-  const baseItems = [
-    { title: "nav.dashboard", url: "/dashboard", icon: Home },
-    { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
-    { title: "nav.roleplay_progress", url: "/progress", icon: Map },
-    { title: "nav.sessions", url: "/sessions", icon: History },
-  ];
-
   if (role === 'admin') {
     return [
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
@@ -70,7 +63,10 @@ const getNavigationByRole = (role: UserRole) => {
     ];
   } else if (role === 'manager') {
     return [
-      ...baseItems,
+      { title: "nav.dashboard", url: "/dashboard", icon: Home },
+      { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+      { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.my_team", url: "/team", icon: Users },
       { title: "nav.plans", url: "/planes", icon: Target },
       { title: "nav.documents", url: "/documentos", icon: FileText },
@@ -79,9 +75,11 @@ const getNavigationByRole = (role: UserRole) => {
   } else {
     // 'user' role
     return [
-      ...baseItems,
+      { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
-      { title: "nav.achievements", url: "/logros", icon: Trophy, disabled: true },
+      { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+      { title: "nav.sessions", url: "/sessions", icon: History },
     ];
   }
 };

@@ -26,6 +26,7 @@ import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardD
 import { useFormResponses, supabase } from "@maity/shared";
 import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { Lightbulb, Users, Layout, Target, Heart, TrendingUp } from "lucide-react";
 
 const chartConfig = {
   sessions: {
@@ -64,6 +65,10 @@ const chartConfig = {
     label: "Influencia",
     color: "#e7e7e9", // Gris claro oficial
   },
+  empatia: {
+    label: "Empatía",
+    color: "#ef4444", // Rojo vibrante
+  },
 };
 
 interface UserDashboardProps {
@@ -94,9 +99,94 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   // Use radar data directly (no translation needed for generic area names)
   const translatedRadarData = radarData;
 
+  // Rubric definitions with icons and descriptions
+  const rubricDefinitions = [
+    {
+      name: 'Claridad',
+      color: '#485df4',
+      icon: Lightbulb,
+      description: 'Expresa ideas de forma simple, concreta y sin rodeos. Refleja pensamiento estructurado.'
+    },
+    {
+      name: 'Adaptación',
+      color: '#1bea9a',
+      icon: Users,
+      description: 'Ajusta su lenguaje verbal y no verbal según la persona o contexto principal.'
+    },
+    {
+      name: 'Estructura',
+      color: '#ff8c42',
+      icon: Layout,
+      description: 'Ordena sus mensajes con inicio, desarrollo y cierre; guía la conversación.'
+    },
+    {
+      name: 'Propósito',
+      color: '#ffd93d',
+      icon: Target,
+      description: 'Comunica con intención clara y sentido del para qué.'
+    },
+    {
+      name: 'Empatía',
+      color: '#ef4444',
+      icon: Heart,
+      description: 'Escucha con atención, hace preguntas, confirma comprensión y responde con empatía.'
+    },
+    {
+      name: 'Persuasivo',
+      color: '#9b4dca',
+      icon: TrendingUp,
+      description: 'Usa ejemplos, historias o datos para reforzar ideas e influir positivamente.'
+    },
+  ];
+
+  // Calculate average scores for horizontal bar chart
+  const horizontalBarData = useMemo(() => {
+    if (!competencyBars) return [];
+
+    const calculateAverage = (questions: any[]) => {
+      if (!questions || questions.length === 0) return 0;
+      const sum = questions.reduce((acc, q) => acc + (q.value || 0), 0);
+      return Math.round((sum / questions.length) * 10) / 10; // Round to 1 decimal
+    };
+
+    return [
+      {
+        competencia: 'Claridad',
+        promedio: calculateAverage(competencyBars.claridad),
+        color: '#485df4'
+      },
+      {
+        competencia: 'Adaptación',
+        promedio: calculateAverage(competencyBars.adaptacion),
+        color: '#1bea9a'
+      },
+      {
+        competencia: 'Estructura',
+        promedio: calculateAverage(competencyBars.estructura),
+        color: '#ff8c42'
+      },
+      {
+        competencia: 'Propósito',
+        promedio: calculateAverage(competencyBars.proposito),
+        color: '#ffd93d'
+      },
+      {
+        competencia: 'Empatía',
+        promedio: calculateAverage(competencyBars.empatia),
+        color: '#ef4444'
+      },
+      {
+        competencia: 'Persuasivo',
+        promedio: calculateAverage(competencyBars.persuasion),
+        color: '#9b4dca'
+      },
+    ];
+  }, [competencyBars]);
+
   console.log('Radar data:', radarData);
   console.log('Translated radar data:', translatedRadarData);
   console.log('Competency bars:', competencyBars);
+  console.log('Horizontal bar data:', horizontalBarData);
   console.log('Diagnostic score:', diagnosticScore);
 
   if (loading || formLoading) {
@@ -240,158 +330,108 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Individual Competency Bar Charts */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Claridad Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Claridad</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
+      {/* Horizontal Bar Chart - Promedio por Rúbrica */}
+      <Card className="col-span-full">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Rúbricas de Comunicación</CardTitle>
+          <CardDescription className="text-center">
+            Promedio de autoevaluación por competencia (escala 1-5)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 md:p-8">
+          {/* Chart Section */}
+          <div className="mb-8 flex justify-center">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full max-w-3xl">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.claridad} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <BarChart
+                  data={horizontalBarData}
+                  layout="vertical"
+                  margin={{ top: 10, right: 30, left: 120, bottom: 10 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                   <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
+                    type="number"
+                    domain={[0, 5]}
+                    tick={{ fontSize: 12 }}
+                    label={{ value: 'Promedio (1-5)', position: 'insideBottom', offset: -5 }}
                   />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#485df4" radius={[2, 2, 0, 0]} />
+                  <YAxis
+                    type="category"
+                    dataKey="competencia"
+                    tick={{ fontSize: 14, fontWeight: 500 }}
+                    width={110}
+                  />
+                  <ChartTooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                            <p className="font-semibold text-sm">{payload[0].payload.competencia}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Promedio: <span className="font-bold">{payload[0].value}/5</span>
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar
+                    dataKey="promedio"
+                    radius={[0, 8, 8, 0]}
+                    label={{ position: 'right', fontSize: 12, fontWeight: 600 }}
+                  >
+                    {horizontalBarData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Adaptación Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Adaptación</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.adaptacion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
-                  />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#1bea9a" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+          {/* Descriptions Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {rubricDefinitions.map((rubric) => {
+              const Icon = rubric.icon;
+              return (
+                <div
+                  key={rubric.name}
+                  className="relative p-6 rounded-2xl bg-card hover:shadow-2xl transition-all duration-300 group border-2"
+                  style={{
+                    borderColor: rubric.color,
+                    boxShadow: `0 8px 24px ${rubric.color}25`
+                  }}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Icon Circle */}
+                    <div
+                      className="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 border-4"
+                      style={{
+                        backgroundColor: `${rubric.color}15`,
+                        borderColor: rubric.color,
+                        boxShadow: `0 0 30px ${rubric.color}40, inset 0 0 20px ${rubric.color}10`
+                      }}
+                    >
+                      <Icon className="w-10 h-10" style={{ color: rubric.color, strokeWidth: 2.5 }} />
+                    </div>
 
-        {/* Persuasión Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Persuasión</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.persuasion} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
-                  />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#9b4dca" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Estructura Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Estructura</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.estructura} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
-                  />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#ff8c42" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Propósito Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Propósito</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.proposito} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
-                  />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#ffd93d" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Empatía Bar Chart */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Empatía</CardTitle>
-            <CardDescription className="text-sm">Evaluación por pregunta (1-5)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competencyBars.empatia} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis
-                    dataKey="pregunta"
-                    tick={{ fontSize: 10 }}
-                    interval={0}
-                  />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#8b4513" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold mb-2" style={{ color: rubric.color }}>
+                        {rubric.name}
+                      </h3>
+                      <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+                        {rubric.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
     </main>
   );
