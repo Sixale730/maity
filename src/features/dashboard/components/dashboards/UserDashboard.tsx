@@ -255,8 +255,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
             </p>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+
+        {/* Cards 3-4 temporalmente comentadas */}
+        {/* <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-purple-900">{t('dashboard.user.consistency')}</CardTitle>
             <span className="text-2xl">🏆</span>
@@ -269,7 +270,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
             <Progress value={dashboardStats.completionRate} className="mt-2" />
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-yellow-900">{t('dashboard.user.wellbeing')}</CardTitle>
@@ -281,7 +282,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
               {t('dashboard.user.average_mood')}
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Gráfico Principal - Evaluación 360° */}
