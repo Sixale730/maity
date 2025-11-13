@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
-import { FileText, User, Calendar, Clock, Loader2, AlertCircle, Star } from 'lucide-react';
-import { InterviewSessionDetails } from '@maity/shared';
+import { FileText, User, Calendar, Clock, Loader2, AlertCircle, Star, Sparkles, Eye, BookOpen } from 'lucide-react';
+import { InterviewSessionDetails, InterviewRubrics } from '@maity/shared';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { InterviewRubricCard } from './InterviewRubricCard';
 
 interface InterviewAnalysisProps {
   session: InterviewSessionDetails;
@@ -18,6 +19,40 @@ export function InterviewAnalysis({ session, isLoading = false }: InterviewAnaly
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Parse structured data from analysis_text if needed (backwards compatibility)
+  const getStructuredData = () => {
+    // If we have direct structured fields, use them
+    if (evaluation?.rubrics || evaluation?.summary || evaluation?.key_observations) {
+      return {
+        rubrics: evaluation.rubrics || null,
+        summary: evaluation.summary || null,
+        key_observations: evaluation.key_observations || null,
+        amazing_comment: evaluation.amazing_comment || null,
+      };
+    }
+
+    // Otherwise, try to parse from analysis_text (legacy format)
+    if (evaluation?.analysis_text) {
+      try {
+        const parsed = JSON.parse(evaluation.analysis_text);
+        return {
+          rubrics: parsed.rubrics || null,
+          summary: parsed.summary || null,
+          key_observations: parsed.key_observations || null,
+          amazing_comment: parsed.amazing_comment || null,
+        };
+      } catch (err) {
+        // If parsing fails, it's plain text - return null
+        console.error('Failed to parse analysis_text:', err);
+        return null;
+      }
+    }
+
+    return null;
+  };
+
+  const structuredData = getStructuredData();
 
   // Si está cargando o en proceso
   if (isLoading || !evaluation || evaluation.status === 'pending' || evaluation.status === 'processing') {
@@ -144,25 +179,101 @@ export function InterviewAnalysis({ session, isLoading = false }: InterviewAnaly
         </CardContent>
       </Card>
 
-      {/* Analysis Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      {/* Summary Card */}
+      {structuredData?.summary && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              Resumen General
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed text-foreground">
+              {structuredData.summary}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Amazing Comment Card */}
+      {structuredData?.amazing_comment && (
+        <Card className="border-purple-500/20 bg-purple-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Observación Destacada
+            </CardTitle>
+            <CardDescription>
+              Un patrón interesante identificado en tu entrevista
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed text-foreground">
+              {structuredData.amazing_comment}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Observations */}
+      {structuredData?.key_observations && structuredData.key_observations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Observaciones Clave
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {structuredData.key_observations.map((observation, idx) => (
+                <li key={idx} className="flex items-start gap-2 text-sm">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span className="flex-1 leading-relaxed">{observation}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rubrics Section */}
+      {structuredData?.rubrics && Object.keys(structuredData.rubrics).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            Análisis
-          </CardTitle>
-          <CardDescription>
-            Análisis detallado de la entrevista generado por IA
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">
-              {evaluation.analysis_text || 'No hay análisis disponible.'}
-            </div>
+            <h2 className="text-xl font-semibold">Evaluación Detallada por Competencias</h2>
           </div>
-        </CardContent>
-      </Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            {Object.entries(structuredData.rubrics).map(([key, rubric]) => (
+              rubric && <InterviewRubricCard key={key} title={key} rubric={rubric} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fallback: Plain text analysis (for old data without structure) */}
+      {!structuredData && evaluation.analysis_text && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Análisis
+            </CardTitle>
+            <CardDescription>
+              Análisis detallado de la entrevista generado por IA
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {evaluation.analysis_text}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Transcript Card (if available) */}
       {session.raw_transcript && (

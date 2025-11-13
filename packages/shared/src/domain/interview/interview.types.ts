@@ -17,6 +17,28 @@ export interface InterviewSession {
 }
 
 /**
+ * Rubric scoring details for interview analysis
+ */
+export interface InterviewRubric {
+  score: number;
+  analysis: string;
+  strengths: string[];
+  areas_for_improvement: string[];
+}
+
+/**
+ * All rubrics for interview evaluation
+ */
+export interface InterviewRubrics {
+  claridad?: InterviewRubric;
+  adaptacion?: InterviewRubric;
+  persuasion?: InterviewRubric;
+  estructura?: InterviewRubric;
+  proposito?: InterviewRubric;
+  empatia?: InterviewRubric;
+}
+
+/**
  * Represents an interview evaluation
  */
 export interface InterviewEvaluation {
@@ -29,6 +51,17 @@ export interface InterviewEvaluation {
   error_message?: string | null;
   created_at: string;
   updated_at: string;
+  // Structured analysis fields
+  rubrics?: InterviewRubrics | null;
+  key_observations?: string[] | null;
+  amazing_comment?: string | null;
+  summary?: string | null;
+  is_complete?: boolean | null;
+  // Legacy structured fields (for backwards compatibility)
+  recomendaciones_prioritarias?: any | null;
+  patrones_observados?: any | null;
+  conclusion_general?: string | null;
+  siguiente_paso_sugerido?: string | null;
 }
 
 /**
