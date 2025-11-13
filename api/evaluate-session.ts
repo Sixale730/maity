@@ -24,6 +24,7 @@ import {
 import { getEnv } from '../lib/types/api/common.js';
 import {
   evaluateRoleplaySession,
+  evaluateCoachSession,
   parseTranscript,
   calculateScores,
 } from '../lib/services/openai.service.js';
@@ -285,12 +286,8 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     throw ApiError.badRequest('Session transcript could not be parsed');
   }
 
-  // Extract metadata for evaluation
-  // For Coach sessions (no profile_scenario), use default values
-  const profile = session.profile_scenario?.profile?.name || 'Coach Maity';
-  const scenario = session.profile_scenario?.scenario?.name || 'Coaching Session';
-  const objective = session.profile_scenario?.scenario?.objectives ||
-    'Mejorar habilidades de comunicación general, desarrollar confianza y claridad en la expresión de ideas';
+  // Determine if this is a Coach session (no profile_scenario_id)
+  const isCoachSession = !session.profile_scenario_id;
 
   console.log({
     event: 'evaluation_request_received',
@@ -298,23 +295,74 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     userId,
     requestId,
     transcriptMessages: transcript.length,
-    profile,
-    scenario,
+    isCoachSession,
     timestamp: new Date().toISOString(),
   });
 
-  // Call OpenAI evaluation service
-  const evaluationResult = await evaluateRoleplaySession({
-    scenario,
-    profile,
-    objective,
-    transcript,
-    sessionId: session.id,
-    userId,
-  });
+  // Call appropriate evaluation service based on session type
+  let evaluationResult: any;
+  let overallScore: number;
+  let passed: boolean;
 
-  // Calculate scores from evaluation result
-  const { overallScore, passed } = calculateScores(evaluationResult);
+  if (isCoachSession) {
+    // Coach evaluation - different format and criteria
+    console.log({
+      event: 'evaluating_coach_session',
+      sessionId: session.id,
+      timestamp: new Date().toISOString(),
+    });
+
+    const coachResult = await evaluateCoachSession({
+      transcript,
+      sessionId: session.id,
+      userId,
+    });
+
+    evaluationResult = coachResult;
+
+    // For Coach sessions, "passed" means the interview is complete
+    passed = coachResult.is_complete;
+    // Score is not applicable for Coach sessions, but we set a value for DB
+    overallScore = passed ? 100 : 0;
+
+    console.log({
+      event: 'coach_evaluation_result',
+      sessionId: session.id,
+      is_complete: coachResult.is_complete,
+      has_amazing_comment: !!coachResult.amazing_comment,
+      timestamp: new Date().toISOString(),
+    });
+  } else {
+    // Roleplay evaluation - existing logic
+    const profile = session.profile_scenario?.profile?.name || 'Coach Maity';
+    const scenario = session.profile_scenario?.scenario?.name || 'Coaching Session';
+    const objective = session.profile_scenario?.scenario?.objectives ||
+      'Mejorar habilidades de comunicación general, desarrollar confianza y claridad en la expresión de ideas';
+
+    console.log({
+      event: 'evaluating_roleplay_session',
+      sessionId: session.id,
+      profile,
+      scenario,
+      timestamp: new Date().toISOString(),
+    });
+
+    const roleplayResult = await evaluateRoleplaySession({
+      scenario,
+      profile,
+      objective,
+      transcript,
+      sessionId: session.id,
+      userId,
+    });
+
+    evaluationResult = roleplayResult;
+
+    // Calculate scores from evaluation result
+    const scores = calculateScores(roleplayResult);
+    overallScore = scores.overallScore;
+    passed = scores.passed;
+  }
 
   // Update evaluation in database (frontend already created it)
   const { data: _evaluation, error: evalError } = await supabase

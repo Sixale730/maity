@@ -23,7 +23,7 @@ import {
   Radar
 } from "recharts";
 import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
-import { useFormResponses, supabase } from "@maity/shared";
+import { useFormResponses, useDiagnosticRadarScores, supabase } from "@maity/shared";
 import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { Lightbulb, Users, Layout, Target, Heart, TrendingUp } from "lucide-react";
@@ -82,6 +82,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
   const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('user');
   const { radarData, competencyBars, loading: formLoading, error: formError } = useFormResponses();
+  const { data: coachRadarScores, isLoading: coachLoading } = useDiagnosticRadarScores(userProfile?.id);
 
   // Calculate diagnostic score from registration form data (q5-q16, scale 1-5)
   const diagnosticScore = useMemo(() => {
@@ -97,8 +98,36 @@ export function UserDashboard({ userName }: UserDashboardProps) {
     return Math.round(avgScore * 10) / 10; // Round to 1 decimal
   }, [radarData]);
 
-  // Use radar data directly (no translation needed for generic area names)
-  const translatedRadarData = radarData;
+  // Merge coach scores with user radar data
+  const translatedRadarData = useMemo(() => {
+    if (!radarData) return radarData;
+
+    // If we have coach scores, merge them
+    if (coachRadarScores) {
+      return radarData.map((item) => {
+        const competenciaKey = item.competencia.toLowerCase();
+        // Map competency names to coach score keys
+        const coachKeyMap: { [key: string]: keyof typeof coachRadarScores } = {
+          'claridad': 'claridad',
+          'adaptación': 'adaptacion',
+          'persuasivo': 'persuasion',
+          'estructura': 'estructura',
+          'propósito': 'proposito',
+          'empatía': 'empatia'
+        };
+
+        const coachKey = coachKeyMap[competenciaKey];
+        const coachScore = coachKey ? coachRadarScores[coachKey] : undefined;
+
+        return {
+          ...item,
+          coach: coachScore
+        };
+      });
+    }
+
+    return radarData;
+  }, [radarData, coachRadarScores]);
 
   // Rubric definitions with icons and descriptions
   const rubricDefinitions = [
@@ -288,17 +317,41 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       {/* Gráfico Principal - Evaluación 360° */}
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">Radar de Habilidades - Autoevaluación 360°</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">
+            Radar de Habilidades - Comparación de Evaluaciones
+          </CardTitle>
           <CardDescription className="text-center">
-            Evaluación de competencias clave de liderazgo
+            {coachRadarScores
+              ? 'Comparación entre tu autoevaluación y la evaluación del Coach'
+              : 'Evaluación de competencias clave de liderazgo'
+            }
             {formError && !formError.includes('mostrando datos de ejemplo') && (
               <div className="text-sm text-orange-600 mt-2">
                 ⚠️ {formError}
               </div>
             )}
+            {!coachRadarScores && (
+              <div className="text-sm text-blue-600 mt-2 font-medium">
+                💡 Completa tu primera entrevista con el Coach para ver una comparación
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex justify-center p-8">
+        <CardContent className="flex flex-col items-center p-8">
+          {/* Legend */}
+          {coachRadarScores && (
+            <div className="flex gap-6 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }} />
+                <span className="text-sm font-medium">Autoevaluación</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#06b6d4' }} />
+                <span className="text-sm font-medium">Evaluación Coach</span>
+              </div>
+            </div>
+          )}
+
           <ChartContainer config={chartConfig} className="h-[400px] w-full max-w-2xl">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={translatedRadarData}>
@@ -319,14 +372,26 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                     fontSize: 10
                   }}
                 />
+                {/* User self-assessment */}
                 <Radar
-                  name="Mi Evaluación"
+                  name="Autoevaluación"
                   dataKey="usuario"
                   stroke="#3b82f6"
                   fill="#3b82f6"
                   fillOpacity={0.3}
                   strokeWidth={2}
                 />
+                {/* Coach evaluation (if available) */}
+                {coachRadarScores && (
+                  <Radar
+                    name="Evaluación Coach"
+                    dataKey="coach"
+                    stroke="#06b6d4"
+                    fill="#06b6d4"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                )}
                 <ChartTooltip content={<ChartTooltipContent />} />
               </RadarChart>
             </ResponsiveContainer>

@@ -388,6 +388,147 @@ Always use explicit types
 - n8n webhook system (being phased out)
 - `/api/evaluation-complete` endpoint (can be removed)
 
+### Coach Diagnostic Interview System
+
+The Coach Diagnostic Interview is a comprehensive AI-powered evaluation that analyzes a user's first conversation with the Coach AI, providing detailed feedback on 6 communication competencies.
+
+**Purpose:**
+- Evaluate user's communication skills through natural conversation
+- Provide objective assessment to complement self-evaluation
+- Enable comparison between self-perception and external assessment
+- Generate personalized feedback with strengths and improvement areas
+
+**Architecture:**
+1. **Frontend (CoachPage)**: User completes voice conversation with Coach AI
+2. **Frontend**: Calls `/api/evaluate-diagnostic-interview` with session_id
+3. **Backend**: Retrieves transcript, calls OpenAI API (gpt-4o-mini) with comprehensive rubric evaluation prompt
+4. **Backend**: Saves evaluation to `maity.diagnostic_interviews` table
+5. **Frontend**: Displays detailed results with 6 rubric cards
+6. **Dashboard**: Compares self-assessment vs Coach evaluation in radar chart
+
+**6 Rubrics Evaluated:**
+The system evaluates the same 6 competencies as the self-assessment form (questions q5-q16):
+
+1. **Claridad** (Clarity)
+   - Simple, concrete communication without rambling
+   - Structured thinking
+   - Color: #485df4 (Blue) 💬
+
+2. **Adaptación** (Adaptation)
+   - Adjusts verbal/non-verbal language to context and audience
+   - Contextual awareness
+   - Color: #1bea9a (Green) 🎯
+
+3. **Persuasión** (Persuasion)
+   - Uses examples, stories, or data to reinforce ideas
+   - Positive influence
+   - Color: #9b4dca (Purple) 📊
+
+4. **Estructura** (Structure)
+   - Organizes messages with beginning, development, and closing
+   - Conversation guidance
+   - Color: #ff8c42 (Orange) 📋
+
+5. **Propósito** (Purpose)
+   - Communicates with clear intention and sense of "why"
+   - Purposeful communication
+   - Color: #ffd93d (Yellow) 🌟
+
+6. **Empatía** (Empathy)
+   - Active listening, asks questions, confirms understanding
+   - Empathetic responses
+   - Color: #ef4444 (Red) ❤️
+
+Each rubric is scored 1-5 (Likert scale) with:
+- Score (1-5)
+- Qualitative analysis (2-3 sentences)
+- Strengths (positive aspects)
+- Areas for improvement
+
+**Database Structure:**
+```sql
+maity.diagnostic_interviews (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES maity.users(id),
+  session_id UUID REFERENCES maity.voice_sessions(id),
+  transcript TEXT NOT NULL,
+  rubrics JSONB NOT NULL, -- 6 rubrics with score, analysis, strengths, areas_for_improvement
+  amazing_comment TEXT,   -- Surprising/impressive observation
+  summary TEXT,            -- Overall summary (2-3 sentences)
+  is_complete BOOLEAN,     -- Whether interview met completion criteria
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+)
+```
+
+**API Endpoint:**
+- **Endpoint**: `/api/evaluate-diagnostic-interview`
+- **Method**: POST
+- **Auth**: Bearer token required
+- **Body**: `{ session_id: UUID }`
+- **Validation**: Session must be Coach session (no profile_scenario_id)
+- **Response**: Interview object with rubrics, amazing_comment, summary, is_complete
+
+**Services and Hooks:**
+```typescript
+// Service
+DiagnosticInterviewService.getDiagnosticInterview(userId)
+DiagnosticInterviewService.extractRadarScores(interview) // Converts 1-5 to 0-100 scale
+DiagnosticInterviewService.hasDiagnosticInterview(userId)
+
+// Hooks
+useDiagnosticInterview(userId)        // Fetch interview data
+useDiagnosticRadarScores(userId)      // Extract scores for radar chart
+useHasDiagnosticInterview(userId)     // Check if interview exists
+```
+
+**Frontend Integration:**
+- **CoachPage** (`src/features/coach/pages/CoachPage.tsx`):
+  - Calls `/api/evaluate-diagnostic-interview` after session ends
+  - Displays 6 rubric cards with scores, analysis, strengths, and areas for improvement
+  - Shows amazing comment and summary
+  - Uses RUBRIC_CONFIG for consistent colors/emojis
+
+- **UserDashboard** (`src/features/dashboard/components/dashboards/UserDashboard.tsx`):
+  - Fetches coach scores with `useDiagnosticRadarScores`
+  - Merges coach scores with self-assessment data
+  - Displays comparison radar chart with two overlays:
+    - Blue (#3b82f6): Self-assessment (Autoevaluación)
+    - Cyan (#06b6d4): Coach evaluation (Evaluación Coach)
+  - Shows legend and conditional message if no coach data exists
+
+**Safeguards:**
+- **Rate limiting**: 5 evaluations/min per user
+- **Daily quota**: 50 evaluations/day per user
+- **Retry logic**: 3 attempts with exponential backoff (inherited from OpenAI service)
+- **Timeout**: 25s max per OpenAI call
+- **Cost tracking**: Logged in backend console
+- **Validation**: Only Coach sessions (profile_scenario_id IS NULL) can be evaluated
+
+**OpenAI Prompt:**
+The system uses `COACH_DIAGNOSTIC_SYSTEM_MESSAGE` prompt (300+ lines) that:
+- Defines each rubric with detailed 1-5 scoring criteria
+- References self-assessment questions (q5-q16) for consistency
+- Instructs AI to provide structured JSON response
+- Requires analysis, strengths, and improvement areas for each rubric
+- Generates amazing_comment (surprising observation) and summary
+
+**Future Enhancements:**
+- One-interview-per-user restriction (prepared but not enforced)
+- UNIQUE constraint ready to enable: `UNIQUE(user_id)`
+- Potential for progress tracking over time
+- Integration with level progression system
+
+**Files:**
+- Migration: `supabase/migrations/20250203_create_diagnostic_interviews_table.sql`
+- Service: `packages/shared/src/domain/coach/diagnostic-interview.service.ts`
+- Types: `packages/shared/src/domain/coach/coach.types.ts`
+- Hooks: `packages/shared/src/domain/coach/hooks/useDiagnosticInterview.ts`
+- OpenAI Service: `lib/services/openai.service.ts` (COACH_DIAGNOSTIC_SYSTEM_MESSAGE)
+- Endpoint: `api/evaluate-diagnostic-interview.ts`
+- Frontend: `src/features/coach/pages/CoachPage.tsx`, `src/features/dashboard/components/dashboards/UserDashboard.tsx`
+- Documentation: `docs/database-structure-and-rls.md`
+
 ### User Level System
 Maity includes a gamification system with 5 progression levels to motivate users.
 

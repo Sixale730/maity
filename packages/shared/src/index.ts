@@ -74,12 +74,14 @@ export { TechWeekService, type TechWeekSessionUpdate } from './domain/tech-week'
 
 // ===== Domain: Coach =====
 export { CoachService } from './domain/coach/coach.service';
+export { DiagnosticInterviewService } from './domain/coach/diagnostic-interview.service';
 export * from './domain/coach/coach.types';
 export * from './domain/coach/hooks/useElevenLabsVoice';
 export * from './domain/coach/hooks/useElevenLabsConversation';
 export * from './domain/coach/hooks/useElevenLabsChat';
 export * from './domain/coach/hooks/useVoiceConversation';
 export * from './domain/coach/hooks/useEvaluationRealtime';
+export * from './domain/coach/hooks/useDiagnosticInterview';
 
 // ===== Domain: Dashboard =====
 export { DashboardService } from './domain/dashboard/dashboard.service';

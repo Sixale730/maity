@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { MaityVoiceAssistant } from '../components/MaityVoiceAssistant';
-import { CoachService, UserService, createEvaluation, supabase, MAITY_COLORS } from '@maity/shared';
+import { CoachService, UserService, supabase, MAITY_COLORS } from '@maity/shared';
 import { env } from '@/lib/env';
 import { toast } from '@/shared/hooks/use-toast';
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
 import { Loader2, Trophy, Clock, RefreshCw, FileText, CheckCircle, XCircle, Brain, Target } from 'lucide-react';
+
+// Configuración de los 6 rubros (alineados con autoevaluación)
+const RUBRIC_CONFIG = {
+  claridad: { name: 'Claridad', color: '#485df4', emoji: '💬' },
+  adaptacion: { name: 'Adaptación', color: '#1bea9a', emoji: '🎯' },
+  persuasion: { name: 'Persuasión', color: '#9b4dca', emoji: '📊' },
+  estructura: { name: 'Estructura', color: '#ff8c42', emoji: '📋' },
+  proposito: { name: 'Propósito', color: '#ffd93d', emoji: '🌟' },
+  empatia: { name: 'Empatía', color: '#ef4444', emoji: '❤️' }
+};
 
 export function CoachPage() {
   const [showResults, setShowResults] = useState(false);
@@ -118,16 +128,12 @@ export function CoachPage() {
         return;
       }
 
-      // Evaluar con OpenAI
+      // Evaluar con OpenAI - Diagnostic Interview
       const userInfo = await UserService.getUserInfo();
 
       if (!userInfo) {
         throw new Error('No se pudo obtener información del usuario');
       }
-
-      const requestId = crypto.randomUUID();
-
-      await createEvaluation(requestId, userInfo.user_id, sessionId);
 
       const { data: { session: authSession } } = await supabase.auth.getSession();
 
@@ -135,32 +141,31 @@ export function CoachPage() {
         throw new Error('No hay sesión de autenticación');
       }
 
-      console.log('📤 [Coach] Llamando a evaluate-session API...');
-      const response = await fetch(`${env.apiUrl}/api/evaluate-session`, {
+      console.log('📤 [Coach] Llamando a evaluate-diagnostic-interview API...');
+      const response = await fetch(`${env.apiUrl}/api/evaluate-diagnostic-interview`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authSession.access_token}`
         },
-        body: JSON.stringify({ session_id: sessionId, request_id: requestId })
+        body: JSON.stringify({ session_id: sessionId })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [Coach] Error en evaluate-session:', errorData);
+        console.error('❌ [Coach] Error en evaluate-diagnostic-interview:', errorData);
         throw new Error(errorData.error || `Error ${response.status}`);
       }
 
-      const { evaluation } = await response.json();
-      console.log('✅ [Coach] Evaluación recibida:', evaluation);
+      const { interview } = await response.json();
+      console.log('✅ [Coach] Entrevista diagnóstica recibida:', interview);
 
-      // Actualizar con resultados reales
+      // Actualizar con resultados reales de la entrevista diagnóstica
       setEvaluationResults(prev => ({
         ...prev,
         isProcessing: false,
-        score: evaluation.score,
-        passed: evaluation.passed,
-        result: evaluation.result
+        interview: interview, // Contains: rubrics, amazing_comment, summary, is_complete
+        isDiagnosticInterview: true // Flag to identify diagnostic interview
       }));
 
     } catch (error) {
@@ -219,8 +224,8 @@ export function CoachPage() {
             </p>
           </div>
 
-          {/* Score Principal */}
-          <Card className={`bg-gray-900/50 border ${evaluationResults.isProcessing ? 'border-blue-500/20' : getScoreBg(evaluationResults.score || 0)} p-4 sm:p-6 lg:p-8`}>
+          {/* Score Principal o Comentario Asombroso */}
+          <Card className={`bg-gray-900/50 border ${evaluationResults.isProcessing ? 'border-blue-500/20' : evaluationResults.isCoachEvaluation ? 'border-cyan-500/20 bg-gradient-to-br from-cyan-900/20 to-blue-900/20' : getScoreBg(evaluationResults.score || 0)} p-4 sm:p-6 lg:p-8`}>
             <div className="text-center space-y-3 sm:space-y-4">
               {evaluationResults.isProcessing ? (
                 <>
@@ -231,10 +236,10 @@ export function CoachPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-400">
-                      Evaluando tu sesión...
+                      Analizando tu conversación...
                     </div>
                     <p className="text-sm sm:text-base text-gray-400">
-                      Analizando tu conversación con inteligencia artificial
+                      Evaluando tu forma de comunicarte con inteligencia artificial
                     </p>
                     <div className="flex justify-center">
                       <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-blue-400" />
@@ -257,8 +262,33 @@ export function CoachPage() {
                     </p>
                   </div>
                 </>
+              ) : evaluationResults.isDiagnosticInterview && evaluationResults.interview?.amazing_comment ? (
+                <>
+                  {/* Comentario Asombroso para Entrevista Diagnóstica */}
+                  <div className="flex justify-center">
+                    <div className="p-3 sm:p-4 bg-cyan-500/10 rounded-full">
+                      <Brain className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-cyan-400" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-xl sm:text-2xl font-bold text-cyan-400">
+                      ¡Algo increíble que notamos!
+                    </h3>
+                    <p className="text-base sm:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed">
+                      {evaluationResults.interview.amazing_comment}
+                    </p>
+                    {evaluationResults.interview.is_complete && (
+                      <div className="flex items-center justify-center gap-2 text-green-400">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="text-sm font-medium">Entrevista completada</span>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <>
+                  {/* Score para Roleplay o sin comentario */}
                   <div className="flex justify-center">
                     {evaluationResults.passed ? (
                       <div className="p-3 sm:p-4 bg-green-500/10 rounded-full">
@@ -321,64 +351,157 @@ export function CoachPage() {
           </div>
 
           {/* Resultados Detallados */}
-          {!evaluationResults.isProcessing && evaluationResults.result && (
+          {!evaluationResults.isProcessing && (evaluationResults.interview || evaluationResults.result) && (
             <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Feedback Detallado</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">
+                {evaluationResults.isDiagnosticInterview ? 'Análisis de tu Comunicación' : 'Feedback Detallado'}
+              </h3>
 
-              <div className="space-y-4">
-                {/* Resumen */}
-                {evaluationResults.result.summary && (
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">Resumen</h4>
-                    <p className="text-gray-300 text-sm">{evaluationResults.result.summary}</p>
-                  </div>
-                )}
+              <div className="space-y-4 sm:space-y-6">
+                {evaluationResults.isDiagnosticInterview && evaluationResults.interview ? (
+                  <>
+                    {/* Resumen General */}
+                    {evaluationResults.interview.summary && (
+                      <div>
+                        <h4 className="font-semibold text-white mb-2">Resumen General</h4>
+                        <p className="text-gray-300 text-sm leading-relaxed">{evaluationResults.interview.summary}</p>
+                      </div>
+                    )}
 
-                {/* Fortalezas */}
-                {evaluationResults.result.strengths && evaluationResults.result.strengths.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-2" style={{ color: MAITY_COLORS.primary }}>
-                      Fortalezas
-                    </h4>
-                    <ul className="space-y-2">
-                      {evaluationResults.result.strengths.map((strength: string, idx: number) => (
-                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: MAITY_COLORS.primary }} />
-                          <span>{strength}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                    {/* Los 6 Rubros */}
+                    {evaluationResults.interview.rubrics && (
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-white mb-2">Evaluación por Competencias</h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {Object.entries(RUBRIC_CONFIG).map(([key, config]) => {
+                            const rubric = evaluationResults.interview.rubrics[key];
+                            if (!rubric) return null;
 
-                {/* Áreas de Mejora */}
-                {evaluationResults.result.areas_for_improvement && evaluationResults.result.areas_for_improvement.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-yellow-500 mb-2">Áreas de Mejora</h4>
-                    <ul className="space-y-2">
-                      {evaluationResults.result.areas_for_improvement.map((area: string, idx: number) => (
-                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                          <span className="text-yellow-500">→</span>
-                          <span>{area}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                            return (
+                              <Card key={key} className="bg-gray-900/50 border-gray-800 p-4">
+                                {/* Header del Rubro */}
+                                <div className="flex items-center gap-3 mb-3">
+                                  <span className="text-2xl">{config.emoji}</span>
+                                  <div className="flex-1">
+                                    <h5 className="font-semibold text-white">{config.name}</h5>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {/* Score como estrellas */}
+                                      <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                          <span
+                                            key={star}
+                                            className={`text-lg ${
+                                              star <= rubric.score ? 'text-yellow-400' : 'text-gray-600'
+                                            }`}
+                                          >
+                                            ★
+                                          </span>
+                                        ))}
+                                      </div>
+                                      <span className="text-sm font-semibold" style={{ color: config.color }}>
+                                        {rubric.score}/5
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
 
-                {/* Recomendaciones */}
-                {evaluationResults.result.recommendations && evaluationResults.result.recommendations.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-blue-400 mb-2">Recomendaciones</h4>
-                    <ul className="space-y-2">
-                      {evaluationResults.result.recommendations.map((rec: string, idx: number) => (
-                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                          <span className="text-blue-400">💡</span>
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                                {/* Análisis */}
+                                {rubric.analysis && (
+                                  <div className="mb-3">
+                                    <p className="text-gray-300 text-sm leading-relaxed">{rubric.analysis}</p>
+                                  </div>
+                                )}
+
+                                {/* Fortalezas */}
+                                {rubric.strengths && rubric.strengths.length > 0 && (
+                                  <div className="mb-3">
+                                    <h6 className="text-xs font-semibold text-green-400 uppercase mb-2">Fortalezas</h6>
+                                    <ul className="space-y-1">
+                                      {rubric.strengths.map((strength: string, idx: number) => (
+                                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                                          <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
+                                          <span>{strength}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* Áreas de Mejora */}
+                                {rubric.areas_for_improvement && rubric.areas_for_improvement.length > 0 && (
+                                  <div>
+                                    <h6 className="text-xs font-semibold text-yellow-400 uppercase mb-2">Áreas de Mejora</h6>
+                                    <ul className="space-y-1">
+                                      {rubric.areas_for_improvement.map((area: string, idx: number) => (
+                                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                                          <span className="text-yellow-400 mt-0.5">→</span>
+                                          <span>{area}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Feedback de Roleplay (formato original) */}
+                    {evaluationResults.result.summary && (
+                      <div>
+                        <h4 className="font-semibold text-white mb-2">Resumen</h4>
+                        <p className="text-gray-300 text-sm">{evaluationResults.result.summary}</p>
+                      </div>
+                    )}
+
+                    {evaluationResults.result.strengths && evaluationResults.result.strengths.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2" style={{ color: MAITY_COLORS.primary }}>
+                          Fortalezas
+                        </h4>
+                        <ul className="space-y-2">
+                          {evaluationResults.result.strengths.map((strength: string, idx: number) => (
+                            <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                              <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: MAITY_COLORS.primary }} />
+                              <span>{strength}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {evaluationResults.result.areas_for_improvement && evaluationResults.result.areas_for_improvement.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-yellow-500 mb-2">Áreas de Mejora</h4>
+                        <ul className="space-y-2">
+                          {evaluationResults.result.areas_for_improvement.map((area: string, idx: number) => (
+                            <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                              <span className="text-yellow-500">→</span>
+                              <span>{area}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {evaluationResults.result.recommendations && evaluationResults.result.recommendations.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-blue-400 mb-2">Recomendaciones</h4>
+                        <ul className="space-y-2">
+                          {evaluationResults.result.recommendations.map((rec: string, idx: number) => (
+                            <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
+                              <span className="text-blue-400">💡</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </Card>

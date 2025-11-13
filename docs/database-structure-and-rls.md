@@ -1844,6 +1844,213 @@ const { evaluation, isLoading } = useInterviewEvaluationRealtime({
 
 ---
 
+#### maity.diagnostic_interviews
+
+**Purpose:** Coach diagnostic interview evaluations with 6 rubrics (same as self-assessment).
+
+**Related Feature:** Coach first interview - evaluates user communication skills based on the same 6 competencies used in self-assessment: Claridad, Adaptación, Persuasión, Estructura, Propósito, Empatía.
+
+**Schema:**
+```sql
+CREATE TABLE maity.diagnostic_interviews (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES maity.users(id) ON DELETE CASCADE NOT NULL,
+  session_id uuid REFERENCES maity.voice_sessions(id) ON DELETE SET NULL,
+  transcript text NOT NULL,
+  rubrics jsonb NOT NULL,
+  amazing_comment text,
+  summary text,
+  is_complete boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+```
+
+**Key Relationships:**
+- `user_id`: References `maity.users.id` (not auth_id!)
+- `session_id`: Links to `voice_sessions.id` (the Coach voice session)
+- `rubrics`: JSONB containing evaluation of 6 competencies
+- `amazing_comment`: AI-generated comment highlighting something impressive
+- `summary`: Overall summary of the diagnostic interview
+- `is_complete`: Whether the interview met completion criteria (5+ meaningful messages)
+
+**JSONB Structure for `rubrics`:**
+```json
+{
+  "claridad": {
+    "score": 4,
+    "analysis": "Análisis de claridad (2-3 oraciones)",
+    "strengths": ["Fortaleza 1", "Fortaleza 2"],
+    "areas_for_improvement": ["Área 1", "Área 2"]
+  },
+  "adaptacion": {
+    "score": 3,
+    "analysis": "...",
+    "strengths": ["..."],
+    "areas_for_improvement": ["..."]
+  },
+  "persuasion": { ... },
+  "estructura": { ... },
+  "proposito": { ... },
+  "empatia": { ... }
+}
+```
+
+**The 6 Rubrics (mapped to self-assessment questions):**
+1. **CLARIDAD** (Clarity) - q5, q6: Simple, direct communication
+2. **ADAPTACIÓN** (Adaptation) - q7, q8: Adjusting language to audience
+3. **PERSUASIÓN** (Persuasion) - q9, q10: Using examples/stories/data
+4. **ESTRUCTURA** (Structure) - q11, q12: Organizing messages with beginning/middle/end
+5. **PROPÓSITO** (Purpose) - q13, q14: Clear objectives and calls to action
+6. **EMPATÍA** (Empathy) - q15, q16: Active listening and asking questions
+
+**Score Scale:** 1-5 (Likert scale, same as self-assessment)
+
+**RLS Policies:**
+```sql
+-- Users can view own diagnostic interviews
+CREATE POLICY "Users can view own diagnostic interviews"
+  ON maity.diagnostic_interviews FOR SELECT
+  USING (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
+
+-- Users can create own diagnostic interviews
+CREATE POLICY "Users can create own diagnostic interviews"
+  ON maity.diagnostic_interviews FOR INSERT
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
+
+-- Users can update own diagnostic interviews
+CREATE POLICY "Users can update own diagnostic interviews"
+  ON maity.diagnostic_interviews FOR UPDATE
+  USING (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
+
+-- Admins can view all diagnostic interviews
+CREATE POLICY "Admins can view all diagnostic interviews"
+  ON maity.diagnostic_interviews FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON u.id = ur.user_id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
+
+-- Admins can update all diagnostic interviews
+CREATE POLICY "Admins can update all diagnostic interviews"
+  ON maity.diagnostic_interviews FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON u.id = ur.user_id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
+
+-- Admins can delete diagnostic interviews
+CREATE POLICY "Admins can delete diagnostic interviews"
+  ON maity.diagnostic_interviews FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON u.id = ur.user_id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT, UPDATE ON maity.diagnostic_interviews TO authenticated;
+GRANT DELETE ON maity.diagnostic_interviews TO authenticated; -- For admins only (RLS enforces)
+```
+
+**Example Usage:**
+```typescript
+// ✅ CORRECT - Create diagnostic interview after Coach session
+import { DiagnosticInterviewService } from '@maity/shared';
+
+// After voice session ends
+const evaluationData: DiagnosticInterviewEvaluation = {
+  rubrics: {
+    claridad: { score: 4, analysis: "...", strengths: [...], areas_for_improvement: [...] },
+    adaptacion: { score: 3, analysis: "...", strengths: [...], areas_for_improvement: [...] },
+    persuasion: { score: 4, analysis: "...", strengths: [...], areas_for_improvement: [...] },
+    estructura: { score: 3, analysis: "...", strengths: [...], areas_for_improvement: [...] },
+    proposito: { score: 4, analysis: "...", strengths: [...], areas_for_improvement: [...] },
+    empatia: { score: 5, analysis: "...", strengths: [...], areas_for_improvement: [...] }
+  },
+  amazing_comment: "Me impresionó cuando dijiste '...'",
+  summary: "Resumen general...",
+  is_complete: true
+};
+
+// Create record in DB
+await DiagnosticInterviewService.create(userId, sessionId, {
+  transcript: rawTranscript,
+  rubrics: evaluationData.rubrics,
+  amazing_comment: evaluationData.amazing_comment,
+  summary: evaluationData.summary,
+  is_complete: evaluationData.is_complete
+});
+
+// Get user's diagnostic interview (there should only be one completed)
+const interview = await DiagnosticInterviewService.getDiagnosticInterview(userId);
+```
+
+**Workflow:**
+1. User completes Coach voice session
+2. Frontend calls `/api/evaluate-diagnostic-interview` with session_id
+3. Backend:
+   - Retrieves transcript from voice_sessions
+   - Calls OpenAI with COACH_DIAGNOSTIC_SYSTEM_MESSAGE prompt
+   - OpenAI evaluates 6 rubrics (score 1-5 + qualitative analysis)
+   - Saves to diagnostic_interviews table
+4. Frontend displays results with:
+   - Amazing comment (highlighted)
+   - Duration and summary
+   - All 6 rubrics with scores, strengths, and areas for improvement
+5. Dashboard integrates scores into Radar Chart (user vs coach comparison)
+
+**API Endpoint:**
+- `/api/evaluate-diagnostic-interview` - Evaluates diagnostic interview with OpenAI
+- Input: `{ session_id: UUID }`
+- Output: `{ evaluation: DiagnosticInterviewEvaluation }`
+- Auth: Bearer token required
+- Rate limits: 5 eval/min, 50 eval/day per user
+
+**Future Enhancement:**
+To enforce "one diagnostic interview per user" restriction, uncomment this in migration:
+```sql
+CREATE UNIQUE INDEX idx_diagnostic_interviews_one_per_user
+  ON maity.diagnostic_interviews(user_id)
+  WHERE is_complete = true;
+```
+
+**Indexes:**
+```sql
+CREATE INDEX idx_diagnostic_interviews_user_id ON maity.diagnostic_interviews(user_id);
+CREATE INDEX idx_diagnostic_interviews_session_id ON maity.diagnostic_interviews(session_id);
+CREATE INDEX idx_diagnostic_interviews_is_complete ON maity.diagnostic_interviews(is_complete);
+```
+
+---
+
 ### Forms & Documents
 
 #### maity.tally_submissions
