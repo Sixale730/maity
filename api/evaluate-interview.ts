@@ -153,7 +153,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const { data: maityUser, error: userError } = await supabase
     .schema('maity')
     .from('users')
-    .select('id, first_name, last_name')
+    .select('id, name')
     .eq('auth_id', authUser.id)
     .single();
 
@@ -163,7 +163,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   }
 
   const userId = maityUser.id;
-  const userName = `${maityUser.first_name} ${maityUser.last_name}`.trim();
+  const userName = maityUser.name;
 
   // Check if user is admin
   const { data: roles } = await supabase
@@ -216,12 +216,12 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     const { data: sessionOwner } = await supabase
       .schema('maity')
       .from('users')
-      .select('first_name, last_name')
+      .select('name')
       .eq('id', session.user_id)
       .single();
 
     if (sessionOwner) {
-      sessionOwnerName = `${sessionOwner.first_name} ${sessionOwner.last_name}`.trim();
+      sessionOwnerName = sessionOwner.name;
     }
   }
 
@@ -256,66 +256,96 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     })
     .eq('request_id', body.request_id);
 
-  // Call OpenAI interview evaluation service
-  const analysis = await evaluateInterviewSession({
-    transcript,
-    sessionId: session.id,
-    userId,
-    userName: sessionOwnerName, // Use session owner's name, not evaluator's name
-  });
-
-  // Parse the analysis JSON to extract structured fields
+  // Wrap evaluation logic in try-catch to handle errors properly
+  let evaluation;
+  let analysis;
   let parsedAnalysis;
+
   try {
-    parsedAnalysis = JSON.parse(analysis);
-  } catch (parseError) {
-    console.error('Error parsing analysis JSON:', parseError);
-    throw ApiError.internal('Failed to parse evaluation response');
+    // Call OpenAI interview evaluation service
+    analysis = await evaluateInterviewSession({
+      transcript,
+      sessionId: session.id,
+      userId,
+      userName: sessionOwnerName, // Use session owner's name, not evaluator's name
+    });
+
+    // Parse the analysis JSON to extract structured fields
+    try {
+      parsedAnalysis = JSON.parse(analysis);
+    } catch (parseError) {
+      console.error('Error parsing analysis JSON:', parseError);
+      throw ApiError.internal('Failed to parse evaluation response');
+    }
+
+    console.log({
+      event: 'interview_evaluation_completed',
+      sessionId: session.id,
+      requestId: body.request_id,
+      userId,
+      analysisLength: analysis.length,
+      is_complete: parsedAnalysis.is_complete,
+      has_amazing_comment: !!parsedAnalysis.amazing_comment,
+      has_summary: !!parsedAnalysis.summary,
+      has_rubrics: !!parsedAnalysis.rubrics,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Update interview evaluation with analysis and structured fields
+    const { data: evalData, error: updateError } = await supabase
+      .schema('maity')
+      .from('interview_evaluations')
+      .update({
+        status: 'complete',
+        analysis_text: analysis, // Keep full JSON for backward compatibility
+        rubrics: parsedAnalysis.rubrics, // Store structured rubrics
+        amazing_comment: parsedAnalysis.amazing_comment, // Deep personality insight
+        summary: parsedAnalysis.summary, // Overall summary
+        is_complete: parsedAnalysis.is_complete, // Whether interview was sufficient
+        interviewee_name: sessionOwnerName, // Session owner's name, not evaluator
+        updated_at: new Date().toISOString(),
+      })
+      .eq('request_id', body.request_id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating interview evaluation:', updateError);
+      throw ApiError.database('Failed to save interview evaluation', updateError);
+    }
+
+    evaluation = evalData;
+
+    console.log({
+      event: 'interview_evaluation_saved',
+      requestId: evaluation.request_id,
+      sessionId: session.id,
+      userId,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    // If anything fails, mark evaluation as error
+    console.error({
+      event: 'interview_evaluation_failed',
+      sessionId: session.id,
+      requestId: body.request_id,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+
+    await supabase
+      .schema('maity')
+      .from('interview_evaluations')
+      .update({
+        status: 'error',
+        error_message: error instanceof Error ? error.message : 'Unknown error occurred',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('request_id', body.request_id);
+
+    // Re-throw the error to be handled by withErrorHandler
+    throw error;
   }
-
-  console.log({
-    event: 'interview_evaluation_completed',
-    sessionId: session.id,
-    requestId: body.request_id,
-    userId,
-    analysisLength: analysis.length,
-    is_complete: parsedAnalysis.is_complete,
-    has_amazing_comment: !!parsedAnalysis.amazing_comment,
-    has_summary: !!parsedAnalysis.summary,
-    has_rubrics: !!parsedAnalysis.rubrics,
-    timestamp: new Date().toISOString(),
-  });
-
-  // Update interview evaluation with analysis and structured fields
-  const { data: evaluation, error: updateError } = await supabase
-    .schema('maity')
-    .from('interview_evaluations')
-    .update({
-      status: 'complete',
-      analysis_text: analysis, // Keep full JSON for backward compatibility
-      rubrics: parsedAnalysis.rubrics, // Store structured rubrics
-      amazing_comment: parsedAnalysis.amazing_comment, // Deep personality insight
-      summary: parsedAnalysis.summary, // Overall summary
-      is_complete: parsedAnalysis.is_complete, // Whether interview was sufficient
-      interviewee_name: sessionOwnerName, // Session owner's name, not evaluator
-      updated_at: new Date().toISOString(),
-    })
-    .eq('request_id', body.request_id)
-    .select()
-    .single();
-
-  if (updateError) {
-    console.error('Error updating interview evaluation:', updateError);
-    throw ApiError.database('Failed to save interview evaluation', updateError);
-  }
-
-  console.log({
-    event: 'interview_evaluation_saved',
-    requestId: evaluation.request_id,
-    sessionId: session.id,
-    userId,
-    timestamp: new Date().toISOString(),
-  });
 
   // Return success response with structured fields
   res.status(200).json({
