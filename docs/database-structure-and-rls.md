@@ -1728,7 +1728,7 @@ const { data: session } = await supabase
 
 #### maity.interview_evaluations
 
-**Purpose:** AI-generated analysis of interview sessions (processed via n8n).
+**Purpose:** AI-generated personality analysis of interview sessions (processed via OpenAI API).
 
 **Schema:**
 ```sql
@@ -1738,19 +1738,31 @@ CREATE TABLE maity.interview_evaluations (
   user_id uuid REFERENCES maity.users(id) ON DELETE CASCADE NOT NULL,
   status text DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'complete', 'error')),
   analysis_text text,
+  rubrics jsonb, -- Structured 6 rubrics evaluation (personality-focused)
+  amazing_comment text, -- Deep personality insight deduced from interview
+  summary text, -- Overall summary of who the user is
+  is_complete boolean DEFAULT false, -- Whether interview had sufficient content
   interviewee_name text,
   error_message text,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
+
+-- Indexes for performance
+CREATE INDEX idx_interview_evaluations_rubrics ON maity.interview_evaluations USING GIN (rubrics);
+CREATE INDEX idx_interview_evaluations_is_complete ON maity.interview_evaluations(is_complete);
 ```
 
 **Key Relationships:**
-- `request_id`: Primary key used for n8n workflow tracking
+- `request_id`: Primary key used for workflow tracking
 - `session_id`: Links to `interview_sessions.id`
 - `user_id`: References `maity.users.id` (not auth_id!)
 - `status`: Workflow state (pending → processing → complete/error)
-- `analysis_text`: AI-generated narrative analysis from n8n
+- `analysis_text`: Full JSON response from OpenAI (backward compatibility)
+- `rubrics`: JSONB with 6 rubrics (claridad, adaptacion, persuasion, estructura, proposito, empatia) - each containing: score (1-5), analysis, strengths[], areas_for_improvement[]
+- `amazing_comment`: Deep personality insight deduced from interview responses - NOT obvious observations (e.g., "Uses 5 metaphors → visual thinker")
+- `summary`: Overall summary of who the user is based on interview content
+- `is_complete`: Whether the interview had sufficient content for meaningful evaluation (5+ meaningful exchanges)
 - `interviewee_name`: User name extracted from interview transcript
 
 **RLS Policies:**
@@ -1775,12 +1787,12 @@ USING (
 **GRANT Permissions:**
 ```sql
 GRANT SELECT ON maity.interview_evaluations TO authenticated;
--- Note: INSERT/UPDATE handled via RPC functions or service role (n8n webhook)
+-- Note: INSERT/UPDATE handled via RPC functions or service role (OpenAI API endpoint)
 ```
 
 **RPC Functions:**
 ```sql
--- Create interview evaluation (returns request_id for n8n tracking)
+-- Create interview evaluation (returns request_id for tracking)
 public.create_interview_evaluation(p_session_id UUID, p_user_id UUID) RETURNS UUID
 
 -- Get interview sessions history (admin sees all, users see own)
@@ -1804,43 +1816,41 @@ public.get_interview_sessions_history(p_user_id UUID DEFAULT NULL) RETURNS TABLE
 // Create evaluation after session ends
 const requestId = await InterviewService.createEvaluation(sessionId, userId);
 
-// Send transcript to n8n for analysis
-const webhookUrl = env.n8nInterviewWebhookUrl;
-await fetch(webhookUrl, {
+// Call OpenAI API for synchronous evaluation
+const authSession = await AuthService.getSession();
+const response = await fetch(`${env.apiUrl}/api/evaluate-interview`, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${authSession.access_token}`
+  },
   body: JSON.stringify({
-    request_id: requestId,
     session_id: sessionId,
-    transcript: transcript,
-    metadata: {
-      user_id: userId,
-      user_name: userName,
-      duration_seconds: duration,
-    }
-  })
+    request_id: requestId,
+  }),
 });
 
-// Monitor evaluation status with realtime hook
-const { evaluation, isLoading } = useInterviewEvaluationRealtime({
-  requestId,
-  onComplete: (analysis) => {
-    console.log('Analysis completed:', analysis);
-  }
-});
+const { evaluation } = await response.json();
+// evaluation contains: rubrics, amazing_comment, summary, is_complete
+
+// Navigate to results page
+navigate(`/primera-entrevista/resultados/${sessionId}`);
 ```
 
 **Workflow:**
 1. Frontend creates evaluation record (status='pending')
-2. Frontend sends transcript to n8n webhook
-3. n8n processes with LLM
-4. n8n calls `/api/interview-analysis-complete` with analysis
-5. Backend updates evaluation (status='complete', analysis_text)
-6. Frontend receives realtime update
+2. Frontend calls `/api/evaluate-interview` with session_id and request_id
+3. Backend fetches session transcript
+4. Backend calls OpenAI API with INTERVIEW_SYSTEM_MESSAGE (personality analysis focused)
+5. Backend parses JSON response and saves rubrics, amazing_comment, summary, is_complete
+6. Backend returns complete evaluation (synchronous, 3-10s)
+7. Frontend navigates to results page with complete data
 
 **API Endpoint:**
-- `/api/interview-analysis-complete` - Receives analysis from n8n
-- Webhook URL: https://aca-maity.lemonglacier-45d07388.eastus2.azurecontainerapps.io/webhook/analysis
+- `/api/evaluate-interview` - Synchronous OpenAI evaluation
+- Rate Limiting: 5 evaluations/min, 50 evaluations/day per user
+- Response time: 3-10 seconds
+- Returns structured personality analysis with 6 rubrics
 
 ---
 

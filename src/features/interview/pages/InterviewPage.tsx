@@ -129,49 +129,57 @@ export function InterviewPage() {
       const requestId = await InterviewService.createEvaluation(idToUpdate, userId);
       console.log('[InterviewPage] ✅ Evaluación creada:', requestId);
 
-      // 3. Navegar a la página de resultados
-      console.log('[InterviewPage] 🔄 Redirigiendo a resultados...');
-      setTimeout(() => {
-        navigate(`/primera-entrevista/resultados/${idToUpdate}`);
-      }, 1000);
+      // 3. Llamar a OpenAI para análisis (sincrónico)
+      console.log('[InterviewPage] 🤖 Iniciando análisis con OpenAI...');
 
-      // 3. Enviar transcript a n8n para análisis
-      const webhookUrl = env.n8nInterviewWebhookUrl;
-
-      if (webhookUrl && webhookUrl.length > 0) {
-        console.log('[InterviewPage] 📤 Enviando transcript a n8n para análisis...');
-
-        const webhookPayload = {
-          request_id: requestId,
-          session_id: idToUpdate,
-          transcript: transcript,
-          metadata: {
-            user_id: userId,
-            user_name: userName,
-            duration_seconds: duration,
-            timestamp: new Date().toISOString(),
-          }
-        };
-
-        // Fire and forget - no esperamos respuesta del webhook
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookPayload),
-        }).catch(error => {
-          console.error('❌ [InterviewPage] Error al enviar a n8n:', error);
-          console.log('ℹ️ [InterviewPage] La evaluación quedará pendiente.');
-        });
-      } else {
-        console.warn('⚠️ [InterviewPage] Webhook de análisis no configurado.');
+      const authSession = await AuthService.getSession();
+      if (!authSession?.access_token) {
+        throw new Error('No se encontró token de autenticación');
       }
 
-      toast({
-        title: '¡Entrevista finalizada!',
-        description: 'Tu sesión ha sido guardada. El análisis se procesará en breve.',
+      const response = await fetch(`${env.apiUrl}/api/evaluate-interview`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession.access_token}`
+        },
+        body: JSON.stringify({
+          session_id: idToUpdate,
+          request_id: requestId,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = 'Error al evaluar la entrevista';
+
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La entrevista no es válida para evaluación. Verifica que tenga suficiente contenido.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+        } else if (response.status === 429) {
+          errorMessage = 'Has alcanzado el límite de evaluaciones. Por favor, intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor al procesar la evaluación. Por favor, intenta de nuevo.';
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const { evaluation } = await response.json();
+      console.log('[InterviewPage] ✅ Análisis completado:', {
+        is_complete: evaluation.is_complete,
+        has_amazing_comment: !!evaluation.amazing_comment,
+      });
+
+      toast({
+        title: '¡Entrevista analizada!',
+        description: 'Tu entrevista ha sido evaluada exitosamente.',
+      });
+
+      // 4. Navegar a la página de resultados
+      console.log('[InterviewPage] 🔄 Redirigiendo a resultados...');
+      navigate(`/primera-entrevista/resultados/${idToUpdate}`);
 
       setCurrentSessionId(null);
       setIsProcessingAnalysis(false);
@@ -181,7 +189,7 @@ export function InterviewPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Ocurrió un error al guardar la sesión.',
+        description: error instanceof Error ? error.message : 'Ocurrió un error al procesar la entrevista.',
       });
     }
   };

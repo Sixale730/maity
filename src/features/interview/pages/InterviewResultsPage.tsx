@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewAnalysis } from '../components/InterviewAnalysis';
-import { InterviewService, InterviewSessionDetails, useInterviewEvaluationRealtime, PDFService } from '@maity/shared';
+import { InterviewService, InterviewSessionDetails, PDFService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { ArrowLeft, Briefcase, Loader2, User, Building2, Copy, Check, FileText, Download } from 'lucide-react';
@@ -85,29 +85,6 @@ export function InterviewResultsPage() {
     }
   };
 
-  // Setup realtime monitoring if evaluation exists
-  const evaluationRequestId = session?.evaluation_id || '';
-  const {
-    evaluation: realtimeEvaluation,
-    isLoading: isRealtimeLoading,
-    error: realtimeError,
-  } = useInterviewEvaluationRealtime({
-    requestId: evaluationRequestId,
-    onComplete: (analysis) => {
-      console.log('[InterviewResultsPage] ✅ Análisis completado:', analysis.substring(0, 100));
-      // Refetch session to get updated data
-      fetchSession();
-    },
-    onError: (errorMessage) => {
-      console.error('[InterviewResultsPage] ❌ Error en análisis:', errorMessage);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    },
-  });
-
   const fetchSession = async () => {
     if (!sessionId) {
       setError('ID de sesión no válido');
@@ -142,16 +119,6 @@ export function InterviewResultsPage() {
   useEffect(() => {
     fetchSession();
   }, [sessionId]);
-
-  // Update session with realtime evaluation data
-  useEffect(() => {
-    if (realtimeEvaluation && session) {
-      setSession({
-        ...session,
-        evaluation: realtimeEvaluation,
-      });
-    }
-  }, [realtimeEvaluation]);
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
@@ -294,7 +261,7 @@ export function InterviewResultsPage() {
             </div>
           )}
 
-          <InterviewAnalysis session={session} isLoading={isRealtimeLoading} />
+          <InterviewAnalysis session={session} isLoading={false} />
         </div>
       </main>
     </div>
