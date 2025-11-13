@@ -37,7 +37,8 @@ export function useInterviewEvaluationRealtime({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!requestId) {
+    // Early return if requestId is missing or empty
+    if (!requestId || requestId.trim() === '') {
       setIsLoading(false);
       setError('Missing request_id');
       return;
@@ -45,10 +46,13 @@ export function useInterviewEvaluationRealtime({
 
     let channel: RealtimeChannel | null = null;
     let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true; // Track if component is still mounted
 
     const initializeSubscription = async () => {
-      console.log('[useInterviewEvaluationRealtime] 🚀 Iniciando suscripción para request_id:', requestId);
-
+      // Double-check requestId before proceeding
+      if (!requestId || requestId.trim() === '') {
+        return;
+      }
       try {
         // Fetch initial evaluation state from maity schema
         const { data: initialData, error: fetchError } = await supabase
@@ -60,34 +64,29 @@ export function useInterviewEvaluationRealtime({
 
         if (fetchError) {
           console.error('[useInterviewEvaluationRealtime] ❌ Fetch error:', fetchError);
-          setError(fetchError.message);
-          setIsLoading(false);
+          if (isMounted) {
+            setError(fetchError.message);
+            setIsLoading(false);
+          }
           return;
         }
 
         if (!initialData) {
           console.error('[useInterviewEvaluationRealtime] ❌ Interview evaluation not found for request_id:', requestId);
-          setError('Interview evaluation not found');
-          setIsLoading(false);
+          if (isMounted) {
+            setError('Interview evaluation not found');
+            setIsLoading(false);
+          }
           return;
         }
 
-        console.log('[useInterviewEvaluationRealtime] 📊 Estado inicial:', {
-          request_id: initialData.request_id,
-          status: initialData.status,
-          hasAnalysis: !!initialData.analysis_text,
-          interviewee_name: initialData.interviewee_name
-        });
+        if (!isMounted) return;
 
         setEvaluation(initialData as InterviewEvaluation);
         setIsLoading(false);
 
         // If already complete/error, trigger callbacks
         if (initialData.status === 'complete' && onComplete && initialData.analysis_text) {
-          console.log('✅ [Interview Evaluation] Completada:', {
-            interviewee: initialData.interviewee_name,
-            analysis_length: initialData.analysis_text.length
-          });
           onComplete(initialData.analysis_text);
           return; // No need to subscribe if already complete
         } else if (initialData.status === 'error' && onError && initialData.error_message) {
@@ -96,9 +95,14 @@ export function useInterviewEvaluationRealtime({
         }
 
         // Start polling as backup (check every 3 seconds)
-        console.log('[useInterviewEvaluationRealtime] 🔄 Iniciando polling de respaldo cada 3s');
         pollInterval = setInterval(async () => {
-          console.log('[useInterviewEvaluationRealtime] 🔍 Polling: verificando estado...');
+          if (!isMounted) {
+            if (pollInterval) {
+              clearInterval(pollInterval);
+              pollInterval = null;
+            }
+            return;
+          }
 
           const { data: polledData, error: pollError } = await supabase
             .schema('maity')
@@ -107,19 +111,13 @@ export function useInterviewEvaluationRealtime({
             .eq('request_id', requestId)
             .maybeSingle();
 
+          if (!isMounted) return;
+
           if (!pollError && polledData) {
-            console.log('[useInterviewEvaluationRealtime] 📊 Polling: estado actual:', polledData.status);
-
             if (polledData.status === 'complete' || polledData.status === 'error') {
-              console.log('[useInterviewEvaluationRealtime] ✅ Polling: evaluación finalizada, limpiando interval');
-
               setEvaluation(polledData as InterviewEvaluation);
 
               if (polledData.status === 'complete' && onComplete && polledData.analysis_text) {
-                console.log('✅ [Interview Evaluation via Polling] Completada:', {
-                  interviewee: polledData.interviewee_name,
-                  analysis_length: polledData.analysis_text.length
-                });
                 onComplete(polledData.analysis_text);
               } else if (polledData.status === 'error' && onError && polledData.error_message) {
                 onError(polledData.error_message);
@@ -131,11 +129,12 @@ export function useInterviewEvaluationRealtime({
                 pollInterval = null;
               }
             }
+          } else if (pollError) {
+            console.error('[useInterviewEvaluationRealtime] ❌ Polling error:', pollError);
           }
         }, 3000);
 
         // Subscribe to real-time updates filtered by request_id (maity schema)
-        console.log('[useInterviewEvaluationRealtime] 📡 Suscribiendo a canal:', `interview_evaluations:${requestId}`);
         channel = supabase
           .channel(`interview_evaluations:${requestId}`)
           .on(
@@ -147,14 +146,9 @@ export function useInterviewEvaluationRealtime({
               filter: `request_id=eq.${requestId}`,
             },
             (payload) => {
-              console.log('[useInterviewEvaluationRealtime] 🔔 Update recibido:', payload);
-              const updated = payload.new as InterviewEvaluation;
+              if (!isMounted) return;
 
-              console.log('[useInterviewEvaluationRealtime] 📊 Nuevo estado:', {
-                status: updated.status,
-                hasAnalysis: !!updated.analysis_text,
-                interviewee_name: updated.interviewee_name
-              });
+              const updated = payload.new as InterviewEvaluation;
 
               setEvaluation(updated);
 
@@ -164,10 +158,6 @@ export function useInterviewEvaluationRealtime({
               }
 
               if (updated.status === 'complete' && onComplete && updated.analysis_text) {
-                console.log('✅ [Interview Evaluation] Completada:', {
-                  interviewee: updated.interviewee_name,
-                  analysis_length: updated.analysis_text.length
-                });
                 onComplete(updated.analysis_text);
               } else if (updated.status === 'error' && onError && updated.error_message) {
                 onError(updated.error_message);
@@ -175,11 +165,9 @@ export function useInterviewEvaluationRealtime({
             }
           )
           .subscribe((status, err) => {
-            console.log('[useInterviewEvaluationRealtime] 📡 Estado de suscripción:', status);
+            if (!isMounted) return;
 
-            if (status === 'SUBSCRIBED') {
-              console.log('[useInterviewEvaluationRealtime] ✅ Suscrito exitosamente');
-            } else if (status === 'CHANNEL_ERROR') {
+            if (status === 'CHANNEL_ERROR') {
               console.error('[useInterviewEvaluationRealtime] ❌ Subscription error:', err);
               setError('Real-time subscription failed');
             } else if (status === 'TIMED_OUT') {
@@ -189,8 +177,10 @@ export function useInterviewEvaluationRealtime({
           });
       } catch (err) {
         console.error('[useInterviewEvaluationRealtime] ❌ Initialization error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-        setIsLoading(false);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+          setIsLoading(false);
+        }
       }
     };
 
@@ -198,12 +188,15 @@ export function useInterviewEvaluationRealtime({
 
     // Cleanup subscription on unmount
     return () => {
-      console.log('[useInterviewEvaluationRealtime] 🧹 Cleanup: limpiando suscripciones y polling');
+      isMounted = false; // Prevent any further state updates
+
       if (channel) {
         supabase.removeChannel(channel);
+        channel = null;
       }
       if (pollInterval) {
         clearInterval(pollInterval);
+        pollInterval = null;
       }
     };
   }, [requestId, onUpdate, onComplete, onError]);

@@ -153,12 +153,37 @@ export function CoachPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [Coach] Error en evaluate-diagnostic-interview:', errorData);
-        throw new Error(errorData.error || `Error ${response.status}`);
+        console.error('❌ [Coach] Error en evaluate-diagnostic-interview:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+
+        // Mensajes de error más descriptivos según el código de estado
+        let errorMessage = 'Error al evaluar la sesión';
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La sesión no es válida para evaluación. Asegúrate de completar una conversación con el Coach.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.';
+        } else if (response.status === 429) {
+          errorMessage = 'Has alcanzado el límite de evaluaciones. Por favor, intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intenta de nuevo en unos momentos.';
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+
+        throw new Error(errorMessage);
       }
 
       const { interview } = await response.json();
       console.log('✅ [Coach] Entrevista diagnóstica recibida:', interview);
+
+      // Validar que se recibió data válida
+      if (!interview || !interview.rubrics) {
+        console.error('❌ [Coach] Respuesta inválida del API:', interview);
+        throw new Error('La evaluación no contiene los datos esperados. Por favor, intenta de nuevo.');
+      }
 
       // Actualizar con resultados reales de la entrevista diagnóstica
       setEvaluationResults(prev => ({
