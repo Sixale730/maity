@@ -1,4 +1,5 @@
 import { supabase } from '../../api/client/supabase';
+import { AuthService } from '../auth/auth.service';
 import {
   InterviewSession,
   InterviewEvaluation,
@@ -193,5 +194,100 @@ export class InterviewService {
     }
 
     return data as InterviewSession | null;
+  }
+
+  /**
+   * Trigger manual evaluation of an interview session (admin feature)
+   * Creates a new evaluation record and calls OpenAI API synchronously
+   * @param sessionId - Interview session UUID
+   * @returns Promise with evaluation result
+   */
+  static async triggerManualEvaluation(sessionId: string): Promise<{
+    success: boolean;
+    evaluation?: any;
+    error?: string;
+  }> {
+    try {
+      // Get current user's auth session
+      const authSession = await AuthService.getSession();
+      if (!authSession?.access_token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Get current user's ID
+      const authUser = await AuthService.getUser();
+      if (!authUser) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get maity user ID
+      const { data: maityUser, error: userError } = await supabase
+        .schema('maity')
+        .from('users')
+        .select('id')
+        .eq('auth_id', authUser.id)
+        .single();
+
+      if (userError || !maityUser) {
+        throw new Error('Failed to get user profile');
+      }
+
+      // Create new evaluation record
+      const requestId = await InterviewService.createEvaluation(sessionId, maityUser.id);
+
+      // Get API URL from environment
+      const apiUrl = import.meta.env.VITE_API_URL || process.env.VITE_API_URL;
+      if (!apiUrl) {
+        throw new Error('API URL not configured');
+      }
+
+      // Call evaluation endpoint
+      const response = await fetch(`${apiUrl}/api/evaluate-interview`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession.access_token}`
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          request_id: requestId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = 'Error al evaluar la entrevista';
+
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La entrevista no es válida para evaluación.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+        } else if (response.status === 404) {
+          errorMessage = 'La sesión de entrevista no fue encontrada.';
+        } else if (response.status === 429) {
+          errorMessage = 'Límite de evaluaciones alcanzado. Intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor al procesar la evaluación.';
+        }
+
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        evaluation: result.evaluation,
+      };
+    } catch (error) {
+      console.error('Error triggering manual evaluation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Error desconocido al evaluar la entrevista',
+      };
+    }
   }
 }

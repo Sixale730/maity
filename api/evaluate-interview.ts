@@ -42,7 +42,18 @@ type EvaluateInterviewRequest = z.infer<typeof evaluateInterviewSchema>;
 // RATE LIMITING
 // ============================================================================
 
-async function checkRateLimits(supabase: any, userId: string): Promise<void> {
+async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean): Promise<void> {
+  // Admins bypass rate limits completely
+  if (isAdmin) {
+    console.log({
+      event: 'rate_limit_check',
+      userId,
+      isAdmin: true,
+      message: 'Admin user - rate limits bypassed',
+    });
+    return;
+  }
+
   const now = new Date();
   const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -154,14 +165,24 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const userId = maityUser.id;
   const userName = `${maityUser.first_name} ${maityUser.last_name}`.trim();
 
-  // Check rate limits
-  await checkRateLimits(supabase, userId);
+  // Check if user is admin
+  const { data: roles } = await supabase
+    .schema('maity')
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId);
+
+  const isAdmin = roles?.some((r: any) => r.role === 'admin') || false;
+
+  // Check rate limits (admins bypass)
+  await checkRateLimits(supabase, userId, isAdmin);
 
   console.log({
     event: 'interview_evaluation_started',
     sessionId: body.session_id,
     requestId: body.request_id,
     userId,
+    isAdmin,
     timestamp: new Date().toISOString(),
   });
 
@@ -184,9 +205,24 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     throw ApiError.notFound('Interview session');
   }
 
-  // Verify session ownership
-  if (session.user_id !== userId) {
+  // Verify session ownership (admins can evaluate any session)
+  if (!isAdmin && session.user_id !== userId) {
     throw ApiError.forbidden('Session does not belong to user');
+  }
+
+  // Get session owner's name for analysis (important when admin evaluates another user's session)
+  let sessionOwnerName = userName;
+  if (isAdmin && session.user_id !== userId) {
+    const { data: sessionOwner } = await supabase
+      .schema('maity')
+      .from('users')
+      .select('first_name, last_name')
+      .eq('id', session.user_id)
+      .single();
+
+    if (sessionOwner) {
+      sessionOwnerName = `${sessionOwner.first_name} ${sessionOwner.last_name}`.trim();
+    }
   }
 
   // Verify session has transcript
@@ -225,7 +261,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     transcript,
     sessionId: session.id,
     userId,
-    userName,
+    userName: sessionOwnerName, // Use session owner's name, not evaluator's name
   });
 
   // Parse the analysis JSON to extract structured fields
@@ -261,7 +297,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       amazing_comment: parsedAnalysis.amazing_comment, // Deep personality insight
       summary: parsedAnalysis.summary, // Overall summary
       is_complete: parsedAnalysis.is_complete, // Whether interview was sufficient
-      interviewee_name: userName,
+      interviewee_name: sessionOwnerName, // Session owner's name, not evaluator
       updated_at: new Date().toISOString(),
     })
     .eq('request_id', body.request_id)
@@ -293,7 +329,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       amazing_comment: parsedAnalysis.amazing_comment,
       summary: parsedAnalysis.summary,
       is_complete: parsedAnalysis.is_complete,
-      interviewee_name: userName,
+      interviewee_name: sessionOwnerName,
     },
   });
 }

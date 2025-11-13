@@ -6,13 +6,13 @@ import { InterviewAnalysis } from '../components/InterviewAnalysis';
 import { InterviewService, InterviewSessionDetails, PDFService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowLeft, Briefcase, Loader2, User, Building2, Copy, Check, FileText, Download } from 'lucide-react';
+import { ArrowLeft, Briefcase, Loader2, User, Building2, Copy, Check, FileText, Download, RefreshCw } from 'lucide-react';
 
 export function InterviewResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { userProfile } = useUser();
+  const { userProfile, isAdmin } = useUser();
 
   // Helper function for back navigation
   const handleBackNavigation = () => {
@@ -28,6 +28,7 @@ export function InterviewResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
 
   // Función para copiar el ID de sesión
   const handleCopySessionId = async () => {
@@ -82,6 +83,47 @@ export function InterviewResultsPage() {
       });
     } finally {
       setIsGeneratingPDF(false);
+    }
+  };
+
+  // Función para evaluar manualmente (admin only)
+  const handleManualEvaluation = async () => {
+    if (!sessionId || isEvaluating) return;
+
+    try {
+      setIsEvaluating(true);
+
+      toast({
+        title: 'Evaluando entrevista...',
+        description: 'Esto puede tomar entre 3-10 segundos.',
+      });
+
+      const result = await InterviewService.triggerManualEvaluation(sessionId);
+
+      if (result.success) {
+        toast({
+          title: 'Evaluación completada',
+          description: 'La entrevista ha sido evaluada exitosamente.',
+        });
+
+        // Refresh session data
+        await fetchSession();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error al evaluar',
+          description: result.error || 'No se pudo completar la evaluación.',
+        });
+      }
+    } catch (error) {
+      console.error('Error al evaluar entrevista:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Ocurrió un error inesperado al evaluar la entrevista.',
+      });
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -255,6 +297,31 @@ export function InterviewResultsPage() {
                         </Button>
                       </div>
                     </div>
+
+                    {/* Admin: Re-evaluate Button */}
+                    {isAdmin && (!session.evaluation || session.evaluation.status === 'error') && (
+                      <div className="pt-2 border-t border-blue-700/30">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleManualEvaluation}
+                          disabled={isEvaluating}
+                          className="w-full h-8 text-xs border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+                        >
+                          {isEvaluating ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                              Evaluando...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="h-3 w-3 mr-2" />
+                              {session.evaluation?.status === 'error' ? 'Re-evaluar Entrevista' : 'Evaluar Entrevista'}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

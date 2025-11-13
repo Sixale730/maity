@@ -1,19 +1,68 @@
-import { InterviewSessionWithEvaluation } from '@maity/shared';
+import { useState } from 'react';
+import { InterviewSessionWithEvaluation, InterviewService } from '@maity/shared';
 import { Badge } from '@/ui/components/ui/badge';
 import { Button } from '@/ui/components/ui/button';
 import { Card, CardContent } from '@/ui/components/ui/card';
-import { Calendar, Clock, Eye, User, FileText } from 'lucide-react';
+import { Calendar, Clock, Eye, User, FileText, RefreshCw, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface InterviewHistoryTableProps {
   sessions: InterviewSessionWithEvaluation[];
   isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
-export function InterviewHistoryTable({ sessions, isLoading }: InterviewHistoryTableProps) {
+export function InterviewHistoryTable({ sessions, isLoading, onRefresh }: InterviewHistoryTableProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useUser();
+  const { toast } = useToast();
+  const [evaluatingSessionId, setEvaluatingSessionId] = useState<string | null>(null);
+
+  const handleEvaluate = async (sessionId: string) => {
+    if (evaluatingSessionId) return; // Prevent multiple evaluations at once
+
+    try {
+      setEvaluatingSessionId(sessionId);
+
+      toast({
+        title: 'Evaluando entrevista...',
+        description: 'Esto puede tomar entre 3-10 segundos.',
+      });
+
+      const result = await InterviewService.triggerManualEvaluation(sessionId);
+
+      if (result.success) {
+        toast({
+          title: 'Evaluación completada',
+          description: 'La entrevista ha sido evaluada exitosamente.',
+        });
+
+        // Refresh the list
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error al evaluar',
+          description: result.error || 'No se pudo completar la evaluación.',
+        });
+      }
+    } catch (error) {
+      console.error('Error al evaluar entrevista:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Ocurrió un error inesperado al evaluar la entrevista.',
+      });
+    } finally {
+      setEvaluatingSessionId(null);
+    }
+  };
 
   const formatDuration = (seconds: number | null | undefined) => {
     if (!seconds) return 'N/A';
@@ -111,8 +160,32 @@ export function InterviewHistoryTable({ sessions, isLoading }: InterviewHistoryT
                 )}
               </div>
 
-              {/* Right Side - Action */}
-              <div>
+              {/* Right Side - Actions */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {/* Admin: Evaluate Button (only if no evaluation or error) */}
+                {isAdmin && (!session.evaluation_status || session.evaluation_status === 'error') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEvaluate(session.session_id)}
+                    disabled={evaluatingSessionId === session.session_id}
+                    className="border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+                  >
+                    {evaluatingSessionId === session.session_id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Evaluando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Evaluar
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {/* Ver Análisis Button */}
                 <Button
                   variant="outline"
                   size="sm"
