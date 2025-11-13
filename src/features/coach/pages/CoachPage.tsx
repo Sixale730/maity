@@ -6,7 +6,7 @@ import { env } from '@/lib/env';
 import { toast } from '@/shared/hooks/use-toast';
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
-import { Loader2, Trophy, Clock, RefreshCw, FileText, CheckCircle, XCircle, Brain, Target } from 'lucide-react';
+import { Loader2, Trophy, Clock, RefreshCw, FileText, CheckCircle, XCircle, Brain, Target, Eye, Sparkles, BarChart2, TrendingUp } from 'lucide-react';
 
 // Configuración de los 6 rubros (alineados con autoevaluación)
 const RUBRIC_CONFIG = {
@@ -377,103 +377,159 @@ export function CoachPage() {
 
           {/* Resultados Detallados */}
           {!evaluationResults.isProcessing && (evaluationResults.interview || evaluationResults.result) && (
-            <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">
-                {evaluationResults.isDiagnosticInterview ? 'Análisis de tu Comunicación' : 'Feedback Detallado'}
-              </h3>
-
-              <div className="space-y-4 sm:space-y-6">
-                {evaluationResults.isDiagnosticInterview && evaluationResults.interview ? (
-                  <>
-                    {/* Resumen General */}
-                    {evaluationResults.interview.summary && (
-                      <div>
-                        <h4 className="font-semibold text-white mb-2">Resumen General</h4>
-                        <p className="text-gray-300 text-sm leading-relaxed">{evaluationResults.interview.summary}</p>
+            <>
+              {evaluationResults.isDiagnosticInterview && evaluationResults.interview ? (
+                <>
+                  {/* Key Observations Section */}
+                  {evaluationResults.interview.key_observations && evaluationResults.interview.key_observations.length > 0 && (
+                    <Card className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border-indigo-500/30 p-4 sm:p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-indigo-500/10 rounded-lg">
+                          <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-white">
+                          Lo que observamos en tu entrevista
+                        </h3>
                       </div>
-                    )}
+                      <ul className="space-y-3">
+                        {evaluationResults.interview.key_observations.map((observation: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <div className="mt-1 p-1.5 bg-indigo-500/20 rounded-full flex-shrink-0">
+                              <Sparkles className="h-4 w-4 text-indigo-300" />
+                            </div>
+                            <p className="text-gray-200 text-sm sm:text-base leading-relaxed flex-1">{observation}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </Card>
+                  )}
 
-                    {/* Los 6 Rubros */}
-                    {evaluationResults.interview.rubrics && (
-                      <div className="space-y-4">
-                        <h4 className="font-semibold text-white mb-2">Evaluación por Competencias</h4>
-                        <div className="grid grid-cols-1 gap-4">
-                          {Object.entries(RUBRIC_CONFIG).map(([key, config]) => {
-                            const rubric = evaluationResults.interview.rubrics[key];
-                            if (!rubric) return null;
+                  {/* Summary Section */}
+                  {evaluationResults.interview.summary && (
+                    <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-gray-700 p-4 sm:p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
+                          <FileText className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white">Resumen General</h3>
+                      </div>
+                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed">{evaluationResults.interview.summary}</p>
+                    </Card>
+                  )}
 
-                            return (
-                              <Card key={key} className="bg-gray-900/50 border-gray-800 p-4">
-                                {/* Header del Rubro */}
-                                <div className="flex items-center gap-3 mb-3">
-                                  <span className="text-2xl">{config.emoji}</span>
-                                  <div className="flex-1">
-                                    <h5 className="font-semibold text-white">{config.name}</h5>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      {/* Score como estrellas */}
-                                      <div className="flex gap-1">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                          <span
-                                            key={star}
-                                            className={`text-lg ${
-                                              star <= rubric.score ? 'text-yellow-400' : 'text-gray-600'
-                                            }`}
-                                          >
-                                            ★
-                                          </span>
-                                        ))}
-                                      </div>
-                                      <span className="text-sm font-semibold" style={{ color: config.color }}>
-                                        {rubric.score}/5
-                                      </span>
+                  {/* Rubrics Grid */}
+                  {evaluationResults.interview.rubrics && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <BarChart2 className="h-5 w-5 text-cyan-400" />
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-white">Evaluación por Competencias</h3>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {Object.entries(RUBRIC_CONFIG).map(([key, config]) => {
+                          const rubric = evaluationResults.interview.rubrics[key];
+                          if (!rubric) return null;
+
+                          const scorePercentage = (rubric.score / 5) * 100;
+
+                          return (
+                            <Card key={key} className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border-gray-700 p-4 hover:border-gray-600 transition-all duration-200">
+                              {/* Header del Rubro */}
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 rounded-lg" style={{ backgroundColor: `${config.color}20` }}>
+                                  <span className="text-3xl">{config.emoji}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-white text-lg">{config.name}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {/* Score como estrellas */}
+                                    <div className="flex gap-0.5">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                          key={star}
+                                          className={`text-base ${
+                                            star <= rubric.score ? 'text-yellow-400' : 'text-gray-600'
+                                          }`}
+                                        >
+                                          ★
+                                        </span>
+                                      ))}
                                     </div>
+                                    <span className="text-sm font-bold" style={{ color: config.color }}>
+                                      {rubric.score}/5
+                                    </span>
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* Análisis */}
-                                {rubric.analysis && (
-                                  <div className="mb-3">
-                                    <p className="text-gray-300 text-sm leading-relaxed">{rubric.analysis}</p>
-                                  </div>
-                                )}
+                              {/* Progress Bar */}
+                              <div className="mb-4">
+                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="h-2 rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${scorePercentage}%`,
+                                      backgroundColor: config.color,
+                                    }}
+                                  />
+                                </div>
+                              </div>
 
-                                {/* Fortalezas */}
-                                {rubric.strengths && rubric.strengths.length > 0 && (
-                                  <div className="mb-3">
-                                    <h6 className="text-xs font-semibold text-green-400 uppercase mb-2">Fortalezas</h6>
-                                    <ul className="space-y-1">
-                                      {rubric.strengths.map((strength: string, idx: number) => (
-                                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                                          <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
-                                          <span>{strength}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
+                              {/* Análisis */}
+                              {rubric.analysis && (
+                                <div className="mb-4">
+                                  <p className="text-gray-300 text-sm leading-relaxed">{rubric.analysis}</p>
+                                </div>
+                              )}
 
-                                {/* Áreas de Mejora */}
-                                {rubric.areas_for_improvement && rubric.areas_for_improvement.length > 0 && (
-                                  <div>
-                                    <h6 className="text-xs font-semibold text-yellow-400 uppercase mb-2">Áreas de Mejora</h6>
-                                    <ul className="space-y-1">
-                                      {rubric.areas_for_improvement.map((area: string, idx: number) => (
-                                        <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                                          <span className="text-yellow-400 mt-0.5">→</span>
-                                          <span>{area}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </Card>
-                            );
-                          })}
-                        </div>
+                              {/* Fortalezas */}
+                              {rubric.strengths && rubric.strengths.length > 0 && (
+                                <div className="mb-4">
+                                  <h5 className="text-xs font-bold text-green-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    Fortalezas
+                                  </h5>
+                                  <ul className="space-y-2">
+                                    {rubric.strengths.map((strength: string, idx: number) => (
+                                      <li key={idx} className="text-gray-300 text-sm flex items-start gap-2 pl-1">
+                                        <span className="text-green-400 mt-0.5">•</span>
+                                        <span className="flex-1">{strength}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Áreas de Mejora */}
+                              {rubric.areas_for_improvement && rubric.areas_for_improvement.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-bold text-yellow-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                    Áreas de Mejora
+                                  </h5>
+                                  <ul className="space-y-2">
+                                    {rubric.areas_for_improvement.map((area: string, idx: number) => (
+                                      <li key={idx} className="text-gray-300 text-sm flex items-start gap-2 pl-1">
+                                        <span className="text-yellow-400 mt-0.5">→</span>
+                                        <span className="flex-1">{area}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </Card>
+                          );
+                        })}
                       </div>
-                    )}
-                  </>
-                ) : (
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Feedback Detallado</h3>
+                  <div className="space-y-4 sm:space-y-6">
+                  {/* Roleplay Results */}
                   <>
                     {/* Feedback de Roleplay (formato original) */}
                     {evaluationResults.result.summary && (
@@ -527,9 +583,10 @@ export function CoachPage() {
                       </div>
                     )}
                   </>
-                )}
-              </div>
-            </Card>
+                  </div>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Acciones */}

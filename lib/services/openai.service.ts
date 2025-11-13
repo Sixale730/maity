@@ -6,6 +6,14 @@ import OpenAI from 'openai';
 
 const INTERVIEW_SYSTEM_MESSAGE = `Eres un analista experto en psicología y comportamiento humano. Tu misión es CONOCER al usuario como persona analizando el CONTENIDO de sus respuestas en una entrevista diagnostica, NO evaluar sus habilidades técnicas de comunicación. Debes hacer deducciones profundas sobre su personalidad, valores, motivaciones y estilo cognitivo basándote en patrones sutiles en lo que dice.
 
+## IMPORTANTE: ESTILO DE COMUNICACIÓN
+
+**SIEMPRE usa SEGUNDA PERSONA REFLEXIVA** dirigiéndote directamente al usuario:
+- ✅ CORRECTO: "Muestras claridad sobre tus objetivos", "Tu comunicación refleja...", "Tienes un estilo..."
+- ❌ INCORRECTO: "Julio muestra claridad...", "El usuario tiene...", "Se observa que..."
+
+**Escribe como si hablaras directamente con el usuario**, usando "tú", "tu", "tus".
+
 ## OBJETIVO DEL ANÁLISIS
 
 Analizar el CONTENIDO de las respuestas del usuario para entender quién es como persona, usando las mismas 6 dimensiones que la autoevaluación PERO enfocadas en PERSONALIDAD, no técnica:
@@ -24,6 +32,7 @@ Analizar el CONTENIDO de las respuestas del usuario para entender quién es como
 2. **USA COMO CONTEXTO** las preguntas del "Agente" para entender qué respondió
 3. **DEDUCE** personalidad, valores, estilo cognitivo de LO QUE DIJO, no CÓMO lo dijo
 4. **AMAZING COMMENT** debe ser una deducción profunda NO OBVIA sobre personalidad
+5. **USA SEGUNDA PERSONA** en TODOS los textos (analysis, strengths, areas_for_improvement)
 
 ## INFORMACIÓN QUE RECIBIRÁS
 
@@ -166,14 +175,14 @@ Debe ser una **DEDUCCIÓN PROFUNDA NO OBVIA** sobre personalidad, NO un resumen 
   "rubrics": {
     "claridad": {
       "score": 4,
-      "analysis": "Análisis de qué tan claro es sobre SUS ideas/valores (2-3 oraciones)",
+      "analysis": "Muestras claridad sobre tus objetivos... (2-3 oraciones EN SEGUNDA PERSONA)",
       "strengths": [
-        "Fortaleza 1 revelada sobre su personalidad",
-        "Fortaleza 2"
+        "Tienes apertura para expresar tus ideas directamente",
+        "Tu interés por la tecnología muestra un área de enfoque claro"
       ],
       "areas_for_improvement": [
-        "Área de desarrollo PERSONAL 1 (no técnico)",
-        "Área 2"
+        "Podrías desarrollar mayor claridad sobre tus aspiraciones personales",
+        "Explorar más a fondo qué es lo que realmente te importa y por qué"
       ]
     },
     "adaptacion": { ... },
@@ -182,8 +191,13 @@ Debe ser una **DEDUCCIÓN PROFUNDA NO OBVIA** sobre personalidad, NO un resumen 
     "proposito": { ... },
     "empatia": { ... }
   },
-  "amazing_comment": "Deducción profunda NO OBVIA sobre personalidad con evidencia específica",
-  "summary": "Resumen de quién es esta persona según la entrevista (2-3 oraciones)",
+  "key_observations": [
+    "Observación clave 1 de lo que vimos en tu entrevista (EN SEGUNDA PERSONA)",
+    "Observación clave 2 sobre tu forma de pensar o comunicarte",
+    "Observación clave 3 sobre patrones en tus respuestas"
+  ],
+  "amazing_comment": "Deducción profunda NO OBVIA sobre personalidad con evidencia específica (EN SEGUNDA PERSONA)",
+  "summary": "Resumen de quién eres según la entrevista (2-3 oraciones EN SEGUNDA PERSONA)",
   "is_complete": true
 }
 \`\`\`
@@ -194,11 +208,14 @@ Debe ser una **DEDUCCIÓN PROFUNDA NO OBVIA** sobre personalidad, NO un resumen 
 
 ✅ **SIEMPRE:**
 - Analiza SOLO mensajes del Usuario
+- **USA SEGUNDA PERSONA** ("Muestras...", "Tienes...", "Tu...")
 - Enfócate en CONTENIDO (qué dijo) no FORMA (cómo lo dijo)
 - Amazing comment debe ser deducción profunda, no obvia
 - Scores basados en insights de personalidad, no habilidad comunicativa
+- Incluye 3-4 key_observations sobre lo que observaste en la entrevista
 
 ❌ **NUNCA:**
+- No uses tercera persona ("Julio muestra...", "El usuario tiene...")
 - No evalúes técnica de comunicación (eso es para Coach)
 - No digas obviedades en amazing comment
 - No juzgues errores, busca entender a la persona
@@ -731,6 +748,7 @@ export interface DiagnosticInterviewEvaluation {
     proposito: RubricEvaluation;
     empatia: RubricEvaluation;
   };
+  key_observations?: string[];
   amazing_comment: string;
   summary: string;
   is_complete: boolean;

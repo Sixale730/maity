@@ -65,6 +65,7 @@ export interface DiagnosticInterviewEvaluation {
     proposito: RubricEvaluation;
     empatia: RubricEvaluation;
   };
+  key_observations?: string[]; // 3-4 key observations from the interview
   amazing_comment: string; // Surprising/impressive observation about the user
   summary: string; // Overall summary (2-3 sentences)
   is_complete: boolean; // Whether interview met completion criteria
@@ -79,6 +80,7 @@ export interface DiagnosticInterview {
   session_id: string | null;
   transcript: string;
   rubrics: DiagnosticInterviewEvaluation['rubrics'];
+  key_observations?: string[] | null;
   amazing_comment: string | null;
   summary: string | null;
   is_complete: boolean;

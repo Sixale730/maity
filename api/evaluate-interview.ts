@@ -299,6 +299,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         status: 'complete',
         analysis_text: analysis, // Keep full JSON for backward compatibility
         rubrics: parsedAnalysis.rubrics, // Store structured rubrics
+        key_observations: parsedAnalysis.key_observations || null, // Key insights from interview
         amazing_comment: parsedAnalysis.amazing_comment, // Deep personality insight
         summary: parsedAnalysis.summary, // Overall summary
         is_complete: parsedAnalysis.is_complete, // Whether interview was sufficient
@@ -356,6 +357,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       status: evaluation.status,
       analysis_text: analysis,
       rubrics: parsedAnalysis.rubrics,
+      key_observations: parsedAnalysis.key_observations,
       amazing_comment: parsedAnalysis.amazing_comment,
       summary: parsedAnalysis.summary,
       is_complete: parsedAnalysis.is_complete,
