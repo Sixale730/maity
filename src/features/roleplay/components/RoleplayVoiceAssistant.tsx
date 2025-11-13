@@ -548,7 +548,8 @@ export function RoleplayVoiceAssistant({
 
       // Transición rápida a resultados (500ms para cerrar suavemente)
       setTimeout(() => {
-        setIsProcessing(false);
+        // Mantener isProcessing=true hasta que parent unmonte el componente
+        // Esto evita el "flash" del botón "Iniciar Práctica" antes de navegar a resultados
         // Llamar callback con transcripción y duración
         console.log('📤 [RoleplayVoiceAssistant] Llamando onSessionEnd con:', {
           hasOnSessionEnd: !!onSessionEnd,

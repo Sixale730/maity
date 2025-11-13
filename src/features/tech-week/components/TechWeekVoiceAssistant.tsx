@@ -323,7 +323,8 @@ export function TechWeekVoiceAssistant({
       setIsSpeaking(false);
 
       setTimeout(() => {
-        setIsProcessing(false);
+        // Mantener isProcessing=true hasta que parent unmonte el componente
+        // Esto evita el "flash" del botón "Iniciar Práctica" antes de navegar a resultados
         if (onSessionEnd) {
           onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
         }

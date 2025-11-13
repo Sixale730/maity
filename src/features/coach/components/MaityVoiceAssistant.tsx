@@ -435,7 +435,8 @@ export function MaityVoiceAssistant({
 
       // Transición rápida a resultados (500ms para cerrar suavemente)
       setTimeout(() => {
-        setIsProcessing(false);
+        // Mantener isProcessing=true hasta que parent unmonte el componente
+        // Esto evita el "flash" del botón "Iniciar Sesión" antes de navegar a resultados
         const sessionId = currentSessionIdRef.current;
         // Llamar callback con transcripción y duración
         console.log('📤 [Coach] Llamando onSessionEnd con:', {
