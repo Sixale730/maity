@@ -24,7 +24,7 @@ import {
 import { getEnv } from '../lib/types/api/common.js';
 import {
   evaluateRoleplaySession,
-  evaluateCoachSession,
+  evaluateDiagnosticInterview,
   parseTranscript,
   calculateScores,
 } from '../lib/services/openai.service.js';
@@ -312,7 +312,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       timestamp: new Date().toISOString(),
     });
 
-    const coachResult = await evaluateCoachSession({
+    const coachResult = await evaluateDiagnosticInterview({
       transcript,
       sessionId: session.id,
       userId,
