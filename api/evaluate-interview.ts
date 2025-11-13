@@ -234,7 +234,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     parsedAnalysis = JSON.parse(analysis);
   } catch (parseError) {
     console.error('Error parsing analysis JSON:', parseError);
-    throw ApiError.internalServerError('Failed to parse evaluation response');
+    throw ApiError.internal('Failed to parse evaluation response');
   }
 
   console.log({
