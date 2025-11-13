@@ -8,7 +8,6 @@ import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
 import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
 import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
-import { env } from '@/lib/env';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
@@ -20,9 +19,6 @@ import {
   DialogDescription,
 } from '@/ui/components/ui/dialog';
 
-// Número mínimo de mensajes del usuario requeridos para enviar a n8n
-const MIN_USER_MESSAGES = 5;
-
 export function RoleplayPage() {
   const { toast } = useToast();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -30,8 +26,6 @@ export function RoleplayPage() {
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [forceN8nEvaluation, setForceN8nEvaluation] = useState(false);
-  const [testMode, setTestMode] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [questionnaireData, setQuestionnaireData] = useState<{
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
@@ -437,16 +431,11 @@ export function RoleplayPage() {
   };
 
   /**
-   * Completa una evaluación directamente sin enviar a n8n
-   * Usado para sesiones con muy pocas interacciones del usuario
+   * Evalúa una sesión usando OpenAI API directamente
    */
-  const completeEvaluationDirectly = async (requestId: string, userMessageCount: number) => {
+  const evaluateSession = async (sessionId: string) => {
     try {
-      console.log('⚡ [RoleplayPage] Completando evaluación directamente (sin n8n):', {
-        requestId,
-        userMessageCount,
-        reason: `Menos de ${MIN_USER_MESSAGES} mensajes del usuario`
-      });
+      console.log('🤖 [RoleplayPage] Evaluando sesión con OpenAI:', { sessionId });
 
       // Obtener token de autenticación del usuario
       const { data: { session } } = await supabase.auth.getSession();
@@ -456,14 +445,11 @@ export function RoleplayPage() {
         throw new Error('No hay sesión autenticada');
       }
 
-      const payload = {
-        request_id: requestId,
-        user_message_count: userMessageCount
-      };
+      const payload = { session_id: sessionId };
 
-      console.log('📤 [RoleplayPage] Enviando a complete-short-evaluation API:', payload);
+      console.log('📤 [RoleplayPage] Llamando a /api/evaluate-session');
 
-      const response = await fetch(`${env.apiUrl}/api/complete-short-evaluation`, {
+      const response = await fetch('/api/evaluate-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -474,16 +460,16 @@ export function RoleplayPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
-        console.error('❌ [RoleplayPage] Error en complete-short-evaluation API:', errorData);
+        console.error('❌ [RoleplayPage] Error en evaluate-session API:', errorData);
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('✅ [RoleplayPage] Evaluación completada directamente:', result);
+      console.log('✅ [RoleplayPage] Evaluación completada:', result);
       return result;
 
     } catch (error) {
-      console.error('❌ [RoleplayPage] Error al completar evaluación directamente:', error);
+      console.error('❌ [RoleplayPage] Error al evaluar sesión:', error);
       throw error;
     }
   };
@@ -646,208 +632,15 @@ export function RoleplayPage() {
         }
       }
 
-      // 4. Validar número de mensajes del usuario
-      // Si no hay mensajes estructurados pero sí transcripción, contar las líneas del usuario
-      let userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
-      let userContentLength = 0;
-
-      // Si no hay mensajes pero sí transcripción, contar las líneas del usuario
-      if (transcript && transcript.length > 0) {
-        const userLines = transcript.split('\n').filter(line =>
-          line.trim().startsWith('Usuario:') ||
-          line.trim().startsWith('User:')
-        );
-
-        // Si no teníamos conteo de mensajes, usar el de la transcripción
-        if (userMessageCount === 0) {
-          userMessageCount = userLines.length;
-        }
-
-        // Calcular el contenido total del usuario
-        userContentLength = userLines
-          .map(line => line.replace(/^(Usuario:|User:)/, '').trim())
-          .join(' ').length;
-
-        console.log('📝 [RoleplayPage] Análisis de transcripción:', {
-          userLines: userLines.length,
-          userContentLength,
-          transcriptLength: transcript.length
-        });
-      }
-
-      // Considerar que hay suficiente contenido si:
-      // 1. Hay al menos MIN_USER_MESSAGES mensajes, O
-      // 2. El contenido del usuario tiene al menos 150 caracteres (una conversación sustancial)
-      const hasSufficientContent = userMessageCount >= MIN_USER_MESSAGES || userContentLength >= 150;
-
-      console.log('📊 [RoleplayPage] Validando mensajes del usuario:', {
-        userMessageCount,
-        userContentLength,
-        minRequired: MIN_USER_MESSAGES,
-        hasSufficientContent,
-        isAdmin,
-        forceN8nEvaluation,
-        willSendToN8n: hasSufficientContent || forceN8nEvaluation
-      });
-
-      // Si hay muy poco contenido y NO es modo admin forzado, completar evaluación directamente sin n8n
-      if (!hasSufficientContent && !forceN8nEvaluation) {
-        console.log('⚠️ [RoleplayPage] Sesión muy corta, completando evaluación directamente');
-
-        try {
-          await completeEvaluationDirectly(requestId, userMessageCount);
-
-          // Guardar transcripción para el modal
-          setCurrentTranscript(transcript);
-
-          // Mostrar resultados
-          setSessionResults({
-            sessionId: effectiveSessionId,
-            profile: getCurrentProfile(),
-            scenarioName: currentScenario?.scenarioName,
-            objectives: currentScenario?.objectives,
-            duration,
-            score: 0,
-            passed: false,
-            feedback: 'La interacción fue muy breve y limitada a un saludo inicial. No hay suficiente contenido para evaluar técnicas de ventas ni conocimiento del producto.',
-            isProcessing: false,
-            transcript: transcript
-          });
-
-          setShowResults(true);
-          setIsEvaluating(false);
-
-          toast({
-            title: "Sesión completada",
-            description: userMessageCount < MIN_USER_MESSAGES
-              ? `Se requieren al menos ${MIN_USER_MESSAGES} interacciones o más contenido para una evaluación completa.`
-              : "La interacción fue muy breve para una evaluación completa.",
-            variant: "default"
-          });
-
-        } catch (error) {
-          console.error('❌ [RoleplayPage] Error al completar evaluación directamente:', error);
-          toast({
-            title: "Error",
-            description: "No se pudo completar la evaluación",
-            variant: "destructive"
-          });
-        }
-
-        return; // Salir sin enviar a n8n
-      }
-
-      // 5. Enviar transcript a n8n para procesamiento (solo si hay suficientes mensajes o modo admin)
-      const n8nWebhookUrl = env.n8nWebhookUrl;
-
-      console.log('📤 [RoleplayPage] Enviando transcript a n8n para evaluación completa...', {
-        url: n8nWebhookUrl,
-        requestId,
-        sessionId: effectiveSessionId,
-        sessionToLink,
-        userMessageCount,
-        forceN8nEvaluation,
-        testMode,
-        bypassedValidation: forceN8nEvaluation && !hasSufficientContent,
-        transcriptPreview: transcript.substring(0, 100) + '...'
-      });
-
-      if (forceN8nEvaluation && !hasSufficientContent) {
-        console.warn(`⚠️ [ADMIN MODE] Enviando a n8n sin suficiente contenido (modo admin activado)`);
-      }
-
-      if (testMode) {
-        console.warn('🧪 [TEST MODE] Webhook enviado en modo de prueba (test: true)');
-      }
-
-      // Enviar a n8n webhook si está configurado
-      if (n8nWebhookUrl && n8nWebhookUrl.length > 0) {
-        const webhookPayload = {
-          request_id: requestId,
-          session_id: sessionToLink || null,
-          transcript: transcript,
-          messages: messages || [], // Array de mensajes individuales de la conversación
-          test: testMode, // Flag para modo de prueba en n8n
-          metadata: {
-            user_id: userId,
-            profile: getCurrentProfile(),
-            scenario: currentScenario?.scenarioName,
-            scenario_code: currentScenario?.scenarioCode,
-            objectives: currentScenario?.objectives,
-            difficulty: currentScenario?.difficultyLevel,
-            duration_seconds: duration,
-            message_count: messages?.length || 0,
-            user_message_count: messages?.filter(m => m.source === 'user').length || 0,
-            ai_message_count: messages?.filter(m => m.source === 'ai').length || 0,
-            admin_bypass: forceN8nEvaluation && !hasSufficientContent
-          }
-        };
-
-        const bodyString = JSON.stringify(webhookPayload);
-
-        console.log('📤 [RoleplayPage] Enviando a n8n webhook:', {
-          url: n8nWebhookUrl,
-          requestId: webhookPayload.request_id,
-          testMode: webhookPayload.test,
-          adminBypass: webhookPayload.metadata.admin_bypass,
-          messageCount: webhookPayload.metadata.message_count
-        });
-
-        // LOG CRÍTICO: Verificar request_id y test flag justo antes de enviar
-        console.log('🔴 [CRITICAL] Payload details:', {
-          request_id: webhookPayload.request_id,
-          test: webhookPayload.test,
-          admin_bypass: webhookPayload.metadata.admin_bypass
-        });
-
-        fetch(n8nWebhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: bodyString
-        }).then(async response => {
-          const responseText = await response.text();
-
-          console.log('📨 [RoleplayPage] Respuesta de n8n:', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok,
-            headers: Object.fromEntries(response.headers.entries()),
-            bodyText: responseText
-          });
-
-          if (response.ok) {
-            console.log('✅ [RoleplayPage] Transcript enviado a n8n exitosamente');
-          } else {
-            console.error('❌ [RoleplayPage] Error al enviar a n8n:', response.status, response.statusText);
-          }
-
-          // Intenta parsear la respuesta como JSON
-          try {
-            const responseJson = JSON.parse(responseText);
-            console.log('📝 [RoleplayPage] Respuesta de n8n (JSON):', responseJson);
-          } catch (e) {
-            console.log('📝 [RoleplayPage] Respuesta de n8n (text):', responseText);
-          }
-        }).catch(error => {
-          console.error('❌ [RoleplayPage] Error de red al enviar a n8n:', error);
-          console.log('ℹ️ [RoleplayPage] Continuando sin n8n. La evaluación quedará pendiente.');
-        });
-      } else {
-        console.log('⚠️ [RoleplayPage] n8n webhook no configurado o usando placeholder. La evaluación quedará pendiente.');
-      }
-
-      // 6. Por ahora mostrar resultados temporales mientras se procesa
-      console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras n8n procesa...');
-      setCurrentTranscript(transcript); // Guardar transcripción para el modal
+      // 4. Mostrar resultados temporales mientras se evalúa
+      console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras OpenAI procesa...');
+      setCurrentTranscript(transcript);
       setSessionResults({
         sessionId: effectiveSessionId,
         profile: questionnaireData?.practiceStartProfile,
         scenarioName: currentScenario?.scenarioName,
         objectives: currentScenario?.objectives,
-        score: null, // Será actualizado cuando llegue la evaluación
+        score: null,
         passed: null,
         duration: duration,
         isProcessing: true,
@@ -856,7 +649,19 @@ export function RoleplayPage() {
       });
       setShowResults(true);
 
-      // La evaluación real llegará por Realtime y actualizará los resultados
+      // 5. Llamar a OpenAI API para evaluación (el hook useEvaluationRealtime escuchará los cambios)
+      try {
+        await evaluateSession(effectiveSessionId);
+        console.log('✅ [RoleplayPage] Evaluación iniciada, esperando resultados...');
+      } catch (error) {
+        console.error('❌ [RoleplayPage] Error al evaluar sesión:', error);
+        toast({
+          title: "Error en evaluación",
+          description: "No se pudo procesar la evaluación. Por favor intenta nuevamente.",
+          variant: "destructive"
+        });
+        setIsEvaluating(false);
+      }
 
     } catch (error) {
       console.error('❌ [RoleplayPage] Error en handleSessionEnd:', error);
@@ -1002,57 +807,12 @@ export function RoleplayPage() {
                     : 'Practica tus habilidades de venta'}
                 </p>
               </div>
-              {isAdmin && (
-                <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-                  <div className="flex gap-1 sm:gap-2">
-                    <button
-                      onClick={() => {
-                        setForceN8nEvaluation(!forceN8nEvaluation);
-                        toast({
-                          title: forceN8nEvaluation ? "Modo Admin Desactivado" : "Modo Admin Activado",
-                          description: forceN8nEvaluation
-                            ? `Se aplicará validación de ${MIN_USER_MESSAGES} mensajes`
-                            : "Se enviará a n8n sin importar el número de mensajes",
-                          variant: "default"
-                        });
-                      }}
-                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                        forceN8nEvaluation
-                          ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                          : 'bg-white/10 hover:bg-white/20 text-white'
-                      }`}
-                    >
-                      <span className="hidden sm:inline">{forceN8nEvaluation ? '🔓 Admin: ON' : '🔒 Admin: OFF'}</span>
-                      <span className="sm:hidden">{forceN8nEvaluation ? '🔓' : '🔒'}</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setTestMode(!testMode);
-                        toast({
-                          title: testMode ? "Modo Test Desactivado" : "Modo Test Activado",
-                          description: testMode
-                            ? "Webhook normal (test: false)"
-                            : "Webhook de prueba (test: true)",
-                          variant: "default"
-                        });
-                      }}
-                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                        testMode
-                          ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                          : 'bg-white/10 hover:bg-white/20 text-white'
-                      }`}
-                    >
-                      <span className="hidden sm:inline">{testMode ? '🧪 TEST: ON' : '🧪 TEST: OFF'}</span>
-                      <span className="sm:hidden">{testMode ? '🧪' : '🧪'}</span>
-                    </button>
-                  </div>
-                  {/* Admin Selector - Solo mostrar si ya se completó el cuestionario */}
-                  {questionnaireData && (
-                    <AdminRoleplaySelector
-                      onProfileScenarioChange={handleAdminProfileScenarioChange}
-                      defaultProfile={questionnaireData.practiceStartProfile}
-                    />
-                  )}
+              {isAdmin && questionnaireData && (
+                <div className="flex flex-shrink-0">
+                  <AdminRoleplaySelector
+                    onProfileScenarioChange={handleAdminProfileScenarioChange}
+                    defaultProfile={questionnaireData.practiceStartProfile}
+                  />
                 </div>
               )}
             </div>
