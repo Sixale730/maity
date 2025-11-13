@@ -20,16 +20,18 @@ export class InterviewService {
    * @returns Promise with request_id for tracking n8n workflow
    */
   static async createEvaluation(sessionId: string, userId: string): Promise<string> {
+    console.log('🔧 Calling RPC create_interview_evaluation:', { sessionId, userId });
     const { data, error } = await supabase.rpc('create_interview_evaluation', {
       p_session_id: sessionId,
       p_user_id: userId,
     });
 
     if (error) {
-      console.error('Error creating interview evaluation:', error);
+      console.error('❌ RPC Error creating interview evaluation:', error);
       throw error;
     }
 
+    console.log('✅ RPC returned requestId:', data);
     return data as string;
   }
 
@@ -233,7 +235,9 @@ export class InterviewService {
       }
 
       // Create new evaluation record
+      console.log('🔍 Creating evaluation:', { sessionId, userId: maityUser.id });
       const requestId = await InterviewService.createEvaluation(sessionId, maityUser.id);
+      console.log('✅ Evaluation created with requestId:', requestId);
 
       // Get API URL from environment
       const apiUrl = import.meta.env.VITE_API_URL || process.env.VITE_API_URL;
@@ -242,6 +246,7 @@ export class InterviewService {
       }
 
       // Call evaluation endpoint
+      console.log('🌐 Calling evaluation endpoint:', { apiUrl, sessionId, requestId });
       const response = await fetch(`${apiUrl}/api/evaluate-interview`, {
         method: 'POST',
         headers: {
@@ -253,9 +258,11 @@ export class InterviewService {
           request_id: requestId,
         }),
       });
+      console.log('📡 Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Evaluation failed:', { status: response.status, errorData });
         let errorMessage = 'Error al evaluar la entrevista';
 
         if (response.status === 400) {
