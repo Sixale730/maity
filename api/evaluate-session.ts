@@ -356,12 +356,21 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       userId,
     });
 
-    evaluationResult = roleplayResult;
-
     // Calculate scores from evaluation result
     const scores = calculateScores(roleplayResult);
     overallScore = scores.overallScore;
     passed = scores.passed;
+
+    // Add dimension_scores to result for frontend compatibility
+    evaluationResult = {
+      ...roleplayResult,
+      dimension_scores: {
+        clarity: scores.claridad,
+        structure: scores.estructura,
+        connection: scores.alineacion,
+        influence: scores.influencia,
+      },
+    };
   }
 
   // Update evaluation in database (frontend already created it)

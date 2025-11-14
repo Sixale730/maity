@@ -334,40 +334,30 @@ export default function DemoTraining() {
       });
       setShowResults(true);
 
-      // Enviar a n8n si hay suficientes mensajes
+      // Evaluar sesión con OpenAI
       if (userMessageCount >= MIN_USER_MESSAGES) {
-        const n8nWebhookUrl = env.n8nWebhookUrl;
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
 
-        if (n8nWebhookUrl && n8nWebhookUrl.length > 0) {
-          const webhookPayload = {
-            request_id: requestId,
-            session_id: effectiveSessionId,
-            transcript: transcript,
-            messages: messages || [],
-            test: false,
-            metadata: {
-              user_id: userId,
-              profile: config.profile,
-              scenario: config.scenarioName,
-              difficulty: config.difficultyLevel,
-              mood: config.mood,
-              duration_seconds: duration,
-              message_count: messages?.length || 0,
-              user_message_count: userMessageCount,
-              is_demo: true
+          if (session) {
+            const payload = { session_id: effectiveSessionId, request_id: requestId };
+
+            const response = await fetch('/api/evaluate-session', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
+              console.error('Error evaluando sesión:', errorData);
             }
-          };
-
-          fetch(n8nWebhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(webhookPayload)
-          }).catch(error => {
-            console.error('❌ Error enviando a n8n:', error);
-          });
+          }
+        } catch (error) {
+          console.error('Error al evaluar sesión:', error);
         }
       }
     } catch (error) {

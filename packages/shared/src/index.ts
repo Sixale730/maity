@@ -64,6 +64,7 @@ export * from './domain/roleplay/roleplay.types';
 export { InterviewService } from './domain/interview/interview.service';
 export * from './domain/interview/interview.types';
 export * from './domain/interview/hooks/useInterviewEvaluationRealtime';
+export * from './domain/interview/hooks/useInterviewRadarScores';
 
 // ===== Domain: Registration =====
 export { RegistrationFormService } from './domain/registration/registration.service';
