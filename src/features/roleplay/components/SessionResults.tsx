@@ -126,6 +126,8 @@ export function SessionResults({
   transcript,
   onRetry,
   onViewTranscript,
+  onReEvaluate,
+  isReEvaluating,
   canProceedNext,
   onNextScenario,
   showRetryButton = true,
