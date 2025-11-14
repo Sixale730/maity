@@ -3,14 +3,37 @@ import { InterviewService } from '../interview.service';
 import type { InterviewRadarScores } from '../interview.types';
 
 /**
+ * Generate random radar scores for admin testing/preview purposes
+ * @returns Random scores between 0-100 for all competencies
+ */
+function generateRandomInterviewScores(): InterviewRadarScores {
+  const randomScore = () => Math.floor(Math.random() * 80) + 20; // 20-100 range
+  return {
+    claridad: randomScore(),
+    adaptacion: randomScore(),
+    persuasion: randomScore(),
+    estructura: randomScore(),
+    proposito: randomScore(),
+    empatia: randomScore(),
+  };
+}
+
+/**
  * Hook to extract radar scores from user's most recent interview evaluation
  * Used for Dashboard Radar Chart comparison (self-assessment vs coach vs interview)
  * @param userId - User's UUID from maity.users
+ * @param options - Optional configuration
+ * @param options.useRandomDataForTesting - If true, returns random data when no interview exists (for admin testing)
  * @returns Query result with scores scaled 0-100
  */
-export function useInterviewRadarScores(userId: string | undefined) {
+export function useInterviewRadarScores(
+  userId: string | undefined,
+  options?: { useRandomDataForTesting?: boolean }
+) {
+  const { useRandomDataForTesting = false } = options || {};
+
   return useQuery<InterviewRadarScores>({
-    queryKey: ['interview-radar-scores', userId],
+    queryKey: ['interview-radar-scores', userId, useRandomDataForTesting],
     queryFn: async () => {
       if (!userId) {
         return {
@@ -34,6 +57,11 @@ export function useInterviewRadarScores(userId: string | undefined) {
       );
 
       if (!completedSession?.session_id) {
+        // If testing mode is enabled and no data exists, return random scores
+        if (useRandomDataForTesting) {
+          return generateRandomInterviewScores();
+        }
+
         return {
           claridad: 0,
           adaptacion: 0,
@@ -50,6 +78,11 @@ export function useInterviewRadarScores(userId: string | undefined) {
       );
 
       if (!sessionDetails?.evaluation) {
+        // If testing mode is enabled and no evaluation exists, return random scores
+        if (useRandomDataForTesting) {
+          return generateRandomInterviewScores();
+        }
+
         return {
           claridad: 0,
           adaptacion: 0,

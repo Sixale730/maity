@@ -2141,18 +2141,66 @@ CREATE TABLE maity.form_responses (
 
 **RLS Policies:**
 ```sql
--- Users can view own responses
-USING (
-  user_id IN (
-    SELECT id FROM maity.users WHERE auth_id = auth.uid()
-  )
-)
+-- Policy 1: Users can view own form responses (SELECT)
+CREATE POLICY "Users can view own form responses"
+  ON maity.form_responses FOR SELECT
+  USING (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
 
--- Admins/managers can view team responses
-USING (
-  has_role(auth.uid(), 'admin'::app_role) OR
-  has_role(auth.uid(), 'manager'::app_role)
-)
+-- Policy 2: Users can insert own form responses (INSERT)
+CREATE POLICY "Users can insert own form responses"
+  ON maity.form_responses FOR INSERT
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
+
+-- Policy 3: Users can update own form responses (UPDATE)
+CREATE POLICY "Users can update own form responses"
+  ON maity.form_responses FOR UPDATE
+  USING (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM maity.users WHERE auth_id = auth.uid()
+    )
+  );
+
+-- Policy 4: Admins can view all form responses (SELECT)
+CREATE POLICY "Admins can view all form responses"
+  ON maity.form_responses FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON ur.user_id = u.id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
+
+-- Policy 5: Admins can update all form responses (UPDATE)
+CREATE POLICY "Admins can update all form responses"
+  ON maity.form_responses FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON ur.user_id = u.id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON ur.user_id = u.id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
 ```
 
 **GRANT Permissions:**

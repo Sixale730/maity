@@ -78,12 +78,15 @@ interface UserDashboardProps {
 
 export function UserDashboard({ userName }: UserDashboardProps) {
   const { t } = useLanguage();
-  const { userProfile } = useUser();
+  const { userProfile, isAdmin } = useUser();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('user');
   const { radarData, competencyBars, loading: formLoading, error: formError } = useFormResponses();
   const { data: coachRadarScores, isLoading: coachLoading } = useDiagnosticRadarScores(userProfile?.id);
-  const { data: interviewRadarScores, isLoading: interviewLoading } = useInterviewRadarScores(userProfile?.id);
+  const { data: interviewRadarScores, isLoading: interviewLoading } = useInterviewRadarScores(
+    userProfile?.id,
+    { useRandomDataForTesting: isAdmin } // Show random interview data for admins testing
+  );
 
   // Calculate diagnostic score from registration form data (q5-q16, scale 1-5)
   const diagnosticScore = useMemo(() => {
