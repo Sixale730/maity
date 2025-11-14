@@ -6,7 +6,6 @@ import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewe
 import { AdminTextChat } from '@/features/roleplay/components/AdminTextChat';
 import { supabase } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
-import { createEvaluation, useEvaluationRealtime } from '@maity/shared';
 import { useUserRole } from '@/hooks/useUserRole';
 import { env } from '@/lib/env';
 import { Card } from '@/ui/components/ui/card';
@@ -74,7 +73,6 @@ export default function DemoTraining() {
   const [sessionResults, setSessionResults] = useState<any>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
-  const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [__isEvaluating, setIsEvaluating] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); // Para forzar re-render del componente de voz
   const [isCallActive, setIsCallActive] = useState(false); // Para controlar visibilidad del chat admin
@@ -150,7 +148,6 @@ export default function DemoTraining() {
     setSessionResults(null);
     setShowTranscript(false);
     setCurrentTranscript('');
-    setEvaluationRequestId(null);
     setIsCallActive(false); // Resetear estado de llamada
 
     // Incrementar key para forzar re-mount del componente de voz
@@ -201,59 +198,106 @@ export default function DemoTraining() {
     }
   };
 
-  const handleEvaluationComplete = async (result: any) => {
-    console.log('✅ [DemoTraining] Evaluación completada:', result);
 
-    const evaluationScore = result.score ??
-      (result.clarity !== undefined && result.structure !== undefined &&
-       result.connection !== undefined && result.influence !== undefined
-        ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
-        : 0);
+  /**
+   * Evalúa una sesión usando OpenAI API directamente (sincrónico)
+   */
+  const evaluateSession = async (sessionId: string) => {
+    try {
+      console.log('🤖 [DemoTraining] Evaluando sesión con OpenAI:', { sessionId });
 
-    setSessionResults((prev: any) => ({
-      ...prev,
-      score: evaluationScore,
-      passed: evaluationScore >= 60,
-      isProcessing: false,
-      evaluation: result
-    }));
+      const { data: { session } } = await supabase.auth.getSession();
 
-    if (currentSessionId) {
-      await supabase
-        .schema('maity')
-        .from('voice_sessions')
-        .update({
-          score: evaluationScore,
-          processed_feedback: result,
-          status: 'completed',
-          ended_at: new Date().toISOString()
-        })
-        .eq('id', currentSessionId);
+      if (!session) {
+        throw new Error('No hay sesión autenticada');
+      }
+
+      const payload = { session_id: sessionId };
+
+      console.log('📤 [DemoTraining] Llamando a API de evaluación...');
+
+      const response = await fetch(`${env.apiUrl}/api/evaluate-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [DemoTraining] Error en evaluate-session:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+
+        let errorMessage = 'Error al evaluar la sesión';
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La sesión no es válida para evaluación.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.';
+        } else if (response.status === 429) {
+          errorMessage = 'Has alcanzado el límite de evaluaciones. Por favor, intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intenta de nuevo en unos momentos.';
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const { evaluation } = await response.json();
+      console.log('✅ [DemoTraining] Evaluación recibida:', evaluation);
+
+      if (!evaluation || !evaluation.result) {
+        console.error('❌ [DemoTraining] Respuesta inválida del API:', evaluation);
+        throw new Error('La evaluación no contiene los datos esperados. Por favor, intenta de nuevo.');
+      }
+
+      const result = evaluation.result;
+      const evaluationScore = evaluation.score ??
+        (result.dimension_scores?.clarity !== undefined
+          ? Math.round((result.dimension_scores.clarity + result.dimension_scores.structure +
+                       result.dimension_scores.connection + result.dimension_scores.influence) / 4)
+          : 0);
+
+      console.log('📊 [DemoTraining] Score calculado:', {
+        scoreFromAPI: evaluation.score,
+        scoreCalculated: evaluationScore
+      });
+
+      setSessionResults((prev: any) => ({
+        ...prev,
+        score: evaluationScore,
+        passed: evaluationScore >= 60,
+        isProcessing: false,
+        evaluation: result
+      }));
+
+      setIsEvaluating(false);
+
+    } catch (error) {
+      console.error('❌ [DemoTraining] Error al evaluar sesión:', error);
+
+      setSessionResults((prev: any) => ({
+        ...prev,
+        isProcessing: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      }));
+
+      toast({
+        title: "Error en evaluación",
+        description: error instanceof Error ? error.message : 'No se pudo procesar la evaluación',
+        variant: "destructive"
+      });
+
+      setIsEvaluating(false);
+      throw error;
     }
-
-    setIsEvaluating(false);
   };
-
-  const handleEvaluationError = (errorMessage: string) => {
-    console.error('❌ [DemoTraining] Error en evaluación:', errorMessage);
-    setSessionResults((prev: any) => ({
-      ...prev,
-      isProcessing: false,
-      error: errorMessage
-    }));
-    toast({
-      title: "Error en evaluación",
-      description: errorMessage,
-      variant: "destructive"
-    });
-    setIsEvaluating(false);
-  };
-
-  const { evaluation: _evaluation, isLoading: _evaluationLoading, error: _evaluationError } = useEvaluationRealtime({
-    requestId: evaluationRequestId || '',
-    onComplete: handleEvaluationComplete,
-    onError: handleEvaluationError
-  });
 
   const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string, messages?: Array<{
     id: string;
@@ -282,9 +326,7 @@ export default function DemoTraining() {
     setIsEvaluating(true);
 
     try {
-      const requestId = crypto.randomUUID();
-
-      // Guardar duration y transcript
+      // 1. Guardar duration y transcript
       if (effectiveSessionId) {
         const { error: updateError } = await supabase
           .rpc('update_voice_session_transcript', {
@@ -300,27 +342,12 @@ export default function DemoTraining() {
         }
       }
 
-      // Crear evaluación
-      const { data: _evaluationData, error: createError } = await createEvaluation(
-        requestId,
-        userId,
-        effectiveSessionId
-      );
-
-      if (createError) {
-        console.error('❌ [DemoTraining] Error al crear evaluation:', createError);
-        setIsEvaluating(false);
-        return;
-      }
-
-      setEvaluationRequestId(requestId);
-
       const userMessageCount = messages?.filter(m => m.source === 'user').length || 0;
 
       // Guardar transcripción para modal
       setCurrentTranscript(transcript);
 
-      // Mostrar resultados temporales
+      // 2. Mostrar resultados temporales
       setSessionResults({
         sessionId: effectiveSessionId,
         profile: config.profile,
@@ -329,46 +356,26 @@ export default function DemoTraining() {
         passed: null,
         duration: duration,
         isProcessing: true,
-        requestId: requestId,
         transcript: transcript
       });
       setShowResults(true);
 
-      // Evaluar sesión con OpenAI
+      // 3. Evaluar sesión con OpenAI (sincrónico)
       if (userMessageCount >= MIN_USER_MESSAGES) {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-
-          if (session) {
-            const payload = { session_id: effectiveSessionId, request_id: requestId };
-
-            const response = await fetch('/api/evaluate-session', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`
-              },
-              body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
-              console.error('Error evaluando sesión:', errorData);
-            }
-          }
-        } catch (error) {
-          console.error('Error al evaluar sesión:', error);
-        }
+        console.log('🤖 [DemoTraining] Evaluando sesión con OpenAI...');
+        await evaluateSession(effectiveSessionId);
+      } else {
+        console.log('⚠️ [DemoTraining] No hay suficientes mensajes para evaluar');
+        setSessionResults((prev: any) => ({
+          ...prev,
+          isProcessing: false,
+          error: 'Sesión muy corta. Necesitas al menos 5 mensajes para evaluar.'
+        }));
+        setIsEvaluating(false);
       }
     } catch (error) {
       console.error('❌ [DemoTraining] Error en handleSessionEnd:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error al procesar la sesión",
-        variant: "destructive"
-      });
-    } finally {
-      setIsEvaluating(false);
+      // evaluateSession ya maneja los errores y muestra toasts
     }
   };
 

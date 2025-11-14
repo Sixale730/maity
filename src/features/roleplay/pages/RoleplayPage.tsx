@@ -7,8 +7,9 @@ import { SessionResults } from '../components/SessionResults';
 import { RoleplayRoadmap } from '../components/RoleplayRoadmap';
 import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AdminRoleplaySelector } from '../components/AdminRoleplaySelector';
-import { supabase, AuthService, RoleplayService, createEvaluation, useEvaluationRealtime } from '@maity/shared';
+import { supabase, AuthService, RoleplayService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
+import { env } from '@/lib/env';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { Map, Mic } from 'lucide-react';
 import {
@@ -72,84 +73,7 @@ export function RoleplayPage() {
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
   // Estado para la evaluación
-  const [evaluationRequestId, setEvaluationRequestId] = useState<string | null>(null);
   const [_isEvaluating, setIsEvaluating] = useState(false);
-
-  // Callbacks memorizados para evitar re-renders infinitos
-  const handleEvaluationComplete = useCallback(async (result: any) => {
-    console.log('✅ [RoleplayPage] Evaluación completada:', result);
-
-    // Calcular score si no viene explícito (por si acaso)
-    const evaluationScore = result.score ??
-      (result.clarity !== undefined && result.structure !== undefined &&
-       result.connection !== undefined && result.influence !== undefined
-        ? Math.round((result.clarity + result.structure + result.connection + result.influence) / 4)
-        : 0);
-
-    console.log('📊 [RoleplayPage] Score calculado:', {
-      scoreFromResult: result.score,
-      scoreCalculated: evaluationScore,
-      clarity: result.clarity,
-      structure: result.structure,
-      connection: result.connection,
-      influence: result.influence
-    });
-
-    // Actualizar los resultados con la evaluación real
-    setSessionResults((prev: any) => ({
-      ...prev,
-      score: evaluationScore,
-      passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
-      isProcessing: false,
-      evaluation: result  // Pasar el result completo con todos los campos
-    }));
-
-    // Actualizar voice_session con los resultados
-    if (currentSessionId) {
-      const { error: updateError } = await supabase
-        .schema('maity')
-        .from('voice_sessions')
-        .update({
-          score: evaluationScore,
-          processed_feedback: result,
-          status: 'completed',
-          ended_at: new Date().toISOString()
-        })
-        .eq('id', currentSessionId);
-
-      if (updateError) {
-        console.error('❌ [RoleplayPage] Error actualizando voice_session:', updateError);
-      }
-    }
-
-    setIsEvaluating(false);
-  }, [currentScenario, currentSessionId]);
-
-  const handleEvaluationError = useCallback((errorMessage: string) => {
-    console.error('❌ [RoleplayPage] Error en evaluación:', errorMessage);
-
-    // Actualizar resultados con error
-    setSessionResults((prev: any) => ({
-      ...prev,
-      isProcessing: false,
-      error: errorMessage
-    }));
-
-    toast({
-      title: "Error en evaluación",
-      description: errorMessage,
-      variant: "destructive"
-    });
-
-    setIsEvaluating(false);
-  }, [toast]);
-
-  // Hook para escuchar actualizaciones de evaluación en tiempo real
-  const { evaluation: _evaluation, isLoading: _evaluationLoading, error: _evaluationError } = useEvaluationRealtime({
-    requestId: evaluationRequestId || '',
-    onComplete: handleEvaluationComplete,
-    onError: handleEvaluationError
-  });
 
   useEffect(() => {
     checkUserAndQuestionnaire();
@@ -431,7 +355,7 @@ export function RoleplayPage() {
   };
 
   /**
-   * Evalúa una sesión usando OpenAI API directamente
+   * Evalúa una sesión usando OpenAI API directamente (sincrónico)
    */
   const evaluateSession = async (sessionId: string) => {
     try {
@@ -441,15 +365,14 @@ export function RoleplayPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        console.error('❌ [RoleplayPage] No hay sesión autenticada');
         throw new Error('No hay sesión autenticada');
       }
 
       const payload = { session_id: sessionId };
 
-      console.log('📤 [RoleplayPage] Llamando a /api/evaluate-session');
+      console.log('📤 [RoleplayPage] Llamando a API de evaluación...');
 
-      const response = await fetch('/api/evaluate-session', {
+      const response = await fetch(`${env.apiUrl}/api/evaluate-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -459,17 +382,80 @@ export function RoleplayPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'UNKNOWN_ERROR' }));
-        console.error('❌ [RoleplayPage] Error en evaluate-session API:', errorData);
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [RoleplayPage] Error en evaluate-session:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+
+        // Mensajes de error específicos según código de estado
+        let errorMessage = 'Error al evaluar la sesión';
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La sesión no es válida para evaluación.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.';
+        } else if (response.status === 429) {
+          errorMessage = 'Has alcanzado el límite de evaluaciones. Por favor, intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intenta de nuevo en unos momentos.';
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      console.log('✅ [RoleplayPage] Evaluación completada:', result);
-      return result;
+      const { evaluation } = await response.json();
+      console.log('✅ [RoleplayPage] Evaluación recibida:', evaluation);
+
+      // Validar que se recibió data válida
+      if (!evaluation || !evaluation.result) {
+        console.error('❌ [RoleplayPage] Respuesta inválida del API:', evaluation);
+        throw new Error('La evaluación no contiene los datos esperados. Por favor, intenta de nuevo.');
+      }
+
+      // Calcular score desde el resultado
+      const result = evaluation.result;
+      const evaluationScore = evaluation.score ??
+        (result.dimension_scores?.clarity !== undefined
+          ? Math.round((result.dimension_scores.clarity + result.dimension_scores.structure +
+                       result.dimension_scores.connection + result.dimension_scores.influence) / 4)
+          : 0);
+
+      console.log('📊 [RoleplayPage] Score calculado:', {
+        scoreFromAPI: evaluation.score,
+        scoreCalculated: evaluationScore
+      });
+
+      // Actualizar resultados con la evaluación real
+      setSessionResults((prev: any) => ({
+        ...prev,
+        score: evaluationScore,
+        passed: evaluationScore >= (currentScenario?.minScoreToPass || 70),
+        isProcessing: false,
+        evaluation: result
+      }));
+
+      setIsEvaluating(false);
 
     } catch (error) {
       console.error('❌ [RoleplayPage] Error al evaluar sesión:', error);
+
+      // Actualizar resultados con error
+      setSessionResults((prev: any) => ({
+        ...prev,
+        isProcessing: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      }));
+
+      toast({
+        title: "Error en evaluación",
+        description: error instanceof Error ? error.message : 'No se pudo procesar la evaluación',
+        variant: "destructive"
+      });
+
+      setIsEvaluating(false);
       throw error;
     }
   };
@@ -553,64 +539,7 @@ export function RoleplayPage() {
     setIsEvaluating(true);
 
     try {
-      // 1. Generar request_id único
-      const requestId = crypto.randomUUID();
-      console.log('📝 [RoleplayPage] Request ID generado:', requestId);
-
-      // 2. Crear registro en evaluations
-      console.log('💾 [RoleplayPage] Creando registro en evaluations...', {
-        requestId,
-        userId,
-        currentSessionId,
-        hasSessionId: !!currentSessionId
-      });
-
-      // Verificar que la sesión existe y pertenece al usuario
-      let sessionCheck = null;
-      if (effectiveSessionId) {
-        const { data, error: sessionError } = await supabase
-          .schema('maity')
-          .from('voice_sessions')
-          .select('id, user_id')
-          .eq('id', effectiveSessionId)
-          .single();
-
-        sessionCheck = data;
-
-        console.log('🔍 [RoleplayPage] Verificación de voice_session:', {
-          sessionId: effectiveSessionId,
-          found: !!sessionCheck,
-          sessionUserId: sessionCheck?.user_id,
-          currentUserId: userId,
-          match: sessionCheck?.user_id === userId,
-          error: sessionError
-        });
-      }
-
-      // Si la sesión no es válida, crear evaluación sin vincular
-      const sessionToLink = effectiveSessionId && sessionCheck ? effectiveSessionId : undefined;
-
-      const { data: evaluationData, error: createError } = await createEvaluation(
-        requestId,
-        userId, // Este es el maity.users.id
-        sessionToLink // Vincular solo si es válida
-      );
-
-      if (createError) {
-        console.error('❌ [RoleplayPage] Error al crear evaluation:', createError);
-        toast({
-          title: "Error",
-          description: "No se pudo iniciar la evaluación",
-          variant: "destructive"
-        });
-        setIsEvaluating(false);
-        return;
-      }
-
-      console.log('✅ [RoleplayPage] Evaluation creada:', evaluationData);
-      setEvaluationRequestId(requestId);
-
-      // 3. Guardar duration y transcript en voice_session inmediatamente
+      // 1. Guardar duration y transcript en voice_session
       if (effectiveSessionId) {
         console.log('💾 [RoleplayPage] Guardando duration y transcript en voice_session...', {
           sessionId: effectiveSessionId,
@@ -632,7 +561,7 @@ export function RoleplayPage() {
         }
       }
 
-      // 4. Mostrar resultados temporales mientras se evalúa
+      // 2. Mostrar resultados temporales mientras se evalúa
       console.log('⏳ [RoleplayPage] Mostrando resultados temporales mientras OpenAI procesa...');
       setCurrentTranscript(transcript);
       setSessionResults({
@@ -644,34 +573,17 @@ export function RoleplayPage() {
         passed: null,
         duration: duration,
         isProcessing: true,
-        requestId: requestId,
         transcript: transcript
       });
       setShowResults(true);
 
-      // 5. Llamar a OpenAI API para evaluación (el hook useEvaluationRealtime escuchará los cambios)
-      try {
-        await evaluateSession(effectiveSessionId);
-        console.log('✅ [RoleplayPage] Evaluación iniciada, esperando resultados...');
-      } catch (error) {
-        console.error('❌ [RoleplayPage] Error al evaluar sesión:', error);
-        toast({
-          title: "Error en evaluación",
-          description: "No se pudo procesar la evaluación. Por favor intenta nuevamente.",
-          variant: "destructive"
-        });
-        setIsEvaluating(false);
-      }
+      // 3. Evaluar sesión con OpenAI (sincrónico)
+      console.log('🤖 [RoleplayPage] Evaluando sesión con OpenAI...');
+      await evaluateSession(effectiveSessionId);
 
     } catch (error) {
       console.error('❌ [RoleplayPage] Error en handleSessionEnd:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error al procesar la sesión",
-        variant: "destructive"
-      });
-    } finally {
-      setIsEvaluating(false);
+      // evaluateSession ya maneja los errores y muestra toasts
     }
   };
 
