@@ -1003,8 +1003,8 @@ export function SessionResults({
                         <p className="text-xs sm:text-sm italic text-gray-300">{fortalezas.Cita}</p>
                       </blockquote>
                     )}
-                    {fortalezas.feedback && (
-                      <p className="text-sm sm:text-base text-gray-300">{fortalezas.feedback}</p>
+                    {(fortalezas.Feedback || fortalezas.feedback) && (
+                      <p className="text-sm sm:text-base text-gray-300">{fortalezas.Feedback || fortalezas.feedback}</p>
                     )}
                   </div>
                 )}
@@ -1018,8 +1018,8 @@ export function SessionResults({
                         <p className="text-xs sm:text-sm italic text-gray-300">{errores.Cita}</p>
                       </blockquote>
                     )}
-                    {errores.feedback && (
-                      <p className="text-sm sm:text-base text-gray-300">{errores.feedback}</p>
+                    {(errores.Feedback || errores.feedback) && (
+                      <p className="text-sm sm:text-base text-gray-300">{errores.Feedback || errores.feedback}</p>
                     )}
                   </div>
                 )}
@@ -1033,8 +1033,8 @@ export function SessionResults({
                         <p className="text-xs sm:text-sm italic text-gray-300">{recomendaciones.Cita}</p>
                       </blockquote>
                     )}
-                    {recomendaciones.feedback && (
-                      <p className="text-sm sm:text-base text-gray-300">{recomendaciones.feedback}</p>
+                    {(recomendaciones.Feedback || recomendaciones.feedback) && (
+                      <p className="text-sm sm:text-base text-gray-300">{recomendaciones.Feedback || recomendaciones.feedback}</p>
                     )}
                   </div>
                 )}
