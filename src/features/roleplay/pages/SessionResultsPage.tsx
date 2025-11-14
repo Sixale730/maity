@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@maity/shared';
 import { useUser } from '@/contexts/UserContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { SessionResults } from '@/features/roleplay/components/SessionResults';
 import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
 import { Button } from '@/ui/components/ui/button';
@@ -39,6 +40,7 @@ export default function SessionResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { userProfile } = useUser();
+  const { isAdmin } = useUserRole();
   const { toast } = useToast();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,9 @@ export default function SessionResultsPage() {
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = sessionData && userProfile && sessionData.user_id !== userProfile.id;
+
+  // Admins can re-evaluate any session, users can only re-evaluate their own
+  const canReEvaluate = isAdmin || !isViewingOtherUser;
 
   useEffect(() => {
     if (sessionId) {
@@ -277,10 +282,10 @@ export default function SessionResultsPage() {
         transcript={sessionData.raw_transcript}
         onRetry={handleRetry}
         onViewTranscript={handleViewTranscript}
-        onReEvaluate={!isViewingOtherUser ? handleReEvaluate : undefined}
+        onReEvaluate={canReEvaluate ? handleReEvaluate : undefined}
         isReEvaluating={isReEvaluating}
         canProceedNext={false}
-        showRetryButton={!isViewingOtherUser}
+        showRetryButton={canReEvaluate}
         isViewingOtherUser={isViewingOtherUser}
         sessionUserName={sessionData.user_name || undefined}
         sessionUserEmail={sessionData.user_email || undefined}
