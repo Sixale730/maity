@@ -111,3 +111,16 @@ export type EvaluationStatus = 'pending' | 'processing' | 'complete' | 'error';
  * Status of interview session
  */
 export type SessionStatus = 'in_progress' | 'completed' | 'cancelled';
+
+/**
+ * Radar chart scores extracted from interview evaluation
+ * Scaled 0-100 for visualization
+ */
+export interface InterviewRadarScores {
+  claridad: number;
+  adaptacion: number;
+  persuasion: number;
+  estructura: number;
+  proposito: number;
+  empatia: number;
+}

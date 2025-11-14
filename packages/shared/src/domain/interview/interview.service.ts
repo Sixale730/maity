@@ -5,6 +5,7 @@ import {
   InterviewEvaluation,
   InterviewSessionWithEvaluation,
   InterviewSessionDetails,
+  InterviewRadarScores,
 } from './interview.types';
 
 /**
@@ -296,5 +297,35 @@ export class InterviewService {
         error: error instanceof Error ? error.message : 'Error desconocido al evaluar la entrevista',
       };
     }
+  }
+
+  /**
+   * Extract rubric scores for Radar Chart comparison
+   * Converts 1-5 scale to 0-100 for visualization
+   * @param evaluation - Interview evaluation data
+   * @returns Object with scores for each rubric (0-100 scale)
+   */
+  static extractRadarScores(evaluation: InterviewEvaluation | null): InterviewRadarScores {
+    if (!evaluation?.rubrics) {
+      return {
+        claridad: 0,
+        adaptacion: 0,
+        persuasion: 0,
+        estructura: 0,
+        proposito: 0,
+        empatia: 0,
+      };
+    }
+
+    const rubrics = evaluation.rubrics;
+
+    return {
+      claridad: (rubrics.claridad?.score ?? 0) * 20, // 1-5 → 0-100
+      adaptacion: (rubrics.adaptacion?.score ?? 0) * 20,
+      persuasion: (rubrics.persuasion?.score ?? 0) * 20,
+      estructura: (rubrics.estructura?.score ?? 0) * 20,
+      proposito: (rubrics.proposito?.score ?? 0) * 20,
+      empatia: (rubrics.empatia?.score ?? 0) * 20,
+    };
   }
 }
