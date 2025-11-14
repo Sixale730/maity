@@ -373,21 +373,27 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     };
   }
 
-  // Update evaluation in database (frontend already created it)
+  // Upsert evaluation in database (create if not exists, update if exists)
   const { data: _evaluation, error: evalError } = await supabase
     .schema('maity')
     .from('evaluations')
-    .update({
+    .upsert({
+      request_id: requestId,
+      session_id: session.id,
+      user_id: userId,
       status: 'complete',
       result: evaluationResult,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'request_id',
+      ignoreDuplicates: false
     })
-    .eq('request_id', requestId)
     .select()
     .single();
 
   if (evalError) {
-    console.error('Error updating evaluation:', evalError);
+    console.error('Error upserting evaluation:', evalError);
     throw ApiError.database('Failed to save evaluation', evalError);
   }
 
