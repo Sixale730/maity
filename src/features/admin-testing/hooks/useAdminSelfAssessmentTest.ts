@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { RegistrationFormService } from '@maity/shared/src/domain/registration/registration.service';
-import { LikertOnlyData, LikertValue } from '@maity/shared/src/domain/registration/registration.types';
+import { RegistrationFormService, LikertOnlyData, LikertValue } from '@maity/shared';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/ui/components/ui/use-toast';
 

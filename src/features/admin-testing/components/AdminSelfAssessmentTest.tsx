@@ -18,7 +18,7 @@ import {
   CompetencyArea,
   CompetencyColors,
   LikertValue,
-} from '@maity/shared/src/domain/registration/registration.types';
+} from '@maity/shared';
 
 interface AdminSelfAssessmentTestProps {
   isOpen: boolean;
