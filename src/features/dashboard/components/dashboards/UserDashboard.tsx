@@ -132,7 +132,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       const keyMap: { [key: string]: keyof typeof interviewRadarScores } = {
         'claridad': 'claridad',
         'adaptación': 'adaptacion',
-        'persuasivo': 'persuasion',
+        'persuasión': 'persuasion',
         'estructura': 'estructura',
         'propósito': 'proposito',
         'empatía': 'empatia',
@@ -158,7 +158,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
       const keyMap: { [key: string]: keyof typeof coachRadarScores } = {
         'claridad': 'claridad',
         'adaptación': 'adaptacion',
-        'persuasivo': 'persuasion',
+        'persuasión': 'persuasion',
         'estructura': 'estructura',
         'propósito': 'proposito',
         'empatía': 'empatia'
