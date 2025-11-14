@@ -8,6 +8,7 @@ import { ScoreDistributionChart } from '../components/ScoreDistributionChart';
 import { CompanyStatsTable } from '../components/CompanyStatsTable';
 import { ProfileScenarioStats } from '../components/ProfileScenarioStats';
 import { CompanyUsersTable } from '../components/CompanyUsersTable';
+import { FormResponsesTable } from '../components/FormResponsesTable';
 import { AnalyticsFilters } from '../components/AnalyticsFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { AnalyticsService, type AnalyticsFilters as FiltersType } from '@maity/shared';
@@ -22,6 +23,7 @@ import {
   Building2,
   LayoutDashboard,
   List,
+  FileText,
 } from 'lucide-react';
 import { Skeleton } from '@/ui/components/ui/skeleton';
 
@@ -182,6 +184,10 @@ export default function AnalyticsPage() {
             <Building2 className="h-4 w-4" />
             Detalle por Empresa
           </TabsTrigger>
+          <TabsTrigger value="autoevaluaciones" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Autoevaluaciones
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -308,6 +314,11 @@ export default function AnalyticsPage() {
               />
             )
           )}
+        </TabsContent>
+
+        {/* Autoevaluaciones Tab */}
+        <TabsContent value="autoevaluaciones" className="space-y-6">
+          <FormResponsesTable companyId={filters.companyId} />
         </TabsContent>
       </Tabs>
     </div>

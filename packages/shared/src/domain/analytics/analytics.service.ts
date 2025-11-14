@@ -169,4 +169,21 @@ export class AnalyticsService {
 
     return data;
   }
+
+  /**
+   * Get form responses (autoevaluaciones) by company with calculated competency scores
+   * Only accessible by admins
+   */
+  static async getFormResponsesByCompany(companyId?: string) {
+    const { data, error } = await supabase.rpc('get_form_responses_by_company', {
+      p_company_id: companyId || null,
+    });
+
+    if (error) {
+      console.error('Error fetching form responses:', error);
+      throw error;
+    }
+
+    return data || [];
+  }
 }
