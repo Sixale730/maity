@@ -102,6 +102,52 @@ export function UserDashboard({ userName }: UserDashboardProps) {
     return Math.round(avgScore * 10) / 10; // Round to 1 decimal
   }, [radarData]);
 
+  // Calculate interview average score
+  const interviewAverage = useMemo(() => {
+    if (!interviewRadarScores) return null;
+
+    const scores = Object.values(interviewRadarScores);
+    const total = scores.reduce((acc, val) => acc + val, 0);
+    const avg = total / scores.length / 20; // Convert 0-100 to 0-5
+
+    return Math.round(avg * 10) / 10; // Round to 1 decimal
+  }, [interviewRadarScores]);
+
+  // Prepare separate radar data for self-assessment
+  const selfAssessmentData = useMemo(() => {
+    if (!radarData) return [];
+    return radarData.map(item => ({
+      competencia: item.competencia,
+      value: item.usuario,
+      fullMark: 100,
+    }));
+  }, [radarData]);
+
+  // Prepare separate radar data for interview
+  const interviewData = useMemo(() => {
+    if (!radarData) return [];
+    return radarData.map((item) => {
+      const competenciaKey = item.competencia.toLowerCase();
+      // Map competency names to score keys
+      const keyMap: { [key: string]: keyof typeof interviewRadarScores } = {
+        'claridad': 'claridad',
+        'adaptación': 'adaptacion',
+        'persuasivo': 'persuasion',
+        'estructura': 'estructura',
+        'propósito': 'proposito',
+        'empatía': 'empatia',
+      };
+      const scoreKey = keyMap[competenciaKey];
+      const interviewScore = scoreKey && interviewRadarScores ? interviewRadarScores[scoreKey] : 0;
+
+      return {
+        competencia: item.competencia,
+        value: interviewScore,
+        fullMark: 100,
+      };
+    });
+  }, [radarData, interviewRadarScores]);
+
   // Merge coach and interview scores with user radar data
   const translatedRadarData = useMemo(() => {
     if (!radarData) return radarData;
@@ -315,109 +361,110 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         </Card> */}
       </div>
 
-      {/* Gráfico Principal - Evaluación 360° */}
-      <Card className="col-span-full">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            Radar de Habilidades - Comparación de Evaluaciones
-          </CardTitle>
-          <CardDescription className="text-center">
-            {coachRadarScores || interviewRadarScores
-              ? 'Comparación entre tu autoevaluación y las evaluaciones de IA'
-              : 'Evaluación de competencias clave de liderazgo'
-            }
-            {formError && !formError.includes('mostrando datos de ejemplo') && (
-              <div className="text-sm text-orange-600 mt-2">
-                ⚠️ {formError}
-              </div>
-            )}
-            {!coachRadarScores && !interviewRadarScores && (
-              <div className="text-sm text-blue-600 mt-2 font-medium">
-                💡 Completa tu primera entrevista con el Coach o practica una entrevista para ver una comparación
-              </div>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center p-8">
-          {/* Legend */}
-          {(coachRadarScores || interviewRadarScores) && (
-            <div className="flex gap-6 mb-4 flex-wrap justify-center">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }} />
-                <span className="text-sm font-medium">Autoevaluación</span>
-              </div>
-              {coachRadarScores && (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#06b6d4' }} />
-                  <span className="text-sm font-medium">Evaluación Coach</span>
-                </div>
-              )}
-              {interviewRadarScores && (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#9333ea' }} />
-                  <span className="text-sm font-medium">Primera Entrevista</span>
-                </div>
-              )}
+      {/* Gráficos de Radar Separados - Autoevaluación e Interview */}
+      <div className="col-span-full grid gap-6 md:grid-cols-2">
+        {/* Card 1: Autoevaluación */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center text-xl font-bold">
+              Autoevaluación
+            </CardTitle>
+            <CardDescription className="text-center">
+              Tus respuestas del formulario de registro
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center p-6">
+            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={selfAssessmentData}>
+                  <PolarGrid stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                  <PolarAngleAxis
+                    dataKey="competencia"
+                    tick={{ fontSize: 11, fontWeight: 500 }}
+                  />
+                  <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
+                  <Radar
+                    name="Autoevaluación"
+                    dataKey="value"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.5}
+                    strokeWidth={2}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+            {/* Average Score */}
+            <div className="text-center mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg w-full">
+              <p className="text-sm text-muted-foreground mb-1">
+                Puntuación Promedio
+              </p>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {diagnosticScore !== null ? `${diagnosticScore}/5` : 'N/A'}
+              </p>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          <ChartContainer config={chartConfig} className="h-[400px] w-full max-w-2xl">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={translatedRadarData}>
-                <PolarGrid
-                  stroke="hsl(var(--muted-foreground))"
-                  strokeDasharray="3 3"
-                />
-                <PolarAngleAxis
-                  dataKey="competencia"
-                  tick={{
-                    fontSize: 12,
-                    fontWeight: 500
-                  }}
-                />
-                <PolarRadiusAxis
-                  domain={[0, 100]}
-                  tick={{
-                    fontSize: 10
-                  }}
-                />
-                {/* User self-assessment */}
-                <Radar
-                  name="Autoevaluación"
-                  dataKey="usuario"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
-                {/* Coach evaluation (if available) */}
-                {coachRadarScores && (
-                  <Radar
-                    name="Evaluación Coach"
-                    dataKey="coach"
-                    stroke="#06b6d4"
-                    fill="#06b6d4"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                )}
-                {/* Interview evaluation (if available) */}
-                {interviewRadarScores && (
-                  <Radar
-                    name="Primera Entrevista"
-                    dataKey="interview"
-                    stroke="#9333ea"
-                    fill="#9333ea"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                )}
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+        {/* Card 2: Primera Entrevista */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center text-xl font-bold">
+              Primera Entrevista
+            </CardTitle>
+            <CardDescription className="text-center">
+              Evaluación basada en tu conversación inicial
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center p-6">
+            {interviewAverage !== null && interviewAverage > 0 ? (
+              <>
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={interviewData}>
+                      <PolarGrid stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                      <PolarAngleAxis
+                        dataKey="competencia"
+                        tick={{ fontSize: 11, fontWeight: 500 }}
+                      />
+                      <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
+                      <Radar
+                        name="Entrevista"
+                        dataKey="value"
+                        stroke="#9333ea"
+                        fill="#9333ea"
+                        fillOpacity={0.5}
+                        strokeWidth={2}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                {/* Average Score */}
+                <div className="text-center mt-4 p-4 bg-purple-50 dark:bg-purple-950 rounded-lg w-full">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Puntuación Promedio
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    {interviewAverage}/5
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[350px] text-center">
+                <div className="text-6xl mb-4">📝</div>
+                <p className="text-lg font-medium text-muted-foreground mb-2">
+                  No has completado tu primera entrevista
+                </p>
+                <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+                  Completa la entrevista estructurada para ver tu evaluación aquí
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Horizontal Bar Chart - Promedio por Rúbrica */}
       <Card className="col-span-full">

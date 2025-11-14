@@ -55,10 +55,24 @@ export function UserProvider({ children }: UserProviderProps) {
         console.log('[UserProvider] User is admin/manager, proceeding regardless of phase');
         setUserRole((role as UserRole) || 'user');
 
+        // Fetch maity.users record to get actual id (not auth_id)
+        const { data: maityUser, error: maityUserError } = await supabase
+          .schema('maity')
+          .from('users')
+          .select('id, company_id')
+          .eq('auth_id', user.id)
+          .single();
+
+        if (maityUserError || !maityUser) {
+          console.error('[UserProvider] Error fetching maity.users:', maityUserError);
+          throw new Error('User not found in maity.users');
+        }
+
         const basicProfile: UserProfile = {
-          id: user.id,
-          auth_id: user.id,
+          id: maityUser.id, // maity.users.id (correct for RLS)
+          auth_id: user.id, // auth.uid()
           name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
+          company_id: maityUser.company_id,
           role: role || 'user'
         };
 
@@ -83,10 +97,24 @@ export function UserProvider({ children }: UserProviderProps) {
       // For regular users who are ACTIVE
       setUserRole((role as UserRole) || 'user');
 
+      // Fetch maity.users record to get actual id (not auth_id)
+      const { data: maityUser, error: maityUserError } = await supabase
+        .schema('maity')
+        .from('users')
+        .select('id, company_id')
+        .eq('auth_id', user.id)
+        .single();
+
+      if (maityUserError || !maityUser) {
+        console.error('[UserProvider] Error fetching maity.users:', maityUserError);
+        throw new Error('User not found in maity.users');
+      }
+
       const basicProfile: UserProfile = {
-        id: user.id,
-        auth_id: user.id,
+        id: maityUser.id, // maity.users.id (correct for RLS)
+        auth_id: user.id, // auth.uid()
         name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
+        company_id: maityUser.company_id,
         role: role || 'user'
       };
 
