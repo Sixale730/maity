@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RegistrationFormService, LikertOnlyData, LikertValue } from '@maity/shared';
 import { useUser } from '@/contexts/UserContext';
-import { toast } from '@/ui/components/ui/use-toast';
+import { toast } from '@/shared/hooks/use-toast';
 
 /**
  * Hook for admin self-assessment testing
