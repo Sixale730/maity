@@ -1104,18 +1104,18 @@ export function SessionResults({
               )}
             </Button>
 
-            {/* Re-evaluate Button */}
-            {!isProcessing && !error && onReEvaluate && (
+            {/* Re-evaluate Button - Always visible for roleplay sessions */}
+            {onReEvaluate && (
               <Button
                 onClick={onReEvaluate}
-                disabled={isReEvaluating}
+                disabled={isReEvaluating || isProcessing}
                 variant="outline"
                 className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
               >
-                {isReEvaluating ? (
+                {isReEvaluating || isProcessing ? (
                   <>
                     <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    Reevaluando...
+                    {isProcessing ? 'Procesando...' : 'Reevaluando...'}
                   </>
                 ) : (
                   <>
