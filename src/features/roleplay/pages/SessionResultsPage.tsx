@@ -13,6 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/ui/components/ui/dialog';
+import { useToast } from '@/shared/hooks/use-toast';
+import { env } from '@/lib/env';
 
 interface SessionData {
   id: string;
@@ -37,10 +39,12 @@ export default function SessionResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { userProfile } = useUser();
+  const { toast } = useToast();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [isReEvaluating, setIsReEvaluating] = useState(false);
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = sessionData && userProfile && sessionData.user_id !== userProfile.id;
@@ -96,6 +100,122 @@ export default function SessionResultsPage() {
       navigate(-1);
     } else {
       navigate('/sessions');
+    }
+  };
+
+  const evaluateSession = async (evalSessionId: string) => {
+    try {
+      console.log('🤖 [SessionResultsPage] Evaluando sesión con OpenAI:', { sessionId: evalSessionId });
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No hay sesión autenticada');
+      }
+
+      const payload = { session_id: evalSessionId };
+
+      console.log('📤 [SessionResultsPage] Llamando a API de evaluación...');
+
+      const response = await fetch(`${env.apiUrl}/api/evaluate-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [SessionResultsPage] Error en evaluate-session:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+
+        let errorMessage = 'Error al evaluar la sesión';
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'La sesión no es válida para evaluación.';
+        } else if (response.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.';
+        } else if (response.status === 429) {
+          errorMessage = 'Has alcanzado el límite de evaluaciones. Por favor, intenta más tarde.';
+        } else if (response.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intenta de nuevo en unos momentos.';
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const { evaluation } = await response.json();
+      console.log('✅ [SessionResultsPage] Evaluación recibida:', evaluation);
+
+      if (!evaluation || !evaluation.result) {
+        console.error('❌ [SessionResultsPage] Respuesta inválida del API:', evaluation);
+        throw new Error('La evaluación no contiene los datos esperados. Por favor, intenta de nuevo.');
+      }
+
+      const result = evaluation.result;
+      const evaluationScore = evaluation.score ??
+        (result.dimension_scores?.clarity !== undefined
+          ? Math.round((result.dimension_scores.clarity + result.dimension_scores.structure +
+                       result.dimension_scores.connection + result.dimension_scores.influence) / 4)
+          : 0);
+
+      console.log('📊 [SessionResultsPage] Score calculado:', {
+        scoreFromAPI: evaluation.score,
+        scoreCalculated: evaluationScore
+      });
+
+      // Update sessionData with new evaluation
+      setSessionData(prev => prev ? {
+        ...prev,
+        score: evaluationScore,
+        passed: evaluationScore >= 60,
+        status: 'completed',
+        processed_feedback: result
+      } : null);
+
+      toast({
+        title: "Evaluación completa",
+        description: `Puntuación: ${evaluationScore}/100`,
+      });
+
+    } catch (error) {
+      console.error('❌ [SessionResultsPage] Error al evaluar sesión:', error);
+
+      toast({
+        title: "Error en evaluación",
+        description: error instanceof Error ? error.message : 'No se pudo procesar la evaluación',
+        variant: "destructive"
+      });
+
+      throw error;
+    }
+  };
+
+  const handleReEvaluate = async () => {
+    if (!sessionId) {
+      toast({
+        title: "Error",
+        description: "No hay sesión para reevaluar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsReEvaluating(true);
+
+    try {
+      console.log('🔄 [SessionResultsPage] Reevaluando sesión:', sessionId);
+      await evaluateSession(sessionId);
+    } catch (error) {
+      console.error('❌ Error en reevaluación:', error);
+    } finally {
+      setIsReEvaluating(false);
     }
   };
 
@@ -157,6 +277,8 @@ export default function SessionResultsPage() {
         transcript={sessionData.raw_transcript}
         onRetry={handleRetry}
         onViewTranscript={handleViewTranscript}
+        onReEvaluate={!isViewingOtherUser ? handleReEvaluate : undefined}
+        isReEvaluating={isReEvaluating}
         canProceedNext={false}
         showRetryButton={!isViewingOtherUser}
         isViewingOtherUser={isViewingOtherUser}
