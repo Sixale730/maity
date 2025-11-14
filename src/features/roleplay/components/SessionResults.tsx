@@ -356,9 +356,13 @@ export function SessionResults({
   const recomendaciones = evaluation?.Recomendaciones || null;
   const objectiveFeedback = evaluation?.objective_feedback || null;
 
-  // Extraer subdimensiones de Evaluacion para desglose
+  // DEBUG: Logs de diagnóstico detallados
   console.log('[SessionResults] Raw evaluation prop:', evaluation);
   console.log('[SessionResults] evaluation?.Evaluacion:', evaluation?.Evaluacion);
+  console.log('[SessionResults] 🟢 Fortalezas:', fortalezas);
+  console.log('[SessionResults] 🔴 Errores:', errores);
+  console.log('[SessionResults] 🟡 Recomendaciones:', recomendaciones);
+  console.log('[SessionResults] ℹ️ isProcessing:', isProcessing);
 
   const evaluacionDesglose = evaluation?.Evaluacion ? {
     Claridad: evaluation.Evaluacion.Claridad || null,
