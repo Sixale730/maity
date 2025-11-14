@@ -384,6 +384,23 @@ Always use explicit types
 - `VITE_OPENAI_MODEL` (optional, default: gpt-4o-mini)
 - `VITE_ELEVENLABS_API_KEY_TEST`, `VITE_ELEVENLABS_AGENT_ID_TEST`
 
+**Re-evaluation Feature:**
+- **Location**: Session details page (`/sessions/:id`)
+- **Button**: Yellow "Reevaluar Sesión" button always visible on roleplay sessions
+- **Permissions**:
+  - Admins can re-evaluate any session
+  - Users can only re-evaluate their own sessions
+- **Implementation**:
+  - Uses same `/api/evaluate-session` endpoint
+  - Backend uses UPSERT to create/update evaluation record
+  - Allows fixing stuck/failed evaluations
+  - Updates session score and feedback in real-time
+- **Files**:
+  - `src/features/roleplay/pages/SessionResultsPage.tsx` - History page with re-evaluate button
+  - `src/features/roleplay/pages/RoleplayPage.tsx` - Practice page with re-evaluate button
+  - `src/features/roleplay/pages/DemoTraining.tsx` - Demo page with re-evaluate button
+  - `src/features/roleplay/components/SessionResults.tsx` - Shared results component
+
 **Legacy (deprecated):**
 - n8n webhook system (being phased out)
 - `/api/evaluation-complete` endpoint (can be removed)
