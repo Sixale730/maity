@@ -76,6 +76,7 @@ export default function DemoTraining() {
   const [__isEvaluating, setIsEvaluating] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); // Para forzar re-render del componente de voz
   const [isCallActive, setIsCallActive] = useState(false); // Para controlar visibilidad del chat admin
+  const [isReEvaluating, setIsReEvaluating] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -299,6 +300,38 @@ export default function DemoTraining() {
     }
   };
 
+  const handleReEvaluate = async () => {
+    if (!sessionResults?.sessionId) {
+      toast({
+        title: "Error",
+        description: "No hay sesión para reevaluar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsReEvaluating(true);
+    setSessionResults((prev: any) => ({
+      ...prev,
+      isProcessing: true,
+      error: undefined
+    }));
+
+    try {
+      console.log('🔄 [DemoTraining] Reevaluando sesión:', sessionResults.sessionId);
+      await evaluateSession(sessionResults.sessionId);
+
+      toast({
+        title: "Reevaluación completa",
+        description: "La sesión ha sido reevaluada exitosamente",
+      });
+    } catch (error) {
+      console.error('❌ Error en reevaluación:', error);
+    } finally {
+      setIsReEvaluating(false);
+    }
+  };
+
   const handleSessionEnd = async (transcript: string, duration: number, voiceAssistantSessionId?: string, messages?: Array<{
     id: string;
     timestamp: Date;
@@ -396,6 +429,8 @@ export default function DemoTraining() {
           onRetry={handleRetryScenario}
           onViewTranscript={handleViewTranscript}
           canProceedNext={false}
+          onReEvaluate={handleReEvaluate}
+          isReEvaluating={isReEvaluating}
         />
 
         {/* Modal de Transcripción */}

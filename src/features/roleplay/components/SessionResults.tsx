@@ -22,7 +22,8 @@ import {
   Calendar,
   Copy,
   Check,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PDFService } from '@maity/shared';
@@ -51,6 +52,8 @@ interface SessionResultsProps {
   transcript?: string | null;
   onRetry: () => void;
   onViewTranscript: () => void;
+  onReEvaluate?: () => void;
+  isReEvaluating?: boolean;
   canProceedNext: boolean;
   onNextScenario?: () => void;
   showRetryButton?: boolean; // Optional, defaults to true
@@ -1098,6 +1101,28 @@ export function SessionResults({
                 </>
               )}
             </Button>
+
+            {/* Re-evaluate Button */}
+            {!isProcessing && !error && onReEvaluate && (
+              <Button
+                onClick={onReEvaluate}
+                disabled={isReEvaluating}
+                variant="outline"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
+              >
+                {isReEvaluating ? (
+                  <>
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    Reevaluando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Reevaluar Sesión
+                  </>
+                )}
+              </Button>
+            )}
 
             {passed && canProceedNext && (
               <Button

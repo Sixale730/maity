@@ -234,9 +234,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       .select(
         `
         *,
-        profile_scenario:voice_profile_scenarios!left(
-          profile:voice_agent_profiles(name),
-          scenario:voice_scenarios(name, objectives)
+        profile_scenario:voice_profile_scenarios!profile_scenario_id(
+          profile:voice_agent_profiles!profile_id(name),
+          scenario:voice_scenarios!scenario_id(name, objectives)
         )
       `
       )

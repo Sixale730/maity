@@ -74,6 +74,7 @@ export function RoleplayPage() {
 
   // Estado para la evaluación
   const [_isEvaluating, setIsEvaluating] = useState(false);
+  const [isReEvaluating, setIsReEvaluating] = useState(false);
 
   useEffect(() => {
     checkUserAndQuestionnaire();
@@ -603,6 +604,41 @@ export function RoleplayPage() {
     setShowTranscript(true);
   };
 
+  const handleReEvaluate = async () => {
+    if (!sessionResults?.sessionId) {
+      toast({
+        title: "Error",
+        description: "No hay sesión para reevaluar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsReEvaluating(true);
+
+    // Update UI to show processing state
+    setSessionResults((prev: any) => ({
+      ...prev,
+      isProcessing: true,
+      error: undefined
+    }));
+
+    try {
+      console.log('🔄 [RoleplayPage] Reevaluando sesión:', sessionResults.sessionId);
+      await evaluateSession(sessionResults.sessionId);
+
+      toast({
+        title: "Reevaluación completa",
+        description: "La sesión ha sido reevaluada exitosamente",
+      });
+    } catch (error) {
+      console.error('❌ Error en reevaluación:', error);
+      // evaluateSession already handles error UI
+    } finally {
+      setIsReEvaluating(false);
+    }
+  };
+
   const handleQuestionnaireComplete = (data: {
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
@@ -659,6 +695,8 @@ export function RoleplayPage() {
           onViewTranscript={handleViewTranscript}
           canProceedNext={currentScenario ? currentScenario.scenarioOrder < 5 : false}
           onNextScenario={handleNextScenario}
+          onReEvaluate={handleReEvaluate}
+          isReEvaluating={isReEvaluating}
         />
 
         {/* Modal de Transcripción */}
