@@ -3,6 +3,7 @@ import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 import { Badge } from "@/ui/components/ui/badge";
+import { AdminTestingButton } from "@/features/admin-testing";
 import { 
   BarChart, 
   Bar, 
@@ -96,9 +97,12 @@ export function PlatformAdminDashboard() {
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-          Platform Admin
-        </Badge>
+        <div className="flex items-center gap-3">
+          <AdminTestingButton />
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            Platform Admin
+          </Badge>
+        </div>
       </div>
 
       {/* Enhanced Stats Cards for Platform Admin */}

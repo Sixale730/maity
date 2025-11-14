@@ -349,3 +349,22 @@ export interface FormProgress {
   answers: Partial<RegistrationFormData>;
   isComplete: boolean;
 }
+
+/**
+ * Likert-only data for admin testing (q5-q16)
+ * Used for testing self-assessment without requiring full registration
+ */
+export interface LikertOnlyData {
+  q5: LikertValue; // CLARIDAD
+  q6: LikertValue; // CLARIDAD
+  q7: LikertValue; // ADAPTACIÓN
+  q8: LikertValue; // ADAPTACIÓN
+  q9: LikertValue; // PERSUASIÓN
+  q10: LikertValue; // PERSUASIÓN
+  q11: LikertValue; // ESTRUCTURA
+  q12: LikertValue; // ESTRUCTURA
+  q13: LikertValue; // PROPÓSITO
+  q14: LikertValue; // PROPÓSITO
+  q15: LikertValue; // EMPATÍA
+  q16: LikertValue; // EMPATÍA
+}

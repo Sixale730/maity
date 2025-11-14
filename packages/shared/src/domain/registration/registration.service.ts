@@ -1,5 +1,5 @@
 import { supabase } from '../../api/client/supabase';
-import { RegistrationFormData, FormResponse } from './registration.types';
+import { RegistrationFormData, FormResponse, LikertOnlyData } from './registration.types';
 
 /**
  * Service for managing native registration form submissions
@@ -199,5 +199,103 @@ export class RegistrationFormService {
       formData.q16;
 
     return Math.round((sum / 12) * 10) / 10; // Round to 1 decimal
+  }
+
+  /**
+   * Update only self-assessment Likert questions (q5-q16)
+   * Used for admin testing to overwrite self-assessment without affecting personal info
+   * @param userId - User's UUID
+   * @param likertData - Likert questions data (q5-q16)
+   * @returns Promise with update result
+   */
+  static async updateSelfAssessmentOnly(
+    userId: string,
+    likertData: LikertOnlyData
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Check if user already has a form response
+      const existingResponse = await this.getUserFormResponse(userId);
+
+      if (existingResponse) {
+        // Update existing record (only Likert fields)
+        const { error: updateError } = await supabase
+          .schema('maity')
+          .from('form_responses')
+          .update({
+            q5: likertData.q5.toString(),
+            q6: likertData.q6.toString(),
+            q7: likertData.q7.toString(),
+            q8: likertData.q8.toString(),
+            q9: likertData.q9.toString(),
+            q10: likertData.q10.toString(),
+            q11: likertData.q11.toString(),
+            q12: likertData.q12.toString(),
+            q13: likertData.q13.toString(),
+            q14: likertData.q14.toString(),
+            q15: likertData.q15.toString(),
+            q16: likertData.q16.toString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+
+        if (updateError) {
+          console.error('[RegistrationFormService] Error updating self-assessment:', updateError);
+          throw updateError;
+        }
+
+        console.log('[RegistrationFormService] ✅ Self-assessment updated for user:', userId);
+      } else {
+        // Create new record with only Likert data (for admins who never completed full form)
+        const { error: insertError } = await supabase
+          .schema('maity')
+          .from('form_responses')
+          .insert({
+            user_id: userId,
+            q5: likertData.q5.toString(),
+            q6: likertData.q6.toString(),
+            q7: likertData.q7.toString(),
+            q8: likertData.q8.toString(),
+            q9: likertData.q9.toString(),
+            q10: likertData.q10.toString(),
+            q11: likertData.q11.toString(),
+            q12: likertData.q12.toString(),
+            q13: likertData.q13.toString(),
+            q14: likertData.q14.toString(),
+            q15: likertData.q15.toString(),
+            q16: likertData.q16.toString(),
+            submitted_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          console.error('[RegistrationFormService] Error inserting self-assessment:', insertError);
+          throw insertError;
+        }
+
+        // Mark registration as complete
+        const { error: userUpdateError } = await supabase
+          .schema('maity')
+          .from('users')
+          .update({
+            registration_form_completed: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
+
+        if (userUpdateError) {
+          console.error('[RegistrationFormService] Error updating user:', userUpdateError);
+          throw userUpdateError;
+        }
+
+        console.log('[RegistrationFormService] ✅ Self-assessment created for user:', userId);
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('[RegistrationFormService] ❌ Error updating self-assessment:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al actualizar autoevaluación. Por favor, intenta de nuevo.',
+      };
+    }
   }
 }
