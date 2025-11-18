@@ -1,10 +1,11 @@
 /**
- * Evaluate Interview Endpoint
+ * Evaluate Interview Endpoint (Edge Runtime)
  *
  * Evaluates an interview session using OpenAI.
  * Provides comprehensive analysis of communication skills and areas for improvement.
  *
  * Features:
+ * - Edge Runtime with 30s timeout (vs 10s serverless)
  * - Synchronous evaluation (3-10s response time)
  * - Rate limiting (5 eval/min, 50 eval/day per user)
  * - Retry logic with exponential backoff
@@ -12,20 +13,17 @@
  * - Cost tracking
  */
 
-import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { setCors } from '../lib/cors.js';
-import {
-  ApiError,
-  withErrorHandler,
-  validateMethod,
-} from '../lib/types/api/errors.js';
-import { getEnv } from '../lib/types/api/common.js';
 import {
   evaluateInterviewSession,
   parseTranscript,
 } from '../lib/services/openai.service.js';
+
+// Edge Runtime configuration - 30 seconds timeout
+export const config = {
+  runtime: 'edge',
+};
 
 // ============================================================================
 // SCHEMAS
@@ -39,10 +37,49 @@ const evaluateInterviewSchema = z.object({
 type EvaluateInterviewRequest = z.infer<typeof evaluateInterviewSchema>;
 
 // ============================================================================
+// CORS HELPER FOR EDGE
+// ============================================================================
+
+function getCorsHeaders(req: Request): HeadersInit {
+  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:8080')
+    .split(',')
+    .map(s => s.trim());
+
+  const origin = req.headers.get('origin') || '';
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, content-type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+
+  if (allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+
+  return headers;
+}
+
+function jsonResponse(data: any, status: number, req: Request): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getCorsHeaders(req),
+    },
+  });
+}
+
+function errorResponse(code: string, message: string, status: number, req: Request): Response {
+  return jsonResponse({ error: code, message }, status, req);
+}
+
+// ============================================================================
 // RATE LIMITING
 // ============================================================================
 
-async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean): Promise<void> {
+async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean): Promise<string | null> {
   // Admins bypass rate limits completely
   if (isAdmin) {
     console.log({
@@ -51,7 +88,7 @@ async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean):
       isAdmin: true,
       message: 'Admin user - rate limits bypassed',
     });
-    return;
+    return null;
   }
 
   const now = new Date();
@@ -68,13 +105,10 @@ async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean):
 
   if (minuteError) {
     console.error('Error checking minute rate limit:', minuteError);
-    // Don't throw - allow evaluation to proceed if rate limit check fails
   }
 
   if (countPerMinute && countPerMinute >= 5) {
-    throw ApiError.tooManyRequests(
-      'Límite de 5 evaluaciones por minuto excedido. Espera un momento antes de intentar de nuevo.'
-    );
+    return 'Límite de 5 evaluaciones por minuto excedido. Espera un momento antes de intentar de nuevo.';
   }
 
   // 2. Quota diaria (50 evaluaciones/día)
@@ -87,48 +121,60 @@ async function checkRateLimits(supabase: any, userId: string, isAdmin: boolean):
 
   if (dayError) {
     console.error('Error checking daily rate limit:', dayError);
-    // Don't throw - allow evaluation to proceed if rate limit check fails
   }
 
   if (countPerDay && countPerDay >= 50) {
-    throw ApiError.tooManyRequests(
-      'Límite diario de 50 evaluaciones excedido. Intenta de nuevo mañana.'
-    );
+    return 'Límite diario de 50 evaluaciones excedido. Intenta de nuevo mañana.';
   }
+
+  return null;
 }
 
 // ============================================================================
 // MAIN HANDLER
 // ============================================================================
 
-async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  // Handle CORS
-  if (setCors(req, res)) return;
+export default async function handler(req: Request): Promise<Response> {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: getCorsHeaders(req),
+    });
+  }
 
   // Validate HTTP method
-  validateMethod(req.method, ['POST']);
+  if (req.method !== 'POST') {
+    return errorResponse('METHOD_NOT_ALLOWED', 'Only POST method is allowed', 405, req);
+  }
 
   // Parse and validate request body
   let body: EvaluateInterviewRequest;
   try {
-    body = evaluateInterviewSchema.parse(req.body);
+    const rawBody = await req.json();
+    body = evaluateInterviewSchema.parse(rawBody);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw ApiError.badRequest('Invalid request body', error.errors);
+      return errorResponse('INVALID_REQUEST', 'Invalid request body', 400, req);
     }
-    throw error;
+    return errorResponse('INVALID_REQUEST', 'Could not parse request body', 400, req);
   }
 
   // Verify authentication
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    throw ApiError.unauthorized('Missing or invalid authorization header');
+    return errorResponse('UNAUTHORIZED', 'Missing or invalid authorization header', 401, req);
   }
   const accessToken = authHeader.substring(7);
 
   // Initialize Supabase client with service role (bypasses RLS)
-  const supabaseUrl = getEnv('SUPABASE_URL');
-  const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return errorResponse('CONFIG_ERROR', 'Missing Supabase configuration', 500, req);
+  }
+
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
@@ -146,7 +192,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   } = await supabase.auth.getUser(accessToken);
 
   if (authError || !authUser) {
-    throw ApiError.unauthorized('Invalid or expired token');
+    return errorResponse('UNAUTHORIZED', 'Invalid or expired token', 401, req);
   }
 
   // Get maity user_id from auth_id
@@ -159,7 +205,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
   if (userError || !maityUser) {
     console.error('User lookup error:', userError);
-    throw ApiError.notFound('User');
+    return errorResponse('NOT_FOUND', 'User not found', 404, req);
   }
 
   const userId = maityUser.id;
@@ -175,7 +221,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const isAdmin = roles?.some((r: any) => r.role === 'admin') || false;
 
   // Check rate limits (admins bypass)
-  await checkRateLimits(supabase, userId, isAdmin);
+  const rateLimitError = await checkRateLimits(supabase, userId, isAdmin);
+  if (rateLimitError) {
+    return errorResponse('TOO_MANY_REQUESTS', rateLimitError, 429, req);
+  }
 
   console.log({
     event: 'interview_evaluation_started',
@@ -202,12 +251,12 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       error: sessionError,
       timestamp: new Date().toISOString(),
     });
-    throw ApiError.notFound('Interview session');
+    return errorResponse('NOT_FOUND', 'Interview session not found', 404, req);
   }
 
   // Verify session ownership (admins can evaluate any session)
   if (!isAdmin && session.user_id !== userId) {
-    throw ApiError.forbidden('Session does not belong to user');
+    return errorResponse('FORBIDDEN', 'Session does not belong to user', 403, req);
   }
 
   // Get session owner's name for analysis (important when admin evaluates another user's session)
@@ -227,14 +276,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
   // Verify session has transcript
   if (!session.raw_transcript) {
-    throw ApiError.badRequest('Session has no transcript to evaluate');
+    return errorResponse('BAD_REQUEST', 'Session has no transcript to evaluate', 400, req);
   }
 
   // Parse transcript to structured format
   const transcript = parseTranscript(session.raw_transcript);
 
   if (transcript.length === 0) {
-    throw ApiError.badRequest('Session transcript could not be parsed');
+    return errorResponse('BAD_REQUEST', 'Session transcript could not be parsed', 400, req);
   }
 
   console.log({
@@ -275,7 +324,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       parsedAnalysis = JSON.parse(analysis);
     } catch (parseError) {
       console.error('Error parsing analysis JSON:', parseError);
-      throw ApiError.internal('Failed to parse evaluation response');
+      throw new Error('Failed to parse evaluation response');
     }
 
     console.log({
@@ -312,7 +361,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
     if (updateError) {
       console.error('Error updating interview evaluation:', updateError);
-      throw ApiError.database('Failed to save interview evaluation', updateError);
+      throw new Error('Failed to save interview evaluation');
     }
 
     evaluation = evalData;
@@ -344,12 +393,17 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       })
       .eq('request_id', body.request_id);
 
-    // Re-throw the error to be handled by withErrorHandler
-    throw error;
+    // Return error response
+    return errorResponse(
+      'EVALUATION_FAILED',
+      error instanceof Error ? error.message : 'Unknown error occurred',
+      500,
+      req
+    );
   }
 
   // Return success response with structured fields
-  res.status(200).json({
+  return jsonResponse({
     ok: true,
     evaluation: {
       request_id: evaluation.request_id,
@@ -363,8 +417,5 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       is_complete: parsedAnalysis.is_complete,
       interviewee_name: sessionOwnerName,
     },
-  });
+  }, 200, req);
 }
-
-// Export handler wrapped with error handler
-export default withErrorHandler(handler);

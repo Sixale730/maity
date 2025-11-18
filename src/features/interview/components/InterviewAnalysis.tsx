@@ -57,34 +57,76 @@ export function InterviewAnalysis({ session, isLoading = false }: InterviewAnaly
   // Si está cargando o en proceso
   if (isLoading || !evaluation || evaluation.status === 'pending' || evaluation.status === 'processing') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-            Procesando análisis...
-          </CardTitle>
-          <CardDescription>
-            El análisis de tu entrevista se está generando. Esto puede tomar algunos minutos.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              Procesando análisis...
+            </CardTitle>
+            <CardDescription>
+              El análisis de tu entrevista se está generando. Esto puede tomar algunos minutos.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* Show transcript while waiting for analysis */}
+        {session.raw_transcript && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Transcripción</CardTitle>
+              <CardDescription>
+                Conversación completa de la entrevista
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-96 overflow-y-auto rounded-lg bg-muted p-4">
+                <pre className="text-xs whitespace-pre-wrap font-mono">
+                  {session.raw_transcript}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     );
   }
 
   // Si hubo error
   if (evaluation.status === 'error') {
     return (
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-5 w-5" />
-            Error en el análisis
-          </CardTitle>
-          <CardDescription>
-            {evaluation.error_message || 'Ocurrió un error al procesar el análisis de tu entrevista.'}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-6">
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Error en el análisis
+            </CardTitle>
+            <CardDescription>
+              {evaluation.error_message || 'Ocurrió un error al procesar el análisis de tu entrevista.'}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* Show transcript even on error */}
+        {session.raw_transcript && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Transcripción</CardTitle>
+              <CardDescription>
+                Conversación completa de la entrevista
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-96 overflow-y-auto rounded-lg bg-muted p-4">
+                <pre className="text-xs whitespace-pre-wrap font-mono">
+                  {session.raw_transcript}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     );
   }
 
