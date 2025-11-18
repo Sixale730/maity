@@ -19,6 +19,7 @@ import { waitUntil } from '@vercel/functions';
 import {
   evaluateInterviewSession,
   parseTranscript,
+  TranscriptMessage,
 } from '../lib/services/openai.service.js';
 
 // Edge Runtime configuration - 30 seconds timeout
@@ -339,7 +340,7 @@ interface ProcessEvaluationParams {
   requestId: string;
   userId: string;
   sessionOwnerName: string;
-  transcript: Array<{ role: string; content: string }>;
+  transcript: TranscriptMessage[];
 }
 
 async function processEvaluationAsync(params: ProcessEvaluationParams): Promise<void> {
