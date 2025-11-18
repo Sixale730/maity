@@ -189,17 +189,22 @@ export function TechWeekSessionResults({
   };
 
   // Usar datos reales de la evaluación
+  // dimension_scores está en result directamente, no dentro de Evaluacion
   const metrics = {
-    clarity: evaluation?.dimension_scores?.clarity ??
+    clarity: evaluationData?.result?.dimension_scores?.clarity ??
+             evaluation?.dimension_scores?.clarity ??
              evaluation?.clarity ??
              calculateMainDimensionScore(evaluation?.Claridad),
-    structure: evaluation?.dimension_scores?.structure ??
+    structure: evaluationData?.result?.dimension_scores?.structure ??
+               evaluation?.dimension_scores?.structure ??
                evaluation?.structure ??
                calculateMainDimensionScore(evaluation?.Estructura),
-    connection: evaluation?.dimension_scores?.connection ??
+    connection: evaluationData?.result?.dimension_scores?.connection ??
+                evaluation?.dimension_scores?.connection ??
                 evaluation?.connection ??
                 calculateMainDimensionScore(evaluation?.Alineacion_Emocional),
-    influence: evaluation?.dimension_scores?.influence ??
+    influence: evaluationData?.result?.dimension_scores?.influence ??
+               evaluation?.dimension_scores?.influence ??
                evaluation?.influence ??
                calculateMainDimensionScore(evaluation?.Influencia)
   };
@@ -214,16 +219,19 @@ export function TechWeekSessionResults({
   }
 
   // Usar feedback real si está disponible
-  const fortalezas = evaluation?.Fortalezas || evaluationData?.Fortalezas || null;
-  const errores = evaluation?.Errores || evaluationData?.Errores || null;
-  const recomendaciones = evaluation?.Recomendaciones || evaluationData?.Recomendaciones || null;
-  const objectiveFeedback = evaluation?.Objetivo || evaluation?.objective_feedback || null;
+  // Los campos Fortalezas, Errores, Recomendaciones están en evaluationData.result, no en Evaluacion
+  const fortalezas = evaluationData?.result?.Fortalezas || evaluation?.Fortalezas || null;
+  const errores = evaluationData?.result?.Errores || evaluation?.Errores || null;
+  const recomendaciones = evaluationData?.result?.Recomendaciones || evaluation?.Recomendaciones || null;
+  const objectiveFeedback = evaluationData?.result?.Objetivo || evaluation?.Objetivo || evaluation?.objective_feedback || null;
 
-  const evaluacionDesglose = evaluation ? {
-    Claridad: evaluation.Claridad || null,
-    Estructura: evaluation.Estructura || null,
-    Alineacion_Emocional: evaluation.Alineacion_Emocional || null,
-    Influencia: evaluation.Influencia || null
+  // El desglose puede estar en evaluation directamente o en evaluationData.result.Evaluacion
+  const evaluacionSource = evaluation || evaluationData?.result?.Evaluacion;
+  const evaluacionDesglose = evaluacionSource ? {
+    Claridad: evaluacionSource.Claridad || null,
+    Estructura: evaluacionSource.Estructura || null,
+    Alineacion_Emocional: evaluacionSource.Alineacion_Emocional || null,
+    Influencia: evaluacionSource.Influencia || null
   } : null;
 
   // Score real o temporal mientras se procesa
