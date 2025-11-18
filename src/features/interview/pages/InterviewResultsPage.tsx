@@ -94,11 +94,15 @@ export function InterviewResultsPage() {
   const pollForCompletion = useCallback(async (
     requestId: string,
     accessToken: string,
-    attempt: number = 0
+    attempt: number = 0,
+    startTime: number = Date.now()
   ): Promise<void> => {
     if (attempt >= MAX_POLL_ATTEMPTS) {
       throw new Error('El análisis está tomando más tiempo de lo esperado. Por favor, revisa los resultados más tarde.');
     }
+
+    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[InterviewResults] ⏳ Polling... attempt ${attempt + 1}/${MAX_POLL_ATTEMPTS} (${elapsedSeconds}s elapsed)`);
 
     const response = await fetch(`${env.apiUrl}/api/check-evaluation-status?request_id=${requestId}`, {
       method: 'GET',
@@ -108,14 +112,15 @@ export function InterviewResultsPage() {
     });
 
     if (!response.ok) {
+      console.error(`[InterviewResults] ❌ Poll request failed: ${response.status}`);
       throw new Error('Error al verificar el estado de la evaluación');
     }
 
     const data = await response.json();
-    console.log(`[InterviewResults] 📊 Poll attempt ${attempt + 1}: status=${data.status}`);
+    console.log(`[InterviewResults] 📊 Status: ${data.status} (${elapsedSeconds}s)`);
 
     if (data.status === 'complete') {
-      console.log('[InterviewResults] ✅ Análisis completado');
+      console.log(`[InterviewResults] ✅ Análisis completado en ${elapsedSeconds}s`);
       return;
     }
 
@@ -125,8 +130,9 @@ export function InterviewResultsPage() {
     }
 
     // Still processing, wait and poll again
+    console.log(`[InterviewResults] 🔄 Still processing, waiting ${POLL_INTERVAL/1000}s...`);
     await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
-    return pollForCompletion(requestId, accessToken, attempt + 1);
+    return pollForCompletion(requestId, accessToken, attempt + 1, startTime);
   }, []);
 
   // Función para evaluar manualmente (admin only)
@@ -159,13 +165,17 @@ export function InterviewResultsPage() {
       // Poll for completion
       await pollForCompletion(result.requestId, authSession.access_token);
 
+      console.log('[InterviewResults] 🔄 Refreshing session data...');
+
+      // Refresh session data (don't show loading spinner)
+      await fetchSession(false);
+
+      console.log('[InterviewResults] ✅ Session data refreshed');
+
       toast({
         title: 'Evaluación completada',
         description: 'La entrevista ha sido evaluada exitosamente.',
       });
-
-      // Refresh session data
-      await fetchSession();
     } catch (error) {
       console.error('Error al evaluar entrevista:', error);
       toast({
@@ -178,7 +188,7 @@ export function InterviewResultsPage() {
     }
   };
 
-  const fetchSession = async () => {
+  const fetchSession = async (showLoading: boolean = true) => {
     if (!sessionId) {
       setError('ID de sesión no válido');
       setIsLoading(false);
@@ -186,7 +196,9 @@ export function InterviewResultsPage() {
     }
 
     try {
-      setIsLoading(true);
+      if (showLoading) {
+        setIsLoading(true);
+      }
       const data = await InterviewService.getSessionWithEvaluation(sessionId);
 
       if (!data) {
@@ -194,6 +206,11 @@ export function InterviewResultsPage() {
         setIsLoading(false);
         return;
       }
+
+      console.log('[InterviewResults] 📥 Session data loaded:', {
+        hasEvaluation: !!data.evaluation,
+        evaluationStatus: data.evaluation?.status,
+      });
 
       setSession(data);
       setIsLoading(false);
@@ -375,6 +392,49 @@ export function InterviewResultsPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Evaluate Button for admins - shown when no evaluation or error */}
+          {isAdmin && (!session.evaluation || session.evaluation.status === 'error' || session.evaluation.status === 'processing') && (
+            <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-yellow-400 mb-1">
+                    {session.evaluation?.status === 'error'
+                      ? 'Error en evaluación'
+                      : session.evaluation?.status === 'processing'
+                      ? 'Evaluación en proceso'
+                      : 'Evaluación pendiente'}
+                  </h3>
+                  <p className="text-xs text-yellow-300/70">
+                    {session.evaluation?.status === 'error'
+                      ? session.evaluation.error_message || 'Ocurrió un error durante la evaluación'
+                      : session.evaluation?.status === 'processing'
+                      ? 'La evaluación está siendo procesada...'
+                      : 'Esta sesión no ha sido evaluada aún'}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualEvaluation}
+                  disabled={isEvaluating}
+                  className="border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
+                >
+                  {isEvaluating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Evaluando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {session.evaluation?.status === 'error' ? 'Re-evaluar' : 'Evaluar'}
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           )}
