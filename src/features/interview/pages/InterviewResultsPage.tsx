@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewAnalysis } from '../components/InterviewAnalysis';
-import { InterviewService, InterviewSessionDetails, PDFService } from '@maity/shared';
+import { InterviewService, InterviewSessionDetails, PDFService, AuthService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
+import { env } from '@/lib/env';
 import { ArrowLeft, Briefcase, Loader2, User, Building2, Copy, Check, FileText, Download, RefreshCw } from 'lucide-react';
+
+const POLL_INTERVAL = 3000; // Poll every 3 seconds
+const MAX_POLL_ATTEMPTS = 60; // 3 minutes max
 
 export function InterviewResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -86,6 +90,45 @@ export function InterviewResultsPage() {
     }
   };
 
+  // Poll for evaluation completion
+  const pollForCompletion = useCallback(async (
+    requestId: string,
+    accessToken: string,
+    attempt: number = 0
+  ): Promise<void> => {
+    if (attempt >= MAX_POLL_ATTEMPTS) {
+      throw new Error('El análisis está tomando más tiempo de lo esperado. Por favor, revisa los resultados más tarde.');
+    }
+
+    const response = await fetch(`${env.apiUrl}/api/check-evaluation-status?request_id=${requestId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al verificar el estado de la evaluación');
+    }
+
+    const data = await response.json();
+    console.log(`[InterviewResults] 📊 Poll attempt ${attempt + 1}: status=${data.status}`);
+
+    if (data.status === 'complete') {
+      console.log('[InterviewResults] ✅ Análisis completado');
+      return;
+    }
+
+    if (data.status === 'error') {
+      console.error('[InterviewResults] ❌ Evaluation error:', data.error_message);
+      throw new Error(data.error_message || 'Error al procesar la evaluación');
+    }
+
+    // Still processing, wait and poll again
+    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+    return pollForCompletion(requestId, accessToken, attempt + 1);
+  }, []);
+
   // Función para evaluar manualmente (admin only)
   const handleManualEvaluation = async () => {
     if (!sessionId || isEvaluating) return;
@@ -95,32 +138,40 @@ export function InterviewResultsPage() {
 
       toast({
         title: 'Evaluando entrevista...',
-        description: 'Esto puede tomar entre 3-10 segundos.',
+        description: 'El análisis puede tomar hasta 30 segundos.',
       });
 
+      // Get auth token
+      const authSession = await AuthService.getSession();
+      if (!authSession?.access_token) {
+        throw new Error('No se encontró token de autenticación');
+      }
+
+      // Trigger evaluation (returns requestId)
       const result = await InterviewService.triggerManualEvaluation(sessionId);
 
-      if (result.success) {
-        toast({
-          title: 'Evaluación completada',
-          description: 'La entrevista ha sido evaluada exitosamente.',
-        });
-
-        // Refresh session data
-        await fetchSession();
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error al evaluar',
-          description: result.error || 'No se pudo completar la evaluación.',
-        });
+      if (!result.success || !result.requestId) {
+        throw new Error(result.error || 'No se pudo iniciar la evaluación');
       }
+
+      console.log('[InterviewResults] 📝 Evaluation started, polling for completion...', result.requestId);
+
+      // Poll for completion
+      await pollForCompletion(result.requestId, authSession.access_token);
+
+      toast({
+        title: 'Evaluación completada',
+        description: 'La entrevista ha sido evaluada exitosamente.',
+      });
+
+      // Refresh session data
+      await fetchSession();
     } catch (error) {
       console.error('Error al evaluar entrevista:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Ocurrió un error inesperado al evaluar la entrevista.',
+        title: 'Error al evaluar',
+        description: error instanceof Error ? error.message : 'Ocurrió un error inesperado al evaluar la entrevista.',
       });
     } finally {
       setIsEvaluating(false);

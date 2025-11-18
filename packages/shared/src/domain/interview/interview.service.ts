@@ -207,6 +207,7 @@ export class InterviewService {
    */
   static async triggerManualEvaluation(sessionId: string): Promise<{
     success: boolean;
+    requestId?: string;
     evaluation?: any;
     error?: string;
   }> {
@@ -261,7 +262,8 @@ export class InterviewService {
       });
       console.log('📡 Response status:', response.status, response.statusText);
 
-      if (!response.ok) {
+      // Handle error responses
+      if (!response.ok && response.status !== 202) {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Evaluation failed:', { status: response.status, errorData });
         let errorMessage = 'Error al evaluar la entrevista';
@@ -286,8 +288,19 @@ export class InterviewService {
 
       const result = await response.json();
 
+      // Handle 202 Accepted (async processing started)
+      if (response.status === 202) {
+        console.log('📝 Evaluation started (async), requestId:', requestId);
+        return {
+          success: true,
+          requestId,
+        };
+      }
+
+      // Handle 200 OK (sync processing complete - legacy)
       return {
         success: true,
+        requestId,
         evaluation: result.evaluation,
       };
     } catch (error) {
