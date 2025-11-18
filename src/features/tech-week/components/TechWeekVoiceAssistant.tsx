@@ -77,8 +77,9 @@ export function TechWeekVoiceAssistant({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const userEndedSessionRef = useRef(false);
 
-  // State para la sesión actual
+  // State y ref para la sesión actual (ref para evitar stale closures)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
+  const sessionIdRef = useRef<string | null>(sessionId || null);
 
   // Auto scroll al final del chat
   useEffect(() => {
@@ -90,6 +91,7 @@ export function TechWeekVoiceAssistant({
     if (sessionId && sessionId !== currentSessionId) {
       console.log('📝 [TechWeekVoiceAssistant] Actualizando sessionId desde props:', sessionId);
       setCurrentSessionId(sessionId);
+      sessionIdRef.current = sessionId;
     }
   }, [sessionId, currentSessionId]);
 
@@ -185,6 +187,7 @@ export function TechWeekVoiceAssistant({
       if (newSessionId) {
         console.log('✅ [TechWeekVoiceAssistant] Sesión creada:', newSessionId);
         setCurrentSessionId(newSessionId);
+        sessionIdRef.current = newSessionId;
       }
     }
 
@@ -247,7 +250,7 @@ export function TechWeekVoiceAssistant({
               setTimeout(() => {
                 setIsProcessing(false);
                 if (onSessionEnd) {
-                  onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
+                  onSessionEnd(fullTranscriptRef.current, sessionDuration, sessionIdRef.current || undefined, conversationHistory);
                 }
               }, 100);
 
@@ -326,7 +329,7 @@ export function TechWeekVoiceAssistant({
         // Mantener isProcessing=true hasta que parent unmonte el componente
         // Esto evita el "flash" del botón "Iniciar Práctica" antes de navegar a resultados
         if (onSessionEnd) {
-          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
+          onSessionEnd(fullTranscriptRef.current, duration, sessionIdRef.current || undefined, conversationHistory);
         }
         userEndedSessionRef.current = false;
       }, 500);

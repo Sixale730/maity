@@ -293,14 +293,9 @@ export function TechWeekPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Dashboard
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold" style={{ color: '#FF69B4' }}>
-                  Tech Week
-                </h1>
-                <p className="text-sm text-gray-400">
-                  Práctica de presentaciones técnicas y pitch sessions
-                </p>
-              </div>
+              <h1 className="text-2xl font-bold" style={{ color: '#FF69B4' }}>
+                Tech Week
+              </h1>
             </div>
             <Button
               variant="outline"
