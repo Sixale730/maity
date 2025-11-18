@@ -40,6 +40,7 @@ interface TechWeekVoiceAssistantProps {
   scenarioName?: string;
   scenarioDescription?: string;
   objectives?: string;
+  autoStart?: boolean;
 }
 
 export function TechWeekVoiceAssistant({
@@ -50,7 +51,8 @@ export function TechWeekVoiceAssistant({
   onSessionEnd,
   scenarioName = 'Tech Week - Sesión General',
   scenarioDescription = 'Práctica de presentaciones técnicas y pitch sessions',
-  objectives
+  objectives,
+  autoStart = false
 }: TechWeekVoiceAssistantProps) {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -94,6 +96,16 @@ export function TechWeekVoiceAssistant({
       sessionIdRef.current = sessionId;
     }
   }, [sessionId, currentSessionId]);
+
+  // Auto-start conversation when component mounts
+  const hasAutoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStart && !hasAutoStarted.current && !isConnected && !isConnecting) {
+      hasAutoStarted.current = true;
+      console.log('🚀 [TechWeekVoiceAssistant] Auto-starting conversation...');
+      startConversation();
+    }
+  }, [autoStart]);
 
   // Función para añadir mensaje al historial
   const addMessageToHistory = (source: 'user' | 'ai', message: string) => {

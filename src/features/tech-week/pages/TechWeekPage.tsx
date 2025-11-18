@@ -13,9 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { TechWeekService, supabase } from '@maity/shared';
 import { TechWeekVoiceAssistant } from '../components/TechWeekVoiceAssistant';
-import { TechWeekInstructions } from '../components/TechWeekInstructions';
 import { Button } from '@/ui/components/ui/button';
-import { ArrowLeft, Loader2, History } from 'lucide-react';
+import { ArrowLeft, Loader2, History, Sparkles } from 'lucide-react';
 import { toast } from '@/shared/hooks/use-toast';
 import { env } from '@/lib/env';
 
@@ -313,37 +312,62 @@ export function TechWeekPage() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         {!showPractice ? (
-          /* Instructions View */
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <TechWeekInstructions
-                scenarioName={scenario.scenario.name}
-                userInstructions={scenario.config?.user_instructions}
-                minScoreToPass={scenario.config?.min_score_to_pass || 70}
-              />
-
-              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6 space-y-4">
-                <h2 className="text-xl font-semibold" style={{ color: '#FF69B4' }}>
-                  ¿Listo para practicar?
-                </h2>
-
-                <div className="space-y-3 text-sm text-gray-400">
-                  <p>
-                    Esta sesión de Tech Week te permitirá practicar presentaciones técnicas,
-                    pitch sessions, y conversaciones profesionales del ecosistema tecnológico.
-                  </p>
-
-                  <div className="space-y-2">
-                    <p className="font-medium text-gray-300">Antes de comenzar:</p>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Asegúrate de tener tu micrófono funcionando</li>
-                      <li>Busca un lugar tranquilo sin distracciones</li>
-                      <li>Prepara tu elevator pitch mental</li>
-                      <li>Relájate y habla con naturalidad</li>
-                    </ul>
+          /* Instructions View - Single Card */
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 space-y-6">
+              {/* Header con felicitación */}
+              <div className="text-center space-y-3">
+                <div className="flex justify-center">
+                  <div className="p-3 rounded-full" style={{ backgroundColor: '#FF69B420' }}>
+                    <Sparkles className="h-8 w-8" style={{ color: '#FF69B4' }} />
                   </div>
                 </div>
+                <h2 className="text-2xl font-bold text-white">
+                  ¡Felicidades!
+                </h2>
+                <p className="text-lg text-gray-300">
+                  Has sido seleccionada para evaluar tu comunicación.
+                </p>
+              </div>
 
+              {/* Objetivo */}
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold" style={{ color: '#FF69B4' }}>
+                  Objetivo
+                </h3>
+                <p className="text-base text-gray-300">
+                  Desarrollar tu capacidad para comunicar ideas técnicas de forma clara,
+                  responder preguntas con confianza, y presentarte profesionalmente.
+                </p>
+              </div>
+
+              {/* Tips */}
+              <div className="rounded-lg p-4" style={{
+                backgroundColor: '#FF69B410',
+                border: '1px solid #FF69B420'
+              }}>
+                <p className="text-base font-medium text-white mb-3">Antes de comenzar:</p>
+                <ul className="space-y-2 text-base text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span style={{ color: '#FF69B4' }}>•</span>
+                    <span>Asegúrate de tener tu micrófono funcionando</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span style={{ color: '#FF69B4' }}>•</span>
+                    <span>Busca un lugar tranquilo sin distracciones</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span style={{ color: '#FF69B4' }}>•</span>
+                    <span>Relájate y diviértete</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center space-y-4 pt-2">
+                <p className="text-lg font-semibold" style={{ color: '#FF69B4' }}>
+                  ¿Listo para practicar?
+                </p>
                 <Button
                   onClick={() => setShowPractice(true)}
                   className="w-full py-6 text-lg font-semibold hover:scale-105 transition-transform"
@@ -369,6 +393,7 @@ export function TechWeekPage() {
               scenarioName={scenario.scenario.name}
               scenarioDescription={scenario.scenario.context}
               objectives={JSON.stringify(scenario.scenario.objectives)}
+              autoStart={true}
             />
           </div>
         )}

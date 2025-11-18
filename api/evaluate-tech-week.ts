@@ -156,6 +156,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
   const userId = maityUser.id;
 
+  // Check if user is admin
+  const { data: userRoles } = await supabase.rpc('get_user_role', { p_user_id: userId });
+  const isAdmin = userRoles === 'admin';
+
   // Check rate limits against tech_week_evaluations table
   await checkRateLimits(supabase, userId);
 
@@ -196,10 +200,13 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     timestamp: new Date().toISOString(),
   });
 
-  // Verify session ownership
-  if (session.user_id !== userId) {
+  // Verify session ownership (admins can evaluate any session)
+  if (session.user_id !== userId && !isAdmin) {
     throw ApiError.forbidden('Session does not belong to user');
   }
+
+  // Use session owner's userId for the evaluation record
+  const sessionOwnerId = session.user_id;
 
   // Verify session has transcript
   if (!session.transcript) {
@@ -216,9 +223,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   console.log({
     event: 'tech_week_evaluation_request_received',
     sessionId: session.id,
-    userId,
+    userId: sessionOwnerId,
     requestId,
     transcriptMessages: transcript.length,
+    triggeredByAdmin: isAdmin && session.user_id !== userId,
     timestamp: new Date().toISOString(),
   });
 
@@ -229,7 +237,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     objective: 'Evaluar habilidades de presentación técnica, pitch y comunicación en contexto tecnológico. Analizar claridad, estructura, persuasión y manejo de temas técnicos.',
     transcript,
     sessionId: session.id,
-    userId,
+    userId: sessionOwnerId,
   });
 
   // Calculate scores from evaluation result
@@ -255,7 +263,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     .upsert({
       request_id: requestId,
       session_id: session.id,
-      user_id: userId,
+      user_id: sessionOwnerId,
       status: 'complete',
       score: overallScore,
       passed,
@@ -295,7 +303,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   console.log({
     event: 'tech_week_evaluation_saved',
     sessionId: session.id,
-    userId,
+    userId: sessionOwnerId,
     requestId,
     score: overallScore,
     passed,
