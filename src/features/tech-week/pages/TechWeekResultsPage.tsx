@@ -1,11 +1,18 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { TechWeekService, supabase } from '@maity/shared';
 import { toast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { TechWeekSessionResults } from '../components/TechWeekSessionResults';
 import { env } from '@/lib/env';
+import { Button } from '@/ui/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/ui/components/ui/dialog';
 
 /**
  * TechWeekResultsPage - Display results for a Tech Week session
@@ -21,6 +28,7 @@ export function TechWeekResultsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluationLoading, setIsEvaluationLoading] = useState(false);
   const [isReEvaluating, setIsReEvaluating] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
@@ -154,14 +162,38 @@ export function TechWeekResultsPage() {
   }
 
   return (
-    <TechWeekSessionResults
-      sessionId={sessionId!}
-      sessionData={session}
-      evaluationData={evaluation}
-      isEvaluationLoading={isEvaluationLoading}
-      isViewingOtherUser={isViewingOtherUser}
-      onReEvaluate={handleReEvaluate}
-      isReEvaluating={isReEvaluating}
-    />
+    <>
+      <TechWeekSessionResults
+        sessionId={sessionId!}
+        sessionData={session}
+        evaluationData={evaluation}
+        isEvaluationLoading={isEvaluationLoading}
+        isViewingOtherUser={isViewingOtherUser}
+        onReEvaluate={handleReEvaluate}
+        isReEvaluating={isReEvaluating}
+        onViewTranscript={() => setShowTranscript(true)}
+      />
+
+      {/* Transcript Modal */}
+      <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center justify-between">
+              Transcripción de la Sesión
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[60vh] p-4 bg-gray-800/50 rounded-lg">
+            {session?.transcript ? (
+              <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
+                {session.transcript}
+              </pre>
+            ) : (
+              <p className="text-gray-400 italic">No hay transcripción disponible</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+

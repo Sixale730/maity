@@ -15,7 +15,7 @@ import { TechWeekService, supabase } from '@maity/shared';
 import { TechWeekVoiceAssistant } from '../components/TechWeekVoiceAssistant';
 import { TechWeekInstructions } from '../components/TechWeekInstructions';
 import { Button } from '@/ui/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, History } from 'lucide-react';
 import { toast } from '@/shared/hooks/use-toast';
 import { env } from '@/lib/env';
 
@@ -302,6 +302,15 @@ export function TechWeekPage() {
                 </p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/tech-week/sessions')}
+              className="border-[#FF69B4]/40 hover:bg-[#FF69B4]/20 text-[#FF69B4]"
+            >
+              <History className="h-4 w-4 mr-2" />
+              Historial
+            </Button>
           </div>
         </div>
       </div>
