@@ -10,6 +10,7 @@ import React from 'react';
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
 import { Progress } from '@/ui/components/ui/progress';
+import { Input } from '@/ui/components/ui/input';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/ui/components/ui/chart';
 import {
   Trophy,
@@ -55,6 +56,8 @@ interface TechWeekSessionResultsProps {
   isReEvaluating?: boolean;
   isViewingOtherUser?: boolean;
   onViewTranscript?: () => void;
+  customName?: string;
+  onCustomNameChange?: (name: string) => void;
 }
 
 // Pink/Purple color palette for Tech Week
@@ -121,6 +124,8 @@ export function TechWeekSessionResults({
   isReEvaluating = false,
   isViewingOtherUser = false,
   onViewTranscript,
+  customName = '',
+  onCustomNameChange,
 }: TechWeekSessionResultsProps) {
   const navigate = useNavigate();
 
@@ -427,18 +432,21 @@ export function TechWeekSessionResults({
       await PDFService.generateSessionPDF(
         {
           sessionId,
-          userName: sessionData?.user_name,
-          userEmail: sessionData?.user_email,
-          companyName: sessionData?.company_name,
           sessionType: 'tech_week',
           profileName: 'Tech Week',
           scenarioName: 'Práctica General',
           score: calculatedScore,
-          passed,
           duration,
           startedAt: sessionData?.started_at,
           wordCount: userWordCount,
           dimensions: dimensions.length > 0 ? dimensions : undefined,
+          // Tech Week specific
+          customName: customName || undefined,
+          feedback: {
+            fortalezas: fortalezas || undefined,
+            errores: errores || undefined,
+            recomendaciones: recomendaciones || undefined,
+          },
         },
         {
           includeCharts: hasEvaluation,
@@ -604,15 +612,9 @@ export function TechWeekSessionResults({
             ) : (
               <>
                 <div className="flex justify-center">
-                  {passed ? (
-                    <div className="p-3 sm:p-4 rounded-full" style={{ backgroundColor: `${PINK_COLORS.hotPink}1A` }}>
-                      <Trophy className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12" style={{ color: PINK_COLORS.hotPink }} />
-                    </div>
-                  ) : (
-                    <div className="p-3 sm:p-4 bg-red-500/10 rounded-full">
-                      <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-red-400" />
-                    </div>
-                  )}
+                  <div className="p-3 sm:p-4 rounded-full" style={{ backgroundColor: `${PINK_COLORS.hotPink}1A` }}>
+                    <Trophy className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12" style={{ color: PINK_COLORS.hotPink }} />
+                  </div>
                 </div>
 
                 <div>
@@ -620,25 +622,12 @@ export function TechWeekSessionResults({
                     <span style={{ color: getScoreColorHex(displayScore || 0) }}>{displayScore || '—'}</span>
                     <span className="text-gray-500">/100</span>
                   </div>
-                  <p className="text-base sm:text-lg lg:text-xl mt-2">
-                    {passed ? (
-                      <span style={{ color: PINK_COLORS.hotPink }}>¡Aprobado!</span>
-                    ) : passed === false ? (
-                      <span className="text-red-400">Necesitas 60 puntos para aprobar</span>
-                    ) : (
-                      <span className="text-gray-400">Evaluación pendiente</span>
-                    )}
+                  <p className="text-base sm:text-lg lg:text-xl mt-2 text-gray-400">
+                    Puntuación obtenida
                   </p>
                 </div>
               </>
             )}
-
-            <div className="flex justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-400 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Target className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>Score mínimo: 60</span>
-              </div>
-            </div>
           </div>
         </Card>
 
@@ -686,43 +675,6 @@ export function TechWeekSessionResults({
             </div>
           </Card>
         </div>
-
-        {/* Objetivo del Escenario y Feedback */}
-        {objectiveFeedback && (
-          <Card className="bg-gradient-to-br from-pink-900/30 to-purple-900/30 border-pink-500/20 p-4 sm:p-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-start gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-pink-500/10 rounded-lg flex-shrink-0">
-                  <Target className="h-6 w-6 sm:h-8 sm:w-8" style={{ color: PINK_COLORS.hotPink }} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Evaluación del Objetivo</h3>
-                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
-                    {typeof objectiveFeedback === 'string' ? objectiveFeedback : objectiveFeedback}
-                  </p>
-                </div>
-              </div>
-
-              {/* Indicador visual basado en si pasó la sesión */}
-              {!isProcessing && passed !== null && (
-                <div className="pt-3 sm:pt-4 border-t border-pink-500/20">
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    {passed ? (
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" style={{ color: PINK_COLORS.hotPink }} />
-                    ) : (
-                      <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                    )}
-                    <div>
-                      <p className="text-sm sm:text-base font-medium text-white">
-                        {passed ? 'Objetivo Cumplido' : 'Objetivo No Cumplido'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
 
         {/* Gráfico Radar 360° - Evaluación de Habilidades */}
         {!isProcessing && radarData.length > 0 && (
@@ -1026,88 +978,95 @@ export function TechWeekSessionResults({
 
         {/* Acciones */}
         <Card className="bg-gray-900/50 border-gray-800 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Button
-              onClick={() => navigate('/tech-week')}
-              variant="outline"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
-            >
-              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-              Nueva Práctica
-            </Button>
+          <div className="space-y-4">
+            {/* Custom Name Input for PDF */}
+            {onCustomNameChange && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <label className="text-sm text-gray-400 whitespace-nowrap">
+                  Nombre para el PDF:
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Ingresa el nombre del participante"
+                  value={customName}
+                  onChange={(e) => onCustomNameChange(e.target.value)}
+                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                />
+              </div>
+            )}
 
-            <Button
-              onClick={() => navigate('/tech-week/sessions')}
-              variant="outline"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
-            >
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              Ver Historial
-            </Button>
-
-            {onViewTranscript && (
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button
-                onClick={onViewTranscript}
+                onClick={() => navigate('/tech-week')}
+                variant="outline"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
+              >
+                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                Nueva Práctica
+              </Button>
+
+              <Button
+                onClick={() => navigate('/tech-week/sessions')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
               >
                 <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                Ver Transcripción
+                Ver Historial
               </Button>
-            )}
 
-            {/* Download PDF Button */}
-            <Button
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-              variant="outline"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-green-400 border-t-transparent rounded-full" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Descargar PDF
-                </>
+              {onViewTranscript && (
+                <Button
+                  onClick={onViewTranscript}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
+                >
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Ver Transcripción
+                </Button>
               )}
-            </Button>
 
-            {/* Re-evaluate Button */}
-            {onReEvaluate && (
+              {/* Download PDF Button */}
               <Button
-                onClick={onReEvaluate}
-                disabled={isReEvaluating || isProcessing}
+                onClick={handleGeneratePDF}
+                disabled={isGeneratingPDF}
                 variant="outline"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
               >
-                {isReEvaluating || isProcessing ? (
+                {isGeneratingPDF ? (
                   <>
-                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    {isProcessing ? 'Procesando...' : 'Reevaluando...'}
+                    <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-green-400 border-t-transparent rounded-full" />
+                    Generando...
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-                    Reevaluar Sesión
+                    <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Descargar PDF
                   </>
                 )}
               </Button>
-            )}
 
-            {passed && (
-              <Button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
-                style={{ backgroundColor: PINK_COLORS.hotPink }}
-              >
-                <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
-                ¡Completado!
-              </Button>
-            )}
+              {/* Re-evaluate Button */}
+              {onReEvaluate && (
+                <Button
+                  onClick={onReEvaluate}
+                  disabled={isReEvaluating || isProcessing}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11 border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
+                >
+                  {isReEvaluating || isProcessing ? (
+                    <>
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      {isProcessing ? 'Procesando...' : 'Reevaluando...'}
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                      Reevaluar Sesión
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
 

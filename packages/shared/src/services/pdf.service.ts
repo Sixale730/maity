@@ -15,6 +15,21 @@ export interface DimensionData {
   }>;
 }
 
+export interface FeedbackData {
+  fortalezas?: {
+    Cita?: string;
+    Feedback?: string;
+  } | string;
+  errores?: {
+    Cita?: string;
+    Feedback?: string;
+  } | string;
+  recomendaciones?: {
+    Cita?: string;
+    Feedback?: string;
+  } | string;
+}
+
 export interface SessionPDFData {
   sessionId: string;
   userName?: string;
@@ -29,6 +44,9 @@ export interface SessionPDFData {
   startedAt?: string;
   wordCount?: number;
   dimensions?: DimensionData[];
+  // Tech Week specific
+  customName?: string;
+  feedback?: FeedbackData;
 }
 
 export class PDFService {
@@ -78,69 +96,102 @@ export class PDFService {
 
     yPosition = 35;
 
-    // User Information Section (compact, two columns)
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Información del Usuario', margin, yPosition);
-    yPosition += 6;
+    const isTechWeek = data.sessionType === 'tech_week';
 
-    pdf.setFontSize(9);
-    pdf.setFont('helvetica', 'normal');
+    // User Information Section (skip for Tech Week)
+    if (!isTechWeek) {
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Información del Usuario', margin, yPosition);
+      yPosition += 6;
 
-    const leftColumn = margin;
-    const rightColumn = pageWidth / 2 + 5;
-    const startY = yPosition;
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
 
-    // Left column
-    if (data.userName) {
-      pdf.text(`Usuario: ${data.userName}`, leftColumn, yPosition);
-      yPosition += 4;
-    }
+      const leftColumn = margin;
+      const rightColumn = pageWidth / 2 + 5;
+      const startY = yPosition;
 
-    if (data.userEmail) {
-      pdf.text(`Email: ${data.userEmail}`, leftColumn, yPosition);
-      yPosition += 4;
-    }
+      // Left column
+      if (data.userName) {
+        pdf.text(`Usuario: ${data.userName}`, leftColumn, yPosition);
+        yPosition += 4;
+      }
 
-    if (data.companyName) {
-      pdf.text(`Empresa: ${data.companyName}`, leftColumn, yPosition);
-      yPosition += 4;
-    }
+      if (data.userEmail) {
+        pdf.text(`Email: ${data.userEmail}`, leftColumn, yPosition);
+        yPosition += 4;
+      }
 
-    // Right column
-    let rightY = startY;
+      if (data.companyName) {
+        pdf.text(`Empresa: ${data.companyName}`, leftColumn, yPosition);
+        yPosition += 4;
+      }
 
-    if (data.profileName) {
-      pdf.text(`Perfil: ${data.profileName}`, rightColumn, rightY);
+      // Right column
+      let rightY = startY;
+
+      if (data.profileName) {
+        pdf.text(`Perfil: ${data.profileName}`, rightColumn, rightY);
+        rightY += 4;
+      }
+
+      if (data.scenarioName) {
+        pdf.text(`Escenario: ${data.scenarioName}`, rightColumn, rightY);
+        rightY += 4;
+      }
+
+      const minutes = Math.floor(data.duration / 60);
+      const seconds = data.duration % 60;
+      pdf.text(`Duración: ${minutes}:${seconds.toString().padStart(2, '0')}`, rightColumn, rightY);
       rightY += 4;
-    }
 
-    if (data.scenarioName) {
-      pdf.text(`Escenario: ${data.scenarioName}`, rightColumn, rightY);
-      rightY += 4;
-    }
+      if (data.wordCount !== undefined) {
+        pdf.text(`Palabras: ${data.wordCount}`, rightColumn, rightY);
+        rightY += 4;
+      }
 
-    const minutes = Math.floor(data.duration / 60);
-    const seconds = data.duration % 60;
-    pdf.text(`Duración: ${minutes}:${seconds.toString().padStart(2, '0')}`, rightColumn, rightY);
-    rightY += 4;
+      // Update yPosition to the max of both columns
+      yPosition = Math.max(yPosition, rightY) + 2;
 
-    if (data.wordCount !== undefined) {
-      pdf.text(`Palabras: ${data.wordCount}`, rightColumn, rightY);
-      rightY += 4;
-    }
+      if (data.startedAt) {
+        const date = new Date(data.startedAt).toLocaleString('es-MX', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        });
+        pdf.text(`Fecha: ${date}`, leftColumn, yPosition);
+        yPosition += 5;
+      }
+    } else {
+      // Tech Week: Just show custom name (if any), duration and word count
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
 
-    // Update yPosition to the max of both columns
-    yPosition = Math.max(yPosition, rightY) + 2;
+      if (data.customName) {
+        pdf.text(`Participante: ${data.customName}`, margin, yPosition);
+        yPosition += 4;
+      }
 
-    if (data.startedAt) {
-      const date = new Date(data.startedAt).toLocaleString('es-MX', {
-        dateStyle: 'short',
-        timeStyle: 'short'
-      });
-      pdf.text(`Fecha: ${date}`, leftColumn, yPosition);
-      yPosition += 5;
+      const minutes = Math.floor(data.duration / 60);
+      const seconds = data.duration % 60;
+      pdf.text(`Duración: ${minutes}:${seconds.toString().padStart(2, '0')}`, margin, yPosition);
+      yPosition += 4;
+
+      if (data.wordCount !== undefined) {
+        pdf.text(`Palabras: ${data.wordCount}`, margin, yPosition);
+        yPosition += 4;
+      }
+
+      if (data.startedAt) {
+        const date = new Date(data.startedAt).toLocaleString('es-MX', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        });
+        pdf.text(`Fecha: ${date}`, margin, yPosition);
+        yPosition += 5;
+      }
     }
 
     // Score Section (compact)
@@ -176,8 +227,8 @@ export class PDFService {
       pdf.text('SCORE', margin + scoreBoxWidth / 2, yPosition + scoreBoxHeight / 2 + 7, { align: 'center' });
     }
 
-    // Passed/Failed indicator
-    if (data.passed !== undefined && data.passed !== null) {
+    // Passed/Failed indicator (skip for Tech Week)
+    if (!isTechWeek && data.passed !== undefined && data.passed !== null) {
       const passedBoxX = margin + scoreBoxWidth + 5;
       const passedColor = data.passed ? [34, 197, 94] : [239, 68, 68];
       pdf.setFillColor(passedColor[0], passedColor[1], passedColor[2]);
@@ -244,6 +295,118 @@ export class PDFService {
       });
 
       yPosition = Math.max(leftY, rightY) + 3;
+    }
+
+    // Feedback Section (Tech Week only)
+    if (isTechWeek && data.feedback) {
+      checkNewPage(40);
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Feedback del Agente', margin, yPosition);
+      yPosition += 6;
+
+      pdf.setFontSize(9);
+
+      // Fortalezas
+      if (data.feedback.fortalezas) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(255, 105, 180); // Hot pink
+        pdf.text('Fortalezas', margin, yPosition);
+        yPosition += 4;
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(60, 60, 60);
+
+        const fortalezas = data.feedback.fortalezas;
+        if (typeof fortalezas === 'string') {
+          const lines = pdf.splitTextToSize(fortalezas, pageWidth - 2 * margin);
+          pdf.text(lines, margin, yPosition);
+          yPosition += lines.length * 3.5 + 3;
+        } else {
+          if (fortalezas.Cita) {
+            pdf.setFont('helvetica', 'italic');
+            const citaLines = pdf.splitTextToSize(`"${fortalezas.Cita}"`, pageWidth - 2 * margin - 5);
+            pdf.text(citaLines, margin + 3, yPosition);
+            yPosition += citaLines.length * 3.5 + 2;
+          }
+          if (fortalezas.Feedback) {
+            pdf.setFont('helvetica', 'normal');
+            const feedbackLines = pdf.splitTextToSize(fortalezas.Feedback, pageWidth - 2 * margin);
+            pdf.text(feedbackLines, margin, yPosition);
+            yPosition += feedbackLines.length * 3.5 + 3;
+          }
+        }
+      }
+
+      // Errores
+      if (data.feedback.errores) {
+        checkNewPage(20);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(239, 68, 68); // Red
+        pdf.text('Errores', margin, yPosition);
+        yPosition += 4;
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(60, 60, 60);
+
+        const errores = data.feedback.errores;
+        if (typeof errores === 'string') {
+          const lines = pdf.splitTextToSize(errores, pageWidth - 2 * margin);
+          pdf.text(lines, margin, yPosition);
+          yPosition += lines.length * 3.5 + 3;
+        } else {
+          if (errores.Cita) {
+            pdf.setFont('helvetica', 'italic');
+            const citaLines = pdf.splitTextToSize(`"${errores.Cita}"`, pageWidth - 2 * margin - 5);
+            pdf.text(citaLines, margin + 3, yPosition);
+            yPosition += citaLines.length * 3.5 + 2;
+          }
+          if (errores.Feedback) {
+            pdf.setFont('helvetica', 'normal');
+            const feedbackLines = pdf.splitTextToSize(errores.Feedback, pageWidth - 2 * margin);
+            pdf.text(feedbackLines, margin, yPosition);
+            yPosition += feedbackLines.length * 3.5 + 3;
+          }
+        }
+      }
+
+      // Recomendaciones
+      if (data.feedback.recomendaciones) {
+        checkNewPage(20);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(155, 77, 202); // Purple
+        pdf.text('Recomendaciones', margin, yPosition);
+        yPosition += 4;
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(60, 60, 60);
+
+        const recomendaciones = data.feedback.recomendaciones;
+        if (typeof recomendaciones === 'string') {
+          const lines = pdf.splitTextToSize(recomendaciones, pageWidth - 2 * margin);
+          pdf.text(lines, margin, yPosition);
+          yPosition += lines.length * 3.5 + 3;
+        } else {
+          if (recomendaciones.Cita) {
+            pdf.setFont('helvetica', 'italic');
+            const citaLines = pdf.splitTextToSize(`"${recomendaciones.Cita}"`, pageWidth - 2 * margin - 5);
+            pdf.text(citaLines, margin + 3, yPosition);
+            yPosition += citaLines.length * 3.5 + 2;
+          }
+          if (recomendaciones.Feedback) {
+            pdf.setFont('helvetica', 'normal');
+            const feedbackLines = pdf.splitTextToSize(recomendaciones.Feedback, pageWidth - 2 * margin);
+            pdf.text(feedbackLines, margin, yPosition);
+            yPosition += feedbackLines.length * 3.5 + 3;
+          }
+        }
+      }
+
+      yPosition += 3;
     }
 
     // Capture and add charts if requested (2 charts side by side with dark background)
@@ -345,7 +508,10 @@ export class PDFService {
 
     // Generate filename
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `Maity_${sessionTypeText}_${data.userName || 'Usuario'}_${timestamp}.pdf`;
+    const nameForFile = isTechWeek
+      ? (data.customName || 'Participante')
+      : (data.userName || 'Usuario');
+    const filename = `Maity_${sessionTypeText}_${nameForFile}_${timestamp}.pdf`;
 
     // Download PDF
     pdf.save(filename);

@@ -29,6 +29,7 @@ export function TechWeekResultsPage() {
   const [isEvaluationLoading, setIsEvaluationLoading] = useState(false);
   const [isReEvaluating, setIsReEvaluating] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [customName, setCustomName] = useState('');
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
@@ -172,6 +173,8 @@ export function TechWeekResultsPage() {
         onReEvaluate={handleReEvaluate}
         isReEvaluating={isReEvaluating}
         onViewTranscript={() => setShowTranscript(true)}
+        customName={customName}
+        onCustomNameChange={setCustomName}
       />
 
       {/* Transcript Modal */}
