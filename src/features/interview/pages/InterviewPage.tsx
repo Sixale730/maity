@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
@@ -8,6 +8,9 @@ import { useToast } from '@/shared/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
 import { Briefcase, CheckCircle2, Loader2 } from 'lucide-react';
+
+const POLL_INTERVAL = 3000; // Poll every 3 seconds
+const MAX_POLL_ATTEMPTS = 60; // 3 minutes max
 
 export function InterviewPage() {
   const navigate = useNavigate();
@@ -102,6 +105,54 @@ export function InterviewPage() {
     }
   };
 
+  // Poll for evaluation completion
+  const pollForCompletion = useCallback(async (
+    requestId: string,
+    sessionId: string,
+    accessToken: string,
+    attempt: number = 0
+  ): Promise<void> => {
+    if (attempt >= MAX_POLL_ATTEMPTS) {
+      throw new Error('El análisis está tomando más tiempo de lo esperado. Por favor, revisa los resultados más tarde.');
+    }
+
+    const response = await fetch(`${env.apiUrl}/api/check-evaluation-status?request_id=${requestId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al verificar el estado de la evaluación');
+    }
+
+    const data = await response.json();
+    console.log(`[InterviewPage] 📊 Poll attempt ${attempt + 1}: status=${data.status}`);
+
+    if (data.status === 'complete') {
+      console.log('[InterviewPage] ✅ Análisis completado');
+      toast({
+        title: '¡Entrevista analizada!',
+        description: 'Tu entrevista ha sido evaluada exitosamente.',
+      });
+      navigate(`/primera-entrevista/resultados/${sessionId}`);
+      setCurrentSessionId(null);
+      sessionIdRef.current = null;
+      setIsProcessingAnalysis(false);
+      return;
+    }
+
+    if (data.status === 'error') {
+      console.error('[InterviewPage] ❌ Evaluation error:', data.error_message);
+      throw new Error(data.error_message || 'Error al procesar la evaluación');
+    }
+
+    // Still processing, wait and poll again
+    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+    return pollForCompletion(requestId, sessionId, accessToken, attempt + 1);
+  }, [navigate, toast]);
+
   const handleSessionEnd = async (
     transcript: string,
     duration: number,
@@ -142,7 +193,7 @@ export function InterviewPage() {
       const requestId = await InterviewService.createEvaluation(idToUpdate, userId);
       console.log('[InterviewPage] ✅ Evaluación creada:', requestId);
 
-      // 3. Llamar a OpenAI para análisis (sincrónico)
+      // 3. Llamar a API para iniciar análisis (async - returns immediately)
       console.log('[InterviewPage] 🤖 Iniciando análisis con OpenAI...');
 
       const authSession = await AuthService.getSession();
@@ -179,24 +230,11 @@ export function InterviewPage() {
         throw new Error(errorMessage);
       }
 
-      const { evaluation } = await response.json();
-      console.log('[InterviewPage] ✅ Análisis completado:', {
-        is_complete: evaluation.is_complete,
-        has_amazing_comment: !!evaluation.amazing_comment,
-      });
+      const result = await response.json();
+      console.log('[InterviewPage] 📝 Evaluation started, polling for completion...', result);
 
-      toast({
-        title: '¡Entrevista analizada!',
-        description: 'Tu entrevista ha sido evaluada exitosamente.',
-      });
-
-      // 4. Navegar a la página de resultados
-      console.log('[InterviewPage] 🔄 Redirigiendo a resultados...');
-      navigate(`/primera-entrevista/resultados/${idToUpdate}`);
-
-      setCurrentSessionId(null);
-      sessionIdRef.current = null;
-      setIsProcessingAnalysis(false);
+      // 4. Poll for completion
+      await pollForCompletion(requestId, idToUpdate, authSession.access_token);
     } catch (error) {
       console.error('Error al finalizar sesión:', error);
       setIsProcessingAnalysis(false);

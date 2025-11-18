@@ -1,12 +1,12 @@
 /**
- * Evaluate Interview Endpoint (Edge Runtime)
+ * Evaluate Interview Endpoint (Edge Runtime with Async Processing)
  *
  * Evaluates an interview session using OpenAI.
  * Provides comprehensive analysis of communication skills and areas for improvement.
  *
  * Features:
- * - Edge Runtime with 30s timeout (vs 10s serverless)
- * - Synchronous evaluation (3-10s response time)
+ * - Edge Runtime with waitUntil() for background processing
+ * - Returns immediately, processes OpenAI in background
  * - Rate limiting (5 eval/min, 50 eval/day per user)
  * - Retry logic with exponential backoff
  * - Comprehensive logging
@@ -15,6 +15,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { waitUntil } from '@vercel/functions';
 import {
   evaluateInterviewSession,
   parseTranscript,
@@ -305,21 +306,75 @@ export default async function handler(req: Request): Promise<Response> {
     })
     .eq('request_id', body.request_id);
 
-  // Wrap evaluation logic in try-catch to handle errors properly
-  let evaluation;
-  let analysis;
-  let parsedAnalysis;
+  // Process evaluation in background using waitUntil
+  // This allows the function to return immediately while continuing to process
+  waitUntil(processEvaluationAsync({
+    supabaseUrl,
+    serviceRoleKey,
+    sessionId: session.id,
+    requestId: body.request_id,
+    userId,
+    sessionOwnerName,
+    transcript,
+  }));
+
+  // Return immediately - frontend will poll for completion
+  return jsonResponse({
+    ok: true,
+    status: 'processing',
+    request_id: body.request_id,
+    session_id: session.id,
+    message: 'Evaluation started. Poll for completion.',
+  }, 202, req);
+}
+
+// ============================================================================
+// ASYNC EVALUATION PROCESSING
+// ============================================================================
+
+interface ProcessEvaluationParams {
+  supabaseUrl: string;
+  serviceRoleKey: string;
+  sessionId: string;
+  requestId: string;
+  userId: string;
+  sessionOwnerName: string;
+  transcript: Array<{ role: string; content: string }>;
+}
+
+async function processEvaluationAsync(params: ProcessEvaluationParams): Promise<void> {
+  const {
+    supabaseUrl,
+    serviceRoleKey,
+    sessionId,
+    requestId,
+    userId,
+    sessionOwnerName,
+    transcript,
+  } = params;
+
+  // Create a new Supabase client for background processing
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    db: {
+      schema: 'maity'
+    }
+  });
 
   try {
     // Call OpenAI interview evaluation service
-    analysis = await evaluateInterviewSession({
+    const analysis = await evaluateInterviewSession({
       transcript,
-      sessionId: session.id,
+      sessionId,
       userId,
-      userName: sessionOwnerName, // Use session owner's name, not evaluator's name
+      userName: sessionOwnerName,
     });
 
     // Parse the analysis JSON to extract structured fields
+    let parsedAnalysis;
     try {
       parsedAnalysis = JSON.parse(analysis);
     } catch (parseError) {
@@ -329,8 +384,8 @@ export default async function handler(req: Request): Promise<Response> {
 
     console.log({
       event: 'interview_evaluation_completed',
-      sessionId: session.id,
-      requestId: body.request_id,
+      sessionId,
+      requestId,
       userId,
       analysisLength: analysis.length,
       is_complete: parsedAnalysis.is_complete,
@@ -341,35 +396,31 @@ export default async function handler(req: Request): Promise<Response> {
     });
 
     // Update interview evaluation with analysis and structured fields
-    const { data: evalData, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .schema('maity')
       .from('interview_evaluations')
       .update({
         status: 'complete',
-        analysis_text: analysis, // Keep full JSON for backward compatibility
-        rubrics: parsedAnalysis.rubrics, // Store structured rubrics
-        key_observations: parsedAnalysis.key_observations || null, // Key insights from interview
-        amazing_comment: parsedAnalysis.amazing_comment, // Deep personality insight
-        summary: parsedAnalysis.summary, // Overall summary
-        is_complete: parsedAnalysis.is_complete, // Whether interview was sufficient
-        interviewee_name: sessionOwnerName, // Session owner's name, not evaluator
+        analysis_text: analysis,
+        rubrics: parsedAnalysis.rubrics,
+        key_observations: parsedAnalysis.key_observations || null,
+        amazing_comment: parsedAnalysis.amazing_comment,
+        summary: parsedAnalysis.summary,
+        is_complete: parsedAnalysis.is_complete,
+        interviewee_name: sessionOwnerName,
         updated_at: new Date().toISOString(),
       })
-      .eq('request_id', body.request_id)
-      .select()
-      .single();
+      .eq('request_id', requestId);
 
     if (updateError) {
       console.error('Error updating interview evaluation:', updateError);
       throw new Error('Failed to save interview evaluation');
     }
 
-    evaluation = evalData;
-
     console.log({
       event: 'interview_evaluation_saved',
-      requestId: evaluation.request_id,
-      sessionId: session.id,
+      requestId,
+      sessionId,
       userId,
       timestamp: new Date().toISOString(),
     });
@@ -377,8 +428,8 @@ export default async function handler(req: Request): Promise<Response> {
     // If anything fails, mark evaluation as error
     console.error({
       event: 'interview_evaluation_failed',
-      sessionId: session.id,
-      requestId: body.request_id,
+      sessionId,
+      requestId,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
     });
@@ -391,31 +442,6 @@ export default async function handler(req: Request): Promise<Response> {
         error_message: error instanceof Error ? error.message : 'Unknown error occurred',
         updated_at: new Date().toISOString(),
       })
-      .eq('request_id', body.request_id);
-
-    // Return error response
-    return errorResponse(
-      'EVALUATION_FAILED',
-      error instanceof Error ? error.message : 'Unknown error occurred',
-      500,
-      req
-    );
+      .eq('request_id', requestId);
   }
-
-  // Return success response with structured fields
-  return jsonResponse({
-    ok: true,
-    evaluation: {
-      request_id: evaluation.request_id,
-      session_id: session.id,
-      status: evaluation.status,
-      analysis_text: analysis,
-      rubrics: parsedAnalysis.rubrics,
-      key_observations: parsedAnalysis.key_observations,
-      amazing_comment: parsedAnalysis.amazing_comment,
-      summary: parsedAnalysis.summary,
-      is_complete: parsedAnalysis.is_complete,
-      interviewee_name: sessionOwnerName,
-    },
-  }, 200, req);
 }
