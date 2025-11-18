@@ -5,12 +5,12 @@ import { TechWeekService, supabase } from '@maity/shared';
 import { toast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { TechWeekSessionResults } from '../components/TechWeekSessionResults';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import { env } from '@/lib/env';
 
 /**
  * TechWeekResultsPage - Display results for a Tech Week session
  *
- * Loads session data and evaluation, with realtime updates for evaluation status
+ * Loads session data and evaluation with synchronous OpenAI evaluation
  */
 export function TechWeekResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -20,6 +20,7 @@ export function TechWeekResultsPage() {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluationLoading, setIsEvaluationLoading] = useState(false);
+  const [isReEvaluating, setIsReEvaluating] = useState(false);
 
   // Check if admin is viewing another user's session
   const isViewingOtherUser = session && userProfile && session.user_id !== userProfile.id;
@@ -66,55 +67,68 @@ export function TechWeekResultsPage() {
     loadData();
   }, [sessionId]);
 
-  // Realtime subscription for evaluation updates
-  useEffect(() => {
-    if (!sessionId || !evaluation?.request_id) return;
+  // Re-evaluate session using OpenAI API
+  const handleReEvaluate = async () => {
+    if (!sessionId) return;
 
-    let channel: RealtimeChannel | null = null;
+    try {
+      setIsReEvaluating(true);
+      setIsEvaluationLoading(true);
 
-    const subscribeToEvaluation = async () => {
-      try {
-        console.log('[TechWeekResults] 🔔 Setting up realtime subscription for:', evaluation.request_id);
-
-        channel = supabase
-          .channel(`tech_week_evaluation:${evaluation.request_id}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'maity',
-              table: 'tech_week_evaluations',
-              filter: `request_id=eq.${evaluation.request_id}`,
-            },
-            (payload) => {
-              console.log('[TechWeekResults] 🔄 Evaluation updated:', payload.new);
-              setEvaluation(payload.new);
-
-              // Stop loading if evaluation is complete or error
-              if (payload.new.status === 'complete' || payload.new.status === 'error') {
-                setIsEvaluationLoading(false);
-                console.log('[TechWeekResults] ✅ Evaluation finalized');
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('[TechWeekResults] 📡 Subscription status:', status);
-          });
-      } catch (error) {
-        console.error('[TechWeekResults] ❌ Error setting up realtime subscription:', error);
+      // Get access token
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession?.access_token) {
+        throw new Error('No authentication session');
       }
-    };
 
-    subscribeToEvaluation();
+      console.log('[TechWeekResults] 🔄 Re-evaluating session:', sessionId);
 
-    // Cleanup
-    return () => {
-      if (channel) {
-        console.log('[TechWeekResults] 🔕 Unsubscribing from realtime');
-        supabase.removeChannel(channel);
+      // Call Tech Week evaluation API
+      const response = await fetch(`${env.apiUrl}/api/evaluate-tech-week`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession.access_token}`,
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Re-evaluation failed');
       }
-    };
-  }, [sessionId, evaluation?.request_id]);
+
+      const result = await response.json();
+      console.log('[TechWeekResults] ✅ Re-evaluation completed:', result);
+
+      // Reload session and evaluation data
+      const sessionData = await TechWeekService.getSessionById(sessionId);
+      setSession(sessionData);
+
+      const evaluationData = await TechWeekService.getEvaluationBySessionId(sessionId);
+      if (evaluationData) {
+        setEvaluation(evaluationData);
+      }
+
+      toast({
+        title: 'Reevaluación completada',
+        description: `Nueva puntuación: ${result.evaluation?.score}/100`,
+      });
+
+    } catch (error) {
+      console.error('[TechWeekResults] ❌ Error re-evaluating:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo reevaluar la sesión',
+      });
+    } finally {
+      setIsReEvaluating(false);
+      setIsEvaluationLoading(false);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -146,21 +160,8 @@ export function TechWeekResultsPage() {
       evaluationData={evaluation}
       isEvaluationLoading={isEvaluationLoading}
       isViewingOtherUser={isViewingOtherUser}
-      onRetry={() => {
-        // Reload evaluation
-        TechWeekService.getEvaluationBySessionId(sessionId!)
-          .then(data => {
-            if (data) {
-              setEvaluation(data);
-              setIsEvaluationLoading(
-                data.status === 'pending' || data.status === 'processing'
-              );
-            }
-          })
-          .catch(err => {
-            console.error('Error reloading evaluation:', err);
-          });
-      }}
+      onReEvaluate={handleReEvaluate}
+      isReEvaluating={isReEvaluating}
     />
   );
 }

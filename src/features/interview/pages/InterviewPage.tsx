@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
@@ -17,6 +17,9 @@ export function InterviewPage() {
   const [userName, setUserName] = useState<string>('');
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isProcessingAnalysis, setIsProcessingAnalysis] = useState(false);
+
+  // Ref to track session ID immediately (avoids React state update delay)
+  const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -84,6 +87,8 @@ export function InterviewPage() {
 
       if (error) throw error;
 
+      // Set ref immediately (synchronous) to avoid timing issues
+      sessionIdRef.current = data.id;
       setCurrentSessionId(data.id);
       return data.id;
     } catch (error) {
@@ -103,10 +108,18 @@ export function InterviewPage() {
     sessionId?: string
   ) => {
     try {
-      const idToUpdate = sessionId || currentSessionId;
+      // Use multiple fallbacks for session ID to handle timing issues
+      const idToUpdate = sessionId || currentSessionId || sessionIdRef.current;
       if (!idToUpdate) {
+        console.error('[InterviewPage] ❌ No session ID found from any source:', {
+          sessionId,
+          currentSessionId,
+          sessionIdRef: sessionIdRef.current
+        });
         throw new Error('No se encontró el ID de la sesión');
       }
+
+      console.log('[InterviewPage] 📝 Using session ID:', idToUpdate);
 
       setIsProcessingAnalysis(true);
 
@@ -182,6 +195,7 @@ export function InterviewPage() {
       navigate(`/primera-entrevista/resultados/${idToUpdate}`);
 
       setCurrentSessionId(null);
+      sessionIdRef.current = null;
       setIsProcessingAnalysis(false);
     } catch (error) {
       console.error('Error al finalizar sesión:', error);
@@ -191,6 +205,21 @@ export function InterviewPage() {
         title: 'Error',
         description: error instanceof Error ? error.message : 'Ocurrió un error al procesar la entrevista.',
       });
+
+      // Fallback redirect to sessions history if we have any session ID
+      const fallbackId = sessionId || currentSessionId || sessionIdRef.current;
+      if (fallbackId) {
+        console.log('[InterviewPage] 🔄 Redirecting to results with fallback ID:', fallbackId);
+        navigate(`/primera-entrevista/resultados/${fallbackId}`);
+      } else {
+        // If no session ID at all, redirect to sessions list
+        console.log('[InterviewPage] 🔄 No session ID available, redirecting to sessions list');
+        navigate('/sessions');
+      }
+
+      // Clear state
+      setCurrentSessionId(null);
+      sessionIdRef.current = null;
     }
   };
 

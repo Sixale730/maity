@@ -74,6 +74,7 @@ export function RoleplayVoiceAssistant({
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const sessionStartTimeRef = useRef<Date | null>(null); // Ref para evitar closure issues
   const fullTranscriptRef = useRef<string>('');
+  const sessionIdRef = useRef<string | null>(null); // Ref para session ID (evita timing issues)
 
   // Estado para rastrear si la conexión es segura
   const [_isConnectionStable, setIsConnectionStable] = useState(false);
@@ -215,6 +216,7 @@ export function RoleplayVoiceAssistant({
     if (sessionId && sessionId !== currentSessionId) {
       console.log('📝 [RoleplayVoiceAssistant] Actualizando sessionId desde props:', sessionId);
       setCurrentSessionId(sessionId);
+      sessionIdRef.current = sessionId; // Sync ref immediately
     }
   }, [sessionId]);
 
@@ -232,6 +234,7 @@ export function RoleplayVoiceAssistant({
     // Limpiar estados anteriores para una nueva sesión
     setConversationHistory([]);
     fullTranscriptRef.current = '';
+    sessionIdRef.current = null; // Clear session ID ref for new session
     setTranscript('');
     setAgentResponse('');
     setSessionStartTime(null);
@@ -254,6 +257,8 @@ export function RoleplayVoiceAssistant({
 
       if (newSessionId) {
         console.log('✅ [RoleplayVoiceAssistant] Sesión creada:', newSessionId);
+        // Set ref immediately (synchronous) to avoid timing issues
+        sessionIdRef.current = newSessionId;
         setCurrentSessionId(newSessionId);
       } else {
         console.warn('⚠️ [RoleplayVoiceAssistant] No se pudo crear sesión, continuando sin ella');
@@ -386,15 +391,20 @@ export function RoleplayVoiceAssistant({
               // Procesar la sesión como si el usuario la hubiera terminado
               setTimeout(() => {
                 setIsProcessing(false);
+                // Use ref as fallback to avoid timing issues with state updates
+                const sessionIdToUse = sessionIdRef.current || currentSessionId;
+
                 console.log('📤 [onDisconnect] Llamando onSessionEnd con:', {
                   hasOnSessionEnd: !!onSessionEnd,
+                  sessionIdRef: sessionIdRef.current,
                   currentSessionId,
+                  sessionIdToUse,
                   transcriptLength: fullTranscriptRef.current.length,
                   duration: sessionDuration
                 });
 
                 if (onSessionEnd) {
-                  onSessionEnd(fullTranscriptRef.current, sessionDuration, currentSessionId || undefined, conversationHistory);
+                  onSessionEnd(fullTranscriptRef.current, sessionDuration, sessionIdToUse || undefined, conversationHistory);
                 } else {
                   console.error('❌ [onDisconnect] No hay onSessionEnd callback!');
                 }
@@ -550,16 +560,21 @@ export function RoleplayVoiceAssistant({
       setTimeout(() => {
         // Mantener isProcessing=true hasta que parent unmonte el componente
         // Esto evita el "flash" del botón "Iniciar Práctica" antes de navegar a resultados
+        // Use ref as fallback to avoid timing issues with state updates
+        const sessionIdToUse = sessionIdRef.current || currentSessionId;
+
         // Llamar callback con transcripción y duración
         console.log('📤 [RoleplayVoiceAssistant] Llamando onSessionEnd con:', {
           hasOnSessionEnd: !!onSessionEnd,
+          sessionIdRef: sessionIdRef.current,
           currentSessionId,
+          sessionIdToUse,
           transcriptLength: fullTranscriptRef.current.length,
           duration
         });
         if (onSessionEnd) {
           // Pasar el sessionId y los mensajes como parámetros adicionales
-          onSessionEnd(fullTranscriptRef.current, duration, currentSessionId || undefined, conversationHistory);
+          onSessionEnd(fullTranscriptRef.current, duration, sessionIdToUse || undefined, conversationHistory);
         } else {
           console.error('❌ [RoleplayVoiceAssistant] No hay onSessionEnd callback!');
         }

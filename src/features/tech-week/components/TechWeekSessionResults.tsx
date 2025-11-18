@@ -34,6 +34,7 @@ import {
   Check,
   FileText,
   Download,
+  RefreshCw,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -60,7 +61,8 @@ interface TechWeekSessionResultsProps {
   sessionData?: any;
   evaluationData?: any;
   isEvaluationLoading?: boolean;
-  onRetry?: () => void;
+  onReEvaluate?: () => void;
+  isReEvaluating?: boolean;
   isViewingOtherUser?: boolean;
 }
 
@@ -107,7 +109,8 @@ export function TechWeekSessionResults({
   sessionData,
   evaluationData,
   isEvaluationLoading = false,
-  onRetry,
+  onReEvaluate,
+  isReEvaluating = false,
   isViewingOtherUser = false,
 }: TechWeekSessionResultsProps) {
   const navigate = useNavigate();
@@ -323,26 +326,51 @@ export function TechWeekSessionResults({
                 </p>
               </div>
             </div>
-            {/* Download PDF Button */}
-            <Button
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-              variant="outline"
-              size="sm"
-              className="border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-green-400 border-t-transparent rounded-full" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar PDF
-                </>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Re-evaluate Button */}
+              {onReEvaluate && (
+                <Button
+                  onClick={onReEvaluate}
+                  disabled={isReEvaluating || isEvaluationLoading}
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-600/40 hover:bg-yellow-900/30 text-yellow-400 hover:text-yellow-300"
+                >
+                  {isReEvaluating ? (
+                    <>
+                      <RefreshCw className="animate-spin h-4 w-4 mr-2" />
+                      Reevaluando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reevaluar
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+              {/* Download PDF Button */}
+              <Button
+                onClick={handleGeneratePDF}
+                disabled={isGeneratingPDF}
+                variant="outline"
+                size="sm"
+                className="border-green-600/40 hover:bg-green-900/30 text-green-400 hover:text-green-300"
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-green-400 border-t-transparent rounded-full" />
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Descargar PDF
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

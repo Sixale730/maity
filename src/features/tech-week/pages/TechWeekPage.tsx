@@ -180,79 +180,64 @@ export function TechWeekPage() {
         status: 'completed'
       });
 
-      // Create evaluation request
+      // Create evaluation request via OpenAI API
       // Tech Week: Always evaluate, no minimum thresholds
       const shouldEvaluate = true;
 
-      if (shouldEvaluate && env.n8nWebhookUrl && currentUserId) {
-        console.log('📤 Creating evaluation for n8n processing...', {
+      if (shouldEvaluate && currentUserId) {
+        console.log('📤 Calling Tech Week evaluation API...', {
           sessionId: finalSessionId,
           userId: currentUserId,
           transcriptLength: transcript.length
         });
 
-        // Create Tech Week evaluation (uses tech_week_evaluations table)
-        const requestId = await TechWeekService.createEvaluation(
-          finalSessionId,
-          currentUserId
-        );
-
-        // Defensive check: MUST have valid requestId before sending to n8n
-        if (!requestId || typeof requestId !== 'string') {
-          console.error('❌ CRITICAL: Failed to create Tech Week evaluation', {
-            requestId,
-            sessionId: finalSessionId,
-            userId: currentUserId
-          });
-          toast({
-            variant: 'destructive',
-            title: 'Error de Evaluación',
-            description: 'No se pudo crear la solicitud de evaluación. La sesión se guardó pero no se evaluará.'
-          });
-          // DO NOT send to n8n if evaluation creation failed
-          return;
-        }
-
-        console.log('✅ Tech Week evaluation request created:', requestId);
-
-        // Send to n8n webhook (same as roleplay, but with tech_week identifier)
-        const webhookPayload = {
-          request_id: requestId,
-          session_id: finalSessionId,
-          user_id: currentUserId,
-          user_name: userProfile?.name || 'Usuario',
-          feature: 'tech-week', // Identifier for backend to use tech_week tables
-          profile: 'Tech Week',
-          scenario_code: scenario.scenario.code || 'tech_week_general',
-          scenario_name: scenario.scenario.name || 'Tech Week - General',
-          transcript,
-          duration_seconds: duration,
-          timestamp: new Date().toISOString()
-        };
-
         try {
-          await fetch(env.n8nWebhookUrl, {
+          // Get access token for API authentication
+          const { data: { session: authSession } } = await supabase.auth.getSession();
+          if (!authSession?.access_token) {
+            throw new Error('No authentication session');
+          }
+
+          // Call Tech Week evaluation API (OpenAI direct)
+          const response = await fetch(`${env.apiUrl}/api/evaluate-tech-week`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authSession.access_token}`,
             },
-            body: JSON.stringify(webhookPayload)
+            body: JSON.stringify({
+              session_id: finalSessionId,
+            }),
           });
-          console.log('✅ Sent to n8n webhook successfully', { requestId });
-        } catch (webhookError) {
-          console.error('❌ Error sending to n8n webhook:', webhookError);
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Evaluation failed');
+          }
+
+          const result = await response.json();
+          console.log('✅ Tech Week evaluation completed:', {
+            sessionId: finalSessionId,
+            score: result.evaluation?.score,
+            passed: result.evaluation?.passed
+          });
+
+          // Navigate immediately since evaluation is synchronous
+          navigate(`/tech-week/sessions/${finalSessionId}`);
+          return;
+
+        } catch (apiError) {
+          console.error('❌ Error calling evaluation API:', apiError);
           toast({
             variant: 'destructive',
-            title: 'Error de Red',
-            description: 'No se pudo enviar la evaluación. Verifica tu conexión.'
+            title: 'Error de Evaluación',
+            description: 'No se pudo completar la evaluación. La sesión se guardó.'
           });
         }
       }
 
-      // Navigate to results
-      setTimeout(() => {
-        navigate(`/tech-week/sessions/${finalSessionId}`);
-      }, 1000);
+      // Fallback navigation if evaluation didn't redirect
+      navigate(`/tech-week/sessions/${finalSessionId}`);
 
     } catch (error) {
       console.error('Error handling session end:', error);
