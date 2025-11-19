@@ -36,18 +36,23 @@ interface TechWeekSession {
   duration_seconds: number | null;
   created_at: string;
   ended_at: string | null;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
 }
 
 export function TechWeekSessionsPage() {
   const navigate = useNavigate();
-  const { userProfile } = useUser();
+  const { userProfile, isAdmin } = useUser();
   const [sessions, setSessions] = useState<TechWeekSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSessions();
-  }, [userProfile]);
+  }, [userProfile, isAdmin]);
 
   const fetchSessions = async () => {
     try {
@@ -59,20 +64,27 @@ export function TechWeekSessionsPage() {
         return;
       }
 
-      // Get maity user id from auth_id
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id')
-        .eq('auth_id', userProfile.auth_id)
-        .single();
+      let sessionsData;
 
-      if (!userData?.id) {
-        setError('No se pudo obtener el ID del usuario');
-        return;
+      if (isAdmin) {
+        // Admin sees all sessions
+        sessionsData = await TechWeekService.getAllSessions();
+      } else {
+        // Regular user sees only their sessions
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_id', userProfile.auth_id)
+          .single();
+
+        if (!userData?.id) {
+          setError('No se pudo obtener el ID del usuario');
+          return;
+        }
+
+        sessionsData = await TechWeekService.getSessions(userData.id);
       }
 
-      // Fetch Tech Week sessions
-      const sessionsData = await TechWeekService.getSessions(userData.id);
       setSessions(sessionsData || []);
 
     } catch (err) {
@@ -204,7 +216,7 @@ export function TechWeekSessionsPage() {
                   Historial de Sesiones
                 </h1>
                 <p className="text-sm text-gray-400">
-                  Tech Week - Revisa tu progreso
+                  {isAdmin ? 'Tech Week - Todas las sesiones' : 'Tech Week - Revisa tu progreso'}
                 </p>
               </div>
             </div>
@@ -310,7 +322,10 @@ export function TechWeekSessionsPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-sm font-semibold text-white">
-                              Tech Week - Práctica
+                              {isAdmin && session.user
+                                ? (session.user.name || session.user.email || 'Usuario')
+                                : 'Tech Week - Práctica'
+                              }
                             </h3>
                             {getStatusBadge(session.status, session.passed)}
                           </div>

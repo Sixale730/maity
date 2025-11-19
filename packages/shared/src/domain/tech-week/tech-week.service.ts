@@ -70,6 +70,40 @@ export class TechWeekService {
   }
 
   /**
+   * Get all Tech Week sessions (admin only)
+   * Returns sessions with user information
+   * @param limit - Optional limit for results
+   * @returns Promise with array of Tech Week sessions with user info
+   */
+  static async getAllSessions(limit?: number): Promise<unknown[] | null> {
+    let query = supabase
+      .schema('maity')
+      .from('tech_week_sessions')
+      .select(`
+        *,
+        user:users!tech_week_sessions_user_id_fkey (
+          id,
+          name,
+          email
+        )
+      `)
+      .order('started_at', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching all Tech Week sessions:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
    * Get a specific Tech Week session by ID with user information
    * Uses RPC function that respects RLS policies
    * @param sessionId - Session UUID
