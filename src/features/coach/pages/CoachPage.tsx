@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { MaityVoiceAssistant } from '../components/MaityVoiceAssistant';
+import { CoachInstructionsModal } from '../components/CoachInstructionsModal';
 import { CoachService, UserService, supabase, MAITY_COLORS } from '@maity/shared';
 import { env } from '@/lib/env';
 import { toast } from '@/shared/hooks/use-toast';
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
-import { Loader2, Trophy, Clock, RefreshCw, FileText, CheckCircle, XCircle, Brain, Target, Eye, Sparkles, BarChart2, TrendingUp } from 'lucide-react';
+import { Loader2, Trophy, Clock, RefreshCw, FileText, CheckCircle, XCircle, Brain, Target, Eye, Sparkles, BarChart2, TrendingUp, Info } from 'lucide-react';
 
 // Configuración de los 6 rubros (alineados con autoevaluación)
 const RUBRIC_CONFIG = {
@@ -24,6 +25,7 @@ export function CoachPage() {
   const [userName, setUserName] = useState<string>('Usuario');
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
   // onSessionStart: Crear sesión en DB
   const handleSessionStart = async (): Promise<string | null> => {
@@ -614,12 +616,23 @@ export function CoachPage() {
       <main className="w-full">
         {/* Header */}
         <div className="p-6">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className="text-white hover:bg-white/10" />
-            <div>
-              <h1 className="text-3xl font-bold text-white">Coach Maity</h1>
-              <p className="text-white/70">Tu coach en habilidades blandas</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-white hover:bg-white/10" />
+              <div>
+                <h1 className="text-3xl font-bold text-white">Coach Maity</h1>
+                <p className="text-white/70">Tu coach en habilidades blandas</p>
+              </div>
             </div>
+            <Button
+              onClick={() => setShowInstructionsModal(true)}
+              variant="outline"
+              className="border-cyan-500/50 text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-400"
+            >
+              <Info className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Ver Instrucciones</span>
+              <span className="sm:hidden">Info</span>
+            </Button>
           </div>
         </div>
 
@@ -632,6 +645,16 @@ export function CoachPage() {
           />
         </div>
       </main>
+
+      {/* Instructions Modal */}
+      <CoachInstructionsModal
+        isOpen={showInstructionsModal}
+        onClose={() => setShowInstructionsModal(false)}
+        onStartInterview={() => {
+          setShowInstructionsModal(false);
+          // User can manually click "Iniciar Sesión" after closing modal
+        }}
+      />
     </div>
   );
 }
