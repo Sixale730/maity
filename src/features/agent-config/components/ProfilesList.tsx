@@ -19,7 +19,7 @@ interface ProfilesListProps {
 }
 
 export function ProfilesList({ selectedProfileId, onSelectProfile }: ProfilesListProps) {
-  const { data: profiles, isLoading } = useAllProfiles();
+  const { data: profiles, isLoading, error } = useAllProfiles();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProfiles = profiles?.filter((profile) =>
@@ -55,9 +55,14 @@ export function ProfilesList({ selectedProfileId, onSelectProfile }: ProfilesLis
       </div>
 
       {/* List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Cargando perfiles...</div>
+        ) : error ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-red-500 mb-2">Error al cargar perfiles</p>
+            <p className="text-xs text-slate-500">{error.message}</p>
+          </div>
         ) : filteredProfiles && filteredProfiles.length > 0 ? (
           <div className="p-2">
             {filteredProfiles.map((profile) => (

@@ -19,7 +19,7 @@ interface ScenariosListProps {
 }
 
 export function ScenariosList({ selectedScenarioId, onSelectScenario }: ScenariosListProps) {
-  const { data: scenarios, isLoading } = useAllScenarios();
+  const { data: scenarios, isLoading, error } = useAllScenarios();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredScenarios = scenarios?.filter(
@@ -57,9 +57,14 @@ export function ScenariosList({ selectedScenarioId, onSelectScenario }: Scenario
       </div>
 
       {/* List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Cargando escenarios...</div>
+        ) : error ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-red-500 mb-2">Error al cargar escenarios</p>
+            <p className="text-xs text-slate-500">{error.message}</p>
+          </div>
         ) : filteredScenarios && filteredScenarios.length > 0 ? (
           <div className="p-2">
             {filteredScenarios.map((scenario) => (
