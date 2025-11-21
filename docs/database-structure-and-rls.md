@@ -1142,10 +1142,14 @@ CREATE TABLE maity.voice_scenarios (
   closing text, -- Closing message/script for the scenario
   estimated_duration integer DEFAULT 300, -- seconds
   category varchar, -- 'discovery', 'presentation', 'negotiation'
+  agent_id text CHECK (agent_id IS NULL OR agent_id ~ '^agent_[a-z0-9]+$'), -- ElevenLabs Agent ID for this scenario
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
+
+-- Index for efficient agent_id lookups
+CREATE INDEX idx_voice_scenarios_agent_id ON maity.voice_scenarios(agent_id) WHERE agent_id IS NOT NULL;
 ```
 
 **Key Columns:**
@@ -1157,6 +1161,7 @@ CREATE TABLE maity.voice_scenarios (
 - `rules` - Rules that govern the scenario
 - `closing` - Closing script or message
 - `objectives` - Learning objectives (text/JSON format)
+- `agent_id` - ElevenLabs Agent ID for scenario-specific agents (e.g., "agent_5901kakktagnf739xrp8k320qq6j"). Each scenario uses its own agent, with profiles (CEO/CTO/CFO) providing dynamic variables. Must match pattern `^agent_[a-z0-9]+$` if provided. Scenarios without agent_id are automatically hidden from users.
 
 **RLS Policies:**
 ```sql
@@ -1181,11 +1186,22 @@ These fields are sent to configure the practice session:
 - `scenario_skill` → `skill`
 - `scenario_context` → `context`
 - `scenario_instructions` → `instructions`
+- `agent_id` → Passed to `RoleplayVoiceAssistant` to use scenario-specific ElevenLabs agent
 - Additional: `rules`, `closing`, `objectives`
+
+**Scenario-Specific Agents Architecture:**
+- Each scenario has its own `agent_id` pointing to a unique ElevenLabs conversational AI agent
+- All profiles (CEO, CTO, CFO) for a scenario use the **same agent_id** but with different dynamic variables
+- The `get_or_create_user_progress` RPC function returns `scenario_agent_id` and filters out scenarios where `agent_id IS NULL`
+- This ensures only properly configured scenarios are visible to users
 
 **Related Migrations:**
 - `grant_permissions_voice_scenarios.sql` - Grants SELECT permissions to authenticated role
 - `20251028102938_create_tech_week_profile_and_scenario.sql` - Creates Tech Week profile and scenario
+- `20251121_add_agent_id_to_voice_scenarios.sql` - Adds agent_id column with validation
+- `20251121_update_rpc_functions_with_agent_id.sql` - Updates RPC functions to handle agent_id
+- `20251121_add_agent_id_to_get_or_create_user_progress.sql` - Returns scenario_agent_id in progress lookup
+- `20251121_create_agent_config_crud_functions.sql` - Admin CRUD functions for managing scenarios and agent_ids
 
 ---
 

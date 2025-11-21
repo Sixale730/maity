@@ -92,6 +92,11 @@ export * from './domain/dashboard/dashboard.types';
 export { AnalyticsService } from './domain/analytics/analytics.service';
 export * from './domain/analytics/analytics.types';
 
+// ===== Domain: Agent Configuration =====
+export { AgentConfigService } from './domain/agent-config/agent-config.service';
+export * from './domain/agent-config/agent-config.types';
+export * from './domain/agent-config/hooks/useAgentConfig';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 

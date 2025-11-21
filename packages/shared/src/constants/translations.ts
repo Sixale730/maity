@@ -29,6 +29,7 @@ export const translations = {
     'nav.achievements': 'Logros',
     'nav.first_interview': 'Mi Primera Entrevista',
     'nav.interview_history': 'Historial de Entrevistas',
+    'nav.agent_config': 'Configuración de Agentes',
 
     // Hero Section
     'hero.badge': 'IA · Mentoría · Crecimiento Diario',
@@ -137,6 +138,7 @@ export const translations = {
     'nav.achievements': 'Achievements',
     'nav.first_interview': 'My First Interview',
     'nav.interview_history': 'Interview History',
+    'nav.agent_config': 'Agent Configuration',
 
     // Hero Section
     'hero.badge': 'AI · Mentoring · Daily Growth',

@@ -51,6 +51,7 @@ export function RoleplayPage() {
     progressId: string;
     userInstructions: string | null;
     objectives: string;
+    agentId: string | null;
     // Información del perfil
     profileDescription: string;
     profileKeyFocus: string;
@@ -219,6 +220,7 @@ export function RoleplayPage() {
             progressId: '', // No usar progreso en modo admin
             userInstructions: scenarioInfo.scenario_instructions || null,
             objectives: scenarioInfo.objectives || '',
+            agentId: scenarioInfo.agent_id || null, // Agent ID para el escenario
             // Información del perfil
             profileDescription: scenarioInfo.profile_description,
             profileKeyFocus: scenarioInfo.profile_key_focus,
@@ -271,6 +273,7 @@ export function RoleplayPage() {
           progressId: scenarioInfo.progress_id,
           userInstructions: scenarioInfo.user_instructions || null,
           objectives: scenarioInfo.objectives || '',
+          agentId: scenarioInfo.scenario_agent_id || null,
           // Información del perfil
           profileDescription: scenarioInfo.profile_description,
           profileKeyFocus: scenarioInfo.profile_key_focus,
@@ -861,6 +864,7 @@ export function RoleplayPage() {
                     userId={userId}
                     scenarioCode={currentScenario.scenarioCode}
                     scenarioName={currentScenario.scenarioName}
+                    agentId={currentScenario.agentId || undefined}
                     sessionId={currentSessionId || undefined}
                     onSessionStart={handleSessionStart}
                     onSessionEnd={handleSessionEnd}

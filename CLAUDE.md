@@ -610,6 +610,130 @@ Tech Week is a specialized voice practice feature for admin-only testing and dem
 - Only users with `admin` role can access
 - Automatically redirects non-admins to dashboard
 
+### Agent Configuration - Admin Management Interface
+The Agent Configuration feature allows admins to dynamically modify voice agent profiles and scenarios without code changes.
+
+**Key Features:**
+- Split view interface (list on left, editor on right)
+- CRUD operations for agent profiles and scenarios
+- Real-time validation with Zod schemas
+- Soft delete (toggle active/inactive status)
+- Admin-only access via `AdminRoute` component
+
+**Architecture:**
+- Location: `src/features/agent-config/`
+- Route: `/admin/agent-config`
+- Domain: `packages/shared/src/domain/agent-config/`
+- Database: `maity.voice_agent_profiles`, `maity.voice_scenarios`
+- Sidebar: Admin navigation with Settings2 icon
+- Translation keys: `nav.agent_config` (ES: "Configuración de Agentes", EN: "Agent Configuration")
+
+**Database Functions (RPC):**
+- `get_all_voice_agent_profiles_admin()` - Get all profiles including inactive
+- `create_voice_agent_profile(...)` - Create new profile
+- `update_voice_agent_profile(...)` - Update existing profile
+- `toggle_voice_agent_profile_active(id)` - Soft delete/activate profile
+- `get_all_voice_scenarios_admin()` - Get all scenarios including inactive
+- `create_voice_scenario(...)` - Create new scenario
+- `update_voice_scenario(...)` - Update existing scenario
+- `toggle_voice_scenario_active(id)` - Soft delete/activate scenario
+
+**Services:**
+- `AgentConfigService` - CRUD operations for profiles and scenarios
+- Methods: `getAllProfiles()`, `createProfile()`, `updateProfile()`, `toggleProfileActive()`
+- Methods: `getAllScenarios()`, `createScenario()`, `updateScenario()`, `toggleScenarioActive()`
+
+**React Query Hooks:**
+- `useAllProfiles()` - Fetch all profiles with caching
+- `useProfile(id)` - Get specific profile from cache
+- `useCreateProfile()` - Create mutation
+- `useUpdateProfile()` - Update mutation
+- `useToggleProfileActive()` - Toggle mutation
+- `useAllScenarios()` - Fetch all scenarios with caching
+- `useScenario(id)` - Get specific scenario from cache
+- `useCreateScenario()` - Create mutation
+- `useUpdateScenario()` - Update mutation
+- `useToggleScenarioActive()` - Toggle mutation
+
+**Components:**
+- `AgentConfigPage` - Main page with tabs for Profiles/Scenarios
+- `ProfilesList` - Left panel listing all profiles with search
+- `ProfileEditor` - Right panel form for creating/editing profiles
+- `ScenariosList` - Left panel listing all scenarios with search
+- `ScenarioEditor` - Right panel form for creating/editing scenarios
+
+**Profile Fields:**
+- `name` - Display name (e.g., "CEO", "CTO", "CFO")
+- `description` - Overview of the profile
+- `key_focus` - Key focus areas
+- `communication_style` - How the agent communicates
+- `personality_traits` - JSONB with personality characteristics
+- `area` - Role area (e.g., "Finanzas", "Tecnología")
+- `impact` - Role impact (e.g., "impacto financiero")
+- `is_active` - Boolean flag for visibility
+
+**Scenario Fields:**
+- `name` - Display name (e.g., "Primera visita")
+- `code` - Unique snake_case identifier (e.g., "first_visit")
+- `order_index` - Sequence in progression (1, 2, 3...)
+- `context` - Scenario description and setup
+- `objectives` - JSON array of learning objectives
+- `skill` - Main skill being practiced
+- `instructions` - User-facing instructions
+- `rules` - Scenario rules for the agent
+- `closing` - Closing message/script
+- `estimated_duration` - Time estimate in seconds
+- `category` - Classification (discovery, presentation, negotiation)
+- `agent_id` - ElevenLabs Agent ID for this scenario (e.g., "agent_5901kakktagnf739xrp8k320qq6j")
+- `is_active` - Boolean flag for visibility
+
+**Scenario-Specific Agent Architecture:**
+Maity uses a **one-agent-per-scenario** approach:
+- **Agent Assignment**: Each scenario has its own ElevenLabs agent ID configured in `voice_scenarios.agent_id`
+- **Profile Variables**: All profiles (CEO, CTO, CFO) use the **same agent** for a scenario, but with different dynamic variables
+- **Filtering**: Scenarios without `agent_id` are automatically hidden from users (filtered in `get_or_create_user_progress` RPC)
+- **Configuration**: Admins must configure agent_id for all scenarios via `/admin/agent-config`
+- **Format**: Agent IDs must match pattern `^agent_[a-z0-9]+$`
+
+**Example Agent IDs:**
+- Scenario 2 (Product Presentation): `agent_5901kakktagnf739xrp8k320qq6j`
+- Scenario 3 (Objections): `agent_4601kakmpsqqet1vtz5j4rdx928h`
+
+**Agent Selection Flow:**
+1. User selects profile (CEO/CTO/CFO) via questionnaire
+2. System fetches scenario via `get_or_create_user_progress` (includes `scenario_agent_id`)
+3. `RoleplayPage` passes `agentId` prop to `RoleplayVoiceAssistant`
+4. `RoleplayVoiceAssistant` uses scenario-specific agent with profile-specific variables
+
+**Validation:**
+- All forms use React Hook Form + Zod schemas
+- Required fields marked with asterisk (*)
+- Real-time validation with error messages
+- Code field enforces snake_case pattern (`/^[a-z0-9_]+$/`)
+- Agent ID field enforces pattern (`/^agent_[a-z0-9]+$/`)
+- Order index must be >= 1
+- Duration must be >= 60 seconds
+
+**Security:**
+- All RPC functions check admin role via `auth.uid()` and `maity.user_roles`
+- Non-admins receive error: "Only admins can access all profiles/scenarios"
+- Protected by `AdminRoute` component on frontend
+- Changes immediately reflected via React Query cache invalidation
+
+**Migration:**
+- File: `supabase/migrations/20251121_create_agent_config_crud_functions.sql`
+- Creates all CRUD functions with public wrappers
+- Grants EXECUTE permissions to authenticated users
+- Admin role validation in function body
+
+**Files:**
+- Migration: `supabase/migrations/20251121_create_agent_config_crud_functions.sql`
+- Service: `packages/shared/src/domain/agent-config/agent-config.service.ts`
+- Types: `packages/shared/src/domain/agent-config/agent-config.types.ts`
+- Hooks: `packages/shared/src/domain/agent-config/hooks/useAgentConfig.ts`
+- Main Page: `src/features/agent-config/pages/AgentConfigPage.tsx`
+- Components: `src/features/agent-config/components/`
+
 ### Security
 - HttpOnly cookies for invites
 - CORS validation on all API endpoints
