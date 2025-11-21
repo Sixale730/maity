@@ -27,9 +27,12 @@ export function CoachPage() {
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
-  // Debug logs
+  // Debug logs y auto-open del modal
   useEffect(() => {
     console.log('[CoachPage] 🎬 Componente montado');
+    // Abrir modal automáticamente al entrar
+    setShowInstructionsModal(true);
+    console.log('[CoachPage] 🎬 Abriendo modal de instrucciones automáticamente');
   }, []);
 
   useEffect(() => {
@@ -639,7 +642,12 @@ export function CoachPage() {
                 setShowInstructionsModal(true);
               }}
               variant="outline"
-              className="border-cyan-500/50 text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-400 shadow-lg"
+              className="hover:opacity-80 transition-opacity shadow-lg font-semibold"
+              style={{
+                borderColor: MAITY_COLORS.primaryAlpha(0.5),
+                backgroundColor: MAITY_COLORS.primaryAlpha(0.1),
+                color: MAITY_COLORS.primary
+              }}
             >
               <Info className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Ver Instrucciones</span>

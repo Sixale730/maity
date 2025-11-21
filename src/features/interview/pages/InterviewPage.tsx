@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
-import { supabase, AuthService, InterviewService } from '@maity/shared';
+import { CoachInstructionsModal } from '@/features/coach/components/CoachInstructionsModal';
+import { supabase, AuthService, InterviewService, MAITY_COLORS } from '@maity/shared';
 import { env } from '@/lib/env';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
 import { Badge } from '@/ui/components/ui/badge';
-import { Briefcase, CheckCircle2, Loader2 } from 'lucide-react';
+import { Briefcase, CheckCircle2, Loader2, Info } from 'lucide-react';
 
 const POLL_INTERVAL = 3000; // Poll every 3 seconds
 const MAX_POLL_ATTEMPTS = 60; // 3 minutes max
@@ -20,6 +22,7 @@ export function InterviewPage() {
   const [userName, setUserName] = useState<string>('');
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isProcessingAnalysis, setIsProcessingAnalysis] = useState(false);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
   // Ref to track session ID immediately (avoids React state update delay)
   const sessionIdRef = useRef<string | null>(null);
@@ -59,6 +62,11 @@ export function InterviewPage() {
         if (profile.name) {
           setUserName(profile.name);
         }
+
+        // Mostrar modal de instrucciones automáticamente al entrar
+        // Se muestra cada vez que entras a la página (sin localStorage)
+        setShowInstructionsModal(true);
+        console.log('[InterviewPage] 🎬 Abriendo modal de instrucciones automáticamente');
       } catch (error) {
         console.error('Error al inicializar usuario:', error);
         toast({
@@ -307,6 +315,23 @@ export function InterviewPage() {
               </div>
             </div>
           </div>
+          <Button
+            onClick={() => {
+              console.log('[InterviewPage] 👆 Click en botón Ver Instrucciones');
+              setShowInstructionsModal(true);
+            }}
+            variant="outline"
+            className="hover:opacity-80 transition-opacity shadow-lg text-white font-semibold"
+            style={{
+              borderColor: MAITY_COLORS.primaryAlpha(0.5),
+              backgroundColor: MAITY_COLORS.primaryAlpha(0.1),
+              color: MAITY_COLORS.primary
+            }}
+          >
+            <Info className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Ver Instrucciones</span>
+            <span className="sm:hidden">Info</span>
+          </Button>
         </div>
       </header>
 
@@ -328,72 +353,39 @@ export function InterviewPage() {
             </div>
           )}
 
-          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Left Column - Instructions */}
-            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                    Instrucciones
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-4">
-                  <div className="space-y-2">
-                    <Badge variant="outline" className="text-xs">Paso 1</Badge>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Haz clic en "Iniciar Entrevista" para comenzar la conversación con el asistente de IA.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Badge variant="outline" className="text-xs">Paso 2</Badge>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Habla de forma natural. El asistente te hará preguntas típicas de una entrevista laboral.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Badge variant="outline" className="text-xs">Paso 3</Badge>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Cuando termines, haz clic en "Finalizar" para guardar tu sesión.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Consejos</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                  <p>• Responde con ejemplos concretos de tu experiencia</p>
-                  <p>• Mantén un tono profesional pero natural</p>
-                  <p>• No hay respuestas incorrectas, esto es práctica</p>
-                  <p>• Tómate tu tiempo para pensar antes de responder</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Voice Assistant */}
-            <div className="lg:col-span-2">
-              <Card className="h-full min-h-[500px] sm:min-h-[600px]">
-                <CardContent className="p-4 sm:p-6 h-full">
-                  <RoleplayVoiceAssistant
-                    agentId={env.elevenLabsInterviewAgentId}
-                    userName={userName}
-                    userId={userId}
-                    sessionId={currentSessionId || undefined}
-                    onSessionStart={handleSessionStart}
-                    onSessionEnd={handleSessionEnd}
-                    scenarioName="Mi Primer Entrevista"
-                    scenarioDescription="Practica tus habilidades de entrevista con IA"
-                    scenarioCode="interview"
-                  />
-                </CardContent>
-              </Card>
-            </div>
+          <div className="max-w-5xl mx-auto">
+            {/* Voice Assistant - Full Width */}
+            <Card className="h-full min-h-[500px] sm:min-h-[600px]">
+              <CardContent className="p-4 sm:p-6 h-full">
+                <RoleplayVoiceAssistant
+                  agentId={env.elevenLabsInterviewAgentId}
+                  userName={userName}
+                  userId={userId}
+                  sessionId={currentSessionId || undefined}
+                  onSessionStart={handleSessionStart}
+                  onSessionEnd={handleSessionEnd}
+                  scenarioName="Mi Primer Entrevista"
+                  scenarioDescription="Practica tus habilidades de entrevista con IA"
+                  scenarioCode="interview"
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
+
+      {/* Instructions Modal */}
+      <CoachInstructionsModal
+        isOpen={showInstructionsModal}
+        onClose={() => {
+          console.log('[InterviewPage] ❌ Cerrando modal de instrucciones');
+          setShowInstructionsModal(false);
+        }}
+        onStartInterview={() => {
+          console.log('[InterviewPage] ✅ Usuario listo para comenzar entrevista');
+          setShowInstructionsModal(false);
+        }}
+      />
     </div>
   );
 }

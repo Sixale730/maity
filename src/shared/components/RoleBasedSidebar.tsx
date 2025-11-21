@@ -46,7 +46,6 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.coach", url: "/coach", icon: MessageCircle },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
-      { title: "Tech Week", url: "/tech-week", icon: Zap },
       { title: "nav.agent_config", url: "/admin/agent-config", icon: Settings2 },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.interview_history", url: "/primera-entrevista/historial", icon: History },
@@ -62,6 +61,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.plans", url: "/planes", icon: Settings },
       { title: "nav.documents", url: "/documentos", icon: FileText },
       { title: "nav.settings", url: "/settings", icon: Settings },
+      { title: "Tech Week", url: "/tech-week", icon: Zap },
     ];
   } else if (role === 'manager') {
     return [
