@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { MaityVoiceAssistant } from '../components/MaityVoiceAssistant';
 import { CoachInstructionsModal } from '../components/CoachInstructionsModal';
@@ -26,6 +26,15 @@ export function CoachPage() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+
+  // Debug logs
+  useEffect(() => {
+    console.log('[CoachPage] 🎬 Componente montado');
+  }, []);
+
+  useEffect(() => {
+    console.log('[CoachPage] 📊 Estado showInstructionsModal cambió a:', showInstructionsModal);
+  }, [showInstructionsModal]);
 
   // onSessionStart: Crear sesión en DB
   const handleSessionStart = async (): Promise<string | null> => {
@@ -625,9 +634,12 @@ export function CoachPage() {
               </div>
             </div>
             <Button
-              onClick={() => setShowInstructionsModal(true)}
+              onClick={() => {
+                console.log('[CoachPage] 👆 Click en botón Ver Instrucciones');
+                setShowInstructionsModal(true);
+              }}
               variant="outline"
-              className="border-cyan-500/50 text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-400"
+              className="border-cyan-500/50 text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-400 shadow-lg"
             >
               <Info className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Ver Instrucciones</span>
@@ -649,8 +661,12 @@ export function CoachPage() {
       {/* Instructions Modal */}
       <CoachInstructionsModal
         isOpen={showInstructionsModal}
-        onClose={() => setShowInstructionsModal(false)}
+        onClose={() => {
+          console.log('[CoachPage] ❌ Cerrando modal de instrucciones');
+          setShowInstructionsModal(false);
+        }}
         onStartInterview={() => {
+          console.log('[CoachPage] ✅ Usuario listo para comenzar entrevista');
           setShowInstructionsModal(false);
           // User can manually click "Iniciar Sesión" after closing modal
         }}

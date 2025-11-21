@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,8 +21,23 @@ export function CoachInstructionsModal({
   onClose,
   onStartInterview,
 }: CoachInstructionsModalProps) {
+  // Log when component renders and isOpen changes
+  useEffect(() => {
+    console.log('[CoachInstructionsModal] 🎨 Renderizando modal, isOpen:', isOpen);
+  }, [isOpen]);
+
+  const handleStartInterview = () => {
+    console.log('[CoachInstructionsModal] ✅ Click en Comenzar Entrevista');
+    onStartInterview();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    console.log('[CoachInstructionsModal] 🚪 Dialog onOpenChange, valor:', open);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">
@@ -114,7 +130,7 @@ export function CoachInstructionsModal({
 
         <DialogFooter>
           <Button
-            onClick={onStartInterview}
+            onClick={handleStartInterview}
             className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-6 text-base"
           >
             Comenzar Entrevista
