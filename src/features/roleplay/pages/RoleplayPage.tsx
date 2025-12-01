@@ -11,7 +11,10 @@ import { supabase, AuthService, RoleplayService } from '@maity/shared';
 import { useToast } from '@/shared/hooks/use-toast';
 import { env } from '@/lib/env';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
-import { Map, Mic } from 'lucide-react';
+import { Map, Mic, Info } from 'lucide-react';
+import { RoleplayInstructionsModal } from '../components/RoleplayInstructionsModal';
+import { MAITY_COLORS } from '@maity/shared';
+import { Button } from '@/ui/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +31,7 @@ export function RoleplayPage() {
   const [userName, setUserName] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [questionnaireData, setQuestionnaireData] = useState<{
     mostDifficultProfile: 'CEO' | 'CTO' | 'CFO';
     practiceStartProfile: 'CEO' | 'CTO' | 'CFO';
@@ -79,6 +83,11 @@ export function RoleplayPage() {
 
   useEffect(() => {
     checkUserAndQuestionnaire();
+  }, []);
+
+  // Auto-open instructions modal on mount
+  useEffect(() => {
+    setShowInstructionsModal(true);
   }, []);
 
   // Efecto combinado para detectar cambios en questionnaireData o adminOverride
@@ -760,6 +769,20 @@ export function RoleplayPage() {
                     : 'Practica tus habilidades de venta'}
                 </p>
               </div>
+              <Button
+                onClick={() => setShowInstructionsModal(true)}
+                variant="outline"
+                className="flex-shrink-0 hover:opacity-80 transition-opacity shadow-lg font-semibold"
+                style={{
+                  borderColor: MAITY_COLORS.primaryAlpha(0.5),
+                  backgroundColor: MAITY_COLORS.primaryAlpha(0.1),
+                  color: MAITY_COLORS.primary
+                }}
+              >
+                <Info className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Ver Instrucciones</span>
+                <span className="sm:hidden">Info</span>
+              </Button>
               {isAdmin && questionnaireData && (
                 <div className="flex flex-shrink-0">
                   <AdminRoleplaySelector
@@ -915,6 +938,13 @@ export function RoleplayPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Instructions Modal */}
+      <RoleplayInstructionsModal
+        isOpen={showInstructionsModal}
+        onClose={() => setShowInstructionsModal(false)}
+        onStartPractice={() => setShowInstructionsModal(false)}
+      />
     </>
   );
 }
