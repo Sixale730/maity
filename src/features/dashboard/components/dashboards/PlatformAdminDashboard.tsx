@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { Brain } from "lucide-react";
 import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
@@ -248,6 +250,27 @@ export function PlatformAdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Educational Resources Quick Access */}
+      <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-cyan-900">
+            <Brain className="h-5 w-5" />
+            Recursos Educativos IA
+          </CardTitle>
+          <CardDescription className="text-cyan-700">
+            Acceso rápido a recursos de capacitación en inteligencia artificial
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link
+            to="/ai-resources"
+            className="inline-flex items-center gap-2 text-cyan-800 font-medium hover:text-cyan-900 hover:underline transition-colors"
+          >
+            Ver todos los recursos →
+          </Link>
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -183,6 +183,28 @@ const translations = {
     'coach.placeholder': 'Escribe tu consulta de coaching...',
     'coach.thinking': 'Tu coach está pensando...',
     'coach.specialties': 'Tu coach inteligente está listo para ayudarte con liderazgo, productividad y desarrollo profesional',
+
+    // AI Resources
+    'nav.ai_resources': 'Recursos Educativos IA',
+    'ai_resources.title': 'Recursos Educativos IA',
+    'ai_resources.description': 'Recursos de inteligencia artificial para capacitación',
+    'ai_resources.open_resource': 'Abrir Recurso',
+    'ai_resources.add_resource': 'Agregar Recurso',
+    'ai_resources.add_title': 'Nuevo Recurso Educativo',
+    'ai_resources.form.title': 'Título',
+    'ai_resources.form.title_placeholder': 'Nombre del recurso',
+    'ai_resources.form.description': 'Descripción',
+    'ai_resources.form.description_placeholder': 'Breve descripción del recurso',
+    'ai_resources.form.url': 'URL del Recurso',
+    'ai_resources.form.url_placeholder': 'https://ejemplo.com',
+    'ai_resources.form.icon': 'Icono',
+    'ai_resources.form.color': 'Color',
+    'ai_resources.form.submit': 'Guardar Recurso',
+    'ai_resources.form.cancel': 'Cancelar',
+    'ai_resources.success': 'Recurso agregado correctamente',
+    'ai_resources.error': 'Error al agregar recurso',
+    'ai_resources.loading': 'Cargando recursos...',
+    'ai_resources.empty': 'No hay recursos disponibles',
   },
   en: {
     // Navigation
@@ -371,6 +393,28 @@ const translations = {
     'coach.placeholder': 'Write your coaching query...',
     'coach.thinking': 'Your coach is thinking...',
     'coach.specialties': 'Your intelligent coach is ready to help you with leadership, productivity and professional development',
+
+    // AI Resources
+    'nav.ai_resources': 'AI Educational Resources',
+    'ai_resources.title': 'AI Educational Resources',
+    'ai_resources.description': 'Artificial intelligence resources for training',
+    'ai_resources.open_resource': 'Open Resource',
+    'ai_resources.add_resource': 'Add Resource',
+    'ai_resources.add_title': 'New Educational Resource',
+    'ai_resources.form.title': 'Title',
+    'ai_resources.form.title_placeholder': 'Resource name',
+    'ai_resources.form.description': 'Description',
+    'ai_resources.form.description_placeholder': 'Brief description of the resource',
+    'ai_resources.form.url': 'Resource URL',
+    'ai_resources.form.url_placeholder': 'https://example.com',
+    'ai_resources.form.icon': 'Icon',
+    'ai_resources.form.color': 'Color',
+    'ai_resources.form.submit': 'Save Resource',
+    'ai_resources.form.cancel': 'Cancel',
+    'ai_resources.success': 'Resource added successfully',
+    'ai_resources.error': 'Error adding resource',
+    'ai_resources.loading': 'Loading resources...',
+    'ai_resources.empty': 'No resources available',
   }
 };
 

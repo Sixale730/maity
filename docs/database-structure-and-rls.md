@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** November 12, 2025
-**Version:** 1.6
+**Last Updated:** December 2, 2025
+**Version:** 1.7
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.ai_resources` table for admin-managed educational resources (v1.7)
 - Added `level` column to `maity.users` for gamification system (v1.6)
 - Updated `maity.form_responses` with all 20 questions including consent (q20)
 
@@ -2284,6 +2285,66 @@ USING (
       AND u.status = 'ACTIVE'
   )
 )
+```
+
+---
+
+### AI Educational Resources
+
+#### maity.ai_resources
+
+**Purpose:** Store educational AI resources (admin-managed external links).
+
+**Schema:**
+```sql
+CREATE TABLE maity.ai_resources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT NOT NULL,
+  icon TEXT DEFAULT 'brain',      -- Lucide icon name
+  color TEXT DEFAULT 'purple',    -- Gradient color theme
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES maity.users(id)
+);
+```
+
+**RLS Policies:**
+```sql
+-- Authenticated users can read active resources
+CREATE POLICY "authenticated_can_read_active_resources"
+  ON maity.ai_resources FOR SELECT TO authenticated
+  USING (is_active = true);
+
+-- Admins can manage all resources (CRUD)
+CREATE POLICY "admins_can_manage_resources"
+  ON maity.ai_resources FOR ALL TO authenticated
+  USING (EXISTS (SELECT 1 FROM maity.user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM maity.user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin'));
+```
+
+**RPC Functions:**
+```sql
+-- Get all resources (admins see all, others see active only)
+public.get_all_ai_resources() RETURNS SETOF maity.ai_resources
+
+-- Create new resource (admin only)
+public.create_ai_resource(p_title, p_description, p_url, p_icon, p_color) RETURNS maity.ai_resources
+
+-- Toggle active status (admin only)
+public.toggle_ai_resource_active(p_id) RETURNS maity.ai_resources
+```
+
+**Available Icons:** `brain`, `sparkles`, `book-open`, `lightbulb`, `graduation-cap`, `video`, `file-text`
+
+**Available Colors:** `purple`, `pink`, `cyan`, `blue`, `green`, `orange`, `slate`
+
+**Indexes:**
+```sql
+CREATE INDEX idx_ai_resources_active ON maity.ai_resources(is_active);
+CREATE INDEX idx_ai_resources_created_at ON maity.ai_resources(created_at DESC);
 ```
 
 ---

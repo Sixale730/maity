@@ -45,6 +45,7 @@ const TechWeekSessionsPage = lazy(() => import("./features/tech-week").then(m =>
 const TechWeekResultsPage = lazy(() => import("./features/tech-week").then(m => ({ default: m.TechWeekResultsPage })));
 
 const AgentConfigPage = lazy(() => import("./features/agent-config/pages/AgentConfigPage"));
+const AIResourcesPage = lazy(() => import("./features/ai-resources").then(m => ({ default: m.AIResourcesPage })));
 
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
@@ -125,6 +126,9 @@ const App = () => (
 
                       {/* Agent Configuration (Admin Only) */}
                       <Route path="/admin/agent-config" element={<AdminRoute><AgentConfigPage /></AdminRoute>} />
+
+                      {/* AI Educational Resources (Admin Only) */}
+                      <Route path="/ai-resources" element={<AdminRoute><AIResourcesPage /></AdminRoute>} />
 
                       {/* Interview Routes (Admin Only) */}
                       <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />

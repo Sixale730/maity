@@ -610,6 +610,73 @@ Tech Week is a specialized voice practice feature for admin-only testing and dem
 - Only users with `admin` role can access
 - Automatically redirects non-admins to dashboard
 
+### AI Educational Resources (Recursos Educativos IA)
+Admin-only section for managing AI training resources with CRUD functionality.
+
+**Key Features:**
+- Grid of resource cards with external links
+- Opens resources in new browser tabs
+- Visual design with gradient cards and icons (customizable)
+- Admin-only access via `AdminRoute` component
+- Quick access card in admin dashboard
+- **Add Resource button** - Modal form to create new resources
+- Database storage in `maity.ai_resources` table
+
+**Architecture:**
+- Location: `src/features/ai-resources/`
+- Route: `/ai-resources`
+- Sidebar: Admin navigation with Brain icon
+- Domain Layer: `packages/shared/src/domain/ai-resources/`
+- Database: `maity.ai_resources`
+
+**Database Schema:**
+```sql
+maity.ai_resources (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT NOT NULL,
+  icon TEXT DEFAULT 'brain',    -- Lucide icon name
+  color TEXT DEFAULT 'purple',   -- Gradient color
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ,
+  created_by UUID REFERENCES maity.users(id)
+)
+```
+
+**RPC Functions:**
+- `get_all_ai_resources()` - Get all resources (admins see all, others see active only)
+- `create_ai_resource(title, description, url, icon, color)` - Create new resource (admin only)
+- `toggle_ai_resource_active(id)` - Soft delete/restore (admin only)
+
+**Available Icons:**
+- `brain`, `sparkles`, `book-open`, `lightbulb`, `graduation-cap`, `video`, `file-text`
+
+**Available Colors:**
+- `purple`, `pink`, `cyan`, `blue`, `green`, `orange`, `slate`
+
+**Components:**
+- `AIResourcesPage` - Main page with resource cards grid
+- `AddResourceDialog` - Modal form for creating new resources
+
+**Services & Hooks:**
+- `AIResourcesService` - CRUD operations
+- `useAIResources()` - Fetch resources with React Query
+- `useCreateResource()` - Create mutation
+- `useToggleResourceActive()` - Toggle active mutation
+
+**Files:**
+- Page: `src/features/ai-resources/pages/AIResourcesPage.tsx`
+- Dialog: `src/features/ai-resources/components/AddResourceDialog.tsx`
+- Service: `packages/shared/src/domain/ai-resources/ai-resources.service.ts`
+- Hooks: `packages/shared/src/domain/ai-resources/hooks/useAIResources.ts`
+- Migration: `supabase/migrations/20251202_create_ai_resources_table.sql`
+- Route: `src/App.tsx` (line ~131)
+- Sidebar: `src/shared/components/RoleBasedSidebar.tsx` (line ~51)
+- Dashboard Card: `src/features/dashboard/components/dashboards/PlatformAdminDashboard.tsx` (line ~254)
+- Translations: `src/contexts/LanguageContext.tsx`
+
 ### Agent Configuration - Admin Management Interface
 The Agent Configuration feature allows admins to dynamically modify voice agent profiles and scenarios without code changes.
 

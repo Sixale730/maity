@@ -97,6 +97,11 @@ export { AgentConfigService } from './domain/agent-config/agent-config.service';
 export * from './domain/agent-config/agent-config.types';
 export * from './domain/agent-config/hooks/useAgentConfig';
 
+// ===== Domain: AI Resources =====
+export { AIResourcesService } from './domain/ai-resources/ai-resources.service';
+export type { AIResource, CreateResourceInput } from './domain/ai-resources/ai-resources.service';
+export * from './domain/ai-resources/hooks/useAIResources';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 
