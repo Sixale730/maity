@@ -19,7 +19,8 @@ import {
   Mic,
   Briefcase,
   Zap,
-  Brain
+  Brain,
+  Route
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@maity/shared";
@@ -54,6 +55,8 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.demo", url: "/demo", icon: Play },
       { title: "nav.demo_training", url: "/demo-training", icon: Mic },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+      { title: "nav.learning_path", url: "/learning-path", icon: Route },
+      { title: "nav.team_learning_progress", url: "/team/learning-progress", icon: Users },
       { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.analytics", url: "/analytics", icon: BarChart3 },
       { title: "nav.organizations", url: "/organizations", icon: Building },
@@ -70,6 +73,8 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
+      { title: "nav.learning_path", url: "/learning-path", icon: Route },
+      { title: "nav.team_learning_progress", url: "/team/learning-progress", icon: Users },
       { title: "nav.sessions", url: "/sessions", icon: History },
       { title: "nav.my_team", url: "/team", icon: Users },
       { title: "nav.plans", url: "/planes", icon: Target },
@@ -82,6 +87,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
+      { title: "nav.learning_path", url: "/learning-path", icon: Route },
       { title: "nav.roleplay_progress", url: "/progress", icon: Map },
       { title: "nav.sessions", url: "/sessions", icon: History },
     ];

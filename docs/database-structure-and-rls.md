@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** December 2, 2025
-**Version:** 1.7
+**Last Updated:** December 4, 2025
+**Version:** 1.8
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added Learning Path system with 4 new tables (v1.8)
 - Added `maity.ai_resources` table for admin-managed educational resources (v1.7)
 - Added `level` column to `maity.users` for gamification system (v1.6)
 - Updated `maity.form_responses` with all 20 questions including consent (q20)
@@ -2346,6 +2347,137 @@ public.toggle_ai_resource_active(p_id) RETURNS maity.ai_resources
 CREATE INDEX idx_ai_resources_active ON maity.ai_resources(is_active);
 CREATE INDEX idx_ai_resources_created_at ON maity.ai_resources(created_at DESC);
 ```
+
+---
+
+### Learning Path System
+
+The Learning Path system provides a Duolingo-style roadmap combining educational resources and roleplay scenarios.
+
+#### maity.learning_path_templates
+
+**Purpose:** Master templates for learning paths (supports future AI personalization).
+
+**Schema:**
+```sql
+CREATE TABLE maity.learning_path_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  is_default BOOLEAN DEFAULT false,
+  is_ai_generated BOOLEAN DEFAULT false,
+  company_id UUID REFERENCES maity.companies(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES maity.users(id) ON DELETE SET NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### maity.learning_path_nodes
+
+**Purpose:** Individual nodes in a learning path (polymorphic design supporting resources, scenarios, checkpoints).
+
+**Schema:**
+```sql
+CREATE TABLE maity.learning_path_nodes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  template_id UUID NOT NULL REFERENCES maity.learning_path_templates(id) ON DELETE CASCADE,
+  order_index INTEGER NOT NULL,
+  visual_position VARCHAR(10) DEFAULT 'center' CHECK (visual_position IN ('left', 'center', 'right')),
+  node_type VARCHAR(20) NOT NULL CHECK (node_type IN ('resource', 'scenario', 'quiz', 'video', 'checkpoint')),
+  resource_id UUID REFERENCES maity.ai_resources(id) ON DELETE SET NULL,
+  scenario_id UUID REFERENCES maity.voice_scenarios(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  icon TEXT DEFAULT 'circle',
+  color TEXT DEFAULT 'blue',
+  estimated_duration INTEGER, -- seconds
+  unlock_after_node_id UUID REFERENCES maity.learning_path_nodes(id) ON DELETE SET NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  CONSTRAINT unique_order_per_template UNIQUE (template_id, order_index)
+);
+```
+
+#### maity.user_learning_paths
+
+**Purpose:** User's assigned learning path (supports personalization).
+
+**Schema:**
+```sql
+CREATE TABLE maity.user_learning_paths (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES maity.users(id) ON DELETE CASCADE,
+  template_id UUID NOT NULL REFERENCES maity.learning_path_templates(id) ON DELETE CASCADE,
+  is_personalized BOOLEAN DEFAULT false,
+  personalization_config JSONB,
+  started_at TIMESTAMPTZ DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  CONSTRAINT one_active_path_per_user UNIQUE (user_id)
+);
+```
+
+#### maity.user_node_progress
+
+**Purpose:** Track user progress per node.
+
+**Schema:**
+```sql
+CREATE TABLE maity.user_node_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES maity.users(id) ON DELETE CASCADE,
+  node_id UUID NOT NULL REFERENCES maity.learning_path_nodes(id) ON DELETE CASCADE,
+  user_path_id UUID REFERENCES maity.user_learning_paths(id) ON DELETE CASCADE,
+  status VARCHAR(20) DEFAULT 'locked' CHECK (status IN ('locked', 'available', 'in_progress', 'completed', 'skipped')),
+  completed_at TIMESTAMPTZ,
+  score NUMERIC(5,2), -- 0-100 for scenario nodes
+  attempts INTEGER DEFAULT 0,
+  time_spent INTEGER DEFAULT 0, -- seconds
+  last_accessed_at TIMESTAMPTZ,
+  session_id UUID REFERENCES maity.voice_sessions(id) ON DELETE SET NULL,
+  completion_data JSONB,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  CONSTRAINT unique_user_node UNIQUE (user_id, node_id)
+);
+```
+
+**RPC Functions:**
+```sql
+-- Get user's learning path with progress
+public.get_user_learning_path(p_user_id UUID) RETURNS TABLE(...)
+
+-- Initialize learning path for new user
+public.initialize_user_learning_path(p_user_id UUID) RETURNS UUID
+
+-- Complete a node and unlock next
+public.complete_learning_node(p_user_id, p_node_id, p_score?, p_session_id?) RETURNS JSON
+
+-- Start a node (mark as in_progress)
+public.start_learning_node(p_user_id, p_node_id) RETURNS VOID
+
+-- Get team progress (managers only)
+public.get_team_learning_progress(p_manager_id UUID) RETURNS TABLE(...)
+
+-- Get learning path summary
+public.get_learning_path_summary(p_user_id UUID) RETURNS JSON
+```
+
+**RLS Policies:**
+- Templates: Users see global + company templates, admins manage all
+- Nodes: Users see active nodes from accessible templates
+- User paths: Users see/manage own path, managers view team
+- User progress: Users manage own, managers view team
+
+**Frontend Integration:**
+- Route: `/learning-path` - Main roadmap page
+- Route: `/team/learning-progress` - Manager team view
+- Feature: `src/features/learning-path/`
+- Domain: `packages/shared/src/domain/learning-path/`
 
 ---
 

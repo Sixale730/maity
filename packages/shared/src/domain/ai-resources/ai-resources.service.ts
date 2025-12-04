@@ -1,4 +1,4 @@
-import { supabase } from '../../api';
+import { supabase } from '../../api/client/supabase';
 
 export interface AIResource {
   id: string;

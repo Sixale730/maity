@@ -46,6 +46,8 @@ const TechWeekResultsPage = lazy(() => import("./features/tech-week").then(m => 
 
 const AgentConfigPage = lazy(() => import("./features/agent-config/pages/AgentConfigPage"));
 const AIResourcesPage = lazy(() => import("./features/ai-resources").then(m => ({ default: m.AIResourcesPage })));
+const LearningPathPage = lazy(() => import("./features/learning-path").then(m => ({ default: m.LearningPathPage })));
+const TeamProgressPage = lazy(() => import("./features/learning-path").then(m => ({ default: m.TeamProgressPage })));
 
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
@@ -103,6 +105,8 @@ const App = () => (
                       <Route path="/roleplay" element={<RoleplayPage />} />
                       <Route path="/primera-entrevista" element={<InterviewPage />} />
                       <Route path="/progress" element={<MyProgressPage />} />
+                      <Route path="/learning-path" element={<LearningPathPage />} />
+                      <Route path="/team/learning-progress" element={<TeamProgressPage />} />
                       <Route path="/sessions" element={<SessionsPage />} />
                       <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
                       <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />

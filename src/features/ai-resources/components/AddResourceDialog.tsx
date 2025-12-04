@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Plus } from "lucide-react";
 import { useCreateResource } from "@maity/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/ui/components/ui/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/ui/components/ui/button";
 import {
   Dialog,
