@@ -1,10 +1,12 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** December 4, 2025
-**Version:** 1.8
+**Last Updated:** December 22, 2025
+**Version:** 1.9
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Cleaned up public schema: dropped unused tables (documents, n8n_chat_histories, organizations) (v1.9)
+- Documented public schema views (users, voice_pre_practice_questionnaire) (v1.9)
 - Added Learning Path system with 4 new tables (v1.8)
 - Added `maity.ai_resources` table for admin-managed educational resources (v1.7)
 - Added `level` column to `maity.users` for gamification system (v1.6)
@@ -2228,65 +2230,42 @@ GRANT SELECT, INSERT, UPDATE ON maity.form_responses TO authenticated;
 
 ---
 
-#### public.documents
+### Public Schema Views
 
-**Purpose:** Document embeddings for RAG (Retrieval Augmented Generation).
+The `public` schema contains views that expose `maity` tables to the Supabase client. This follows best practices:
+- Supabase JS client defaults to `public` schema
+- Views act as a clean "public API" layer
+- Can restrict which columns are exposed
 
-**Schema:**
+#### public.users (VIEW)
+
+**Purpose:** Exposes `maity.users` columns for client-side access.
+
+**Definition:**
 ```sql
-CREATE TABLE public.documents (
-  id bigserial PRIMARY KEY,
-  content text,
-  metadata jsonb,
-  embedding vector -- pgvector extension
-);
+CREATE VIEW public.users AS
+SELECT id, auth_id, company_id, name, phone, email, nickname,
+       skill, registration_form_completed, status, created_at, updated_at
+FROM maity.users;
 ```
 
-**RLS Policies:**
-```sql
--- Users can access if they belong to active company
-USING (
-  EXISTS (
-    SELECT 1 FROM maity.users u
-    WHERE u.auth_id = auth.uid()
-      AND u.company_id IS NOT NULL
-      AND u.status = 'ACTIVE'
-  )
-)
-```
-
-**GRANT Permissions:**
-```sql
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.documents TO authenticated;
-```
+**Usage:** Used extensively across API endpoints, contexts, and services for user data access.
 
 ---
 
-#### public.n8n_chat_histories
+#### public.voice_pre_practice_questionnaire (VIEW)
 
-**Purpose:** Chat history for n8n conversational workflows.
+**Purpose:** Exposes `maity.voice_pre_practice_questionnaire` for roleplay pre-practice flow.
 
-**Schema:**
+**Definition:**
 ```sql
-CREATE TABLE public.n8n_chat_histories (
-  id serial PRIMARY KEY,
-  session_id varchar NOT NULL,
-  message jsonb NOT NULL
-);
+CREATE VIEW public.voice_pre_practice_questionnaire AS
+SELECT id, user_id, most_difficult_profile, practice_start_profile,
+       answered_at, session_started, session_id, created_at, updated_at
+FROM maity.voice_pre_practice_questionnaire;
 ```
 
-**RLS Policies:**
-```sql
--- Same as documents - users must be active
-USING (
-  EXISTS (
-    SELECT 1 FROM maity.users u
-    WHERE u.auth_id = auth.uid()
-      AND u.company_id IS NOT NULL
-      AND u.status = 'ACTIVE'
-  )
-)
-```
+**Usage:** Used in `RoleplayPage.tsx` and `PrePracticeQuestionnaire.tsx`.
 
 ---
 
