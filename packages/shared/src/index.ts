@@ -107,6 +107,11 @@ export { LearningPathService } from './domain/learning-path/learning-path.servic
 export * from './domain/learning-path/learning-path.types';
 export * from './domain/learning-path/hooks/useLearningPath';
 
+// ===== Domain: Avatar =====
+export { AvatarService } from './domain/avatar/avatar.service';
+export * from './domain/avatar/avatar.types';
+export * from './domain/avatar/hooks/useAvatar';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 

@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** December 22, 2025
-**Version:** 1.9
+**Last Updated:** January 6, 2026
+**Version:** 2.0
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.avatar_configurations` table for 3D voxel avatar system (v2.0)
 - Cleaned up public schema: dropped unused tables (documents, n8n_chat_histories, organizations) (v1.9)
 - Documented public schema views (users, voice_pre_practice_questionnaire) (v1.9)
 - Added Learning Path system with 4 new tables (v1.8)
@@ -2325,6 +2326,118 @@ public.toggle_ai_resource_active(p_id) RETURNS maity.ai_resources
 ```sql
 CREATE INDEX idx_ai_resources_active ON maity.ai_resources(is_active);
 CREATE INDEX idx_ai_resources_created_at ON maity.ai_resources(created_at DESC);
+```
+
+---
+
+### Avatar System
+
+The Avatar system provides 3D voxel-style avatars (Crossy Road inspired) for user personalization.
+
+#### maity.avatar_configurations
+
+**Purpose:** Store user avatar customization data (colors, body types, accessories).
+
+**Schema:**
+```sql
+CREATE TABLE maity.avatar_configurations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES maity.users(id) ON DELETE CASCADE,
+  character_preset TEXT NOT NULL DEFAULT 'human', -- 'human', 'chicken', 'dog'
+  outfit_preset TEXT NOT NULL DEFAULT 'casual',   -- 'casual', 'business', 'worker', 'formal', 'sporty' (human only)
+  head_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'round', 'square', 'tall' (human only)
+  body_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'slim', 'athletic', 'casual' (human only)
+  skin_color TEXT NOT NULL DEFAULT '#FFD7C4',
+  hair_color TEXT NOT NULL DEFAULT '#3D2314',
+  shirt_color TEXT NOT NULL DEFAULT '#4A90D9',    -- From outfit preset
+  pants_color TEXT NOT NULL DEFAULT '#3D3D3D',    -- From outfit preset
+  accessories JSONB DEFAULT '[]',                 -- Array of accessory codes (human only)
+  full_config JSONB DEFAULT '{}',                 -- Future expansion
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id),
+  CONSTRAINT avatar_character_preset_check CHECK (character_preset IN ('human', 'chicken', 'dog')),
+  CONSTRAINT avatar_outfit_preset_check CHECK (outfit_preset IN ('casual', 'business', 'worker', 'formal', 'sporty'))
+);
+```
+
+**Character Presets:**
+| Preset | Name | Customizable | Description |
+|--------|------|--------------|-------------|
+| `human` | Humano | Yes | Default, fully customizable avatar |
+| `chicken` | Pollo | No | Crossy Road style chicken |
+| `dog` | Perro | No | Cute blocky dog |
+
+**Outfit Presets (human only):**
+| Preset | Name | Emoji | Description |
+|--------|------|-------|-------------|
+| `casual` | Casual | 👕 | Blue shirt, dark jeans |
+| `business` | Ejecutivo | 👔 | Black suit with red tie |
+| `worker` | Trabajador | 🧑‍🔧 | Orange work overalls |
+| `formal` | Formal | 👗 | Purple formal dress |
+| `sporty` | Deportivo | 🏃 | Red athletic wear |
+
+**RLS Policies:**
+```sql
+-- All authenticated users can read all avatars (for displaying other users)
+CREATE POLICY "authenticated_can_read_all_avatars"
+  ON maity.avatar_configurations FOR SELECT TO authenticated
+  USING (true);
+
+-- Users can only insert their own avatar
+CREATE POLICY "users_can_insert_own_avatar"
+  ON maity.avatar_configurations FOR INSERT TO authenticated
+  WITH CHECK (user_id IN (SELECT id FROM maity.users WHERE auth_id = auth.uid()));
+
+-- Users can only update their own avatar
+CREATE POLICY "users_can_update_own_avatar"
+  ON maity.avatar_configurations FOR UPDATE TO authenticated
+  USING (user_id IN (SELECT id FROM maity.users WHERE auth_id = auth.uid()))
+  WITH CHECK (user_id IN (SELECT id FROM maity.users WHERE auth_id = auth.uid()));
+```
+
+**RPC Functions:**
+```sql
+-- Get user's avatar configuration (includes outfit_preset)
+public.get_user_avatar(p_user_id UUID) RETURNS TABLE(
+  id, user_id, character_preset, outfit_preset, head_type, body_type,
+  skin_color, hair_color, shirt_color, pants_color, accessories, full_config,
+  created_at, updated_at
+)
+
+-- Upsert avatar configuration (includes outfit_preset)
+public.upsert_avatar_configuration(
+  p_user_id UUID,
+  p_character_preset TEXT DEFAULT 'human',   -- 'human', 'chicken', 'dog'
+  p_outfit_preset TEXT DEFAULT 'casual',     -- 'casual', 'business', 'worker', 'formal', 'sporty'
+  p_head_type TEXT DEFAULT 'default',
+  p_body_type TEXT DEFAULT 'default',
+  p_skin_color TEXT DEFAULT '#FFD7C4',
+  p_hair_color TEXT DEFAULT '#3D2314',
+  p_shirt_color TEXT DEFAULT '#4A90D9',
+  p_pants_color TEXT DEFAULT '#3D3D3D',
+  p_accessories JSONB DEFAULT '[]',
+  p_full_config JSONB DEFAULT '{}'
+) RETURNS maity.avatar_configurations
+```
+
+**Accessory Codes:**
+- `glasses_round`, `glasses_square` - Eyewear
+- `hat_cap`, `hat_beanie` - Headwear
+- `headphones` - Audio accessories
+- `bowtie`, `necklace` - Decorative items
+
+**Frontend Integration:**
+- **Service:** `packages/shared/src/domain/avatar/avatar.service.ts`
+- **Hooks:** `useAvatar()`, `useAvatarWithDefault()`, `useUpdateAvatar()`
+- **Components:** `src/features/avatar/components/VoxelAvatar.tsx`, `AvatarEditor.tsx`
+- **Page:** `/avatar` - Full editor page
+
+**Indexes:**
+```sql
+CREATE INDEX idx_avatar_configurations_user_id ON maity.avatar_configurations(user_id);
+CREATE INDEX idx_avatar_configurations_character_preset ON maity.avatar_configurations(character_preset);
+CREATE INDEX idx_avatar_configurations_outfit_preset ON maity.avatar_configurations(outfit_preset);
 ```
 
 ---
