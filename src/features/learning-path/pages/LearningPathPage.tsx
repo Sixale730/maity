@@ -10,7 +10,8 @@ import { LearningPathRoadmap } from '../components/LearningPathRoadmap';
 import { Loader2 } from 'lucide-react';
 
 export function LearningPathPage() {
-  const { userId, isLoading: userLoading } = useUser();
+  const { userProfile, loading: userLoading } = useUser();
+  const userId = userProfile?.id;
   const { hasPath, isLoading: checkingPath } = useHasLearningPath(userId);
   const initializePath = useInitializeLearningPath();
 

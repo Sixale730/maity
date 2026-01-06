@@ -20,11 +20,13 @@ import {
   Briefcase,
   Zap,
   Brain,
-  Route
+  Route,
+  UserCircle,
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { supabase } from "@maity/shared";
-import { UserRole } from "@/contexts/UserContext";
+import { supabase, useAvatarWithDefault } from "@maity/shared";
+import { UserRole, useUser } from "@/contexts/UserContext";
+import { VoxelAvatar } from "@/features/avatar";
 import { useViewRole } from "@/contexts/ViewRoleContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MaityLogo from "./MaityLogo";
@@ -85,6 +87,7 @@ const getNavigationByRole = (role: UserRole) => {
     // 'user' role
     return [
       { title: "nav.dashboard", url: "/dashboard", icon: Home },
+      { title: "nav.avatar", url: "/avatar", icon: UserCircle },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
       { title: "nav.learning_path", url: "/learning-path", icon: Route },
@@ -106,6 +109,11 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
   const { t } = useLanguage();
   const { viewRole } = useViewRole();
   const currentPath = location.pathname;
+
+  // Get user ID for avatar
+  const { userProfile } = useUser();
+  const userId = userProfile?.id;
+  const { avatar } = useAvatarWithDefault(userId);
 
   // Use viewRole for display, but keep userRole for backwards compatibility
   const effectiveRole = viewRole || userRole;
@@ -165,20 +173,39 @@ export function RoleBasedSidebar({ userRole, userName }: RoleBasedSidebarProps) 
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/logo:translate-x-full transition-transform duration-1000" />
         </Link>
 
-        {/* User Info Section */}
+        {/* User Info Section with Avatar */}
         {state !== "collapsed" && (
           <div className="px-4 pb-4 pt-2">
-            <div className="space-y-1">
-              <p className="font-semibold text-sm text-sidebar-foreground truncate">
-                {userName || t('roles.default_user')}
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-sidebar-primary animate-pulse" />
-                <p className="text-xs text-sidebar-foreground/70 font-medium uppercase tracking-wider">
-                  {getRoleLabel(effectiveRole)}
+            <Link to="/avatar" className="flex items-center gap-3 group/user hover:opacity-80 transition-opacity">
+              <VoxelAvatar
+                config={avatar}
+                size="sm"
+                className="flex-shrink-0 rounded-lg overflow-hidden"
+              />
+              <div className="space-y-1 min-w-0">
+                <p className="font-semibold text-sm text-sidebar-foreground truncate group-hover/user:text-sidebar-primary transition-colors">
+                  {userName || t('roles.default_user')}
                 </p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-sidebar-primary animate-pulse" />
+                  <p className="text-xs text-sidebar-foreground/70 font-medium uppercase tracking-wider">
+                    {getRoleLabel(effectiveRole)}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
+          </div>
+        )}
+        {/* Collapsed state - small avatar */}
+        {state === "collapsed" && (
+          <div className="px-2 pb-2 flex justify-center">
+            <Link to="/avatar" className="hover:opacity-80 transition-opacity">
+              <VoxelAvatar
+                config={avatar}
+                size="xs"
+                className="rounded-lg overflow-hidden"
+              />
+            </Link>
           </div>
         )}
       </SidebarHeader>

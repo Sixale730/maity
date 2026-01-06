@@ -30,6 +30,7 @@ export const translations = {
     'nav.first_interview': 'Mi Primera Entrevista',
     'nav.interview_history': 'Historial de Entrevistas',
     'nav.agent_config': 'Configuración de Agentes',
+    'nav.avatar': 'Mi Avatar',
 
     // Hero Section
     'hero.badge': 'IA · Mentoría · Crecimiento Diario',
@@ -139,6 +140,7 @@ export const translations = {
     'nav.first_interview': 'My First Interview',
     'nav.interview_history': 'Interview History',
     'nav.agent_config': 'Agent Configuration',
+    'nav.avatar': 'My Avatar',
 
     // Hero Section
     'hero.badge': 'AI · Mentoring · Daily Growth',

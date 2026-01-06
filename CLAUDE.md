@@ -582,6 +582,60 @@ Maity includes a gamification system with 5 progression levels to motivate users
 **Future Enhancement:**
 - Level progression logic to be determined (may be based on diagnostic score, completed sessions, or combination)
 
+### Avatar System (3D Voxel Avatars)
+Maity includes a 3D voxel avatar system inspired by Crossy Road for user personalization.
+
+**Technology:**
+- React Three Fiber (`@react-three/fiber`)
+- Three.js (`three`)
+- Procedural geometry (BoxGeometry) - no external 3D assets needed
+
+**Customization Options:**
+- **Head Types:** `default`, `round`, `square`, `tall`
+- **Body Types:** `default`, `slim`, `athletic`, `casual`
+- **Colors:** Skin, hair, shirt, pants (hex values)
+- **Accessories:** Glasses, hats, headphones, bowtie, necklace
+
+**Database:**
+- Table: `maity.avatar_configurations`
+- One avatar per user (UNIQUE constraint on user_id)
+- JSONB accessories array for flexibility
+
+**Architecture:**
+- Location: `src/features/avatar/`
+- Domain Layer: `packages/shared/src/domain/avatar/`
+- Route: `/avatar` - Full editor page
+- Components:
+  - `VoxelAvatar` - Main display component (supports sizes xs to xl)
+  - `VoxelCharacter` - 3D character assembly
+  - `VoxelHead`, `VoxelBody`, `VoxelAccessories` - Individual parts
+  - `AvatarEditor` - Customization panel with tabs
+  - `ColorPicker`, `PartSelector`, `AccessorySelector` - UI components
+
+**Services & Hooks:**
+- `AvatarService` - CRUD operations (`getAvatar`, `upsertAvatar`)
+- `useAvatar(userId)` - Fetch avatar data
+- `useAvatarWithDefault(userId)` - Fetch with fallback to default
+- `useUpdateAvatar()` - Save changes mutation
+
+**Integration Points:**
+- **Sidebar:** Avatar displayed next to username (small size)
+- **Dashboard:** "Mi Avatar" card with link to editor
+- **Navigation:** "Mi Avatar" in user sidebar menu
+
+**RPC Functions:**
+- `public.get_user_avatar(p_user_id)` - Get user's avatar
+- `public.upsert_avatar_configuration(...)` - Create/update avatar
+
+**Files:**
+- Migration: `supabase/migrations/..._create_avatar_configurations_table.sql`
+- Types: `packages/shared/src/domain/avatar/avatar.types.ts`
+- Service: `packages/shared/src/domain/avatar/avatar.service.ts`
+- Hooks: `packages/shared/src/domain/avatar/hooks/useAvatar.ts`
+- Components: `src/features/avatar/components/`
+- Page: `src/features/avatar/pages/AvatarEditorPage.tsx`
+- Documentation: `docs/database-structure-and-rls.md`
+
 ### Tech Week - Admin Practice Section
 Tech Week is a specialized voice practice feature for admin-only testing and demonstration.
 

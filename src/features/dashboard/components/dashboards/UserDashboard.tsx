@@ -23,11 +23,13 @@ import {
   Radar
 } from "recharts";
 import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
-import { useFormResponses, useDiagnosticRadarScores, useInterviewRadarScores, supabase } from "@maity/shared";
+import { useFormResponses, useDiagnosticRadarScores, useInterviewRadarScores, useAvatarWithDefault, supabase } from "@maity/shared";
 import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { Lightbulb, Users, Layout, Target, Heart, TrendingUp } from "lucide-react";
 import { getLevelInfo } from "@/features/levels";
+import { VoxelAvatar } from "@/features/avatar";
+import { Link } from "react-router-dom";
 
 const chartConfig = {
   sessions: {
@@ -87,6 +89,7 @@ export function UserDashboard({ userName }: UserDashboardProps) {
     userProfile?.id,
     { useRandomDataForTesting: isAdmin } // Show random interview data for admins testing
   );
+  const { avatar } = useAvatarWithDefault(userProfile?.id);
 
   // Calculate diagnostic score from registration form data (q5-q16, scale 1-5)
   const diagnosticScore = useMemo(() => {
@@ -331,6 +334,24 @@ export function UserDashboard({ userName }: UserDashboardProps) {
             </p>
           </CardContent>
         </Card>
+
+        {/* Avatar Card */}
+        <Link to="/avatar" className="block">
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-indigo-900">Mi Avatar</CardTitle>
+              <span className="text-xl">🎮</span>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center">
+              <VoxelAvatar
+                config={avatar}
+                size="lg"
+                enableRotation
+                autoRotate
+              />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Cards 3-4 temporalmente comentadas */}
         {/* <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
