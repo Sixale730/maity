@@ -6,17 +6,17 @@ import { useToast } from '@/shared/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { NativeRegistrationForm } from '../components/registration/NativeRegistrationForm';
+import { OnboardingFlow } from '../components/onboarding';
 
 /**
- * Registration Page - Native Form
- * Shows multi-step diagnostic form to users in REGISTRATION phase
+ * Registration Page - Onboarding Flow
+ * Shows multi-step onboarding to users in REGISTRATION phase
  *
  * Flow:
  * 1. Verify user session
  * 2. Check user phase (must have company_id but not registration_form_completed)
- * 3. Show native form (19 questions)
- * 4. On completion -> Redirect to dashboard
+ * 3. Show onboarding flow (Avatar -> Instructions -> Questionnaire)
+ * 4. On completion -> Redirect to levels intro
  */
 
 const Registration: React.FC = () => {
@@ -101,6 +101,7 @@ const Registration: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['formResponses'] }),
         queryClient.invalidateQueries({ queryKey: ['user', 'profile'] }),
         queryClient.invalidateQueries({ queryKey: ['user', 'status'] }),
+        queryClient.invalidateQueries({ queryKey: ['avatar'] }),
       ]);
 
       // Small delay to ensure Supabase RLS policies reflect the update
@@ -113,7 +114,7 @@ const Registration: React.FC = () => {
 
       toast({
         title: '¡Registro completado!',
-        description: 'Tu autoevaluación ha sido guardada exitosamente.',
+        description: 'Tu perfil y autoevaluación han sido guardados exitosamente.',
       });
 
       // Navigate to levels intro page
@@ -144,14 +145,14 @@ const Registration: React.FC = () => {
         <Card>
           <CardHeader className="text-center border-b">
             <CardTitle className="text-2xl sm:text-3xl">
-              Autoevaluación de Comunicación
+              Bienvenido a Maity
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              Completa este cuestionario para personalizar tu experiencia en Maity
+              Personaliza tu perfil y completa tu evaluación
             </p>
           </CardHeader>
           <CardContent className="pt-6">
-            <NativeRegistrationForm userId={userId} onComplete={handleFormComplete} />
+            <OnboardingFlow userId={userId} onComplete={handleFormComplete} />
           </CardContent>
         </Card>
       </div>

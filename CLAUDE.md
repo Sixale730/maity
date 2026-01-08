@@ -567,11 +567,22 @@ Maity includes a gamification system with 5 progression levels to motivate users
 - Utils: `getLevelInfo()`, `getAllLevels()`, `getLevelName()`
 - Types: `LevelNumber`, `LevelInfo`, `LEVEL_NAMES`
 
-**User Flow:**
-1. User completes registration form (20 questions including consent)
-2. Redirected to `/levels-intro` page showing all 5 levels
-3. User sees they start as "Aprendiz" (Level 1)
-4. Dashboard displays current level in "Mi Nivel" card (replaces "Upcoming Sessions")
+**User Flow (Onboarding):**
+1. User lands on `/registration` after OAuth
+2. **Step 1 - Avatar Creation**: Creates personalized 3D avatar
+3. **Step 2 - Instructions**: Sees video and explanation of the questionnaire
+4. **Step 3 - Questionnaire**: Completes 20-question form
+5. Redirected to `/levels-intro` page showing all 5 levels
+6. User sees they start as "Aprendiz" (Level 1)
+7. Dashboard displays current level in "Mi Nivel" card
+
+**Onboarding Components:**
+- **Location:** `src/features/auth/components/onboarding/`
+- **Orchestrator:** `OnboardingFlow.tsx` - Manages step transitions
+- **Avatar Step:** `OnboardingAvatarStep.tsx` - Character, outfit, skin/hair colors
+- **Progress:** `OnboardingProgress.tsx` - Visual indicator (Avatar → Questionnaire)
+- **Hook:** `src/features/auth/hooks/useOnboardingFlow.ts` - State management
+- **LocalStorage:** `onboarding_state_{userId}` - Persists progress
 
 **Registration Form:**
 - **20 questions total:** 4 personal + 12 Likert + 3 open-ended + 1 consent
