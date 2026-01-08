@@ -22,6 +22,7 @@ import {
   Brain,
   Route,
   UserCircle,
+  Boxes,
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase, useAvatarWithDefault } from "@maity/shared";
@@ -52,6 +53,7 @@ const getNavigationByRole = (role: UserRole) => {
       { title: "nav.roleplay", url: "/roleplay", icon: Headphones },
       { title: "nav.agent_config", url: "/admin/agent-config", icon: Settings2 },
       { title: "nav.ai_resources", url: "/ai-resources", icon: Brain },
+      { title: "nav.avatar_showcase", url: "/avatar-showcase", icon: Boxes },
       { title: "nav.first_interview", url: "/primera-entrevista", icon: Briefcase },
       { title: "nav.interview_history", url: "/primera-entrevista/historial", icon: History },
       { title: "nav.demo", url: "/demo", icon: Play },

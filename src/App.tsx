@@ -50,6 +50,7 @@ const LearningPathPage = lazy(() => import("./features/learning-path").then(m =>
 const TeamProgressPage = lazy(() => import("./features/learning-path").then(m => ({ default: m.TeamProgressPage })));
 
 const AvatarEditorPage = lazy(() => import("./features/avatar").then(m => ({ default: m.AvatarEditorPage })));
+const AvatarShowcasePage = lazy(() => import("./features/avatar-showcase").then(m => ({ default: m.AvatarShowcasePage })));
 
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
@@ -136,6 +137,9 @@ const App = () => (
 
                       {/* AI Educational Resources (Admin Only) */}
                       <Route path="/ai-resources" element={<AdminRoute><AIResourcesPage /></AdminRoute>} />
+
+                      {/* Avatar Showcase (Admin Only) */}
+                      <Route path="/avatar-showcase" element={<AdminRoute><AvatarShowcasePage /></AdminRoute>} />
 
                       {/* Interview Routes (Admin Only) */}
                       <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />

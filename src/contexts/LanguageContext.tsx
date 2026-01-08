@@ -207,6 +207,11 @@ const translations = {
     'ai_resources.error': 'Error al agregar recurso',
     'ai_resources.loading': 'Cargando recursos...',
     'ai_resources.empty': 'No hay recursos disponibles',
+
+    // Avatar Showcase
+    'nav.avatar_showcase': 'Comparativa Avatares',
+    'avatar_showcase.title': 'Comparativa de Avatares Voxel',
+    'avatar_showcase.description': 'Compara diferentes enfoques para renderizar avatares 3D estilo voxel',
   },
   en: {
     // Navigation
@@ -419,6 +424,11 @@ const translations = {
     'ai_resources.error': 'Error adding resource',
     'ai_resources.loading': 'Loading resources...',
     'ai_resources.empty': 'No resources available',
+
+    // Avatar Showcase
+    'nav.avatar_showcase': 'Avatar Showcase',
+    'avatar_showcase.title': 'Voxel Avatar Showcase',
+    'avatar_showcase.description': 'Compare different approaches for rendering 3D voxel-style avatars',
   }
 };
 
