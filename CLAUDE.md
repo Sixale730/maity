@@ -622,10 +622,31 @@ Characters are organized by source for easy navigation:
 - **Colors:** Skin, hair, shirt, pants (hex values)
 - **Accessories:** Glasses, hats, headphones, bowtie, necklace
 
+**Shared Items System:**
+Items can be equipped on ANY character (not just human). Each character has attachment points for positioning items.
+
+| Category | Items | Description |
+|----------|-------|-------------|
+| **Mano Derecha** | `sword`, `wand`, `spatula`, `hammer`, `axe` | Weapons and tools |
+| **Mano Izquierda** | `shield`, `book` | Defensive items and books |
+| **Espalda** | `cape` | Back items |
+
+**Attachment Points:**
+Each character defines attachment points in `attachment-points.ts`:
+- `head`, `eyes`, `ears`, `neck` - Head/face accessories
+- `handRight`, `handLeft` - Hand items (sword, shield, etc.)
+- `back` - Back items (cape)
+
+**Item Components:** `src/features/avatar/components/voxel-parts/items/`
+- `Sword.tsx`, `Shield.tsx`, `Wand.tsx`, `Spatula.tsx`, `Hammer.tsx`, `Axe.tsx`, `Book.tsx`, `Cape.tsx`
+- `ItemRenderer.tsx` - Dispatcher that positions items on characters
+- `ItemSelector.tsx` - UI component for selecting items by category
+
 **Database:**
 - Table: `maity.avatar_configurations`
 - One avatar per user (UNIQUE constraint on user_id)
-- JSONB accessories array for flexibility
+- JSONB `accessories` array for head/face accessories
+- JSONB `items` array for shared items (sword, shield, cape, etc.)
 
 **Architecture:**
 - Location: `src/features/avatar/`
@@ -658,11 +679,15 @@ Characters are organized by source for easy navigation:
 
 **Files:**
 - Migration: `supabase/migrations/..._create_avatar_configurations_table.sql`
+- Items Migration: `supabase/migrations/20260108120000_add_items_to_avatars.sql`
 - Types: `packages/shared/src/domain/avatar/avatar.types.ts`
+- Items Types: `packages/shared/src/domain/avatar/items.types.ts`
+- Attachment Points: `packages/shared/src/domain/avatar/attachment-points.ts`
 - Service: `packages/shared/src/domain/avatar/avatar.service.ts`
 - Hooks: `packages/shared/src/domain/avatar/hooks/useAvatar.ts`
 - Components: `src/features/avatar/components/`
 - Characters: `src/features/avatar/components/voxel-parts/characters/`
+- Items: `src/features/avatar/components/voxel-parts/items/`
 - Page: `src/features/avatar/pages/AvatarEditorPage.tsx`
 - Documentation: `docs/database-structure-and-rls.md`
 

@@ -7,13 +7,14 @@ import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { Button } from '@/ui/components/ui/button';
-import { Loader2, Save, RotateCcw, Palette, User, Sparkles, Users, Shirt } from 'lucide-react';
+import { Loader2, Save, RotateCcw, Palette, User, Sparkles, Users, Shirt, Swords } from 'lucide-react';
 import { VoxelAvatar } from './VoxelAvatar';
 import { ColorPicker } from './ColorPicker';
 import { PartSelector } from './PartSelector';
 import { AccessorySelector } from './AccessorySelector';
 import { CharacterSelector } from './CharacterSelector';
 import { OutfitSelector } from './OutfitSelector';
+import { ItemSelector } from './ItemSelector';
 import {
   useUpdateAvatar,
   SKIN_COLORS,
@@ -23,7 +24,7 @@ import {
   DEFAULT_AVATAR_CONFIG,
   OUTFIT_PRESETS,
 } from '@maity/shared';
-import type { AvatarConfiguration, HeadType, BodyType, AccessoryCode, CharacterPreset, OutfitPreset } from '@maity/shared';
+import type { AvatarConfiguration, HeadType, BodyType, AccessoryCode, CharacterPreset, OutfitPreset, ItemCode } from '@maity/shared';
 import { toast } from '@/shared/hooks/use-toast';
 
 interface AvatarEditorProps {
@@ -74,6 +75,10 @@ export function AvatarEditor({ userId, initialConfig, onSave }: AvatarEditorProp
     setConfig((prev) => ({ ...prev, accessories }));
   }, []);
 
+  const handleItemsChange = useCallback((items: ItemCode[]) => {
+    setConfig((prev) => ({ ...prev, items }));
+  }, []);
+
   const handleReset = useCallback(() => {
     setConfig({
       ...DEFAULT_AVATAR_CONFIG,
@@ -94,6 +99,7 @@ export function AvatarEditor({ userId, initialConfig, onSave }: AvatarEditorProp
           shirt_color: config.shirt_color,
           pants_color: config.pants_color,
           accessories: config.accessories as AccessoryCode[],
+          items: config.items as string[],
         },
       });
       toast({
@@ -143,7 +149,7 @@ export function AvatarEditor({ userId, initialConfig, onSave }: AvatarEditorProp
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="character" className="w-full">
-            <TabsList className={`grid w-full mb-4 ${isHuman ? 'grid-cols-4' : 'grid-cols-1'}`}>
+            <TabsList className={`grid w-full mb-4 ${isHuman ? 'grid-cols-5' : 'grid-cols-2'}`}>
               <TabsTrigger value="character" className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Personaje</span>
@@ -164,6 +170,11 @@ export function AvatarEditor({ userId, initialConfig, onSave }: AvatarEditorProp
                   </TabsTrigger>
                 </>
               )}
+              {/* Items tab available for ALL characters */}
+              <TabsTrigger value="items" className="flex items-center gap-1">
+                <Swords className="w-4 h-4" />
+                <span className="hidden sm:inline">Items</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="character" className="space-y-4">
@@ -217,6 +228,14 @@ export function AvatarEditor({ userId, initialConfig, onSave }: AvatarEditorProp
                 </TabsContent>
               </>
             )}
+
+            {/* Items tab - available for ALL characters */}
+            <TabsContent value="items" className="space-y-4">
+              <ItemSelector
+                selected={(config.items as ItemCode[]) || []}
+                onChange={handleItemsChange}
+              />
+            </TabsContent>
           </Tabs>
 
           {/* Action Buttons */}

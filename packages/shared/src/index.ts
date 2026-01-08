@@ -110,6 +110,8 @@ export * from './domain/learning-path/hooks/useLearningPath';
 // ===== Domain: Avatar =====
 export { AvatarService } from './domain/avatar/avatar.service';
 export * from './domain/avatar/avatar.types';
+export * from './domain/avatar/items.types';
+export * from './domain/avatar/attachment-points';
 export * from './domain/avatar/hooks/useAvatar';
 
 // ===== Contexts =====

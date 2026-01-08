@@ -31,6 +31,7 @@ export class AvatarService {
     return {
       ...row,
       accessories: (row.accessories as AccessoryCode[]) || [],
+      items: (row.items as string[]) || [],
       full_config: (row.full_config as Record<string, unknown>) || {},
     };
   }
@@ -53,6 +54,7 @@ export class AvatarService {
       p_shirt_color: config.shirt_color || DEFAULT_AVATAR_CONFIG.shirt_color,
       p_pants_color: config.pants_color || DEFAULT_AVATAR_CONFIG.pants_color,
       p_accessories: config.accessories || [],
+      p_items: config.items || [],
       p_full_config: {},
     });
 
@@ -65,6 +67,7 @@ export class AvatarService {
     return {
       ...data,
       accessories: (data.accessories as AccessoryCode[]) || [],
+      items: (data.items as string[]) || [],
       full_config: (data.full_config as Record<string, unknown>) || {},
     };
   }

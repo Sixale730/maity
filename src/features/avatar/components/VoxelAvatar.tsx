@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { VoxelCharacter } from './voxel-parts';
-import type { AvatarConfiguration, AvatarSize, AVATAR_SIZE_CONFIG } from '@maity/shared';
+import type { AvatarConfiguration, AvatarSize, AVATAR_SIZE_CONFIG, ItemCode } from '@maity/shared';
 
 interface VoxelAvatarProps {
   config: Partial<AvatarConfiguration>;
@@ -114,6 +114,7 @@ export function VoxelAvatar({
             shirtColor={config.shirt_color || '#4A90D9'}
             pantsColor={config.pants_color || '#3D3D3D'}
             accessories={config.accessories || []}
+            items={(config.items || []) as ItemCode[]}
             animate={animate}
           />
 

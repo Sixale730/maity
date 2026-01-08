@@ -2343,7 +2343,7 @@ The Avatar system provides 3D voxel-style avatars (Crossy Road inspired) for use
 CREATE TABLE maity.avatar_configurations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES maity.users(id) ON DELETE CASCADE,
-  character_preset TEXT NOT NULL DEFAULT 'human', -- 'human', 'chicken', 'dog'
+  character_preset TEXT NOT NULL DEFAULT 'human', -- 'human', 'chicken', 'dog', 'lion_knight', 'knight', 'robot', 'kenney_human'
   outfit_preset TEXT NOT NULL DEFAULT 'casual',   -- 'casual', 'business', 'worker', 'formal', 'sporty' (human only)
   head_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'round', 'square', 'tall' (human only)
   body_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'slim', 'athletic', 'casual' (human only)
@@ -2352,21 +2352,26 @@ CREATE TABLE maity.avatar_configurations (
   shirt_color TEXT NOT NULL DEFAULT '#4A90D9',    -- From outfit preset
   pants_color TEXT NOT NULL DEFAULT '#3D3D3D',    -- From outfit preset
   accessories JSONB DEFAULT '[]',                 -- Array of accessory codes (human only)
+  items JSONB DEFAULT '[]',                       -- Shared items (works on ALL characters)
   full_config JSONB DEFAULT '{}',                 -- Future expansion
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id),
-  CONSTRAINT avatar_character_preset_check CHECK (character_preset IN ('human', 'chicken', 'dog')),
+  CONSTRAINT avatar_character_preset_check CHECK (character_preset IN ('human', 'chicken', 'dog', 'lion_knight', 'knight', 'robot', 'kenney_human')),
   CONSTRAINT avatar_outfit_preset_check CHECK (outfit_preset IN ('casual', 'business', 'worker', 'formal', 'sporty'))
 );
 ```
 
 **Character Presets:**
-| Preset | Name | Customizable | Description |
-|--------|------|--------------|-------------|
-| `human` | Humano | Yes | Default, fully customizable avatar |
-| `chicken` | Pollo | No | Crossy Road style chicken |
-| `dog` | Perro | No | Cute blocky dog |
+| Preset | Name | Source | Customizable | Description |
+|--------|------|--------|--------------|-------------|
+| `human` | Humano | Maity | Yes | Default, fully customizable avatar |
+| `chicken` | Pollo | Maity | No | Crossy Road style chicken |
+| `dog` | Perro | Maity | No | Cute blocky dog |
+| `lion_knight` | Leon Caballero | Maity | No | Noble lion in armor |
+| `knight` | Caballero | OpenGameArt | No | Blue knight with sword |
+| `robot` | Robot | OpenGameArt | No | Mechanical robot with antenna |
+| `kenney_human` | Humano Kenney | Kenney.nl | No | Kenney-style mini character |
 
 **Outfit Presets (human only):**
 | Preset | Name | Emoji | Description |
@@ -2398,18 +2403,18 @@ CREATE POLICY "users_can_update_own_avatar"
 
 **RPC Functions:**
 ```sql
--- Get user's avatar configuration (includes outfit_preset)
+-- Get user's avatar configuration (includes items)
 public.get_user_avatar(p_user_id UUID) RETURNS TABLE(
   id, user_id, character_preset, outfit_preset, head_type, body_type,
-  skin_color, hair_color, shirt_color, pants_color, accessories, full_config,
+  skin_color, hair_color, shirt_color, pants_color, accessories, items, full_config,
   created_at, updated_at
 )
 
--- Upsert avatar configuration (includes outfit_preset)
+-- Upsert avatar configuration (includes items)
 public.upsert_avatar_configuration(
   p_user_id UUID,
-  p_character_preset TEXT DEFAULT 'human',   -- 'human', 'chicken', 'dog'
-  p_outfit_preset TEXT DEFAULT 'casual',     -- 'casual', 'business', 'worker', 'formal', 'sporty'
+  p_character_preset TEXT DEFAULT 'human',
+  p_outfit_preset TEXT DEFAULT 'casual',
   p_head_type TEXT DEFAULT 'default',
   p_body_type TEXT DEFAULT 'default',
   p_skin_color TEXT DEFAULT '#FFD7C4',
@@ -2417,15 +2422,28 @@ public.upsert_avatar_configuration(
   p_shirt_color TEXT DEFAULT '#4A90D9',
   p_pants_color TEXT DEFAULT '#3D3D3D',
   p_accessories JSONB DEFAULT '[]',
+  p_items JSONB DEFAULT '[]',
   p_full_config JSONB DEFAULT '{}'
 ) RETURNS maity.avatar_configurations
 ```
 
-**Accessory Codes:**
+**Accessory Codes (human only):**
 - `glasses_round`, `glasses_square` - Eyewear
 - `hat_cap`, `hat_beanie` - Headwear
 - `headphones` - Audio accessories
 - `bowtie`, `necklace` - Decorative items
+
+**Shared Item Codes (works on ALL characters):**
+| Category | Code | Name | Description |
+|----------|------|------|-------------|
+| **Mano Derecha** | `sword` | Espada | Medieval sword |
+| | `wand` | Varita | Magic wand |
+| | `spatula` | Espatula | Kitchen spatula |
+| | `hammer` | Martillo | Work hammer |
+| | `axe` | Hacha | Woodcutter axe |
+| **Mano Izquierda** | `shield` | Escudo | Red shield with cross |
+| | `book` | Libro | Leather book |
+| **Espalda** | `cape` | Capa | Hero cape |
 
 **Frontend Integration:**
 - **Service:** `packages/shared/src/domain/avatar/avatar.service.ts`
@@ -2438,6 +2456,7 @@ public.upsert_avatar_configuration(
 CREATE INDEX idx_avatar_configurations_user_id ON maity.avatar_configurations(user_id);
 CREATE INDEX idx_avatar_configurations_character_preset ON maity.avatar_configurations(character_preset);
 CREATE INDEX idx_avatar_configurations_outfit_preset ON maity.avatar_configurations(outfit_preset);
+CREATE INDEX idx_avatar_configurations_items ON maity.avatar_configurations USING GIN (items);
 ```
 
 ---

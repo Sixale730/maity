@@ -1,11 +1,14 @@
 /**
  * VoxelCharacter - Character Dispatcher
  * Routes to the appropriate character component based on preset
+ * Supports shared items that can be equipped on any character
  */
 
 import { VoxelHuman } from './VoxelHuman';
 import { VoxelChicken, VoxelDog, VoxelLionKnight, VoxelKnight, VoxelRobot, VoxelKenneyHuman } from './characters';
-import type { CharacterPreset, HeadType, BodyType, AccessoryCode, OutfitPreset } from '@maity/shared';
+import { ItemRenderer, isSharedItem, getItemCategory } from './items';
+import type { CharacterPreset, HeadType, BodyType, AccessoryCode, OutfitPreset, ItemCode } from '@maity/shared';
+import { getAttachmentPoints } from '@maity/shared';
 
 interface VoxelCharacterProps {
   characterPreset?: CharacterPreset;
@@ -17,6 +20,7 @@ interface VoxelCharacterProps {
   shirtColor?: string;
   pantsColor?: string;
   accessories?: AccessoryCode[];
+  items?: ItemCode[];
   animate?: boolean;
 }
 
@@ -30,42 +34,104 @@ export function VoxelCharacter({
   shirtColor = '#4A90D9',
   pantsColor = '#3D3D3D',
   accessories = [],
+  items = [],
   animate = false,
 }: VoxelCharacterProps) {
+  // Get attachment points for this character type
+  const attachments = getAttachmentPoints(characterPreset);
+
+  // Filter items to only render shared items (hand/back items)
+  // Head/Eyes/Ears/Neck accessories are handled by VoxelAccessories
+  const sharedItems = items.filter(isSharedItem);
+
+  // Render items attached to this character
+  const renderItems = () => (
+    <>
+      {sharedItems.map((itemId) => {
+        const category = getItemCategory(itemId);
+        const attachmentKey = category === 'hand_right' ? 'handRight' :
+                              category === 'hand_left' ? 'handLeft' :
+                              category;
+        const attachmentPoint = attachments[attachmentKey as keyof typeof attachments];
+
+        return (
+          <ItemRenderer
+            key={itemId}
+            itemId={itemId}
+            attachmentPoint={attachmentPoint}
+          />
+        );
+      })}
+    </>
+  );
+
   // Dispatch to the correct character component based on preset
   switch (characterPreset) {
     case 'chicken':
-      return <VoxelChicken animate={animate} />;
+      return (
+        <group>
+          <VoxelChicken animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'dog':
-      return <VoxelDog animate={animate} />;
+      return (
+        <group>
+          <VoxelDog animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'lion_knight':
-      return <VoxelLionKnight animate={animate} />;
+      return (
+        <group>
+          <VoxelLionKnight animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'knight':
-      return <VoxelKnight animate={animate} />;
+      return (
+        <group>
+          <VoxelKnight animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'robot':
-      return <VoxelRobot animate={animate} />;
+      return (
+        <group>
+          <VoxelRobot animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'kenney_human':
-      return <VoxelKenneyHuman animate={animate} />;
+      return (
+        <group>
+          <VoxelKenneyHuman animate={animate} />
+          {renderItems()}
+        </group>
+      );
 
     case 'human':
     default:
       return (
-        <VoxelHuman
-          headType={headType}
-          bodyType={bodyType}
-          skinColor={skinColor}
-          hairColor={hairColor}
-          shirtColor={shirtColor}
-          pantsColor={pantsColor}
-          accessories={accessories}
-          outfitPreset={outfitPreset}
-          animate={animate}
-        />
+        <group>
+          <VoxelHuman
+            headType={headType}
+            bodyType={bodyType}
+            skinColor={skinColor}
+            hairColor={hairColor}
+            shirtColor={shirtColor}
+            pantsColor={pantsColor}
+            accessories={accessories}
+            outfitPreset={outfitPreset}
+            animate={animate}
+          />
+          {renderItems()}
+        </group>
       );
   }
 }

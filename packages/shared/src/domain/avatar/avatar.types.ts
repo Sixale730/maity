@@ -111,6 +111,9 @@ export type AccessoryCode =
   | 'bowtie'
   | 'necklace';
 
+// Re-export ItemCode for convenience
+export type { ItemCode } from './items.types';
+
 // ===== Database Types =====
 
 export interface AvatarConfiguration {
@@ -125,6 +128,7 @@ export interface AvatarConfiguration {
   shirt_color: string;
   pants_color: string;
   accessories: AccessoryCode[];
+  items: string[];  // ItemCode[] - shared items (sword, shield, cape, etc.)
   full_config: Record<string, unknown>;
   created_at: string;
   updated_at: string;
@@ -140,6 +144,7 @@ export interface UpdateAvatarInput {
   shirt_color?: string;
   pants_color?: string;
   accessories?: AccessoryCode[];
+  items?: string[];  // ItemCode[]
 }
 
 // ===== Display Types =====
@@ -165,6 +170,7 @@ export const DEFAULT_AVATAR_CONFIG: Omit<AvatarConfiguration, 'id' | 'user_id' |
   shirt_color: '#4A90D9', // From casual outfit
   pants_color: '#3D3D3D', // From casual outfit
   accessories: [],
+  items: [],  // Shared items (sword, shield, cape, etc.)
   full_config: {},
 };
 
