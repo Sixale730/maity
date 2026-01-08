@@ -5,7 +5,25 @@
  */
 
 import { VoxelHuman } from './VoxelHuman';
-import { VoxelChicken, VoxelDog, VoxelLionKnight, VoxelKnight, VoxelRobot, VoxelKenneyHuman } from './characters';
+import {
+  VoxelChicken,
+  VoxelDog,
+  VoxelLionKnight,
+  VoxelKnight,
+  VoxelRobot,
+  VoxelKenneyHuman,
+  // Animals
+  VoxelCat,
+  VoxelPanda,
+  VoxelBear,
+  VoxelFrog,
+  // Fantasy
+  VoxelWizard,
+  VoxelNinja,
+  // Professions
+  VoxelChef,
+  VoxelScientist,
+} from './characters';
 import { ItemRenderer, isSharedItem, getItemCategory } from './items';
 import type { CharacterPreset, HeadType, BodyType, AccessoryCode, OutfitPreset, ItemCode } from '@maity/shared';
 import { getAttachmentPoints } from '@maity/shared';
@@ -111,6 +129,73 @@ export function VoxelCharacter({
       return (
         <group>
           <VoxelKenneyHuman animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    // Animals
+    case 'cat':
+      return (
+        <group>
+          <VoxelCat animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    case 'panda':
+      return (
+        <group>
+          <VoxelPanda animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    case 'bear':
+      return (
+        <group>
+          <VoxelBear animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    case 'frog':
+      return (
+        <group>
+          <VoxelFrog animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    // Fantasy
+    case 'wizard':
+      return (
+        <group>
+          <VoxelWizard animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    case 'ninja':
+      return (
+        <group>
+          <VoxelNinja animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    // Professions
+    case 'chef':
+      return (
+        <group>
+          <VoxelChef animate={animate} />
+          {renderItems()}
+        </group>
+      );
+
+    case 'scientist':
+      return (
+        <group>
+          <VoxelScientist animate={animate} />
           {renderItems()}
         </group>
       );

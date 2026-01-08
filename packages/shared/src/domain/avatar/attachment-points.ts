@@ -129,6 +129,118 @@ const KENNEY_HUMAN_ATTACHMENTS: CharacterAttachmentPoints = {
   back: { x: 0, y: 0.38, z: -0.17 },       // Behind body
 };
 
+/**
+ * Cat character attachment points
+ * Compact body with triangular ears and long tail
+ */
+const CAT_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 0.95, z: 0 },
+  eyes: { x: 0, y: 0.7, z: 0.35 },
+  ears: { x: 0.3, y: 0.85, z: 0 },
+  neck: { x: 0, y: 0.4, z: 0.2 },
+  handRight: { x: 0.35, y: 0.0, z: 0.1 },
+  handLeft: { x: -0.35, y: 0.0, z: 0.1 },
+  back: { x: 0, y: 0.2, z: -0.25 },
+};
+
+/**
+ * Panda character attachment points
+ * Rounded body with distinctive black and white markings
+ */
+const PANDA_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.1, z: 0 },
+  eyes: { x: 0, y: 0.85, z: 0.4 },
+  ears: { x: 0.35, y: 1.0, z: 0 },
+  neck: { x: 0, y: 0.5, z: 0.25 },
+  handRight: { x: 0.4, y: 0.1, z: 0 },
+  handLeft: { x: -0.4, y: 0.1, z: 0 },
+  back: { x: 0, y: 0.3, z: -0.3 },
+};
+
+/**
+ * Bear character attachment points
+ * Robust body with small round ears
+ */
+const BEAR_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.05, z: 0 },
+  eyes: { x: 0, y: 0.8, z: 0.35 },
+  ears: { x: 0.3, y: 0.95, z: 0 },
+  neck: { x: 0, y: 0.45, z: 0.22 },
+  handRight: { x: 0.38, y: 0.05, z: 0 },
+  handLeft: { x: -0.38, y: 0.05, z: 0 },
+  back: { x: 0, y: 0.25, z: -0.28 },
+};
+
+/**
+ * Frog character attachment points
+ * Low sitting body with bulging eyes
+ */
+const FROG_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 0.75, z: 0 },
+  eyes: { x: 0, y: 0.65, z: 0.3 },
+  ears: { x: 0.25, y: 0.6, z: 0 },
+  neck: { x: 0, y: 0.3, z: 0.2 },
+  handRight: { x: 0.4, y: -0.1, z: 0.15 },
+  handLeft: { x: -0.4, y: -0.1, z: 0.15 },
+  back: { x: 0, y: 0.15, z: -0.2 },
+};
+
+/**
+ * Wizard character attachment points
+ * Tall hat and long robe
+ */
+const WIZARD_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.35, z: 0 },
+  eyes: { x: 0, y: 0.9, z: 0.3 },
+  ears: { x: 0.28, y: 0.85, z: 0 },
+  neck: { x: 0, y: 0.6, z: 0.2 },
+  handRight: { x: 0.35, y: 0.2, z: 0.1 },
+  handLeft: { x: -0.35, y: 0.2, z: 0.1 },
+  back: { x: 0, y: 0.4, z: -0.22 },
+};
+
+/**
+ * Ninja character attachment points
+ * Stealthy pose with mask
+ */
+const NINJA_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.1, z: 0 },
+  eyes: { x: 0, y: 0.82, z: 0.35 },
+  ears: { x: 0.32, y: 0.8, z: 0 },
+  neck: { x: 0, y: 0.5, z: 0.2 },
+  handRight: { x: 0.38, y: 0.0, z: 0.05 },
+  handLeft: { x: -0.38, y: 0.0, z: 0.05 },
+  back: { x: 0, y: 0.3, z: -0.2 },
+};
+
+/**
+ * Chef character attachment points
+ * Tall chef hat and apron
+ */
+const CHEF_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.3, z: 0 },
+  eyes: { x: 0, y: 0.85, z: 0.38 },
+  ears: { x: 0.35, y: 0.8, z: 0 },
+  neck: { x: 0, y: 0.5, z: 0.22 },
+  handRight: { x: 0.4, y: 0.0, z: 0 },
+  handLeft: { x: -0.4, y: 0.0, z: 0 },
+  back: { x: 0, y: 0.25, z: -0.22 },
+};
+
+/**
+ * Scientist character attachment points
+ * Lab coat and glasses
+ */
+const SCIENTIST_ATTACHMENTS: CharacterAttachmentPoints = {
+  head: { x: 0, y: 1.15, z: 0 },
+  eyes: { x: 0, y: 0.82, z: 0.38 },
+  ears: { x: 0.35, y: 0.78, z: 0 },
+  neck: { x: 0, y: 0.48, z: 0.2 },
+  handRight: { x: 0.42, y: -0.05, z: 0 },
+  handLeft: { x: -0.42, y: -0.05, z: 0 },
+  back: { x: 0, y: 0.2, z: -0.25 },
+};
+
 // ===== Attachment Points Registry =====
 
 export const CHARACTER_ATTACHMENTS: Record<CharacterPreset, CharacterAttachmentPoints> = {
@@ -139,6 +251,17 @@ export const CHARACTER_ATTACHMENTS: Record<CharacterPreset, CharacterAttachmentP
   knight: KNIGHT_ATTACHMENTS,
   robot: ROBOT_ATTACHMENTS,
   kenney_human: KENNEY_HUMAN_ATTACHMENTS,
+  // New animals
+  cat: CAT_ATTACHMENTS,
+  panda: PANDA_ATTACHMENTS,
+  bear: BEAR_ATTACHMENTS,
+  frog: FROG_ATTACHMENTS,
+  // Fantasy
+  wizard: WIZARD_ATTACHMENTS,
+  ninja: NINJA_ATTACHMENTS,
+  // Professions
+  chef: CHEF_ATTACHMENTS,
+  scientist: SCIENTIST_ATTACHMENTS,
 };
 
 // ===== Helper Functions =====

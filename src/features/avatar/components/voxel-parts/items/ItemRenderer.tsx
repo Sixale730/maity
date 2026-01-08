@@ -5,6 +5,7 @@
 
 import type { ItemCode, ItemCategory } from '@maity/shared';
 import type { AttachmentPoint } from '@maity/shared';
+// Existing items
 import { Sword } from './Sword';
 import { Shield } from './Shield';
 import { Wand } from './Wand';
@@ -13,6 +14,22 @@ import { Hammer } from './Hammer';
 import { Axe } from './Axe';
 import { Book } from './Book';
 import { Cape } from './Cape';
+// New weapons
+import { Bow } from './Bow';
+import { Staff } from './Staff';
+import { Dagger } from './Dagger';
+import { Spear } from './Spear';
+// New tools
+import { Pickaxe } from './Pickaxe';
+import { Shovel } from './Shovel';
+import { Wrench } from './Wrench';
+// New magical items
+import { Orb } from './Orb';
+import { Potion } from './Potion';
+import { Crystal } from './Crystal';
+// New back items
+import { Backpack } from './Backpack';
+import { Wings } from './Wings';
 
 interface ItemRendererProps {
   itemId: ItemCode;
@@ -32,21 +49,37 @@ const ITEM_TO_CATEGORY: Record<ItemCode, ItemCategory> = {
   // Neck
   bowtie: 'neck',
   necklace: 'neck',
-  // Hand right
+  // Hand right - existing
   sword: 'hand_right',
   wand: 'hand_right',
   spatula: 'hand_right',
   hammer: 'hand_right',
   axe: 'hand_right',
-  // Hand left
+  // Hand right - new weapons
+  bow: 'hand_right',
+  staff: 'hand_right',
+  dagger: 'hand_right',
+  spear: 'hand_right',
+  // Hand right - new tools
+  pickaxe: 'hand_right',
+  shovel: 'hand_right',
+  wrench: 'hand_right',
+  // Hand left - existing
   shield: 'hand_left',
   book: 'hand_left',
+  // Hand left - new magical
+  orb: 'hand_left',
+  potion: 'hand_left',
+  crystal: 'hand_left',
   // Back
   cape: 'back',
+  backpack: 'back',
+  wings: 'back',
 };
 
 // Item-specific rotation adjustments (in degrees)
 const ITEM_ROTATIONS: Partial<Record<ItemCode, [number, number, number]>> = {
+  // Existing
   sword: [0, 0, -15],      // Slight tilt outward
   shield: [0, 90, 0],      // Face forward
   book: [0, 90, 0],        // Face forward
@@ -55,6 +88,22 @@ const ITEM_ROTATIONS: Partial<Record<ItemCode, [number, number, number]>> = {
   hammer: [0, 0, -20],     // More tilt for natural hold
   axe: [0, 0, -20],        // More tilt for natural hold
   cape: [0, 0, 0],         // No rotation
+  // New weapons
+  bow: [0, 0, -30],        // Angled for aiming pose
+  staff: [0, 0, -5],       // Nearly vertical
+  dagger: [0, 0, -15],     // Slight tilt
+  spear: [0, 0, -5],       // Nearly vertical
+  // New tools
+  pickaxe: [0, 0, -25],    // Resting on shoulder
+  shovel: [0, 0, -10],     // Slight tilt
+  wrench: [0, 0, -15],     // Holding position
+  // New magical
+  orb: [0, 0, 0],          // Floating level
+  potion: [0, 0, 0],       // Upright
+  crystal: [0, 0, 0],      // Upright
+  // New back
+  backpack: [0, 0, 0],     // Flat on back
+  wings: [0, 0, 0],        // Spread out
 };
 
 export function ItemRenderer({ itemId, attachmentPoint }: ItemRendererProps) {
@@ -82,7 +131,7 @@ export function ItemRenderer({ itemId, attachmentPoint }: ItemRendererProps) {
 
   // Dispatch to correct item component
   switch (itemId) {
-    // Hand right items
+    // Hand right items - existing
     case 'sword':
       return <Sword position={position} rotation={finalRotation} scale={scale} />;
     case 'wand':
@@ -94,15 +143,45 @@ export function ItemRenderer({ itemId, attachmentPoint }: ItemRendererProps) {
     case 'axe':
       return <Axe position={position} rotation={finalRotation} scale={scale} />;
 
-    // Hand left items
+    // Hand right items - new weapons
+    case 'bow':
+      return <Bow position={position} rotation={finalRotation} scale={scale} />;
+    case 'staff':
+      return <Staff position={position} rotation={finalRotation} scale={scale} />;
+    case 'dagger':
+      return <Dagger position={position} rotation={finalRotation} scale={scale} />;
+    case 'spear':
+      return <Spear position={position} rotation={finalRotation} scale={scale} />;
+
+    // Hand right items - new tools
+    case 'pickaxe':
+      return <Pickaxe position={position} rotation={finalRotation} scale={scale} />;
+    case 'shovel':
+      return <Shovel position={position} rotation={finalRotation} scale={scale} />;
+    case 'wrench':
+      return <Wrench position={position} rotation={finalRotation} scale={scale} />;
+
+    // Hand left items - existing
     case 'shield':
       return <Shield position={position} rotation={finalRotation} scale={scale} />;
     case 'book':
       return <Book position={position} rotation={finalRotation} scale={scale} />;
 
+    // Hand left items - new magical
+    case 'orb':
+      return <Orb position={position} rotation={finalRotation} scale={scale} />;
+    case 'potion':
+      return <Potion position={position} rotation={finalRotation} scale={scale} />;
+    case 'crystal':
+      return <Crystal position={position} rotation={finalRotation} scale={scale} />;
+
     // Back items
     case 'cape':
       return <Cape position={position} rotation={finalRotation} scale={scale} />;
+    case 'backpack':
+      return <Backpack position={position} rotation={finalRotation} scale={scale} />;
+    case 'wings':
+      return <Wings position={position} rotation={finalRotation} scale={scale} />;
 
     // Head/Eyes/Ears/Neck items are handled by VoxelAccessories
     // Return null for items not handled here

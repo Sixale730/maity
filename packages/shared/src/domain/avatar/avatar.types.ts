@@ -5,7 +5,14 @@
 
 // ===== Character Presets =====
 
-export type CharacterPreset = 'human' | 'chicken' | 'dog' | 'lion_knight' | 'knight' | 'robot' | 'kenney_human';
+export type CharacterPreset =
+  | 'human' | 'chicken' | 'dog' | 'lion_knight' | 'knight' | 'robot' | 'kenney_human'
+  // New animals
+  | 'cat' | 'panda' | 'bear' | 'frog'
+  // Fantasy
+  | 'wizard' | 'ninja'
+  // Professions
+  | 'chef' | 'scientist';
 
 // ===== Character Sources =====
 
@@ -36,6 +43,17 @@ export const PRESET_CHARACTERS: PresetCharacterConfig[] = [
   { id: 'chicken', name: 'Pollo', emoji: '🐔', source: 'maity' },
   { id: 'dog', name: 'Perro', emoji: '🐶', source: 'maity' },
   { id: 'lion_knight', name: 'León Caballero', emoji: '🦁', source: 'maity' },
+  // Animals
+  { id: 'cat', name: 'Gato', emoji: '🐱', source: 'maity' },
+  { id: 'panda', name: 'Panda', emoji: '🐼', source: 'maity' },
+  { id: 'bear', name: 'Oso', emoji: '🐻', source: 'maity' },
+  { id: 'frog', name: 'Rana', emoji: '🐸', source: 'maity' },
+  // Fantasy
+  { id: 'wizard', name: 'Mago', emoji: '🧙', source: 'maity' },
+  { id: 'ninja', name: 'Ninja', emoji: '🥷', source: 'maity' },
+  // Professions
+  { id: 'chef', name: 'Chef', emoji: '👨‍🍳', source: 'maity' },
+  { id: 'scientist', name: 'Científico', emoji: '🔬', source: 'maity' },
   // OpenGameArt
   { id: 'knight', name: 'Caballero', emoji: '⚔️', source: 'opengameart' },
   { id: 'robot', name: 'Robot', emoji: '🤖', source: 'opengameart' },

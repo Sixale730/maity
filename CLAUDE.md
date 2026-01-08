@@ -601,14 +601,17 @@ Maity includes a 3D voxel avatar system inspired by Crossy Road for user persona
 - Three.js (`three`)
 - Procedural geometry (BoxGeometry) - no external 3D assets needed
 
-**Character Presets:**
-Characters are organized by source for easy navigation:
+**Character Presets (15 total):**
+Characters are organized by source/category for easy navigation:
 
-| Source | Characters | Description |
-|--------|------------|-------------|
+| Category | Characters | Description |
+|----------|------------|-------------|
 | **Maity Original** | `human` (customizable), `chicken`, `dog`, `lion_knight` | Original Maity characters |
 | **OpenGameArt** | `knight`, `robot` | Community models (CC0) |
 | **Kenney.nl** | `kenney_human` | Kenney-style mini character |
+| **Animals** | `cat` 🐱, `panda` 🐼, `bear` 🐻, `frog` 🐸 | Crossy Road style animals |
+| **Fantasy** | `wizard` 🧙, `ninja` 🥷 | Magical and stealthy characters |
+| **Professions** | `chef` 👨‍🍳, `scientist` 🔬 | Professional characters |
 
 **Types:**
 - `CharacterPreset`: Union type of all character IDs
@@ -622,14 +625,15 @@ Characters are organized by source for easy navigation:
 - **Colors:** Skin, hair, shirt, pants (hex values)
 - **Accessories:** Glasses, hats, headphones, bowtie, necklace
 
-**Shared Items System:**
+**Shared Items System (20 items):**
 Items can be equipped on ANY character (not just human). Each character has attachment points for positioning items.
 
 | Category | Items | Description |
 |----------|-------|-------------|
-| **Mano Derecha** | `sword`, `wand`, `spatula`, `hammer`, `axe` | Weapons and tools |
-| **Mano Izquierda** | `shield`, `book` | Defensive items and books |
-| **Espalda** | `cape` | Back items |
+| **Mano Derecha - Armas** | `sword`, `wand`, `bow` 🏹, `staff` 🪄, `dagger` 🗡️, `spear` 🔱 | Combat weapons |
+| **Mano Derecha - Herramientas** | `spatula`, `hammer`, `axe`, `pickaxe` ⛏️, `shovel` 🪣, `wrench` 🔧 | Tools |
+| **Mano Izquierda** | `shield`, `book`, `orb` 🔮, `potion` 🧪, `crystal` 💎 | Defensive and magical items |
+| **Espalda** | `cape`, `backpack` 🎒, `wings` 🪽 | Back items |
 
 **Attachment Points:**
 Each character defines attachment points in `attachment-points.ts`:
@@ -638,7 +642,10 @@ Each character defines attachment points in `attachment-points.ts`:
 - `back` - Back items (cape)
 
 **Item Components:** `src/features/avatar/components/voxel-parts/items/`
-- `Sword.tsx`, `Shield.tsx`, `Wand.tsx`, `Spatula.tsx`, `Hammer.tsx`, `Axe.tsx`, `Book.tsx`, `Cape.tsx`
+- **Armas:** `Sword.tsx`, `Wand.tsx`, `Bow.tsx`, `Staff.tsx`, `Dagger.tsx`, `Spear.tsx`
+- **Herramientas:** `Spatula.tsx`, `Hammer.tsx`, `Axe.tsx`, `Pickaxe.tsx`, `Shovel.tsx`, `Wrench.tsx`
+- **Mágicos:** `Shield.tsx`, `Book.tsx`, `Orb.tsx`, `Potion.tsx`, `Crystal.tsx`
+- **Espalda:** `Cape.tsx`, `Backpack.tsx`, `Wings.tsx`
 - `ItemRenderer.tsx` - Dispatcher that positions items on characters
 - `ItemSelector.tsx` - UI component for selecting items by category
 
@@ -654,11 +661,14 @@ Each character defines attachment points in `attachment-points.ts`:
 - Route: `/avatar` - Full editor page
 - Components:
   - `VoxelAvatar` - Main display component (supports sizes xs to xl)
-  - `VoxelCharacter` - 3D character dispatcher
+  - `VoxelCharacter` - 3D character dispatcher (15 characters)
   - `VoxelHuman` - Customizable human character
   - `VoxelChicken`, `VoxelDog`, `VoxelLionKnight` - Maity preset characters
   - `VoxelKnight`, `VoxelRobot` - OpenGameArt characters
   - `VoxelKenneyHuman` - Kenney character
+  - `VoxelCat`, `VoxelPanda`, `VoxelBear`, `VoxelFrog` - Animal characters
+  - `VoxelWizard`, `VoxelNinja` - Fantasy characters
+  - `VoxelChef`, `VoxelScientist` - Profession characters
   - `CharacterSelector` - Section-based character picker
   - `AvatarEditor` - Customization panel with tabs
 
