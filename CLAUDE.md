@@ -601,7 +601,22 @@ Maity includes a 3D voxel avatar system inspired by Crossy Road for user persona
 - Three.js (`three`)
 - Procedural geometry (BoxGeometry) - no external 3D assets needed
 
-**Customization Options:**
+**Character Presets:**
+Characters are organized by source for easy navigation:
+
+| Source | Characters | Description |
+|--------|------------|-------------|
+| **Maity Original** | `human` (customizable), `chicken`, `dog`, `lion_knight` | Original Maity characters |
+| **OpenGameArt** | `knight`, `robot` | Community models (CC0) |
+| **Kenney.nl** | `kenney_human` | Kenney-style mini character |
+
+**Types:**
+- `CharacterPreset`: Union type of all character IDs
+- `CharacterSource`: `'maity' | 'opengameart' | 'kenney'`
+- `CHARACTER_SOURCES`: Source metadata (name, description)
+- `PRESET_CHARACTERS`: Array with `id`, `name`, `emoji`, `source`, `customizable`
+
+**Customization Options (Human only):**
 - **Head Types:** `default`, `round`, `square`, `tall`
 - **Body Types:** `default`, `slim`, `athletic`, `casual`
 - **Colors:** Skin, hair, shirt, pants (hex values)
@@ -618,10 +633,13 @@ Maity includes a 3D voxel avatar system inspired by Crossy Road for user persona
 - Route: `/avatar` - Full editor page
 - Components:
   - `VoxelAvatar` - Main display component (supports sizes xs to xl)
-  - `VoxelCharacter` - 3D character assembly
-  - `VoxelHead`, `VoxelBody`, `VoxelAccessories` - Individual parts
+  - `VoxelCharacter` - 3D character dispatcher
+  - `VoxelHuman` - Customizable human character
+  - `VoxelChicken`, `VoxelDog`, `VoxelLionKnight` - Maity preset characters
+  - `VoxelKnight`, `VoxelRobot` - OpenGameArt characters
+  - `VoxelKenneyHuman` - Kenney character
+  - `CharacterSelector` - Section-based character picker
   - `AvatarEditor` - Customization panel with tabs
-  - `ColorPicker`, `PartSelector`, `AccessorySelector` - UI components
 
 **Services & Hooks:**
 - `AvatarService` - CRUD operations (`getAvatar`, `upsertAvatar`)
@@ -644,6 +662,7 @@ Maity includes a 3D voxel avatar system inspired by Crossy Road for user persona
 - Service: `packages/shared/src/domain/avatar/avatar.service.ts`
 - Hooks: `packages/shared/src/domain/avatar/hooks/useAvatar.ts`
 - Components: `src/features/avatar/components/`
+- Characters: `src/features/avatar/components/voxel-parts/characters/`
 - Page: `src/features/avatar/pages/AvatarEditorPage.tsx`
 - Documentation: `docs/database-structure-and-rls.md`
 

@@ -4,7 +4,7 @@
  */
 
 import { VoxelHuman } from './VoxelHuman';
-import { VoxelChicken, VoxelDog, VoxelLionKnight } from './characters';
+import { VoxelChicken, VoxelDog, VoxelLionKnight, VoxelKnight, VoxelRobot, VoxelKenneyHuman } from './characters';
 import type { CharacterPreset, HeadType, BodyType, AccessoryCode, OutfitPreset } from '@maity/shared';
 
 interface VoxelCharacterProps {
@@ -42,6 +42,15 @@ export function VoxelCharacter({
 
     case 'lion_knight':
       return <VoxelLionKnight animate={animate} />;
+
+    case 'knight':
+      return <VoxelKnight animate={animate} />;
+
+    case 'robot':
+      return <VoxelRobot animate={animate} />;
+
+    case 'kenney_human':
+      return <VoxelKenneyHuman animate={animate} />;
 
     case 'human':
     default:

@@ -5,19 +5,42 @@
 
 // ===== Character Presets =====
 
-export type CharacterPreset = 'human' | 'chicken' | 'dog' | 'lion_knight';
+export type CharacterPreset = 'human' | 'chicken' | 'dog' | 'lion_knight' | 'knight' | 'robot' | 'kenney_human';
+
+// ===== Character Sources =====
+
+export type CharacterSource = 'maity' | 'opengameart' | 'kenney';
+
+export interface CharacterSourceConfig {
+  name: string;
+  description: string;
+}
+
+export const CHARACTER_SOURCES: Record<CharacterSource, CharacterSourceConfig> = {
+  maity: { name: 'Maity Original', description: 'Personajes originales de Maity' },
+  opengameart: { name: 'OpenGameArt', description: 'Modelos de la comunidad' },
+  kenney: { name: 'Kenney.nl', description: 'Assets CC0 de Kenney' },
+};
 
 export interface PresetCharacterConfig {
   id: CharacterPreset;
   name: string;
   emoji: string;
+  source: CharacterSource;
+  customizable?: boolean;
 }
 
 export const PRESET_CHARACTERS: PresetCharacterConfig[] = [
-  { id: 'human', name: 'Humano', emoji: '👤' },
-  { id: 'chicken', name: 'Pollo', emoji: '🐔' },
-  { id: 'dog', name: 'Perro', emoji: '🐶' },
-  { id: 'lion_knight', name: 'León Caballero', emoji: '🦁' },
+  // Maity Original
+  { id: 'human', name: 'Humano', emoji: '👤', source: 'maity', customizable: true },
+  { id: 'chicken', name: 'Pollo', emoji: '🐔', source: 'maity' },
+  { id: 'dog', name: 'Perro', emoji: '🐶', source: 'maity' },
+  { id: 'lion_knight', name: 'León Caballero', emoji: '🦁', source: 'maity' },
+  // OpenGameArt
+  { id: 'knight', name: 'Caballero', emoji: '⚔️', source: 'opengameart' },
+  { id: 'robot', name: 'Robot', emoji: '🤖', source: 'opengameart' },
+  // Kenney
+  { id: 'kenney_human', name: 'Humano Kenney', emoji: '🧑', source: 'kenney' },
 ];
 
 // ===== Part Types (for human customization) =====
