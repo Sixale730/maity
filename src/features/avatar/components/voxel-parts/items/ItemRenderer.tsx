@@ -77,31 +77,31 @@ const ITEM_TO_CATEGORY: Record<ItemCode, ItemCategory> = {
   wings: 'back',
 };
 
-// Item-specific rotation adjustments (in degrees)
+// Item-specific rotation adjustments (in degrees) [X, Y, Z]
+// Y-axis: diagonal forward, Z-axis: negative = tilted down (resting pose)
 const ITEM_ROTATIONS: Partial<Record<ItemCode, [number, number, number]>> = {
-  // Existing
-  sword: [0, 0, -15],      // Slight tilt outward
+  // Right hand - weapons (resting at side, tilted down)
+  sword: [0, 25, -30],     // Diagonal, resting down
+  wand: [0, 20, -20],      // Tilted down
+  hammer: [0, 25, -35],    // Head down, resting
+  axe: [0, 25, -35],       // Head down, resting
+  bow: [0, 30, -20],       // Resting at side
+  staff: [0, 15, -15],     // Nearly vertical, slight tilt
+  dagger: [0, 25, -25],    // Tilted down
+  spear: [0, 20, -25],     // Tilted down
+  // Right hand - tools (resting pose)
+  spatula: [0, 25, -25],   // Tilted down
+  pickaxe: [0, 25, -35],   // Head down
+  shovel: [0, 25, -30],    // Tilted down
+  wrench: [0, 25, -25],    // Tilted down
+  // Left hand - keep facing forward
   shield: [0, 90, 0],      // Face forward
   book: [0, 90, 0],        // Face forward
-  wand: [0, 0, -10],       // Slight tilt
-  spatula: [0, 0, -10],    // Slight tilt
-  hammer: [0, 0, -20],     // More tilt for natural hold
-  axe: [0, 0, -20],        // More tilt for natural hold
-  cape: [0, 0, 0],         // No rotation
-  // New weapons
-  bow: [0, 0, -30],        // Angled for aiming pose
-  staff: [0, 0, -5],       // Nearly vertical
-  dagger: [0, 0, -15],     // Slight tilt
-  spear: [0, 0, -5],       // Nearly vertical
-  // New tools
-  pickaxe: [0, 0, -25],    // Resting on shoulder
-  shovel: [0, 0, -10],     // Slight tilt
-  wrench: [0, 0, -15],     // Holding position
-  // New magical
   orb: [0, 0, 0],          // Floating level
   potion: [0, 0, 0],       // Upright
   crystal: [0, 0, 0],      // Upright
-  // New back
+  // Back items
+  cape: [0, 0, 0],         // No rotation
   backpack: [0, 0, 0],     // Flat on back
   wings: [0, 0, 0],        // Spread out
 };
