@@ -290,6 +290,18 @@ const translations = {
     'omi.transcript': 'Transcripción',
     'omi.no_transcript': 'No hay transcripción disponible',
     'common.back': 'Volver',
+
+    // Dashboard - Omi Stats Section
+    'dashboard.user.omi_section': 'Mis Conversaciones Omi',
+    'dashboard.user.omi_description': 'Análisis de tus conversaciones grabadas',
+    'dashboard.user.omi_avg_scores': 'Puntuaciones Promedio',
+    'dashboard.user.omi_evolution': 'Evolución de Puntuación',
+    'dashboard.user.omi_total_conversations': 'Conversaciones',
+    'dashboard.user.omi_avg_score': 'Puntuación Promedio',
+    'dashboard.user.omi_total_time': 'Tiempo Total',
+    'dashboard.user.omi_no_data': 'Sin datos de conversaciones',
+    'dashboard.user.omi_no_data_desc': 'Graba conversaciones con Omi para ver tu análisis aquí',
+    'dashboard.user.omi_overall': 'General',
   },
   en: {
     // Navigation
@@ -579,6 +591,18 @@ const translations = {
     'omi.transcript': 'Transcript',
     'omi.no_transcript': 'No transcript available',
     'common.back': 'Back',
+
+    // Dashboard - Omi Stats Section
+    'dashboard.user.omi_section': 'My Omi Conversations',
+    'dashboard.user.omi_description': 'Analysis of your recorded conversations',
+    'dashboard.user.omi_avg_scores': 'Average Scores',
+    'dashboard.user.omi_evolution': 'Score Evolution',
+    'dashboard.user.omi_total_conversations': 'Conversations',
+    'dashboard.user.omi_avg_score': 'Average Score',
+    'dashboard.user.omi_total_time': 'Total Time',
+    'dashboard.user.omi_no_data': 'No conversation data',
+    'dashboard.user.omi_no_data_desc': 'Record conversations with Omi to see your analysis here',
+    'dashboard.user.omi_overall': 'Overall',
   }
 };
 

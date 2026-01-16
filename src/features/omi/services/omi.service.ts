@@ -118,3 +118,95 @@ export async function getOmiTranscriptSegments(conversationId: string): Promise<
 
   return data || [];
 }
+
+// Stats interfaces and functions
+export interface OmiStats {
+  totalConversations: number;
+  avgOverallScore: number;
+  avgClarity: number;
+  avgEngagement: number;
+  avgStructure: number;
+  totalDurationMinutes: number;
+  scoreHistory: { date: string; score: number }[];
+}
+
+export async function getOmiStats(userId?: string): Promise<OmiStats | null> {
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .schema('maity')
+    .from('omi_conversations')
+    .select('created_at, duration_seconds, communication_feedback')
+    .eq('user_id', userId)
+    .eq('deleted', false)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching omi stats:', error);
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    return {
+      totalConversations: 0,
+      avgOverallScore: 0,
+      avgClarity: 0,
+      avgEngagement: 0,
+      avgStructure: 0,
+      totalDurationMinutes: 0,
+      scoreHistory: [],
+    };
+  }
+
+  // Filter conversations with communication_feedback scores
+  const conversationsWithScores = data.filter(
+    (c) => c.communication_feedback?.overall_score !== undefined
+  );
+
+  // Calculate averages
+  const calcAvg = (arr: number[]) =>
+    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+  const overallScores = conversationsWithScores
+    .map((c) => c.communication_feedback?.overall_score)
+    .filter((s): s is number => s !== undefined);
+
+  const clarityScores = conversationsWithScores
+    .map((c) => c.communication_feedback?.clarity)
+    .filter((s): s is number => s !== undefined);
+
+  const engagementScores = conversationsWithScores
+    .map((c) => c.communication_feedback?.engagement)
+    .filter((s): s is number => s !== undefined);
+
+  const structureScores = conversationsWithScores
+    .map((c) => c.communication_feedback?.structure)
+    .filter((s): s is number => s !== undefined);
+
+  // Calculate total duration
+  const totalDurationSeconds = data.reduce(
+    (acc, c) => acc + (c.duration_seconds || 0),
+    0
+  );
+
+  // Build score history (last 10 conversations with scores)
+  const scoreHistory = conversationsWithScores
+    .slice(-10)
+    .map((c) => ({
+      date: new Date(c.created_at).toLocaleDateString('es-MX', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      score: c.communication_feedback?.overall_score || 0,
+    }));
+
+  return {
+    totalConversations: data.length,
+    avgOverallScore: Math.round(calcAvg(overallScores) * 10) / 10,
+    avgClarity: Math.round(calcAvg(clarityScores) * 10) / 10,
+    avgEngagement: Math.round(calcAvg(engagementScores) * 10) / 10,
+    avgStructure: Math.round(calcAvg(structureScores) * 10) / 10,
+    totalDurationMinutes: Math.round(totalDurationSeconds / 60),
+    scoreHistory,
+  };
+}
