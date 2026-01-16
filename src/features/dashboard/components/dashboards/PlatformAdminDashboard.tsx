@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 import { Badge } from "@/ui/components/ui/badge";
 import { AdminTestingButton } from "@/features/admin-testing";
+import { useUser } from "@/contexts/UserContext";
+import { OmiStatsSection } from "../OmiStatsSection";
 import { 
   BarChart, 
   Bar, 
@@ -37,6 +39,7 @@ const chartConfig = {
 };
 
 export function PlatformAdminDashboard() {
+  const { userProfile } = useUser();
   const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('admin');
 
@@ -266,6 +269,9 @@ export function PlatformAdminDashboard() {
           </Link>
         </CardContent>
       </Card>
+
+      {/* Omi Conversations Stats Section */}
+      <OmiStatsSection userId={userProfile?.id} />
     </div>
   );
 }

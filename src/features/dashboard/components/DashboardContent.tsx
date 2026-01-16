@@ -1,9 +1,10 @@
-import { UserRole, UserProfile } from "@/contexts/UserContext";
+import { UserRole, UserProfile, useUser } from "@/contexts/UserContext";
 import { useViewRole } from "@/contexts/ViewRoleContext";
 import { PlatformAdminDashboard } from "./dashboards/PlatformAdminDashboard";
 import { UserDashboard } from "./dashboards/UserDashboard";
 import TeamDashboard from "./dashboards/TeamDashboard";
 import { useDashboardDataByRole } from "@/features/dashboard/hooks/useDashboardDataByRole";
+import { OmiStatsSection } from "./OmiStatsSection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 // import { Skeleton } from "@/ui/components/ui/skeleton"; // Unused
@@ -46,7 +47,8 @@ const chartConfig = {
 // Org Admin Dashboard Component
 function OrgAdminDashboard({ userName: _userName, companyId }: { userName?: string; companyId?: string }) {
   const { t } = useLanguage();
-  const { monthlyData, dailyData, statusData, dashboardStats, loading } = 
+  const { userProfile } = useUser();
+  const { monthlyData, dailyData, statusData, dashboardStats, loading } =
     useDashboardDataByRole('manager', companyId);
 
   console.log('OrgAdminDashboard rendering with language context');
@@ -210,10 +212,10 @@ function OrgAdminDashboard({ userName: _userName, companyId }: { userName?: stri
                   <XAxis dataKey="day" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sessions" 
-                    stroke="hsl(var(--primary))" 
+                  <Line
+                    type="monotone"
+                    dataKey="sessions"
+                    stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     dot={{ fill: "hsl(var(--primary))" }}
                     name={t('dashboard.charts.team_sessions')}
@@ -224,6 +226,9 @@ function OrgAdminDashboard({ userName: _userName, companyId }: { userName?: stri
           </CardContent>
         </Card>
       </div>
+
+      {/* Omi Conversations Stats Section */}
+      <OmiStatsSection userId={userProfile?.id} />
     </div>
   );
 }

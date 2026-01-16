@@ -104,6 +104,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 | Feature | Location | Route | Key Files |
 |---------|----------|-------|-----------|
 | **Navigation** | `src/features/navigation/` | `/dashboard`, `/home` | NavigationHub, NavigationHeader, NavigationCard |
+| **Dashboard** | `src/features/dashboard/` | `/stats` | UserDashboard, PlatformAdminDashboard, OmiStatsSection |
 | **Omi** | `src/features/omi/` | `/omi` | OmiConversationsPage, OmiConversationDetail |
 | **Roleplay** | `src/features/roleplay/` | `/roleplay` | RoleplayPage, VoiceAssistant, SessionResults |
 | **Coach** | `src/features/coach/` | `/coach` | CoachPage, diagnostic-interview.service |
@@ -112,6 +113,22 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 | **Tech Week** | `src/features/tech-week/` | `/tech-week` | Admin-only, pink theme |
 | **AI Resources** | `src/features/ai-resources/` | `/ai-resources` | Admin CRUD for resources |
 | **Agent Config** | `src/features/agent-config/` | `/admin/agent-config` | Profile/Scenario editor |
+
+## Dashboard System
+
+El sistema de dashboards muestra diferentes vistas según el rol del usuario, pero todas incluyen las estadísticas personales de Omi.
+
+**Dashboards por Rol:**
+| Rol | Dashboard | Ubicación |
+|-----|-----------|-----------|
+| user | UserDashboard | `src/features/dashboard/components/dashboards/UserDashboard.tsx` |
+| manager | OrgAdminDashboard | `src/features/dashboard/components/DashboardContent.tsx` |
+| admin | PlatformAdminDashboard | `src/features/dashboard/components/dashboards/PlatformAdminDashboard.tsx` |
+
+**Componentes Compartidos:**
+- `OmiStatsSection` - Componente reutilizable que muestra estadísticas de conversaciones Omi del usuario actual. Se usa en los 3 dashboards. Ubicación: `src/features/dashboard/components/OmiStatsSection.tsx`
+
+**Ruta:** `/stats` - Dashboard según el rol del usuario
 
 ## Omi Conversations
 
@@ -125,7 +142,9 @@ Sistema de grabación y análisis de conversaciones del dispositivo Omi.
 - overall_score, clarity, engagement, structure (0-10)
 - feedback (texto), strengths[], areas_to_improve[]
 
-**Ruta:** `/omi` - Lista de conversaciones con detalle expandible
+**Rutas:**
+- `/omi` - Lista de conversaciones con detalle expandible
+- `/stats` - Dashboard con sección de estadísticas Omi (todos los roles)
 
 ## Voice Evaluation System
 
