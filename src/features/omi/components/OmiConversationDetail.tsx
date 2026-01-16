@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MessageSquare, CheckCircle2, Calendar, Sparkles, User, Bot } from 'lucide-react';
+import { ArrowLeft, Clock, MessageSquare, CheckCircle2, Calendar, Sparkles, User, Bot, Lightbulb, MessageCircle, LayoutList, Shield, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
 import { Button } from '@/ui/components/ui/button';
@@ -11,6 +11,19 @@ import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.servi
 interface OmiConversationDetailProps {
   conversation: OmiConversation;
   onBack: () => void;
+}
+
+// Componente para mostrar una tarjeta de insight
+function InsightCard({ icon: Icon, title, content }: { icon: React.ComponentType<{ className?: string }>; title: string; content: string }) {
+  return (
+    <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="h-4 w-4 text-primary" />
+        <h5 className="text-sm font-medium">{title}</h5>
+      </div>
+      <p className="text-sm text-muted-foreground">{content}</p>
+    </div>
+  );
 }
 
 export function OmiConversationDetail({ conversation, onBack }: OmiConversationDetailProps) {
@@ -126,9 +139,9 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                 )}
               </div>
 
-              {/* Feedback Text */}
-              {feedback.feedback && (
-                <p className="text-sm text-muted-foreground">{feedback.feedback}</p>
+              {/* Feedback Text (usa summary como fallback) */}
+              {(feedback.feedback || feedback.summary) && (
+                <p className="text-sm text-muted-foreground">{feedback.feedback || feedback.summary}</p>
               )}
 
               {/* Strengths & Areas to Improve */}
@@ -157,6 +170,46 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                   </div>
                 )}
               </div>
+
+              {/* Insights/Observations */}
+              {feedback.observations && (
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500" />
+                    {t('omi.insights')}
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {feedback.observations.clarity && (
+                      <InsightCard
+                        icon={MessageCircle}
+                        title={t('omi.clarity')}
+                        content={feedback.observations.clarity}
+                      />
+                    )}
+                    {feedback.observations.structure && (
+                      <InsightCard
+                        icon={LayoutList}
+                        title={t('omi.structure')}
+                        content={feedback.observations.structure}
+                      />
+                    )}
+                    {feedback.observations.objections && (
+                      <InsightCard
+                        icon={Shield}
+                        title={t('omi.objections')}
+                        content={feedback.observations.objections}
+                      />
+                    )}
+                    {feedback.observations.calls_to_action && (
+                      <InsightCard
+                        icon={Target}
+                        title={t('omi.calls_to_action')}
+                        content={feedback.observations.calls_to_action}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

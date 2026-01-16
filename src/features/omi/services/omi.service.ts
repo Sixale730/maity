@@ -34,14 +34,26 @@ export interface OmiEvent {
   end_time?: string;
 }
 
+export interface CommunicationObservations {
+  clarity?: string;
+  structure?: string;
+  objections?: string;
+  calls_to_action?: string;
+}
+
 export interface CommunicationFeedback {
+  // Scores numéricos (pueden no existir en todos los análisis)
   overall_score?: number;
   clarity?: number;
   engagement?: number;
   structure?: number;
+  // Textos
   feedback?: string;
+  summary?: string;  // Resumen del análisis (alternativo a feedback)
   strengths?: string[];
   areas_to_improve?: string[];
+  // Insights detallados por categoría
+  observations?: CommunicationObservations;
 }
 
 export interface OmiTranscriptSegment {
