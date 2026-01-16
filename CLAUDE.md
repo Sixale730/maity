@@ -26,7 +26,7 @@ supabase/           → Database, RPC
 ### Project Structure
 ```
 src/
-├── features/        # auth, coach, dashboard, organizations, roleplay, avatar, levels, tech-week, ai-resources, agent-config
+├── features/        # auth, coach, dashboard, navigation, organizations, roleplay, avatar, levels, tech-week, ai-resources, agent-config
 ├── components/      # Global components
 ├── ui/              # shadcn/ui
 ├── contexts/        # Global contexts
@@ -75,17 +75,57 @@ OAuth → ensureUser() → try autojoin by domain → finalize invite (cookie) �
 1. **Autojoin**: Email domain matching (`maity.companies.domain` + `auto_join_enabled`)
 2. **Invite**: HttpOnly cookie system via `/api/accept-invite` + `/api/finalize-invite`
 
+## Navigation System (Card-Based)
+
+La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear, sin sidebar tradicional.
+
+**Estructura:**
+- `/dashboard` y `/home` → NavigationHub (hub principal con cards)
+- `/stats` → Dashboard con métricas y gráficos
+- Header sticky con logo + selector de rol (admins) + selector de idioma + menú de usuario
+
+**Componentes** (`src/features/navigation/`):
+- `NavigationHub` - Página principal con todas las cards
+- `NavigationHeader` - Header superior con logo y menú usuario
+- `NavigationCard` - Card individual (icono + título + descripción)
+- `NavigationCardGroup` - Grupo de cards con encabezado de sección
+- `UserNavigationSection` - Secciones: Perfil, Práctica, Progreso, Equipo, Config
+- `AdminNavigationSection` - Sección separada con divisor para herramientas admin
+
+**Roles:**
+- **User (9 cards)**: Dashboard, Avatar, Estadísticas, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
+- **Manager (+5 cards)**: Progreso Equipo, Mi Equipo, Planes, Documentos, Ajustes
+- **Admin (+13 cards)**: Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, etc.
+
+**Configuración:** `src/features/navigation/data/navigation-items.ts`
+
 ## Core Features Reference
 
 | Feature | Location | Route | Key Files |
 |---------|----------|-------|-----------|
-| **Roleplay** | `src/features/roleplay/` | `/practice` | RoleplayPage, VoiceAssistant, SessionResults |
+| **Navigation** | `src/features/navigation/` | `/dashboard`, `/home` | NavigationHub, NavigationHeader, NavigationCard |
+| **Omi** | `src/features/omi/` | `/omi` | OmiConversationsPage, OmiConversationDetail |
+| **Roleplay** | `src/features/roleplay/` | `/roleplay` | RoleplayPage, VoiceAssistant, SessionResults |
 | **Coach** | `src/features/coach/` | `/coach` | CoachPage, diagnostic-interview.service |
 | **Avatar** | `src/features/avatar/` | `/avatar` | VoxelAvatar, 15 characters, 20 items |
 | **Levels** | `src/features/levels/` | `/levels-intro` | 5 levels: Aprendiz→Leyenda |
 | **Tech Week** | `src/features/tech-week/` | `/tech-week` | Admin-only, pink theme |
 | **AI Resources** | `src/features/ai-resources/` | `/ai-resources` | Admin CRUD for resources |
 | **Agent Config** | `src/features/agent-config/` | `/admin/agent-config` | Profile/Scenario editor |
+
+## Omi Conversations
+
+Sistema de grabación y análisis de conversaciones del dispositivo Omi.
+
+**Tablas:**
+- `maity.omi_conversations` - Conversaciones con título, overview, emoji, category, transcript_text, action_items (jsonb), communication_feedback (jsonb)
+- `maity.omi_transcript_segments` - Segmentos de transcripción con speaker, is_user, start_time, end_time
+
+**Campos de análisis (`communication_feedback`):**
+- overall_score, clarity, engagement, structure (0-10)
+- feedback (texto), strengths[], areas_to_improve[]
+
+**Ruta:** `/omi` - Lista de conversaciones con detalle expandible
 
 ## Voice Evaluation System
 

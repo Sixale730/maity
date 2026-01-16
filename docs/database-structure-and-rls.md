@@ -1,10 +1,12 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** January 6, 2026
-**Version:** 2.0
+**Last Updated:** January 16, 2026
+**Version:** 2.1
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.omi_conversations` and `maity.omi_transcript_segments` tables for Omi wearable integration (v2.1)
+- Added GRANT permissions to `authenticated` role for Omi tables (v2.1)
 - Added `maity.avatar_configurations` table for 3D voxel avatar system (v2.0)
 - Cleaned up public schema: dropped unused tables (documents, n8n_chat_histories, organizations) (v1.9)
 - Documented public schema views (users, voice_pre_practice_questionnaire) (v1.9)
@@ -26,6 +28,7 @@
    - [RPC Functions (Stored Procedures)](#rpc-functions-stored-procedures)
    - [Voice/Roleplay System](#voiceroleplay-system)
    - [Evaluations & Interviews](#evaluations--interviews)
+   - [Omi Integration](#omi-integration-external-conversations)
    - [Forms & Documents](#forms--documents)
 4. [RLS Patterns](#rls-patterns)
    - [By Table](#rls-policies-by-table)
@@ -2079,6 +2082,120 @@ CREATE INDEX idx_diagnostic_interviews_user_id ON maity.diagnostic_interviews(us
 CREATE INDEX idx_diagnostic_interviews_session_id ON maity.diagnostic_interviews(session_id);
 CREATE INDEX idx_diagnostic_interviews_is_complete ON maity.diagnostic_interviews(is_complete);
 ```
+
+---
+
+### Omi Integration (External Conversations)
+
+#### maity.omi_conversations
+
+**Purpose:** Store conversations recorded from Omi wearable device with AI-generated analysis.
+
+**Schema:**
+```sql
+CREATE TABLE maity.omi_conversations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  firebase_uid text,                          -- Legacy Firebase user ID
+  user_id uuid REFERENCES maity.users(id),    -- Current user FK
+  created_at timestamptz NOT NULL DEFAULT now(),
+  started_at timestamptz,
+  finished_at timestamptz,
+  updated_at timestamptz DEFAULT now(),
+  title text NOT NULL DEFAULT '',
+  overview text NOT NULL DEFAULT '',
+  emoji text DEFAULT '',
+  category text DEFAULT 'other',
+  action_items jsonb DEFAULT '[]'::jsonb,     -- [{description, completed}]
+  events jsonb DEFAULT '[]'::jsonb,           -- [{title, description, start_time, end_time}]
+  transcript_text text DEFAULT '',
+  source text DEFAULT 'omi',
+  language text,
+  discarded boolean DEFAULT false,
+  deleted boolean DEFAULT false,              -- Soft delete flag
+  status text DEFAULT 'completed',
+  words_count integer DEFAULT 0,
+  duration_seconds integer DEFAULT 0,
+  embedding vector,                           -- For semantic search (pgvector)
+  communication_feedback jsonb                -- AI analysis: {overall_score, clarity, engagement, structure, feedback, strengths, areas_to_improve}
+);
+```
+
+**RLS Policies:**
+```sql
+-- Users can SELECT/INSERT/UPDATE/DELETE own conversations
+USING (user_id IN (SELECT id FROM maity.users WHERE auth_id = auth.uid()))
+
+-- Service role has full access
+USING (true)
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON maity.omi_conversations TO authenticated;
+```
+
+**Communication Feedback Structure:**
+```typescript
+interface CommunicationFeedback {
+  overall_score?: number;      // 1-10
+  clarity?: number;            // 1-10
+  engagement?: number;         // 1-10
+  structure?: number;          // 1-10
+  feedback?: string;           // General feedback text
+  strengths?: string[];        // List of strengths
+  areas_to_improve?: string[]; // List of improvement areas
+}
+```
+
+---
+
+#### maity.omi_transcript_segments
+
+**Purpose:** Store transcript segments for Omi conversations with speaker attribution.
+
+**Schema:**
+```sql
+CREATE TABLE maity.omi_transcript_segments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL REFERENCES maity.omi_conversations(id),
+  firebase_uid text,
+  user_id uuid REFERENCES maity.users(id),
+  segment_index integer NOT NULL,
+  text text NOT NULL,
+  speaker text,
+  speaker_id integer DEFAULT 0,
+  is_user boolean DEFAULT false,
+  person_id text,
+  start_time double precision NOT NULL DEFAULT 0,
+  end_time double precision NOT NULL DEFAULT 0,
+  embedding vector,                           -- For semantic search
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+**RLS Policies:**
+```sql
+-- Users can SELECT/INSERT/UPDATE/DELETE segments of own conversations
+USING (conversation_id IN (
+  SELECT c.id FROM maity.omi_conversations c
+  JOIN maity.users u ON c.user_id = u.id
+  WHERE u.auth_id = auth.uid()
+))
+
+-- Service role has full access
+USING (true)
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON maity.omi_transcript_segments TO authenticated;
+```
+
+**Key Notes:**
+- Segments are ordered by `segment_index`
+- `is_user` indicates if the speaker is the Omi wearer
+- `start_time` and `end_time` are in seconds (float)
+- Linked to conversations via `conversation_id` FK
 
 ---
 
