@@ -9,7 +9,6 @@ import {
   FileText,
   type LucideIcon,
 } from "lucide-react";
-import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAIResources, type AIResource } from "@maity/shared";
@@ -78,11 +77,10 @@ export function AIResourcesPage() {
   const { data: resources, isLoading, error } = useAIResources();
 
   return (
-    <main className="flex-1 p-6 space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
               <Brain className="w-8 h-8" />
@@ -150,6 +148,6 @@ export function AIResourcesPage() {
           })}
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -8,7 +8,6 @@ import { Input } from "@/ui/components/ui/input";
 import { Label } from "@/ui/components/ui/label";
 import { Badge } from "@/ui/components/ui/badge";
 import { Switch } from "@/ui/components/ui/switch";
-import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
 import type { Database, CompanyDeletionImpact } from "@maity/shared";
@@ -267,24 +266,22 @@ export function OrganizationsManager() {
 
   if (loading) {
     return (
-      <main className="flex-1 p-6 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4 border-b border-border pb-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground">Empresas</h1>
             <p className="text-muted-foreground">Cargando...</p>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex-1 p-6 space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground">Empresas</h1>
             <p className="text-muted-foreground">
@@ -596,6 +593,6 @@ export function OrganizationsManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </div>
   );
 }

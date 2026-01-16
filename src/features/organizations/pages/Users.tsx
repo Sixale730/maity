@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/ui/component
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/ui/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/components/ui/select';
 import { Badge } from '@/ui/components/ui/badge';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Input } from '@/ui/components/ui/input';
 import { Label } from '@/ui/components/ui/label';
 import { useToast } from '@/shared/hooks/use-toast';
@@ -324,9 +323,8 @@ export default function Users() {
 
   if (loading) {
     return (
-      <div className="flex-1 p-6 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4 border-b pb-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <UsersIcon className="w-8 h-8" />
@@ -340,11 +338,10 @@ export default function Users() {
   }
 
   return (
-    <div className="flex-1 p-6 space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <UsersIcon className="w-8 h-8" />

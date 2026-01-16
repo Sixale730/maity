@@ -4,7 +4,6 @@ import { supabase } from '@maity/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
 import { Button } from '@/ui/components/ui/button';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Calendar, Clock, Trophy, Target, TrendingUp, ChevronRight, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -134,11 +133,10 @@ export function SessionsHistory() {
   }
 
   return (
-    <main className="flex-1 p-4 space-y-3 h-screen overflow-hidden flex flex-col">
+    <div className="max-w-6xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-2">
         <div className="flex items-center gap-3">
-          <SidebarTrigger />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Historial de Sesiones</h1>
             <p className="text-sm text-muted-foreground">
@@ -288,6 +286,6 @@ export function SessionsHistory() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { Boxes, Lightbulb, Info } from 'lucide-react';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Alert, AlertDescription } from '@/ui/components/ui/alert';
 import { ShowcaseGrid } from '../components';
 import { SHOWCASE_ITEMS, SHOWCASE_INFO } from '../data/showcase-data';
@@ -14,7 +13,6 @@ export function AvatarShowcasePage() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <header className="flex items-center gap-4 border-b border-border/40 px-4 py-3 lg:px-6">
-        <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
             <Boxes className="w-5 h-5 text-purple-400" />

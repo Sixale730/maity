@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '../components/RoleplayVoiceAssistant';
 import { PrePracticeQuestionnaire } from '../components/PrePracticeQuestionnaire';
 import { ScenarioInstructions } from '../components/ScenarioInstructions';
@@ -760,7 +759,6 @@ export function RoleplayPage() {
           {/* Header */}
           <div className="p-3 sm:p-4 pb-2">
             <div className="flex items-center gap-2 sm:gap-3">
-              <SidebarTrigger className="text-white hover:bg-white/10 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Roleplay de Ventas</h1>
                 <p className="text-xs sm:text-sm text-white/70 truncate">

@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Brain } from "lucide-react";
-import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 import { Badge } from "@/ui/components/ui/badge";
@@ -74,30 +73,26 @@ export function PlatformAdminDashboard() {
 
   if (loading) {
     return (
-      <main className="flex-1 p-6 space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center gap-4 border-b border-border pb-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground">Dashboard Global</h1>
             <p className="text-muted-foreground">Cargando datos...</p>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex-1 p-6 space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard Global</h1>
-            <p className="text-muted-foreground">
-              Vista completa de todas las organizaciones y usuarios
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard Global</h1>
+          <p className="text-muted-foreground">
+            Vista completa de todas las organizaciones y usuarios
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <AdminTestingButton />
@@ -271,6 +266,6 @@ export function PlatformAdminDashboard() {
           </Link>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

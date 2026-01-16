@@ -1,4 +1,3 @@
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Play, MapIcon } from 'lucide-react';
 import { Button } from '@/ui/components/ui/button';
 import { usePlatformTour } from '@/contexts/PlatformTourContext';
@@ -15,7 +14,6 @@ export default function Demo() {
   return (
     <div className="flex-1 p-6 space-y-6">
       <div className="flex items-center gap-4 border-b pb-4">
-        <SidebarTrigger />
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Play className="w-8 h-8" />

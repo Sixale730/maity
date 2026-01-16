@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { RoleplayVoiceAssistant } from '@/features/roleplay/components/RoleplayVoiceAssistant';
 import { SessionResults } from '@/features/roleplay/components/SessionResults';
 import { TranscriptViewer } from '@/features/roleplay/components/TranscriptViewer';
@@ -466,7 +465,6 @@ export default function DemoTraining() {
         <div className="p-4 pb-2 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <SidebarTrigger className="text-white hover:bg-white/10" />
               <div>
                 <h1 className="text-2xl font-bold text-white">Demo Entrenamiento</h1>
                 <p className="text-sm text-white/70">

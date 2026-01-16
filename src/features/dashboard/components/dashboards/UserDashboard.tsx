@@ -1,4 +1,3 @@
-import { SidebarTrigger } from "@/ui/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/ui/components/ui/chart";
 import { Progress } from "@/ui/components/ui/progress";
@@ -271,35 +270,28 @@ export function UserDashboard({ userName }: UserDashboardProps) {
 
   if (loading || formLoading) {
     return (
-      <main className="flex-1 p-6 space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center gap-4 border-b border-border pb-4">
-          <SidebarTrigger />
           <div>
             <h1 className="text-3xl font-bold text-foreground">{t('dashboard.user.title')}</h1>
             <p className="text-muted-foreground">{t('dashboard.loading')}</p>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex-1 p-6 space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {userName ? `${t('dashboard.user.greeting')} ${userName.split(' ')[0]}!` : `${t('dashboard.user.greeting')} ${t('dashboard.user.user')}!`} 👋
-            </h1>
-            <p className="text-muted-foreground">
-              {t('dashboard.user.description')}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <LanguageSelector />
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            {userName ? `${t('dashboard.user.greeting')} ${userName.split(' ')[0]}!` : `${t('dashboard.user.greeting')} ${t('dashboard.user.user')}!`} 👋
+          </h1>
+          <p className="text-muted-foreground">
+            {t('dashboard.user.description')}
+          </p>
         </div>
       </div>
 
@@ -590,6 +582,6 @@ export function UserDashboard({ userName }: UserDashboardProps) {
         </CardContent>
       </Card>
 
-    </main>
+    </div>
   );
 }

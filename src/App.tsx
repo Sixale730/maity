@@ -63,6 +63,9 @@ const OrganizationsPage = lazy(() => import("./features/organizations").then(m =
 const TeamPage = lazy(() => import("./features/organizations").then(m => ({ default: m.TeamPage })));
 const UsersPage = lazy(() => import("./features/organizations").then(m => ({ default: m.UsersPage })));
 
+const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ default: m.NavigationHub })));
+const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
+
 const OAuthTest = lazy(() => import("./pages/OAuthTest"));
 const InvitationConflict = lazy(() => import("./pages/InvitationConflict"));
 const InvitationRequired = lazy(() => import("./pages/InvitationRequired"));
@@ -103,7 +106,9 @@ const App = () => (
 
                   <Route element={<ProtectedRoute />}>
                     <Route element={<AppLayout />}>
-                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="/dashboard" element={<NavigationHub />} />
+                      <Route path="/home" element={<NavigationHub />} />
+                      <Route path="/stats" element={<DashboardPage />} />
                       <Route path="/coach" element={<CoachPage />} />
                       <Route path="/roleplay" element={<RoleplayPage />} />
                       <Route path="/primera-entrevista" element={<InterviewPage />} />
@@ -112,6 +117,7 @@ const App = () => (
                       <Route path="/team/learning-progress" element={<TeamProgressPage />} />
                       <Route path="/sessions" element={<SessionsPage />} />
                       <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
+                      <Route path="/omi" element={<OmiConversationsPage />} />
                       <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
                       <Route path="/organizations" element={<OrganizationsPage />} />
                       <Route path="/usuarios" element={<UsersPage />} />

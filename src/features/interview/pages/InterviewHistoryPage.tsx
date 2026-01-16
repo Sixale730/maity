@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SidebarTrigger } from '@/ui/components/ui/sidebar';
 import { Button } from '@/ui/components/ui/button';
 import { InterviewHistoryTable } from '../components/InterviewHistoryTable';
 import { InterviewService, InterviewSessionWithEvaluation } from '@maity/shared';
@@ -53,7 +52,6 @@ export function InterviewHistoryPage() {
       <header className="border-b border-border bg-card px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
-            <SidebarTrigger />
             <div className="flex items-center gap-2 sm:gap-3">
               <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               <div>
