@@ -26,7 +26,7 @@ supabase/           → Database, RPC
 ### Project Structure
 ```
 src/
-├── features/        # auth, coach, dashboard, navigation, organizations, roleplay, avatar, levels, tech-week, ai-resources, agent-config
+├── features/        # auth, coach, dashboard, navigation, organizations, roleplay, avatar, levels, tech-week, ai-resources, agent-config, hero-journey
 ├── components/      # Global components
 ├── ui/              # shadcn/ui
 ├── contexts/        # Global contexts
@@ -113,6 +113,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 | **Tech Week** | `src/features/tech-week/` | `/tech-week` | Admin-only, pink theme |
 | **AI Resources** | `src/features/ai-resources/` | `/ai-resources` | Admin CRUD for resources |
 | **Agent Config** | `src/features/agent-config/` | `/admin/agent-config` | Profile/Scenario editor |
+| **Hero Journey** | `src/features/hero-journey/` | `/hero-journey` | Mountain roadmap editor, JourneyMap, JourneyEditor |
 
 ## Dashboard System
 

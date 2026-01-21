@@ -31,6 +31,25 @@ export const translations = {
     'nav.interview_history': 'Historial de Entrevistas',
     'nav.agent_config': 'Configuración de Agentes',
     'nav.avatar': 'Mi Avatar',
+    'nav.hero_journey': "Hero's Journey",
+    'nav.desc.hero_journey': 'Visualiza tu camino como una montaña',
+
+    // Hero Journey
+    'hero_journey.title': "Hero's Journey",
+    'hero_journey.no_configs': 'No hay configuraciones',
+    'hero_journey.create_first': 'Crea tu primera ruta del héroe',
+    'hero_journey.new_config': 'Nueva Configuración',
+    'hero_journey.clone_config': 'Clonar',
+    'hero_journey.delete_config': 'Eliminar',
+    'hero_journey.select_config': 'Seleccionar configuración',
+    'hero_journey.save_success': 'Configuración guardada',
+    'hero_journey.save_error': 'Error al guardar',
+    'hero_journey.clone_success': 'Configuración clonada',
+    'hero_journey.clone_error': 'Error al clonar',
+    'hero_journey.delete_success': 'Configuración eliminada',
+    'hero_journey.delete_error': 'Error al eliminar',
+    'hero_journey.delete_confirm_title': '¿Eliminar configuración?',
+    'hero_journey.delete_confirm_desc': 'Esta acción no se puede deshacer. Se eliminará permanentemente la configuración.',
 
     // Hero Section
     'hero.badge': 'IA · Mentoría · Crecimiento Diario',
@@ -141,6 +160,25 @@ export const translations = {
     'nav.interview_history': 'Interview History',
     'nav.agent_config': 'Agent Configuration',
     'nav.avatar': 'My Avatar',
+    'nav.hero_journey': "Hero's Journey",
+    'nav.desc.hero_journey': 'Visualize your path as a mountain',
+
+    // Hero Journey
+    'hero_journey.title': "Hero's Journey",
+    'hero_journey.no_configs': 'No configurations',
+    'hero_journey.create_first': 'Create your first hero journey',
+    'hero_journey.new_config': 'New Configuration',
+    'hero_journey.clone_config': 'Clone',
+    'hero_journey.delete_config': 'Delete',
+    'hero_journey.select_config': 'Select configuration',
+    'hero_journey.save_success': 'Configuration saved',
+    'hero_journey.save_error': 'Error saving',
+    'hero_journey.clone_success': 'Configuration cloned',
+    'hero_journey.clone_error': 'Error cloning',
+    'hero_journey.delete_success': 'Configuration deleted',
+    'hero_journey.delete_error': 'Error deleting',
+    'hero_journey.delete_confirm_title': 'Delete configuration?',
+    'hero_journey.delete_confirm_desc': 'This action cannot be undone. The configuration will be permanently deleted.',
 
     // Hero Section
     'hero.badge': 'AI · Mentoring · Daily Growth',

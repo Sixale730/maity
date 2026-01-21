@@ -22,6 +22,7 @@ import {
   Mic,
   ChartArea,
   AudioLines,
+  Mountain,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -294,6 +295,16 @@ export const adminNavigationItems: NavigationItem[] = [
     roles: ['admin'],
     group: 'admin',
     order: 25,
+  },
+  {
+    id: 'hero-journey',
+    titleKey: 'nav.hero_journey',
+    descriptionKey: 'nav.desc.hero_journey',
+    url: '/hero-journey',
+    icon: Mountain,
+    roles: ['admin', 'manager'],
+    group: 'admin',
+    order: 26,
   },
 ];
 

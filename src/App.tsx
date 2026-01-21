@@ -55,6 +55,8 @@ const AvatarShowcasePage = lazy(() => import("./features/avatar-showcase").then(
 const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.CoachPage })));
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
 
+const HeroJourneyPage = lazy(() => import("./features/hero-journey").then(m => ({ default: m.HeroJourneyPage })));
+
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
 const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
 const InterviewResultsPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewResultsPage })));
@@ -146,6 +148,9 @@ const App = () => (
 
                       {/* Avatar Showcase (Admin Only) */}
                       <Route path="/avatar-showcase" element={<AdminRoute><AvatarShowcasePage /></AdminRoute>} />
+
+                      {/* Hero Journey (Admin/Manager) */}
+                      <Route path="/hero-journey" element={<AdminRoute><HeroJourneyPage /></AdminRoute>} />
 
                       {/* Interview Routes (Admin Only) */}
                       <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />

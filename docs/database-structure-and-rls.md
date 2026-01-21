@@ -2718,6 +2718,80 @@ public.get_learning_path_summary(p_user_id UUID) RETURNS JSON
 
 ---
 
+### Hero Journey System
+
+Mountain roadmap visualization with nodes and progress tracking. Allows admins/managers to create and edit journey configurations with a visual editor.
+
+#### maity.hero_journey_configs
+
+Stores mountain roadmap configurations for the hero's journey feature.
+
+| Column | Type | Nullable | Description |
+|--------|------|----------|-------------|
+| id | UUID | NO | Primary key |
+| name | TEXT | NO | Configuration name |
+| description | TEXT | YES | Optional description |
+| theme | TEXT | NO | 'snow', 'forest', or 'desert' (default: 'snow') |
+| nodes | JSONB | NO | Array of journey nodes with position, type, status |
+| mountain_layers | JSONB | NO | Array of mountain layer definitions |
+| is_default | BOOLEAN | NO | Whether this is the default config |
+| company_id | UUID | YES | FK to companies (NULL = global) |
+| created_by | UUID | YES | FK to users who created this config |
+| created_at | TIMESTAMPTZ | NO | Creation timestamp |
+| updated_at | TIMESTAMPTZ | NO | Last update timestamp |
+
+**Node Structure (JSONB):**
+```json
+{
+  "id": "uuid",
+  "x": 50,           // Position X (0-100%)
+  "y": 50,           // Position Y (0-100%)
+  "type": "checkpoint|scenario|resource|boss",
+  "status": "locked|available|current|completed",
+  "icon": "🏕️",
+  "title": "Node Title",
+  "description": "Optional description"
+}
+```
+
+**Mountain Layer Structure (JSONB):**
+```json
+{
+  "depth": 0,        // 0 = furthest back
+  "color": "#16213e",
+  "peaks": [
+    { "x": 0, "height": 60 },
+    { "x": 50, "height": 80 }
+  ]
+}
+```
+
+**RPC Functions:**
+```sql
+-- Get all configs (optionally filtered by company)
+public.get_hero_journey_configs(p_company_id UUID DEFAULT NULL) RETURNS JSONB
+
+-- Save config (create or update)
+public.save_hero_journey_config(p_config JSONB) RETURNS JSONB
+
+-- Delete config (admin only)
+public.delete_hero_journey_config(p_id UUID) RETURNS BOOLEAN
+```
+
+**RLS Policies:**
+- SELECT: Admins and managers can read all configs
+- INSERT: Admins can create configs
+- UPDATE: Admins can update any config, managers can update their own
+- DELETE: Admins can delete any config
+
+**Frontend Integration:**
+- Route: `/hero-journey` - Main page with preview and editor
+- Feature: `src/features/hero-journey/`
+- Domain: `packages/shared/src/domain/hero-journey/`
+- Components: MountainBackground, JourneyNode, JourneyPath, JourneyMap, JourneyEditor
+
+---
+
 ## RLS Patterns
 
 ### RLS Policies By Table

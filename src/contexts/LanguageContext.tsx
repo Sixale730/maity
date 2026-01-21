@@ -247,6 +247,8 @@ const translations = {
     'nav.desc.trends': 'Tendencias y patrones',
     'nav.desc.tech_week': 'Evento especial Tech Week',
     'nav.desc.interview_history': 'Historial de entrevistas',
+    'nav.desc.hero_journey': 'Visualiza tu camino como una montaña',
+    'nav.hero_journey': "Hero's Journey",
     'nav.omi_conversations': 'Mis Conversaciones',
     'nav.desc.omi_conversations': 'Grabaciones y análisis de Omi',
 
@@ -554,6 +556,8 @@ const translations = {
     'nav.desc.trends': 'Trends and patterns',
     'nav.desc.tech_week': 'Tech Week special event',
     'nav.desc.interview_history': 'Interview history',
+    'nav.desc.hero_journey': 'Visualize your path as a mountain',
+    'nav.hero_journey': "Hero's Journey",
     'nav.omi_conversations': 'My Conversations',
     'nav.desc.omi_conversations': 'Omi recordings and analysis',
 
