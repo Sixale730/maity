@@ -1,5 +1,4 @@
 import {
-  Home,
   UserCircle,
   Briefcase,
   Headphones,
@@ -32,8 +31,8 @@ export const userNavigationItems: NavigationItem[] = [
     id: 'dashboard',
     titleKey: 'nav.dashboard',
     descriptionKey: 'nav.desc.dashboard',
-    url: '/home',
-    icon: Home,
+    url: '/stats',
+    icon: ChartArea,
     roles: ['admin', 'manager', 'user'],
     group: 'profile',
     order: 1,
@@ -47,16 +46,6 @@ export const userNavigationItems: NavigationItem[] = [
     roles: ['admin', 'manager', 'user'],
     group: 'profile',
     order: 2,
-  },
-  {
-    id: 'stats',
-    titleKey: 'nav.stats',
-    descriptionKey: 'nav.desc.stats',
-    url: '/stats',
-    icon: ChartArea,
-    roles: ['admin', 'manager', 'user'],
-    group: 'profile',
-    order: 3,
   },
   {
     id: 'first-interview',

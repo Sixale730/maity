@@ -81,7 +81,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 
 **Estructura:**
 - `/dashboard` y `/home` → NavigationHub (hub principal con cards)
-- `/stats` → Dashboard con métricas y gráficos
+- `/stats` → Dashboard con métricas y gráficos (accesible desde card "Dashboard" en NavigationHub)
 - Header sticky con logo + selector de rol (admins) + selector de idioma + menú de usuario
 
 **Componentes** (`src/features/navigation/`):
@@ -93,7 +93,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 - `AdminNavigationSection` - Sección separada con divisor para herramientas admin
 
 **Roles:**
-- **User (9 cards)**: Dashboard, Avatar, Estadísticas, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
+- **User (8 cards)**: Dashboard (→/stats), Avatar, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
 - **Manager (+5 cards)**: Progreso Equipo, Mi Equipo, Planes, Documentos, Ajustes
 - **Admin (+13 cards)**: Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, etc.
 
