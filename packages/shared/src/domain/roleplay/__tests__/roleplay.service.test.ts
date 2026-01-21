@@ -74,7 +74,7 @@ describe('RoleplayService', () => {
       expect(supabase.rpc).toHaveBeenCalledWith('create_voice_session', {
         p_user_id: mockUserId,
         p_profile_name: mockProfileName,
-        p_questionnaire_id: ''
+        p_questionnaire_id: null
       });
     });
 
@@ -89,7 +89,7 @@ describe('RoleplayService', () => {
       expect(supabase.rpc).toHaveBeenCalledWith('create_voice_session', {
         p_user_id: mockUserId,
         p_profile_name: mockProfileName,
-        p_questionnaire_id: ''
+        p_questionnaire_id: null
       });
     });
 
@@ -136,7 +136,7 @@ describe('RoleplayService', () => {
         expect(supabase.rpc).toHaveBeenCalledWith('create_voice_session', {
           p_user_id: mockUserId,
           p_profile_name: profile,
-          p_questionnaire_id: ''
+          p_questionnaire_id: null
         });
       }
     });
