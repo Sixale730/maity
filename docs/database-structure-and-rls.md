@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** January 16, 2026
-**Version:** 2.1
+**Last Updated:** January 21, 2026
+**Version:** 2.2
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Expanded `avatar_character_preset_check` constraint to support all 15 character presets (v2.2)
 - Added `maity.omi_conversations` and `maity.omi_transcript_segments` tables for Omi wearable integration (v2.1)
 - Added GRANT permissions to `authenticated` role for Omi tables (v2.1)
 - Added `maity.avatar_configurations` table for 3D voxel avatar system (v2.0)
@@ -2460,7 +2461,7 @@ The Avatar system provides 3D voxel-style avatars (Crossy Road inspired) for use
 CREATE TABLE maity.avatar_configurations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES maity.users(id) ON DELETE CASCADE,
-  character_preset TEXT NOT NULL DEFAULT 'human', -- 'human', 'chicken', 'dog', 'lion_knight', 'knight', 'robot', 'kenney_human'
+  character_preset TEXT NOT NULL DEFAULT 'human', -- 15 presets: human, chicken, dog, lion_knight, knight, robot, kenney_human, cat, panda, bear, frog, wizard, ninja, chef, scientist
   outfit_preset TEXT NOT NULL DEFAULT 'casual',   -- 'casual', 'business', 'worker', 'formal', 'sporty' (human only)
   head_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'round', 'square', 'tall' (human only)
   body_type TEXT NOT NULL DEFAULT 'default',      -- 'default', 'slim', 'athletic', 'casual' (human only)
@@ -2474,12 +2475,12 @@ CREATE TABLE maity.avatar_configurations (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id),
-  CONSTRAINT avatar_character_preset_check CHECK (character_preset IN ('human', 'chicken', 'dog', 'lion_knight', 'knight', 'robot', 'kenney_human')),
+  CONSTRAINT avatar_character_preset_check CHECK (character_preset IN ('human', 'chicken', 'dog', 'lion_knight', 'knight', 'robot', 'kenney_human', 'cat', 'panda', 'bear', 'frog', 'wizard', 'ninja', 'chef', 'scientist')),
   CONSTRAINT avatar_outfit_preset_check CHECK (outfit_preset IN ('casual', 'business', 'worker', 'formal', 'sporty'))
 );
 ```
 
-**Character Presets:**
+**Character Presets (15 total):**
 | Preset | Name | Source | Customizable | Description |
 |--------|------|--------|--------------|-------------|
 | `human` | Humano | Maity | Yes | Default, fully customizable avatar |
@@ -2489,6 +2490,14 @@ CREATE TABLE maity.avatar_configurations (
 | `knight` | Caballero | OpenGameArt | No | Blue knight with sword |
 | `robot` | Robot | OpenGameArt | No | Mechanical robot with antenna |
 | `kenney_human` | Humano Kenney | Kenney.nl | No | Kenney-style mini character |
+| `cat` | Gato | Maity | No | Cute blocky cat |
+| `panda` | Panda | Maity | No | Black and white panda bear |
+| `bear` | Oso | Maity | No | Brown teddy bear |
+| `frog` | Rana | Maity | No | Green frog character |
+| `wizard` | Mago | Maity | No | Wizard with magic hat |
+| `ninja` | Ninja | Maity | No | Stealthy ninja character |
+| `chef` | Chef | Maity | No | Chef with cooking hat |
+| `scientist` | Científico | Maity | No | Scientist with lab coat |
 
 **Outfit Presets (human only):**
 | Preset | Name | Emoji | Description |
