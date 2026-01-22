@@ -4,10 +4,10 @@
  */
 
 import { X, Lock, CheckCircle2, Circle, Star } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 import type { JourneyNode, JourneyTheme } from '@maity/shared';
 import { JOURNEY_THEME_COLORS } from '@maity/shared';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/components/ui/button';
 
 interface NodeInfoPanelProps {
   node: JourneyNode;

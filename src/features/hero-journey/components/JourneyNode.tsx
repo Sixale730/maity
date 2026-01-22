@@ -3,7 +3,7 @@
  * Individual node on the hero's journey map with visual states
  */
 
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 import type { JourneyNode as JourneyNodeType, JourneyTheme } from '@maity/shared';
 import { JOURNEY_THEME_COLORS } from '@maity/shared';
 import { Lock, Check } from 'lucide-react';

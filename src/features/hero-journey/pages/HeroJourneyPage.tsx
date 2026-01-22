@@ -4,9 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import {
   useHeroJourneyConfigs,
   useDefaultHeroJourneyConfig,
@@ -14,23 +12,23 @@ import {
   useDeleteHeroJourneyConfig,
   HeroJourneyService,
 } from '@maity/shared';
-import type { HeroJourneyConfig, SaveHeroJourneyConfigRequest } from '@maity/shared';
+import type { SaveHeroJourneyConfigRequest } from '@maity/shared';
 import { JourneyEditor } from '../components/JourneyEditor';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/ui/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/ui/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,7 +38,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/ui/components/ui/alert-dialog';
 import {
   Mountain,
   Plus,
@@ -52,7 +50,6 @@ import {
 } from 'lucide-react';
 
 export function HeroJourneyPage() {
-  const { t } = useTranslation();
   const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -84,13 +81,13 @@ export function HeroJourneyPage() {
       try {
         const saved = await saveMutation.mutateAsync(config);
         setSelectedConfigId(saved.id);
-        toast.success(t('hero_journey.save_success', 'Configuración guardada'));
+        toast.success('Configuración guardada');
       } catch (error) {
         console.error('Error saving config:', error);
-        toast.error(t('hero_journey.save_error', 'Error al guardar'));
+        toast.error('Error al guardar');
       }
     },
-    [saveMutation, t]
+    [saveMutation]
   );
 
   // Handle create new
@@ -117,12 +114,12 @@ export function HeroJourneyPage() {
       };
       const saved = await saveMutation.mutateAsync(clonedConfig);
       setSelectedConfigId(saved.id);
-      toast.success(t('hero_journey.clone_success', 'Configuración clonada'));
+      toast.success('Configuración clonada');
     } catch (error) {
       console.error('Error cloning config:', error);
-      toast.error(t('hero_journey.clone_error', 'Error al clonar'));
+      toast.error('Error al clonar');
     }
-  }, [selectedConfig, saveMutation, t]);
+  }, [selectedConfig, saveMutation]);
 
   // Handle delete
   const handleDelete = useCallback(async () => {
@@ -131,12 +128,12 @@ export function HeroJourneyPage() {
       await deleteMutation.mutateAsync(selectedConfig.id);
       setSelectedConfigId(null);
       setDeleteDialogOpen(false);
-      toast.success(t('hero_journey.delete_success', 'Configuración eliminada'));
+      toast.success('Configuración eliminada');
     } catch (error) {
       console.error('Error deleting config:', error);
-      toast.error(t('hero_journey.delete_error', 'Error al eliminar'));
+      toast.error('Error al eliminar');
     }
-  }, [selectedConfig, deleteMutation, t]);
+  }, [selectedConfig, deleteMutation]);
 
   // Loading state
   if (isLoadingConfigs || isLoadingDefault) {
@@ -144,7 +141,7 @@ export function HeroJourneyPage() {
       <div className="flex items-center justify-center h-screen bg-gray-950">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-pink-500 mx-auto mb-4" />
-          <p className="text-gray-400">{t('common.loading', 'Cargando...')}</p>
+          <p className="text-gray-400">Cargando...</p>
         </div>
       </div>
     );
@@ -157,7 +154,7 @@ export function HeroJourneyPage() {
         <div className="flex items-center gap-3">
           <Mountain className="w-6 h-6 text-pink-500" />
           <h1 className="text-xl font-bold text-white">
-            {t('hero_journey.title', "Hero's Journey")}
+            Hero's Journey
           </h1>
         </div>
 
@@ -169,7 +166,7 @@ export function HeroJourneyPage() {
               onValueChange={setSelectedConfigId}
             >
               <SelectTrigger className="w-[250px] bg-gray-800/50 border-gray-700 text-white">
-                <SelectValue placeholder={t('hero_journey.select_config', 'Seleccionar configuración')} />
+                <SelectValue placeholder="Seleccionar configuración" />
               </SelectTrigger>
               <SelectContent>
                 {configs.map((config) => (
@@ -192,20 +189,20 @@ export function HeroJourneyPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                {t('common.actions', 'Acciones')}
+                Acciones
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleCreateNew}>
                 <Plus className="w-4 h-4 mr-2" />
-                {t('hero_journey.new_config', 'Nueva Configuración')}
+                Nueva Configuración
               </DropdownMenuItem>
               {selectedConfig && (
                 <>
                   <DropdownMenuItem onClick={handleClone}>
                     <Copy className="w-4 h-4 mr-2" />
-                    {t('hero_journey.clone_config', 'Clonar')}
+                    Clonar
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -213,14 +210,14 @@ export function HeroJourneyPage() {
                     className="text-red-400 focus:text-red-400"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    {t('hero_journey.delete_config', 'Eliminar')}
+                    Eliminar
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => refetchConfigs()}>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                {t('common.refresh', 'Actualizar')}
+                Actualizar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -241,14 +238,14 @@ export function HeroJourneyPage() {
             <div className="text-center">
               <Mountain className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2">
-                {t('hero_journey.no_configs', 'No hay configuraciones')}
+                No hay configuraciones
               </h2>
               <p className="text-gray-400 mb-4">
-                {t('hero_journey.create_first', 'Crea tu primera ruta del héroe')}
+                Crea tu primera ruta del héroe
               </p>
               <Button onClick={handleCreateNew}>
                 <Plus className="w-4 h-4 mr-2" />
-                {t('hero_journey.new_config', 'Nueva Configuración')}
+                Nueva Configuración
               </Button>
             </div>
           </div>
@@ -260,19 +257,15 @@ export function HeroJourneyPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('hero_journey.delete_confirm_title', '¿Eliminar configuración?')}
+              ¿Eliminar configuración?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t(
-                'hero_journey.delete_confirm_desc',
-                'Esta acción no se puede deshacer. Se eliminará permanentemente la configuración "{name}".',
-                { name: selectedConfig?.name }
-              )}
+              Esta acción no se puede deshacer. Se eliminará permanentemente la configuración "{selectedConfig?.name}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {t('common.cancel', 'Cancelar')}
+              Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
@@ -283,7 +276,7 @@ export function HeroJourneyPage() {
               ) : (
                 <Trash2 className="w-4 h-4 mr-2" />
               )}
-              {t('common.delete', 'Eliminar')}
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

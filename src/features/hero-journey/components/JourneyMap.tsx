@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 import type { JourneyNode as JourneyNodeType, HeroJourneyConfig } from '@maity/shared';
 import { MountainBackground } from './MountainBackground';
 import { JourneyPath } from './JourneyPath';

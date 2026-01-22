@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 import type {
   HeroJourneyConfig,
   JourneyNode,
@@ -16,16 +16,16 @@ import type {
 import { NODE_TYPE_ICONS, DEFAULT_MOUNTAIN_LAYERS } from '@maity/shared';
 import { JourneyMap } from './JourneyMap';
 import { NodePropertiesPanel } from './NodePropertiesPanel';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/ui/components/ui/button';
+import { Input } from '@/ui/components/ui/input';
+import { Label } from '@/ui/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/ui/components/ui/select';
 import {
   Pencil,
   Eye,
