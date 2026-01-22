@@ -56,6 +56,7 @@ const CoachPage = lazy(() => import("./features/coach").then(m => ({ default: m.
 const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.DemoPage })));
 
 const HeroJourneyPage = lazy(() => import("./features/hero-journey").then(m => ({ default: m.HeroJourneyPage })));
+const SVGConverterPage = lazy(() => import("./features/svg-converter").then(m => ({ default: m.SVGConverterPage })));
 
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
 const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
@@ -151,6 +152,9 @@ const App = () => (
 
                       {/* Hero Journey (Admin/Manager) */}
                       <Route path="/hero-journey" element={<AdminRoute><HeroJourneyPage /></AdminRoute>} />
+
+                      {/* SVG Converter (Admin Only) */}
+                      <Route path="/admin/svg-converter" element={<AdminRoute><SVGConverterPage /></AdminRoute>} />
 
                       {/* Interview Routes (Admin Only) */}
                       <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />

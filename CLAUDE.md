@@ -95,7 +95,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 **Roles:**
 - **User (8 cards)**: Dashboard (→/stats), Avatar, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
 - **Manager (+5 cards)**: Progreso Equipo, Mi Equipo, Planes, Documentos, Ajustes
-- **Admin (+13 cards)**: Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, etc.
+- **Admin (+14 cards)**: Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, Hero Journey, Convertidor SVG, etc.
 
 **Configuración:** `src/features/navigation/data/navigation-items.ts`
 
@@ -114,6 +114,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 | **AI Resources** | `src/features/ai-resources/` | `/ai-resources` | Admin CRUD for resources |
 | **Agent Config** | `src/features/agent-config/` | `/admin/agent-config` | Profile/Scenario editor |
 | **Hero Journey** | `src/features/hero-journey/` | `/hero-journey` | Mountain roadmap editor, JourneyMap, JourneyEditor |
+| **SVG Converter** | `src/features/svg-converter/` | `/admin/svg-converter` | ImageUploader, ConversionPreview, SVGGallery |
 
 ## Dashboard System
 

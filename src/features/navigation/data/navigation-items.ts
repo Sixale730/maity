@@ -23,6 +23,7 @@ import {
   ChartArea,
   AudioLines,
   Mountain,
+  Wand2,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -305,6 +306,16 @@ export const adminNavigationItems: NavigationItem[] = [
     roles: ['admin', 'manager'],
     group: 'admin',
     order: 26,
+  },
+  {
+    id: 'svg-converter',
+    titleKey: 'nav.svg_converter',
+    descriptionKey: 'nav.desc.svg_converter',
+    url: '/admin/svg-converter',
+    icon: Wand2,
+    roles: ['admin'],
+    group: 'admin',
+    order: 27,
   },
 ];
 

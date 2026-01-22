@@ -69,6 +69,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.19",
     "html2canvas": "^1.4.1",
+    "imagetracerjs": "^1.2.6",
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.3",
     "lottie-react": "^2.4.1",

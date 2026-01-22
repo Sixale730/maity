@@ -114,6 +114,16 @@ export * from './domain/avatar/items.types';
 export * from './domain/avatar/attachment-points';
 export * from './domain/avatar/hooks/useAvatar';
 
+// ===== Domain: Hero Journey =====
+export { HeroJourneyService } from './domain/hero-journey/hero-journey.service';
+export * from './domain/hero-journey/hero-journey.types';
+export * from './domain/hero-journey/hooks/useHeroJourney';
+
+// ===== Domain: SVG Assets =====
+export { SVGAssetsService } from './domain/svg-assets/svg-assets.service';
+export * from './domain/svg-assets/svg-assets.types';
+export * from './domain/svg-assets/hooks/useSVGAssets';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 

@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** January 21, 2026
-**Version:** 2.2
+**Last Updated:** January 22, 2026
+**Version:** 2.3
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.svg_assets` table for SVG Converter & Asset Gallery feature (v2.3)
 - Expanded `avatar_character_preset_check` constraint to support all 15 character presets (v2.2)
 - Added `maity.omi_conversations` and `maity.omi_transcript_segments` tables for Omi wearable integration (v2.1)
 - Added GRANT permissions to `authenticated` role for Omi tables (v2.1)
@@ -2444,6 +2445,97 @@ public.toggle_ai_resource_active(p_id) RETURNS maity.ai_resources
 ```sql
 CREATE INDEX idx_ai_resources_active ON maity.ai_resources(is_active);
 CREATE INDEX idx_ai_resources_created_at ON maity.ai_resources(created_at DESC);
+```
+
+---
+
+### SVG Assets
+
+#### maity.svg_assets
+
+**Purpose:** Store converted SVG images as platform-wide reusable assets. Admins create assets via the SVG Converter tool; all authenticated users can view active assets.
+
+**Schema:**
+```sql
+CREATE TABLE maity.svg_assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  svg_content TEXT NOT NULL,
+  original_filename TEXT,
+  original_format TEXT CHECK (original_format IN ('jpg', 'jpeg', 'png', 'webp', 'svg')),
+  width INTEGER,
+  height INTEGER,
+  file_size INTEGER,
+  tags TEXT[] DEFAULT '{}',
+  category TEXT DEFAULT 'general' CHECK (category IN ('general', 'icons', 'illustrations', 'logos', 'backgrounds', 'patterns')),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES maity.users(id)
+);
+```
+
+**Key Features:**
+- **Platform-wide assets:** Available to all authenticated users
+- **Categories:** general, icons, illustrations, logos, backgrounds, patterns
+- **Tags:** Array for flexible organization
+- **Soft delete:** `is_active` flag for deactivation
+
+**RLS Policies:**
+```sql
+-- Authenticated users can view active SVG assets
+CREATE POLICY "Authenticated users can view active svg_assets"
+  ON maity.svg_assets FOR SELECT
+  USING (is_active = true AND auth.uid() IS NOT NULL);
+
+-- Admins can view all SVG assets (including inactive)
+CREATE POLICY "Admins can view all svg_assets"
+  ON maity.svg_assets FOR SELECT
+  USING (EXISTS (SELECT 1 FROM maity.user_roles ur JOIN maity.users u ON u.id = ur.user_id WHERE u.auth_id = auth.uid() AND ur.role = 'admin'));
+
+-- Admins can insert/update SVG assets
+CREATE POLICY "Admins can insert svg_assets"
+  ON maity.svg_assets FOR INSERT WITH CHECK (/* admin check */);
+
+CREATE POLICY "Admins can update svg_assets"
+  ON maity.svg_assets FOR UPDATE USING (/* admin check */) WITH CHECK (/* admin check */);
+```
+
+**RPC Functions:**
+```sql
+-- Get all assets with filters (authenticated)
+public.get_all_svg_assets(p_category TEXT, p_search TEXT, p_include_inactive BOOLEAN)
+  RETURNS TABLE(id, name, description, svg_content, original_filename, original_format, width, height, file_size, tags, category, is_active, created_at, updated_at, created_by)
+
+-- Create asset (admin only)
+public.create_svg_asset(p_name TEXT, p_svg_content TEXT, p_description TEXT, p_original_filename TEXT, p_original_format TEXT, p_width INTEGER, p_height INTEGER, p_file_size INTEGER, p_tags TEXT[], p_category TEXT)
+  RETURNS maity.svg_assets
+
+-- Update asset metadata (admin only)
+public.update_svg_asset(p_id UUID, p_name TEXT, p_description TEXT, p_tags TEXT[], p_category TEXT, p_is_active BOOLEAN)
+  RETURNS maity.svg_assets
+
+-- Soft delete asset (admin only)
+public.delete_svg_asset(p_id UUID)
+  RETURNS BOOLEAN
+```
+
+**Indexes:**
+```sql
+CREATE INDEX idx_svg_assets_category ON maity.svg_assets(category);
+CREATE INDEX idx_svg_assets_tags ON maity.svg_assets USING GIN(tags);
+CREATE INDEX idx_svg_assets_is_active ON maity.svg_assets(is_active);
+CREATE INDEX idx_svg_assets_created_at ON maity.svg_assets(created_at DESC);
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT, UPDATE ON maity.svg_assets TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_all_svg_assets(TEXT, TEXT, BOOLEAN) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_svg_asset(...) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_svg_asset(...) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_svg_asset(UUID) TO authenticated;
 ```
 
 ---
