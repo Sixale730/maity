@@ -11,6 +11,7 @@ interface MountainBackgroundProps {
   layers: MountainLayer[];
   theme: JourneyTheme;
   showSnow?: boolean;
+  backgroundImage?: string;
   className?: string;
 }
 
@@ -107,9 +108,26 @@ export function MountainBackground({
   layers,
   theme,
   showSnow = true,
+  backgroundImage,
   className = '',
 }: MountainBackgroundProps) {
   const colors = JOURNEY_THEME_COLORS[theme];
+
+  // Si hay imagen de fondo, usarla en lugar del SVG generado
+  if (backgroundImage) {
+    return (
+      <div
+        className={`absolute inset-0 w-full h-full ${className}`}
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
+          backgroundColor: colors.background,
+        }}
+      />
+    );
+  }
+
   const viewBoxWidth = 1000;
   const viewBoxHeight = 600;
 

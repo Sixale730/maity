@@ -131,6 +131,7 @@ export function JourneyMap({
         layers={config.mountainLayers}
         theme={config.theme}
         showSnow={config.theme === 'snow'}
+        backgroundImage="/hero-journey/mountain-bg.webp"
       />
 
       {/* Path connecting nodes */}
