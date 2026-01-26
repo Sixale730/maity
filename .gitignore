@@ -34,7 +34,10 @@ dist-ssr
 *.zip
 nul
 
-# Environment files for Vercel
+# Environment files
+.env
+.env.*
+!.env.example
 .env.vercel
 vercel-env.json
 
