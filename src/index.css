@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,56 +10,89 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Maity Dark Mode - Extended Color Palette */
-    --background: 0 0% 0%;              /* #000000 */
-    --foreground: 240 4% 91%;           /* #e7e7e9 */
+    --background: 0 0% 0%;
+    /* #000000 */
+    --foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --card: 0 0% 6%;                    /* #0F0F0F */
-    --card-foreground: 240 4% 91%;      /* #e7e7e9 */
+    --card: 0 0% 6%;
+    /* #0F0F0F */
+    --card-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --popover: 0 0% 6%;                 /* #0F0F0F */
-    --popover-foreground: 240 4% 91%;   /* #e7e7e9 */
+    --popover: 0 0% 6%;
+    /* #0F0F0F */
+    --popover-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --primary: 229 93% 65%;             /* #485df4 */
-    --primary-foreground: 240 4% 91%;   /* #e7e7e9 */
+    --primary: 229 93% 65%;
+    /* #485df4 */
+    --primary-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --secondary: 0 0% 6%;               /* #0F0F0F */
-    --secondary-foreground: 240 4% 91%; /* #e7e7e9 */
+    --secondary: 0 0% 6%;
+    /* #0F0F0F */
+    --secondary-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --muted: 0 0% 6%;                   /* #0F0F0F */
-    --muted-foreground: 240 4% 91%;     /* #e7e7e9 */
+    --muted: 0 0% 6%;
+    /* #0F0F0F */
+    --muted-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
-    --accent: 161 81% 51%;              /* #1bea9a */
-    --accent-foreground: 0 0% 0%;       /* #000000 */
+    --accent: 161 81% 51%;
+    /* #1bea9a */
+    --accent-foreground: 0 0% 0%;
+    /* #000000 */
 
-    --destructive: 340 100% 50%;        /* #ff0050 */
-    --destructive-foreground: 240 4% 91%; /* #e7e7e9 */
+    --destructive: 340 100% 50%;
+    /* #ff0050 */
+    --destructive-foreground: 240 4% 91%;
+    /* #e7e7e9 */
 
     /* Red accent colors for Maity branding */
-    --red-primary: 340 100% 50%;        /* #ff0050 */
-    --red-muted: 340 100% 35%;          /* #b30038 */
-    --red-light: 340 100% 57%;          /* #ff2a70 - Medium lighter red for balanced gradients */
-    --red-subtle: 340 100% 95%;         /* #ffe6f0 */
+    --red-primary: 340 100% 50%;
+    /* #ff0050 */
+    --red-muted: 340 100% 35%;
+    /* #b30038 */
+    --red-light: 340 100% 57%;
+    /* #ff2a70 - Medium lighter red for balanced gradients */
+    --red-subtle: 340 100% 95%;
+    /* #ffe6f0 */
 
     /* Blue accent colors for Maity branding */
-    --blue-light: 229 93% 72%;          /* #6c83f6 - Medium lighter blue for balanced gradients */
+    --blue-light: 229 93% 72%;
+    /* #6c83f6 - Medium lighter blue for balanced gradients */
 
     /* Platinum color */
-    --platinum: 210 11% 71%;            /* #b3b8c4 */
+    --platinum: 210 11% 71%;
+    /* #b3b8c4 */
 
-    --border: 0 0% 6%;                  /* #0F0F0F */
-    --input: 0 0% 6%;                   /* #0F0F0F */
-    --ring: 229 93% 65%;                /* #485df4 */
+    --border: 0 0% 6%;
+    /* #0F0F0F */
+    --input: 0 0% 6%;
+    /* #0F0F0F */
+    --ring: 229 93% 65%;
+    /* #485df4 */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 3%;      /* #080808 */
-    --sidebar-foreground: 240 4% 91%;   /* #e7e7e9 */
-    --sidebar-primary: 340 100% 50%;    /* #ff0050 - Red primary */
-    --sidebar-primary-foreground: 240 4% 91%; /* #e7e7e9 */
-    --sidebar-accent: 0 0% 8%;          /* #141414 */
-    --sidebar-accent-foreground: 240 4% 91%; /* #e7e7e9 */
-    --sidebar-border: 340 100% 15%;     /* #330014 - Red border */
-    --sidebar-ring: 340 100% 50%;       /* #ff0050 */
+    --sidebar-background: 0 0% 3%;
+    /* #080808 */
+    --sidebar-foreground: 240 4% 91%;
+    /* #e7e7e9 */
+    --sidebar-primary: 340 100% 50%;
+    /* #ff0050 - Red primary */
+    --sidebar-primary-foreground: 240 4% 91%;
+    /* #e7e7e9 */
+    --sidebar-accent: 0 0% 8%;
+    /* #141414 */
+    --sidebar-accent-foreground: 240 4% 91%;
+    /* #e7e7e9 */
+    --sidebar-border: 340 100% 15%;
+    /* #330014 - Red border */
+    --sidebar-ring: 340 100% 50%;
+    /* #ff0050 */
   }
 }
 
@@ -76,8 +110,10 @@ All colors MUST be HSL.
   }
 
   body {
-    background: hsl(0 0% 0%);        /* #000000 */
-    color: hsl(240 4% 91%);          /* #e7e7e9 */
+    background: hsl(0 0% 0%);
+    /* #000000 */
+    color: hsl(240 4% 91%);
+    /* #e7e7e9 */
   }
 
   /* Input styles - Different font for input text vs placeholder */
@@ -138,5 +174,15 @@ All colors MUST be HSL.
 
   .phone-input-custom input[type="tel"] {
     flex: 1;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .text-gradient-hero {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-[#ff0050] to-[#485df4];
   }
 }
