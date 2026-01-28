@@ -75,27 +75,49 @@ OAuth → ensureUser() → try autojoin by domain → finalize invite (cookie) �
 1. **Autojoin**: Email domain matching (`maity.companies.domain` + `auto_join_enabled`)
 2. **Invite**: HttpOnly cookie system via `/api/accept-invite` + `/api/finalize-invite`
 
-## Navigation System (Card-Based)
+## Navigation System (Sidebar + Cards)
 
-La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear, sin sidebar tradicional.
+La plataforma usa un sistema de navegación dual: sidebar permanente (shadcn/ui) + cards en el NavigationHub.
 
 **Estructura:**
 - `/dashboard` y `/home` → NavigationHub (hub principal con cards)
 - `/stats` → Dashboard con métricas y gráficos (accesible desde card "Dashboard" en NavigationHub)
-- Header sticky con logo + selector de rol (admins) + selector de idioma + menú de usuario
+- Sidebar permanente con logo, grupos de navegación y footer de usuario
+- Header sticky con selector de rol (admins) + selector de idioma + menú de usuario
 
-**Componentes** (`src/features/navigation/`):
+**Sidebar** (`src/features/sidebar/`):
+- `AppSidebar` - Componente principal del sidebar (Sidebar de shadcn/ui con collapsible="icon")
+- `SidebarNavGroup` - Grupo colapsable de items (usa SidebarGroup/SidebarGroupLabel)
+- `SidebarNavItem` - Item individual con icono, texto, active state y tooltip
+- `SidebarUserFooter` - Footer con avatar, nombre y dropdown (perfil, settings, logout)
+- `useSidebarNavigation` - Hook que filtra items por `viewRole` y agrupa por sección
+
+**Comportamiento responsive:**
+| Dispositivo | Comportamiento |
+|-------------|----------------|
+| Desktop (>1024px) | Sidebar expandido, colapsable a iconos via rail o Ctrl+B |
+| Tablet (768-1024px) | Sidebar visible, colapsable |
+| Móvil (<768px) | Oculto, hamburger en header abre Sheet |
+
+**Cards (NavigationHub)** (`src/features/navigation/`):
 - `NavigationHub` - Página principal con todas las cards
-- `NavigationHeader` - Header superior con logo y menú usuario
+- `NavigationHeader` - Header superior con SidebarTrigger (móvil) + logo + menú usuario
 - `NavigationCard` - Card individual (icono + título + descripción)
 - `NavigationCardGroup` - Grupo de cards con encabezado de sección
 - `UserNavigationSection` - Secciones: Perfil, Práctica, Progreso, Equipo, Config
 - `AdminNavigationSection` - Sección separada con divisor para herramientas admin
 
+**Layout** (`src/layouts/AppLayout.tsx`):
+- `SidebarProvider` envuelve todo el layout con `defaultOpen={true}`
+- `AppSidebar` se renderiza junto a `SidebarInset` (contenido principal)
+- Estado expandido/colapsado se persiste en cookie
+
 **Roles:**
-- **User (8 cards)**: Dashboard (→/stats), Avatar, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
-- **Manager (+5 cards)**: Progreso Equipo, Mi Equipo, Planes, Documentos, Ajustes
-- **Admin (+14 cards)**: Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, Hero Journey, Convertidor SVG, etc.
+- **User (8 items)**: Dashboard (→/stats), Avatar, Primera Entrevista, Roleplay, Ruta de Aprendizaje, Progreso, Historial, Conversaciones Omi
+- **Manager (+5 items)**: Progreso Equipo, Mi Equipo, Planes, Documentos, Ajustes
+- **Admin (+15 items)**: Dashboard Gamificado, Coach, Config Agentes, Recursos IA, Galería Avatares, Demo, Analytics, Organizaciones, Usuarios, Reports, Trends, Tech Week, Hero Journey, Convertidor SVG, etc.
+
+**Grupos del sidebar:** profile, practice, progress, team, config, admin (separado visualmente)
 
 **Configuración:** `src/features/navigation/data/navigation-items.ts`
 
@@ -103,6 +125,7 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 
 | Feature | Location | Route | Key Files |
 |---------|----------|-------|-----------|
+| **Sidebar** | `src/features/sidebar/` | (all pages) | AppSidebar, SidebarNavGroup, SidebarNavItem, SidebarUserFooter |
 | **Navigation** | `src/features/navigation/` | `/dashboard`, `/home` | NavigationHub, NavigationHeader, NavigationCard |
 | **Dashboard** | `src/features/dashboard/` | `/stats` | UserDashboard, PlatformAdminDashboard, OmiStatsSection |
 | **Omi** | `src/features/omi/` | `/omi` | OmiConversationsPage, OmiConversationDetail |
@@ -115,6 +138,33 @@ La plataforma usa un sistema de navegación basado en cards estilo Notion/Linear
 | **Agent Config** | `src/features/agent-config/` | `/admin/agent-config` | Profile/Scenario editor |
 | **Hero Journey** | `src/features/hero-journey/` | `/hero-journey` | Mountain roadmap editor, JourneyMap, JourneyEditor |
 | **SVG Converter** | `src/features/svg-converter/` | `/admin/svg-converter` | ImageUploader, ConversionPreview, SVGGallery |
+| **Gamified Dashboard** | `src/features/dashboard/components/gamified/` | `/gamified-dashboard` | GamifiedDashboard, MountainMap, MetricsPanel, InfoPanel |
+
+## Gamified Dashboard
+
+Dashboard gamificado con visualización de montaña/volcán y nodos de avance basados en conversaciones Omi.
+
+**Estructura:**
+- `GamifiedDashboard` - Orquestador principal, layout 3 columnas (dark theme)
+- `MountainMap` - SVG procedural de volcán con 15 nodos en zigzag ascendente
+- `MetricsPanel` - Panel izquierdo: XP, racha, score, competencias, rewards
+- `InfoPanel` - Panel derecho: muletillas, ranking, feedback/insight
+- `useGamifiedDashboardData` - Hook de datos (Omi conversations + mock data)
+
+**Lógica de avance:** Cada 2 días con conversación Omi en el mes actual = 1 nodo avanzado (máx 15)
+
+**Estados de nodos:** completed (cyan `#00f5d4`), current (pink `#f15bb5` pulsante), locked (gris `#4a5568`)
+
+**Enemigos (checkpoints):** EL REGATEADOR (nodo 5), PICO DE PIEDRA (nodo 10), CASCO DE LAVA (nodo 15)
+
+**Competencias (4 barras verticales tipo altímetro):** Claridad (#485df4), Estructura (#ff8c42), Propósito (#ffd93d), Empatía (#ef4444)
+
+**Datos reales:** Conversaciones Omi (nodos), competencias (useFormResponses), streak (días consecutivos)
+**Datos mock:** Score, ranking, rewards, muletillas
+
+**Traducciones:** Claves `gamified.*` y `nav.gamified_dashboard` definidas en `src/contexts/LanguageContext.tsx` (es + en)
+
+**Ruta:** `/gamified-dashboard` - Solo admin
 
 ## Dashboard System
 
