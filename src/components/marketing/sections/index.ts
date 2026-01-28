@@ -1,0 +1,12 @@
+export { HeroSection } from './HeroSection';
+export { BusinessHeroSection } from './BusinessHeroSection';
+export { ProblemSection } from './ProblemSection';
+export { ProductInfoSection } from './ProductInfoSection';
+export { VideoTestimonials } from './VideoTestimonials';
+export { ROICalculator } from './ROICalculator';
+export { SuccessStories } from './SuccessStories';
+export { Pricing } from './Pricing';
+export { BusinessPricing } from './BusinessPricing';
+export { BusinessDeepDive } from './BusinessDeepDive';
+export { FAQSection } from './FAQSection';
+export { Footer } from './Footer';
