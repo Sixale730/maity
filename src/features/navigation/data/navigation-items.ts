@@ -24,6 +24,7 @@ import {
   AudioLines,
   Mountain,
   Wand2,
+  Flame,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -168,6 +169,16 @@ export const managerNavigationItems: NavigationItem[] = [
 // Admin navigation items (visible only to admin)
 export const adminNavigationItems: NavigationItem[] = [
   {
+    id: 'gamified-dashboard',
+    titleKey: 'nav.gamified_dashboard',
+    descriptionKey: 'nav.desc.gamified_dashboard',
+    url: '/gamified-dashboard',
+    icon: Flame,
+    roles: ['admin'],
+    group: 'admin',
+    order: 13,
+  },
+  {
     id: 'coach',
     titleKey: 'nav.coach',
     descriptionKey: 'nav.desc.coach',
@@ -175,7 +186,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: MessageCircle,
     roles: ['admin'],
     group: 'admin',
-    order: 13,
+    order: 14,
   },
   {
     id: 'agent-config',
@@ -185,7 +196,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Settings2,
     roles: ['admin'],
     group: 'admin',
-    order: 14,
+    order: 15,
   },
   {
     id: 'ai-resources',
@@ -195,7 +206,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Brain,
     roles: ['admin'],
     group: 'admin',
-    order: 15,
+    order: 16,
   },
   {
     id: 'avatar-showcase',
@@ -205,7 +216,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Boxes,
     roles: ['admin'],
     group: 'admin',
-    order: 16,
+    order: 17,
   },
   {
     id: 'demo',
@@ -215,7 +226,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Play,
     roles: ['admin'],
     group: 'admin',
-    order: 17,
+    order: 18,
   },
   {
     id: 'demo-training',
@@ -225,7 +236,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Mic,
     roles: ['admin'],
     group: 'admin',
-    order: 18,
+    order: 19,
   },
   {
     id: 'analytics',
@@ -235,7 +246,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: BarChart3,
     roles: ['admin'],
     group: 'admin',
-    order: 19,
+    order: 20,
   },
   {
     id: 'organizations',
@@ -245,7 +256,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Building,
     roles: ['admin'],
     group: 'admin',
-    order: 20,
+    order: 21,
   },
   {
     id: 'users',
@@ -255,7 +266,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Users,
     roles: ['admin'],
     group: 'admin',
-    order: 21,
+    order: 22,
   },
   {
     id: 'reports',
@@ -265,7 +276,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: PieChart,
     roles: ['admin'],
     group: 'admin',
-    order: 22,
+    order: 23,
   },
   {
     id: 'trends',
@@ -275,7 +286,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: TrendingUp,
     roles: ['admin'],
     group: 'admin',
-    order: 23,
+    order: 24,
   },
   {
     id: 'tech-week',
@@ -285,7 +296,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Zap,
     roles: ['admin'],
     group: 'admin',
-    order: 24,
+    order: 25,
   },
   {
     id: 'interview-history',
@@ -295,7 +306,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: History,
     roles: ['admin'],
     group: 'admin',
-    order: 25,
+    order: 26,
   },
   {
     id: 'hero-journey',
@@ -305,7 +316,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Mountain,
     roles: ['admin', 'manager'],
     group: 'admin',
-    order: 26,
+    order: 27,
   },
   {
     id: 'svg-converter',
@@ -315,7 +326,7 @@ export const adminNavigationItems: NavigationItem[] = [
     icon: Wand2,
     roles: ['admin'],
     group: 'admin',
-    order: 27,
+    order: 28,
   },
 ];
 
