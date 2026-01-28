@@ -384,6 +384,23 @@ const translations = {
     'svg_converter.delete_confirm_description': 'Esta acción desactivará el asset. Podrás reactivarlo más tarde.',
     'svg_converter.asset_deleted': 'Asset eliminado',
     'svg_converter.error_delete_failed': 'Error al eliminar',
+
+    // Gamified Dashboard
+    'nav.gamified_dashboard': 'Dashboard Gamificado',
+    'nav.desc.gamified_dashboard': 'Tu progreso con montaña, logros y ranking',
+    'gamified.mountain_title': 'Montaña de Fuego',
+    'gamified.streak_days': 'Días Racha',
+    'gamified.yesterday': 'AYER',
+    'gamified.today': 'HOY',
+    'gamified.daily_climb': 'Escalada Diaria',
+    'gamified.rewards': 'Recompensas',
+    'gamified.filler_words': 'Muletillas',
+    'gamified.ranking': 'Ranking',
+    'gamified.feedback': 'Feedback',
+    'gamified.insight': 'Insight',
+    'gamified.progress_listen': 'Escucha',
+    'gamified.progress_security': 'Seguridad',
+    'gamified.progress_speak': 'Speak',
   },
   en: {
     // Navigation
@@ -767,6 +784,23 @@ const translations = {
     'svg_converter.delete_confirm_description': 'This action will deactivate the asset. You can reactivate it later.',
     'svg_converter.asset_deleted': 'Asset deleted',
     'svg_converter.error_delete_failed': 'Error deleting',
+
+    // Gamified Dashboard
+    'nav.gamified_dashboard': 'Gamified Dashboard',
+    'nav.desc.gamified_dashboard': 'Your progress with mountain, achievements and ranking',
+    'gamified.mountain_title': 'Fire Mountain',
+    'gamified.streak_days': 'Day Streak',
+    'gamified.yesterday': 'YESTERDAY',
+    'gamified.today': 'TODAY',
+    'gamified.daily_climb': 'Daily Climb',
+    'gamified.rewards': 'Rewards',
+    'gamified.filler_words': 'Filler Words',
+    'gamified.ranking': 'Ranking',
+    'gamified.feedback': 'Feedback',
+    'gamified.insight': 'Insight',
+    'gamified.progress_listen': 'Listen',
+    'gamified.progress_security': 'Security',
+    'gamified.progress_speak': 'Speak',
   }
 };
 
