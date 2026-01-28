@@ -57,6 +57,7 @@ const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.D
 
 const HeroJourneyPage = lazy(() => import("./features/hero-journey").then(m => ({ default: m.HeroJourneyPage })));
 const SVGConverterPage = lazy(() => import("./features/svg-converter").then(m => ({ default: m.SVGConverterPage })));
+const GamifiedDashboardPage = lazy(() => import("./features/dashboard/components/gamified/GamifiedDashboard"));
 
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
 const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
@@ -149,6 +150,9 @@ const App = () => (
 
                       {/* Avatar Showcase (Admin Only) */}
                       <Route path="/avatar-showcase" element={<AdminRoute><AvatarShowcasePage /></AdminRoute>} />
+
+                      {/* Gamified Dashboard (Admin Only) */}
+                      <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboardPage /></AdminRoute>} />
 
                       {/* Hero Journey (Admin/Manager) */}
                       <Route path="/hero-journey" element={<AdminRoute><HeroJourneyPage /></AdminRoute>} />
