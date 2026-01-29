@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { MountainNode } from '../../hooks/useGamifiedDashboardData';
 import {
   VOLCANO_PATH,
+  CRATER_PATH,
   STARS,
   BG_MOUNTAINS,
   PIXEL_BLOCKS,
@@ -11,6 +12,8 @@ import {
   RIGHT_LAVA,
   EMBERS,
   BASE_ROCKS,
+  SMOKE_CLOUDS,
+  VOLCANIC_CRACKS,
 } from './mountain-data';
 
 interface MountainMapProps {
@@ -81,10 +84,17 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
               <stop offset="100%" stopColor="#6a2a2a" />
             </linearGradient>
 
+            {/* Crater interior gradient (dark bowl with warm bottom) */}
+            <linearGradient id="craterInterior" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#0a0505" />
+              <stop offset="50%" stopColor="#2a0a0a" />
+              <stop offset="100%" stopColor="#5a1a00" />
+            </linearGradient>
+
             {/* Lava glow gradient */}
-            <radialGradient id="lavaGlow" cx="50%" cy="0%" r="30%">
-              <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#ff4500" stopOpacity="0.4" />
+            <radialGradient id="lavaGlow" cx="50%" cy="60%" r="50%">
+              <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.9" />
+              <stop offset="40%" stopColor="#ff4500" stopOpacity="0.5" />
               <stop offset="100%" stopColor="#ff4500" stopOpacity="0" />
             </radialGradient>
 
@@ -95,10 +105,10 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
               <stop offset="100%" stopColor="#ff4500" stopOpacity="0.2" />
             </radialGradient>
 
-            {/* Summit ambient glow */}
+            {/* Summit ambient glow (stronger, shows through crater) */}
             <radialGradient id="summitAmbient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.3" />
-              <stop offset="60%" stopColor="#ff4500" stopOpacity="0.1" />
+              <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.5" />
+              <stop offset="50%" stopColor="#ff4500" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#ff4500" stopOpacity="0" />
             </radialGradient>
 
@@ -181,10 +191,27 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             />
           ))}
 
-          {/* Summit ambient orange glow */}
-          <ellipse cx="50" cy="5" rx="18" ry="12" fill="url(#summitAmbient)" />
+          {/* Summit ambient orange glow (visible through crater cutout) */}
+          <ellipse cx="50" cy="5" rx="18" ry="14" fill="url(#summitAmbient)" />
 
-          {/* ===== 3. VOLCANO BODY ===== */}
+          {/* ===== 3. CRATER INTERIOR (drawn before mountain body) ===== */}
+          {/* Dark bowl interior - visible through the crater cutout */}
+          <path d={CRATER_PATH} fill="url(#craterInterior)" />
+          {/* Lava pool at crater floor */}
+          <rect x="47" y="9" width="6" height="2.5" rx="0.3" fill="url(#craterGlow)">
+            <animate attributeName="opacity" values="0.85;1;0.85" dur="2s" repeatCount="indefinite" />
+          </rect>
+          {/* Lava bubbles */}
+          <circle cx="48.5" cy="10" r="0.5" fill="#ffcc00" opacity="0.7">
+            <animate attributeName="r" values="0.3;0.6;0.3" dur="1.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.4;0.8;0.4" dur="1.5s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="52" cy="10.5" r="0.4" fill="#ffcc00" opacity="0.6">
+            <animate attributeName="r" values="0.2;0.5;0.2" dur="2s" begin="0.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
+          </circle>
+
+          {/* ===== 4. VOLCANO BODY ===== */}
           <path
             d={VOLCANO_PATH}
             fill="url(#mountainGrad)"
@@ -199,7 +226,7 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             clipPath="url(#mountainClip)"
           />
 
-          {/* ===== 4. TEXTURES ===== */}
+          {/* ===== 5. TEXTURES ===== */}
           {/* Strata lines */}
           {STRATA.map((s, i) => (
             <line
@@ -222,23 +249,37 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             />
           ))}
 
-          {/* ===== 5. LAVA SYSTEM ===== */}
-          {/* Crater basin */}
-          <rect x="45" y="3" width="10" height="3" rx="0.5" fill="#2a0a0a" stroke="#4a1a1a" strokeWidth="0.2" />
-          {/* Lava pool inside crater */}
-          <rect x="46" y="3.5" width="8" height="2" fill="url(#craterGlow)">
-            <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
-          </rect>
+          {/* Volcanic cracks (glowing fissures near summit) */}
+          {VOLCANIC_CRACKS.map((crack, i) => (
+            <path
+              key={`crack-${i}`}
+              d={crack.d}
+              fill="none"
+              stroke={crack.color}
+              strokeWidth="0.3"
+              opacity={crack.opacity}
+            >
+              <animate
+                attributeName="opacity"
+                values={`${crack.opacity};${crack.opacity * 1.5};${crack.opacity}`}
+                dur="4s"
+                begin={`${i * 0.7}s`}
+                repeatCount="indefinite"
+              />
+            </path>
+          ))}
+
+          {/* ===== 6. LAVA SYSTEM ===== */}
           {/* Crater rim pixel highlights */}
-          <rect x="44.5" y="2.5" width="1.5" height="0.8" fill="#5a2a2a" opacity="0.8" />
-          <rect x="54" y="2.5" width="1.5" height="0.8" fill="#5a2a2a" opacity="0.8" />
-          <rect x="46" y="2" width="2" height="0.6" fill="#4a2020" opacity="0.6" />
-          <rect x="52" y="2" width="2" height="0.6" fill="#4a2020" opacity="0.6" />
+          <rect x="40" y="4.5" width="2" height="1" fill="#5a2a2a" opacity="0.8" />
+          <rect x="58" y="4.5" width="2" height="1" fill="#5a2a2a" opacity="0.8" />
+          <rect x="42" y="4" width="1.5" height="0.8" fill="#4a2020" opacity="0.6" />
+          <rect x="56.5" y="4" width="1.5" height="0.8" fill="#4a2020" opacity="0.6" />
 
           {/* Lava glow above crater */}
-          <ellipse cx="50" cy="4" rx="8" ry="5" fill="url(#lavaGlow)">
-            <animate attributeName="ry" values="4;6;4" dur="3s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+          <ellipse cx="50" cy="5" rx="10" ry="8" fill="url(#lavaGlow)">
+            <animate attributeName="ry" values="7;9;7" dur="3s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2s" repeatCount="indefinite" />
           </ellipse>
 
           {/* Left lava stream */}
@@ -308,7 +349,39 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             </circle>
           ))}
 
-          {/* ===== 6. GROUND ===== */}
+          {/* Smoke/ash rising from crater */}
+          {SMOKE_CLOUDS.map((cloud, i) => (
+            <ellipse
+              key={`smoke-${i}`}
+              cx={cloud.cx}
+              cy={cloud.cy}
+              rx={cloud.rx}
+              ry={cloud.ry}
+              fill="#666677"
+              opacity={cloud.opacity}
+            >
+              <animate
+                attributeName="cy"
+                values={`${cloud.cy};${cloud.cy - 4};${cloud.cy}`}
+                dur={`${cloud.dur}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="opacity"
+                values={`${cloud.opacity};${cloud.opacity * 0.2};${cloud.opacity}`}
+                dur={`${cloud.dur}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="rx"
+                values={`${cloud.rx};${cloud.rx * 1.3};${cloud.rx}`}
+                dur={`${cloud.dur}s`}
+                repeatCount="indefinite"
+              />
+            </ellipse>
+          ))}
+
+          {/* ===== 7. GROUND ===== */}
           {/* Stepped ground line */}
           <path
             d="M 5,96 L 8,96 L 8,95 L 15,95 L 15,96 L 30,96 L 30,95.5 L 45,95.5 L 45,96 L 60,96 L 60,95 L 75,95 L 75,96 L 88,96 L 88,95.5 L 95,95.5 L 95,96"
@@ -333,7 +406,7 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
           {/* Base glow */}
           <ellipse cx="50" cy="96" rx="40" ry="6" fill="url(#baseGlow)" />
 
-          {/* ===== 7. PATHS ===== */}
+          {/* ===== 8. PATHS ===== */}
           {/* Path connecting all nodes (background) */}
           <path
             d={pathD}
@@ -355,7 +428,7 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             />
           )}
 
-          {/* ===== 8. ENEMIES ===== */}
+          {/* ===== 9. ENEMIES ===== */}
           {ENEMIES.map(enemy => {
             const node = nodes[enemy.nodeIndex];
             if (!node) return null;
@@ -375,7 +448,7 @@ export function MountainMap({ nodes, completedNodes }: MountainMapProps) {
             );
           })}
 
-          {/* ===== 9. NODES ===== */}
+          {/* ===== 10. NODES ===== */}
           {nodes.map(node => (
             <g key={node.index}>
               {/* Node outer ring */}

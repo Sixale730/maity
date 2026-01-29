@@ -1,26 +1,30 @@
 // Pixel-art volcano mountain data arrays
 // Used by MountainMap.tsx to render the gamified volcano
 
-/** Pixel-art volcano silhouette path (stepped/staircase edges) */
+/** Pixel-art volcano silhouette with visible crater depression (bowl at top) */
 export const VOLCANO_PATH =
-  'M 46,5 L 46,3 L 54,3 L 54,5' + // crater opening
-  ' L 56,5 L 56,8 L 58,8 L 58,11 L 60,11 L 60,14' +
-  ' L 62,14 L 62,17 L 64,17 L 64,20 L 66,20 L 66,23' +
-  ' L 68,23 L 68,26 L 70,26 L 70,30 L 72,30 L 72,34' +
-  ' L 74,34 L 74,38 L 76,38 L 76,42 L 78,42 L 78,46' +
-  ' L 80,46 L 80,50 L 82,50 L 82,55 L 84,55 L 84,60' +
-  ' L 86,60 L 86,66 L 88,66 L 88,72 L 89,72 L 89,78' +
-  ' L 90,78 L 90,84 L 91,84 L 91,90 L 92,90 L 92,96' +
-  // base line
-  ' L 8,96' +
-  // left side going up
-  ' L 8,90 L 9,90 L 9,84 L 10,84 L 10,78 L 11,78 L 11,72' +
-  ' L 12,72 L 12,66 L 14,66 L 14,60 L 16,60 L 16,55' +
-  ' L 18,55 L 18,50 L 20,50 L 20,46 L 22,46 L 22,42' +
-  ' L 24,42 L 24,38 L 26,38 L 26,34 L 28,34 L 28,30' +
-  ' L 30,30 L 30,26 L 32,26 L 32,23 L 34,23 L 34,20' +
-  ' L 36,20 L 36,17 L 38,17 L 38,14 L 40,14 L 40,11' +
-  ' L 42,11 L 42,8 L 44,8 L 44,5 L 46,5 Z';
+  // Start at right rim peak
+  'M 59,5' +
+  // Right slope descending (pixel-art staircase, steeper near top)
+  ' L 59,8 L 61,8 L 61,11 L 63,11 L 63,15 L 65,15 L 65,19 L 67,19' +
+  ' L 67,23 L 69,23 L 69,28 L 71,28 L 71,33 L 73,33 L 73,39 L 75,39' +
+  ' L 75,46 L 77,46 L 77,53 L 79,53 L 79,60 L 81,60 L 81,68 L 83,68' +
+  ' L 83,76 L 85,76 L 85,83 L 87,83 L 87,89 L 89,89 L 89,96' +
+  // Base line
+  ' L 11,96' +
+  // Left slope ascending (pixel-art staircase)
+  ' L 11,89 L 13,89 L 13,83 L 15,83 L 15,76 L 17,76 L 17,68 L 19,68' +
+  ' L 19,60 L 21,60 L 21,53 L 23,53 L 23,46 L 25,46 L 25,39 L 27,39' +
+  ' L 27,33 L 29,33 L 29,28 L 31,28 L 31,23 L 33,23 L 33,19 L 35,19' +
+  ' L 35,15 L 37,15 L 37,11 L 39,11 L 39,8 L 41,8 L 41,5' +
+  // Crater depression (left rim → bowl → right rim)
+  ' L 41,7 L 43,7 L 43,9 L 45,9 L 45,10 L 47,10 L 47,11 L 53,11' +
+  ' L 53,10 L 55,10 L 55,9 L 57,9 L 57,7 L 59,7 L 59,5 Z';
+
+/** Crater interior path (bowl shape, drawn behind mountain to show through cutout) */
+export const CRATER_PATH =
+  'M 41,5 L 41,7 L 43,7 L 43,9 L 45,9 L 45,10 L 47,10 L 47,11' +
+  ' L 53,11 L 53,10 L 55,10 L 55,9 L 57,9 L 57,7 L 59,7 L 59,5 Z';
 
 /** Sky stars (small pixel rects) */
 export const STARS: { x: number; y: number; size: number; opacity: number; twinkle?: boolean }[] = [
@@ -63,15 +67,15 @@ export const BG_MOUNTAINS: { points: string; fill: string; opacity: number }[] =
 /** Pixel texture blocks scattered across the mountain body */
 export const PIXEL_BLOCKS: { x: number; y: number; w: number; h: number; color: string; opacity: number }[] = [
   // Base zone (dark blue-purple)
-  { x: 20, y: 85, w: 2, h: 1, color: '#1e1e3a', opacity: 0.7 },
-  { x: 30, y: 82, w: 1.5, h: 1, color: '#252545', opacity: 0.6 },
+  { x: 22, y: 85, w: 2, h: 1, color: '#1e1e3a', opacity: 0.7 },
+  { x: 32, y: 82, w: 1.5, h: 1, color: '#252545', opacity: 0.6 },
   { x: 55, y: 86, w: 2, h: 1, color: '#1e1e3a', opacity: 0.7 },
   { x: 70, y: 83, w: 1.5, h: 1, color: '#20204a', opacity: 0.5 },
-  { x: 15, y: 78, w: 1, h: 1, color: '#252550', opacity: 0.6 },
-  { x: 80, y: 76, w: 1.5, h: 1, color: '#1e1e3a', opacity: 0.6 },
+  { x: 18, y: 78, w: 1, h: 1, color: '#252550', opacity: 0.6 },
+  { x: 78, y: 76, w: 1.5, h: 1, color: '#1e1e3a', opacity: 0.6 },
   { x: 40, y: 80, w: 2, h: 1.5, color: '#232348', opacity: 0.5 },
   // Mid zone (transition)
-  { x: 25, y: 65, w: 1.5, h: 1, color: '#2a2a50', opacity: 0.6 },
+  { x: 26, y: 65, w: 1.5, h: 1, color: '#2a2a50', opacity: 0.6 },
   { x: 45, y: 68, w: 2, h: 1, color: '#2d2d4e', opacity: 0.5 },
   { x: 65, y: 62, w: 1, h: 1.5, color: '#302a48', opacity: 0.6 },
   { x: 35, y: 58, w: 1.5, h: 1, color: '#332840', opacity: 0.5 },
@@ -86,73 +90,92 @@ export const PIXEL_BLOCKS: { x: number; y: number; w: number; h: number; color: 
   { x: 48, y: 22, w: 1, h: 1, color: '#481212', opacity: 0.6 },
   { x: 52, y: 18, w: 1, h: 1, color: '#4a1010', opacity: 0.5 },
   // Extra scattered
-  { x: 18, y: 72, w: 1, h: 1, color: '#222244', opacity: 0.4 },
-  { x: 75, y: 68, w: 1, h: 1, color: '#252540', opacity: 0.4 },
+  { x: 20, y: 72, w: 1, h: 1, color: '#222244', opacity: 0.4 },
+  { x: 74, y: 68, w: 1, h: 1, color: '#252540', opacity: 0.4 },
   { x: 50, y: 75, w: 2, h: 1, color: '#202042', opacity: 0.5 },
   { x: 38, y: 45, w: 1, h: 1, color: '#3b2228', opacity: 0.4 },
   { x: 62, y: 42, w: 1.5, h: 1, color: '#3e2020', opacity: 0.4 },
   { x: 43, y: 30, w: 1, h: 1, color: '#461414', opacity: 0.5 },
   { x: 57, y: 25, w: 1, h: 1, color: '#471313', opacity: 0.4 },
-  { x: 33, y: 72, w: 1.5, h: 1, color: '#282848', opacity: 0.5 },
-  { x: 68, y: 58, w: 1, h: 1.5, color: '#322640', opacity: 0.4 },
-  { x: 22, y: 55, w: 1, h: 1, color: '#2e2a4a', opacity: 0.5 },
+  { x: 34, y: 72, w: 1.5, h: 1, color: '#282848', opacity: 0.5 },
+  { x: 66, y: 58, w: 1, h: 1.5, color: '#322640', opacity: 0.4 },
+  { x: 24, y: 55, w: 1, h: 1, color: '#2e2a4a', opacity: 0.5 },
 ];
 
 /** Horizontal strata/geological layer lines */
 export const STRATA: { x1: number; y1: number; x2: number; y2: number; color: string }[] = [
-  { x1: 15, y1: 80, x2: 85, y2: 80, color: '#1a1a35' },
-  { x1: 20, y1: 70, x2: 80, y2: 70, color: '#222245' },
-  { x1: 25, y1: 60, x2: 75, y2: 60, color: '#2a2240' },
-  { x1: 30, y1: 50, x2: 70, y2: 50, color: '#322035' },
-  { x1: 35, y1: 40, x2: 65, y2: 40, color: '#3a1e2a' },
-  { x1: 40, y1: 30, x2: 60, y2: 30, color: '#421a20' },
-  { x1: 44, y1: 20, x2: 56, y2: 20, color: '#4a1515' },
+  { x1: 14, y1: 85, x2: 86, y2: 85, color: '#1a1a35' },
+  { x1: 18, y1: 75, x2: 82, y2: 75, color: '#1e1e3a' },
+  { x1: 20, y1: 65, x2: 80, y2: 65, color: '#222245' },
+  { x1: 22, y1: 55, x2: 78, y2: 55, color: '#262640' },
+  { x1: 26, y1: 45, x2: 74, y2: 45, color: '#2a2240' },
+  { x1: 28, y1: 35, x2: 72, y2: 35, color: '#302035' },
+  { x1: 32, y1: 25, x2: 68, y2: 25, color: '#361e2a' },
+  { x1: 36, y1: 18, x2: 64, y2: 18, color: '#3e1a22' },
 ];
 
-/** Left lava stream rects (flowing down left face from crater) */
+/** Left lava stream rects (flowing from crater over left rim and down slope) */
 export const LEFT_LAVA: { x: number; y: number; w: number; h: number; delay: number }[] = [
-  { x: 46, y: 6, w: 1.5, h: 1.5, delay: 0 },
-  { x: 44.5, y: 9, w: 1.2, h: 1.5, delay: 0.3 },
-  { x: 43, y: 12, w: 1, h: 1.5, delay: 0.5 },
-  { x: 41, y: 16, w: 1.2, h: 2, delay: 0.8 },
-  { x: 39, y: 20, w: 1, h: 1.5, delay: 1.0 },
-  { x: 37.5, y: 24, w: 0.8, h: 1.5, delay: 1.3 },
-  { x: 36, y: 28, w: 1, h: 2, delay: 1.5 },
-  { x: 34, y: 33, w: 0.8, h: 1.5, delay: 1.8 },
-  { x: 32, y: 37, w: 0.6, h: 1, delay: 2.0 },
-  { x: 30.5, y: 40, w: 0.5, h: 0.8, delay: 2.2 },
+  { x: 43.5, y: 7.5, w: 1.2, h: 2, delay: 0 },
+  { x: 41, y: 10, w: 1, h: 1.5, delay: 0.3 },
+  { x: 39, y: 13, w: 1, h: 2, delay: 0.5 },
+  { x: 37, y: 17, w: 1, h: 2, delay: 0.8 },
+  { x: 35, y: 21, w: 0.8, h: 2, delay: 1.0 },
+  { x: 33, y: 25, w: 0.8, h: 2, delay: 1.3 },
+  { x: 31, y: 29, w: 0.8, h: 2, delay: 1.5 },
+  { x: 29, y: 35, w: 0.6, h: 1.5, delay: 1.8 },
+  { x: 27, y: 40, w: 0.5, h: 1, delay: 2.0 },
+  { x: 25, y: 47, w: 0.5, h: 0.8, delay: 2.2 },
 ];
 
-/** Right lava stream rects (flowing down right face from crater) */
+/** Right lava stream rects (flowing from crater over right rim and down slope) */
 export const RIGHT_LAVA: { x: number; y: number; w: number; h: number; delay: number }[] = [
-  { x: 52.5, y: 6, w: 1.5, h: 1.5, delay: 0.2 },
-  { x: 54, y: 9, w: 1.2, h: 1.5, delay: 0.4 },
-  { x: 56, y: 12, w: 1, h: 1.5, delay: 0.7 },
-  { x: 58, y: 16, w: 1.2, h: 2, delay: 0.9 },
-  { x: 60, y: 20, w: 1, h: 1.5, delay: 1.1 },
-  { x: 61.5, y: 24, w: 0.8, h: 1.5, delay: 1.4 },
-  { x: 63, y: 28, w: 1, h: 2, delay: 1.6 },
-  { x: 65, y: 33, w: 0.8, h: 1.5, delay: 1.9 },
-  { x: 67, y: 37, w: 0.6, h: 1, delay: 2.1 },
-  { x: 68.5, y: 40, w: 0.5, h: 0.8, delay: 2.3 },
+  { x: 55.5, y: 7.5, w: 1.2, h: 2, delay: 0.2 },
+  { x: 59, y: 10, w: 1, h: 1.5, delay: 0.4 },
+  { x: 61, y: 13, w: 1, h: 2, delay: 0.7 },
+  { x: 63, y: 17, w: 1, h: 2, delay: 0.9 },
+  { x: 65, y: 21, w: 0.8, h: 2, delay: 1.1 },
+  { x: 67, y: 25, w: 0.8, h: 2, delay: 1.4 },
+  { x: 69, y: 29, w: 0.8, h: 2, delay: 1.6 },
+  { x: 71, y: 35, w: 0.6, h: 1.5, delay: 1.9 },
+  { x: 73, y: 40, w: 0.5, h: 1, delay: 2.1 },
+  { x: 75, y: 47, w: 0.5, h: 0.8, delay: 2.3 },
 ];
 
 /** Ember/spark particles rising from crater */
 export const EMBERS: { cx: number; cy: number; r: number; driftX: number; driftY: number; dur: number }[] = [
-  { cx: 48, cy: 4, r: 0.4, driftX: -2, driftY: -5, dur: 3 },
-  { cx: 50, cy: 3, r: 0.5, driftX: 1, driftY: -6, dur: 3.5 },
-  { cx: 52, cy: 4, r: 0.3, driftX: 3, driftY: -4, dur: 2.8 },
-  { cx: 49, cy: 5, r: 0.4, driftX: -1, driftY: -7, dur: 4 },
-  { cx: 51, cy: 3.5, r: 0.35, driftX: 2, driftY: -5.5, dur: 3.2 },
-  { cx: 50, cy: 4.5, r: 0.45, driftX: 0, driftY: -6, dur: 3.8 },
+  { cx: 47, cy: 6, r: 0.4, driftX: -3, driftY: -6, dur: 3 },
+  { cx: 49, cy: 5, r: 0.5, driftX: -1, driftY: -7, dur: 3.5 },
+  { cx: 50, cy: 7, r: 0.35, driftX: 0, driftY: -8, dur: 4 },
+  { cx: 51, cy: 5, r: 0.45, driftX: 1, driftY: -7, dur: 3.2 },
+  { cx: 53, cy: 6, r: 0.3, driftX: 3, driftY: -6, dur: 2.8 },
+  { cx: 48, cy: 8, r: 0.4, driftX: -2, driftY: -9, dur: 4.2 },
+  { cx: 52, cy: 8, r: 0.35, driftX: 2, driftY: -8, dur: 3.8 },
+  { cx: 50, cy: 6, r: 0.5, driftX: 0.5, driftY: -10, dur: 4.5 },
 ];
 
 /** Base rock blocks at the foot of the volcano */
 export const BASE_ROCKS: { x: number; y: number; w: number; h: number }[] = [
-  { x: 12, y: 93, w: 3, h: 2 },
-  { x: 25, y: 94, w: 2, h: 1.5 },
-  { x: 40, y: 93.5, w: 2.5, h: 2 },
-  { x: 58, y: 94, w: 2, h: 1.5 },
-  { x: 75, y: 93, w: 3, h: 2 },
-  { x: 85, y: 94, w: 2, h: 1.5 },
+  { x: 14, y: 93, w: 3, h: 2 },
+  { x: 28, y: 94, w: 2, h: 1.5 },
+  { x: 42, y: 93.5, w: 2.5, h: 2 },
+  { x: 56, y: 94, w: 2, h: 1.5 },
+  { x: 72, y: 93, w: 3, h: 2 },
+  { x: 84, y: 94, w: 2, h: 1.5 },
+];
+
+/** Smoke/ash clouds rising from crater */
+export const SMOKE_CLOUDS: { cx: number; cy: number; rx: number; ry: number; opacity: number; dur: number }[] = [
+  { cx: 48, cy: 2, rx: 3, ry: 1.5, opacity: 0.12, dur: 6 },
+  { cx: 52, cy: 0.5, rx: 4, ry: 2, opacity: 0.10, dur: 7 },
+  { cx: 50, cy: -1, rx: 5, ry: 2, opacity: 0.07, dur: 8 },
+  { cx: 46, cy: -2, rx: 3.5, ry: 1.5, opacity: 0.05, dur: 9 },
+];
+
+/** Glowing volcanic cracks/fissures on upper slopes */
+export const VOLCANIC_CRACKS: { d: string; color: string; opacity: number }[] = [
+  { d: 'M 42,12 L 40,16 L 39,20', color: '#ff4500', opacity: 0.3 },
+  { d: 'M 58,12 L 60,16 L 61,19', color: '#ff4500', opacity: 0.3 },
+  { d: 'M 44,14 L 43,18', color: '#ff6b35', opacity: 0.25 },
+  { d: 'M 56,14 L 57,17', color: '#ff6b35', opacity: 0.25 },
 ];
