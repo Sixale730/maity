@@ -1,6 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useGamifiedDashboardData } from '../../hooks/useGamifiedDashboardData';
-import { MountainMap } from './MountainMap';
+import { MountainMapTabs } from './MountainMapTabs';
 import { MetricsPanel } from './MetricsPanel';
 import { InfoPanel } from './InfoPanel';
 
@@ -30,7 +30,7 @@ export function GamifiedDashboard() {
 
         {/* Center - Mountain */}
         <div className="order-1 lg:order-2 bg-[#0d0d15] border border-[#1e1e2e] rounded-xl p-4 min-h-[400px] lg:min-h-[600px]">
-          <MountainMap nodes={data.nodes} completedNodes={data.completedNodes} />
+          <MountainMapTabs nodes={data.nodes} completedNodes={data.completedNodes} />
         </div>
 
         {/* Right - Info */}

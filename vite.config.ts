@@ -66,6 +66,10 @@ export default defineConfig(({ mode }) => ({
             '@react-three/fiber',
             '@react-three/drei',
           ],
+          // Game/Canvas renderers (lazy-loaded per tab)
+          'vendor-phaser': ['phaser'],
+          'vendor-pixi': ['pixi.js'],
+          'vendor-konva': ['konva', 'react-konva'],
           // Charts (used in analytics/reports)
           'vendor-charts': [
             'recharts',
