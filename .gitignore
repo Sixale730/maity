@@ -53,3 +53,12 @@ packages/mobile/.expo-shared/
 
 # Duplicate files
 /app.json
+
+# Backup files
+*.bak
+*.audit_bak
+*.mejoras_bak
+src/App_RECOVERED.jsx
+
+# Brand manual (large assets, reference only)
+Manual Maity/

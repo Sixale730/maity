@@ -1,0 +1,18 @@
+# INSTRUCCIONES: Brand & Design Constitution
+
+## Propósito
+Esta habilidad asegura que la identidad visual de Maity sea respetada en todo momento.
+
+## Cómo usar
+1.  **Carga de Activos**: Coloca cualquier manual de marca adicional o especificaciones en `resources/input`.
+2.  **Consulta**: Antes de pedir un rediseño, solicita a Antigravity: "Valida esta idea con la Constitución de Marca".
+3.  **Resultado**: Antigravity te dirá si el cambio es coherente o si rompe la identidad.
+
+## Estructura de Carpetas
+- `SKILL.md`: Reglas lógicas y técnicas.
+- `resources/input`: Pon aquí fotos, logos o PDFs de referencia.
+- `resources/output`: No se usa activamente en esta skill (es una skill de leyes).
+
+## Reglas de Oro
+- No permitas cambios de fuente fuera de Geist e Inter.
+- Protege el "Maity Pink" y el "Dark Mode".

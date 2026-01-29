@@ -1,0 +1,14 @@
+# INSTRUCCIONES: Safe Design Modification
+
+## Propósito
+Ejecución segura de cambios estéticos protegiendo la funcionalidad del código.
+
+## Cómo usar
+1.  **Pre-requisito**: Debes tener un plan del `Design-Only Planner`.
+2.  **Ejecución**: Pide al agente: "Aplica el plan de diseño siguiendo la habilidad de Modificación Segura".
+3.  **Validación**: Revisa `resources/output/reporte_cambios.txt` para ver qué archivos se tocaron.
+
+## Estructura de Carpetas
+- `SKILL.md`: Protocolos de seguridad quirúrgica.
+- `scripts/`: Scripts de automatización (si los hubiera).
+- `resources/output`: Resúmenes de cambios realizados.
