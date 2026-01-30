@@ -13,7 +13,7 @@ import {
     Linkedin, Instagram, Facebook, Video as YoutubeIcon, Youtube, Calendar,
     Download, Monitor, Apple, Smartphone as SmartphoneIcon,
     Layout, Scale, Headphones, Smile, Flag, Share2,
-    UserPlus, Rocket, CreditCard
+    UserPlus, Rocket, CreditCard, BookOpen, Newspaper, GraduationCap, Podcast
 } from 'lucide-react';
 
 // --- GEMINI API CONFIGURATION ---
@@ -3446,75 +3446,196 @@ const DemoCalendar = ({ setView }) => {
 };
 
 const ResourcesView = ({ setView }) => {
+    const [activeCategory, setActiveCategory] = useState('todos');
+
+    const categories = [
+        { key: 'todos', label: 'Todos' },
+        { key: 'guia', label: 'Guías' },
+        { key: 'video', label: 'Videos' },
+        { key: 'articulo', label: 'Artículos' },
+        { key: 'webinar', label: 'Webinars' },
+    ];
+
     const resources = [
         {
             t: "Guía de Inicio: Maity 101",
-            d: "Todo lo que necesitas para configurar tu coach en menos de 5 minutos.",
-            c: "Video",
-            icon: <Play size={24} />,
-            color: "from-blue-600 to-blue-400"
+            d: "Todo lo que necesitas para configurar tu coach de comunicación en menos de 5 minutos. Desde tu primera práctica hasta interpretar tu dashboard.",
+            c: "guia",
+            label: "Guía",
+            icon: <BookOpen size={24} />,
+            color: "from-blue-600 to-blue-400",
+            ready: true,
+            time: "5 min lectura"
         },
         {
             t: "Liderazgo en la Era de la IA",
-            d: "Manual detallado para managers sobre cómo usar métricas de IA para dar feedback.",
-            c: "PDF",
+            d: "Manual detallado para managers sobre cómo usar métricas de IA para dar feedback basado en datos reales de comunicación.",
+            c: "guia",
+            label: "PDF",
             icon: <FileText size={24} />,
-            color: "from-pink-600 to-pink-400"
+            color: "from-pink-600 to-pink-400",
+            ready: false,
+            time: "15 min lectura"
         },
         {
             t: "Masterclass: Ventas de Alto Impacto",
-            d: "Cómo cerrar más tratos analizando tus propias grabaciones con Maity.",
-            c: "Webinar",
+            d: "Cómo cerrar más tratos analizando tus propias grabaciones con Maity. Técnicas de persuasión y negociación basadas en evidencia.",
+            c: "webinar",
+            label: "Webinar",
             icon: <Video size={24} />,
-            color: "from-green-600 to-green-400"
+            color: "from-green-600 to-green-400",
+            ready: false,
+            time: "45 min"
         },
         {
             t: "El Arte de la Empatía Digital",
-            d: "¿Se puede ser empático por Zoom? Descubre los patrones que Maity detecta.",
-            c: "Artículo",
+            d: "¿Se puede ser empático por Zoom? Descubre los patrones de comunicación que Maity detecta y cómo mejorarlos.",
+            c: "articulo",
+            label: "Artículo",
             icon: <MessageSquare size={24} />,
-            color: "from-purple-600 to-purple-400"
-        }
+            color: "from-purple-600 to-purple-400",
+            ready: false,
+            time: "8 min lectura"
+        },
+        {
+            t: "Cómo Preparar tu Primera Entrevista con IA",
+            d: "Guía paso a paso para usar el coach de entrevistas de Maity. Configura escenarios, practica respuestas y revisa tu desempeño.",
+            c: "guia",
+            label: "Guía",
+            icon: <GraduationCap size={24} />,
+            color: "from-orange-600 to-orange-400",
+            ready: true,
+            time: "7 min lectura"
+        },
+        {
+            t: "Comunicación No Violenta en el Trabajo",
+            d: "Aprende a dar feedback difícil sin generar conflicto. Basado en los principios de Marshall Rosenberg adaptados al contexto laboral moderno.",
+            c: "articulo",
+            label: "Artículo",
+            icon: <Heart size={24} />,
+            color: "from-red-600 to-red-400",
+            ready: false,
+            time: "10 min lectura"
+        },
+        {
+            t: "Demo Producto: Dashboard de Evolución",
+            d: "Recorrido visual del dashboard donde ves tu progreso, competencias, rachas y cómo Maity personaliza tu ruta de mejora.",
+            c: "video",
+            label: "Video",
+            icon: <Play size={24} />,
+            color: "from-cyan-600 to-cyan-400",
+            ready: true,
+            time: "3 min"
+        },
+        {
+            t: "Podcast: El Futuro del Desarrollo Humano",
+            d: "Conversación con nuestro equipo fundador sobre cómo la IA está transformando el entrenamiento de habilidades blandas.",
+            c: "webinar",
+            label: "Podcast",
+            icon: <Podcast size={24} />,
+            color: "from-yellow-600 to-yellow-400",
+            ready: false,
+            time: "30 min"
+        },
     ];
+
+    const filtered = activeCategory === 'todos' ? resources : resources.filter(r => r.c === activeCategory);
 
     return (
         <section className="min-h-screen pt-32 pb-24 bg-[#050505] relative overflow-hidden">
-            {/* Background Decor */}
             <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[150px]"></div>
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/5 rounded-full blur-[150px]"></div>
 
             <div className="max-w-7xl mx-auto px-4 relative z-10">
-                <div className="max-w-3xl mb-16">
+                {/* Header */}
+                <div className="max-w-3xl mb-12">
                     <FadeIn>
                         <span className="text-sm font-bold text-blue-500 uppercase tracking-widest mb-4 block">Centro de Conocimiento</span>
-                        <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter">Potencia tus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-pink-500">Soft Skills</span></h2>
+                        <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter">
+                            Potencia tus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-pink-500">Soft Skills</span>
+                        </h2>
                         <p className="text-xl text-gray-400 leading-relaxed">
-                            Accede a nuestra biblioteca exclusiva de recursos diseñados para acelerar tu evolución profesional con Maity.
+                            Guías, artículos y videos diseñados para acelerar tu evolución profesional con Maity.
                         </p>
                     </FadeIn>
                 </div>
 
+                {/* Category Filter */}
+                <FadeIn delay={100}>
+                    <div className="flex flex-wrap gap-3 mb-12">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.key}
+                                onClick={() => setActiveCategory(cat.key)}
+                                className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${activeCategory === cat.key
+                                    ? 'bg-white text-black'
+                                    : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
+                                }`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
+                </FadeIn>
+
+                {/* Resource Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {resources.map((res, i) => (
-                        <FadeIn key={i} delay={i * 100}>
+                    {filtered.map((res, i) => (
+                        <FadeIn key={`${activeCategory}-${i}`} delay={i * 80}>
                             <div className="bg-[#0F0F0F] rounded-3xl border border-white/5 overflow-hidden group hover:border-white/10 transition-all flex h-full">
-                                <div className={`w-32 flex items-center justify-center bg-gradient-to-br ${res.color} group-hover:scale-105 transition-transform duration-500`}>
+                                <div className={`w-28 sm:w-32 flex items-center justify-center bg-gradient-to-br ${res.color} group-hover:scale-105 transition-transform duration-500 shrink-0`}>
                                     <div className="text-white drop-shadow-lg">{res.icon}</div>
                                 </div>
-                                <div className="p-8 flex-grow">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="px-3 py-1 bg-white/5 text-[10px] font-bold text-gray-400 rounded-full uppercase tracking-tighter border border-white/5">{res.c}</span>
+                                <div className="p-6 sm:p-8 flex-grow flex flex-col">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="px-3 py-1 bg-white/5 text-[10px] font-bold text-gray-400 rounded-full uppercase tracking-tighter border border-white/5">{res.label}</span>
+                                        <span className="text-[10px] text-gray-600">{res.time}</span>
+                                        {!res.ready && (
+                                            <span className="px-2 py-0.5 bg-yellow-500/10 text-[10px] font-bold text-yellow-500 rounded-full border border-yellow-500/20">Próximamente</span>
+                                        )}
                                     </div>
-                                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors" dangerouslySetInnerHTML={{ __html: res.t }} />
-                                    <p className="text-sm text-gray-500 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: res.d }} />
-                                    <button onClick={() => setView('primeros-pasos')} className="flex items-center gap-2 text-xs font-bold text-white group-hover:gap-4 transition-all uppercase tracking-widest">
-                                        Ver Ahora <ArrowRight size={14} className="text-blue-500" />
-                                    </button>
+                                    <h3 className="text-lg font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">{res.t}</h3>
+                                    <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-grow">{res.d}</p>
+                                    {res.ready ? (
+                                        <button onClick={() => setView('primeros-pasos')} className="flex items-center gap-2 text-xs font-bold text-white group-hover:gap-4 transition-all uppercase tracking-widest">
+                                            Ver Ahora <ArrowRight size={14} className="text-blue-500" />
+                                        </button>
+                                    ) : (
+                                        <span className="flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-widest">
+                                            <Clock size={14} /> Disponible pronto
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </FadeIn>
                     ))}
                 </div>
+
+                {/* Newsletter CTA */}
+                <FadeIn delay={300}>
+                    <div className="mt-20 p-10 bg-gradient-to-br from-[#0F0F0F] to-[#1A1A1A] rounded-3xl border border-white/5 text-center max-w-3xl mx-auto">
+                        <Newspaper size={32} className="text-blue-500 mx-auto mb-4" />
+                        <h3 className="text-2xl font-bold text-white mb-3">Suscríbete al Newsletter</h3>
+                        <p className="text-gray-400 text-sm mb-8 max-w-md mx-auto">
+                            Recibe semanalmente artículos, guías y herramientas sobre comunicación, liderazgo y productividad con IA.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                            <input
+                                type="email"
+                                placeholder="tu@email.com"
+                                className="flex-1 bg-[#050505] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                            />
+                            <button
+                                onClick={() => setView('primeros-pasos')}
+                                className="px-6 py-3 rounded-xl font-bold text-white text-sm hover:opacity-90 transition-all"
+                                style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}
+                            >
+                                Suscribirme
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-gray-600 mt-4">Sin spam. Cancela cuando quieras.</p>
+                    </div>
+                </FadeIn>
             </div>
         </section>
     );
@@ -3696,6 +3817,374 @@ const NosotrosView = ({ setView }) => {
 
 // 7. Footer
 // --- CTA DE CIERRE ---
+const PrivacyPolicyView = ({ setView }) => {
+    const sections = [
+        {
+            title: "1. Responsable del Tratamiento",
+            content: `Maity Inc. (en adelante "Maity"), con domicilio en Ciudad de México, México, es responsable del tratamiento de sus datos personales. Para cualquier consulta relacionada con la protección de sus datos puede contactarnos en: privacy@maity.com.mx`
+        },
+        {
+            title: "2. Datos Personales que Recopilamos",
+            content: `Recopilamos las siguientes categorías de datos personales:
+
+• Datos de identificación: nombre completo, correo electrónico corporativo, cargo, empresa u organización.
+• Datos de cuenta: credenciales de acceso (gestionadas mediante proveedores OAuth como Google y Microsoft), preferencias de configuración, rol dentro de la plataforma.
+• Datos de uso: grabaciones de voz durante sesiones de práctica (procesadas en tiempo real y eliminadas tras el análisis), transcripciones generadas por IA, métricas de desempeño en competencias de comunicación, historial de sesiones y progreso.
+• Datos técnicos: dirección IP, tipo de navegador, sistema operativo, datos de dispositivo, logs de acceso.
+• Datos de facturación: procesados exclusivamente a través de proveedores de pago certificados PCI DSS. Maity no almacena datos de tarjeta de crédito.`
+        },
+        {
+            title: "3. Finalidades del Tratamiento",
+            content: `Sus datos personales son tratados para las siguientes finalidades:
+
+Finalidades primarias (necesarias para el servicio):
+• Crear y administrar su cuenta de usuario.
+• Proveer el servicio de coaching de comunicación con IA, incluyendo análisis de voz, evaluación de competencias y generación de feedback personalizado.
+• Generar métricas de desempeño y dashboards de progreso.
+• Procesar pagos y gestionar suscripciones.
+• Comunicar actualizaciones del servicio, cambios en términos o incidentes de seguridad.
+
+Finalidades secundarias (opcionales):
+• Enviar contenido educativo, newsletters y recomendaciones de uso.
+• Realizar encuestas de satisfacción y mejora del producto.
+• Generar estadísticas agregadas y anónimas para investigación y desarrollo.
+
+Usted puede manifestar su negativa al tratamiento de finalidades secundarias enviando un correo a privacy@maity.com.mx.`
+        },
+        {
+            title: "4. Procesamiento de Datos de Voz",
+            content: `Maity utiliza inteligencia artificial para analizar sesiones de práctica de comunicación. Es importante que conozca nuestro proceso:
+
+• Las grabaciones de voz se procesan en tiempo real utilizando servicios de IA de terceros (OpenAI, ElevenLabs) bajo acuerdos de procesamiento de datos.
+• Arquitectura Zero-Knowledge: los fragmentos de audio se procesan y eliminan inmediatamente después del análisis. No almacenamos grabaciones de voz completas.
+• Solo se conservan las transcripciones textuales y las métricas de evaluación generadas, vinculadas a su cuenta.
+• Ningún dato de voz o transcripción se utiliza para entrenar modelos de IA de terceros.
+• Usted puede solicitar la eliminación completa de sus transcripciones y métricas en cualquier momento.`
+        },
+        {
+            title: "5. Transferencias de Datos",
+            content: `Sus datos pueden ser transferidos a:
+
+• Proveedores de infraestructura cloud (servidores en Estados Unidos y Unión Europea) bajo cláusulas contractuales estándar.
+• Proveedores de servicios de IA (OpenAI, ElevenLabs) exclusivamente para el procesamiento en tiempo real descrito en la sección 4.
+• Proveedores de pago (Stripe) para procesamiento de transacciones.
+• Proveedores de autenticación (Google, Microsoft) para gestión de acceso OAuth.
+
+No vendemos, alquilamos ni compartimos sus datos personales con terceros para fines de marketing o publicidad. Todos los proveedores están sujetos a acuerdos de procesamiento de datos (DPA) que garantizan estándares equivalentes de protección.`
+        },
+        {
+            title: "6. Derechos ARCO y Derechos del Titular",
+            content: `Usted tiene derecho a:
+
+• Acceso: conocer qué datos personales tenemos sobre usted.
+• Rectificación: solicitar la corrección de datos inexactos o incompletos.
+• Cancelación: solicitar la eliminación de sus datos personales.
+• Oposición: oponerse al tratamiento de sus datos para finalidades específicas.
+• Portabilidad: recibir sus datos en un formato estructurado y de uso común.
+• Derecho al olvido: solicitar la eliminación completa de su cuenta y todos los datos asociados.
+
+Para ejercer estos derechos, envíe un correo a privacy@maity.com.mx con su solicitud. Responderemos en un plazo máximo de 20 días hábiles (LFPDPPP) o 30 días calendario (GDPR).
+
+Para usuarios en la Unión Europea: puede presentar una queja ante su autoridad de protección de datos local.
+Para usuarios en México: puede acudir al INAI (Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos Personales).`
+        },
+        {
+            title: "7. Medidas de Seguridad",
+            content: `Implementamos medidas de seguridad técnicas, administrativas y físicas para proteger sus datos:
+
+• Cifrado AES-256 para datos en reposo.
+• TLS 1.3 para datos en tránsito.
+• Autenticación OAuth 2.0 con proveedores de identidad verificados.
+• Controles de acceso basados en roles (RBAC).
+• Monitoreo continuo de accesos y actividad anómala.
+• Pruebas de penetración regulares por terceros independientes.
+• Capacitación periódica del equipo en protección de datos.
+• Plan de respuesta a incidentes con notificación en 72 horas.`
+        },
+        {
+            title: "8. Cookies y Tecnologías de Rastreo",
+            content: `Utilizamos cookies estrictamente necesarias para el funcionamiento de la plataforma:
+
+• Cookies de sesión: para mantener su sesión activa de forma segura.
+• Cookies de preferencias: para recordar su configuración de idioma y tema.
+
+No utilizamos cookies de terceros para publicidad ni rastreo entre sitios. No participamos en redes de publicidad ni compartimos datos de navegación con terceros.`
+        },
+        {
+            title: "9. Retención de Datos",
+            content: `• Datos de cuenta activa: se conservan mientras su cuenta esté activa.
+• Datos tras cancelación: se eliminan dentro de los 30 días siguientes a la cancelación de la cuenta, excepto cuando la ley exija su conservación.
+• Datos de facturación: se conservan por 5 años para cumplimiento fiscal.
+• Logs de seguridad: se conservan por 12 meses.
+• Datos anonimizados y agregados: pueden conservarse indefinidamente para mejora del servicio.`
+        },
+        {
+            title: "10. Legislación Aplicable",
+            content: `Este aviso de privacidad se rige por:
+
+• Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) — México.
+• Reglamento General de Protección de Datos (GDPR) — Unión Europea, para usuarios en el EEE.
+• California Consumer Privacy Act (CCPA) — para residentes de California.
+
+En caso de conflicto entre jurisdicciones, se aplicará la normativa que ofrezca mayor protección al titular de los datos.`
+        },
+        {
+            title: "11. Cambios al Aviso de Privacidad",
+            content: `Maity se reserva el derecho de modificar este aviso de privacidad. Cualquier cambio material será notificado a través de:
+
+• Correo electrónico a la dirección registrada en su cuenta.
+• Aviso destacado en la plataforma durante 30 días.
+
+La fecha de última actualización se indica al final de este documento.`
+        },
+        {
+            title: "12. Contacto",
+            content: `Para consultas, solicitudes o quejas relacionadas con la protección de sus datos personales:
+
+Correo electrónico: privacy@maity.com.mx
+Responsable de Protección de Datos: Maity Inc., Ciudad de México, México.`
+        }
+    ];
+
+    return (
+        <section className="min-h-screen pt-32 pb-24 bg-[#050505]">
+            <div className="max-w-4xl mx-auto px-4">
+                <FadeIn>
+                    <button onClick={() => setView('product')} className="text-sm text-gray-500 hover:text-white transition-colors mb-8 flex items-center gap-2">
+                        <ArrowRight size={14} className="rotate-180" /> Volver al inicio
+                    </button>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                            <Shield size={20} className="text-blue-500" />
+                        </div>
+                        <span className="text-sm font-bold text-blue-500 uppercase tracking-widest">Aviso de Privacidad</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Aviso de Privacidad</h1>
+                    <p className="text-gray-500 text-sm mb-2">Última actualización: 29 de enero de 2026</p>
+                    <p className="text-gray-400 mb-12 leading-relaxed">
+                        En Maity, la protección de tus datos personales es una prioridad. Este aviso describe cómo recopilamos, usamos, protegemos y compartimos tu información.
+                    </p>
+                </FadeIn>
+
+                <div className="space-y-10">
+                    {sections.map((s, i) => (
+                        <FadeIn key={i} delay={i * 50}>
+                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/5 p-8">
+                                <h2 className="text-lg font-bold text-white mb-4">{s.title}</h2>
+                                <div className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">{s.content}</div>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                <FadeIn delay={200}>
+                    <div className="mt-16 p-8 bg-[#0F0F0F] rounded-2xl border border-white/5 text-center">
+                        <p className="text-gray-400 text-sm mb-4">¿Tienes preguntas sobre tus datos?</p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onClick={() => setView('demo-calendar')} className="px-6 py-3 rounded-xl font-bold text-white text-sm hover:opacity-90 transition-all" style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}>
+                                Contactar al equipo de privacidad
+                            </button>
+                            <button onClick={() => setView('seguridad')} className="px-6 py-3 rounded-xl font-bold text-white text-sm border border-white/10 hover:bg-white/5 transition-all">
+                                Ver seguridad técnica
+                            </button>
+                        </div>
+                    </div>
+                </FadeIn>
+            </div>
+        </section>
+    );
+};
+
+const TermsOfServiceView = ({ setView }) => {
+    const sections = [
+        {
+            title: "1. Definiciones",
+            content: `• "Maity" o "la Plataforma": se refiere al servicio de coaching de comunicación con inteligencia artificial operado por Maity Inc.
+• "Usuario": toda persona física que accede y utiliza la Plataforma, ya sea en modalidad gratuita o de pago.
+• "Cuenta": el perfil personal creado por el Usuario para acceder a los servicios de Maity.
+• "Contenido del Usuario": toda información, grabaciones de voz, transcripciones y datos generados por el Usuario al utilizar la Plataforma.
+• "Servicios": el conjunto de funcionalidades ofrecidas por Maity, incluyendo práctica de comunicación con IA, análisis de desempeño, dashboard de progreso y recursos educativos.
+• "Suscripción": el plan de pago contratado por el Usuario para acceder a funcionalidades premium.`
+        },
+        {
+            title: "2. Aceptación de los Términos",
+            content: `Al crear una cuenta o utilizar cualquier servicio de Maity, usted acepta estos Términos de Servicio en su totalidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la Plataforma.
+
+Maity se reserva el derecho de modificar estos términos. Los cambios materiales serán notificados con al menos 30 días de anticipación por correo electrónico. El uso continuado de la Plataforma después de la notificación constituye la aceptación de los términos modificados.`
+        },
+        {
+            title: "3. Registro y Cuenta de Usuario",
+            content: `• Para usar Maity debe crear una cuenta utilizando autenticación de Google o Microsoft (OAuth 2.0).
+• Usted es responsable de mantener la confidencialidad de su cuenta y de todas las actividades realizadas bajo ella.
+• Debe proporcionar información veraz y actualizada.
+• Cada persona puede tener una sola cuenta. Las cuentas son personales e intransferibles.
+• Los usuarios deben tener al menos 18 años de edad o contar con el consentimiento de un tutor legal.
+• Maity se reserva el derecho de suspender o cancelar cuentas que violen estos términos.`
+        },
+        {
+            title: "4. Descripción del Servicio",
+            content: `Maity provee una plataforma de entrenamiento de habilidades de comunicación impulsada por inteligencia artificial que incluye:
+
+• Sesiones de práctica interactivas con agentes de IA que simulan escenarios de comunicación profesional.
+• Análisis de voz en tiempo real con evaluación de competencias como claridad, empatía, persuasión y estructura.
+• Dashboard de progreso con métricas de evolución personal.
+• Sistema de niveles y reconocimientos para motivar la práctica continua.
+• Recursos educativos complementarios.
+
+Para cuentas empresariales, funcionalidades adicionales incluyen dashboards de equipo, escenarios personalizados, integraciones y reportes de análisis.
+
+Los servicios de IA se proporcionan "tal como están" y las evaluaciones generadas son orientativas, no sustituyen el juicio profesional humano.`
+        },
+        {
+            title: "5. Planes y Pagos",
+            content: `Maity ofrece los siguientes tipos de planes:
+
+Planes individuales:
+• Maity Free: acceso limitado sin costo.
+• Maity Pro: suscripción mensual o anual con funcionalidades completas.
+
+Planes empresariales:
+• Starter, Growth y Enterprise con precios según el número de usuarios y funcionalidades requeridas.
+
+Condiciones de pago:
+• Los pagos se procesan a través de Stripe. Maity no almacena datos de tarjeta de crédito.
+• Las suscripciones se renuevan automáticamente al final de cada período.
+• Los precios pueden cambiar con aviso previo de 30 días. Los cambios no afectan períodos ya pagados.
+• No hay reembolsos por períodos parciales, excepto donde la ley aplicable lo requiera.
+
+Cancelación:
+• Puede cancelar su suscripción en cualquier momento desde su cuenta.
+• La cancelación es efectiva al final del período de facturación actual.
+• Tras la cancelación, su cuenta revierte al plan gratuito.`
+        },
+        {
+            title: "6. Propiedad Intelectual",
+            content: `Propiedad de Maity:
+• La plataforma, su diseño, código fuente, algoritmos, modelos de IA, marcas, logotipos y todo el contenido original son propiedad exclusiva de Maity Inc.
+• Queda prohibida la reproducción, distribución o modificación sin autorización expresa.
+
+Contenido del Usuario:
+• Usted conserva todos los derechos sobre el contenido que genera al usar la Plataforma.
+• Al usar Maity, otorga una licencia limitada, no exclusiva y revocable para procesar su contenido con el único fin de proveer los servicios contratados.
+• Maity no utiliza el contenido del usuario para entrenar modelos de IA ni para ningún fin distinto a la prestación del servicio.`
+        },
+        {
+            title: "7. Uso Aceptable",
+            content: `Al usar Maity, usted se compromete a:
+
+• Utilizar la Plataforma únicamente para fines de desarrollo profesional legítimo.
+• No intentar acceder a áreas restringidas del sistema ni a cuentas de otros usuarios.
+• No realizar ingeniería inversa, descompilar o intentar extraer el código fuente.
+• No utilizar la Plataforma para generar contenido ilegal, difamatorio, discriminatorio o que infrinja derechos de terceros.
+• No usar bots, scrapers ni herramientas automatizadas para acceder al servicio.
+• No sobrecargar intencionalmente los servidores ni realizar ataques de denegación de servicio.
+• Respetar la propiedad intelectual de Maity y de terceros.
+
+El incumplimiento de estas condiciones puede resultar en la suspensión o terminación inmediata de su cuenta.`
+        },
+        {
+            title: "8. Privacidad y Protección de Datos",
+            content: `El tratamiento de sus datos personales se rige por nuestro Aviso de Privacidad, disponible en la sección de Privacidad de la plataforma.
+
+Aspectos clave:
+• Las grabaciones de voz se procesan en tiempo real y se eliminan inmediatamente (arquitectura Zero-Knowledge).
+• Solo se conservan transcripciones y métricas de evaluación.
+• Cifrado AES-256 para datos en reposo y TLS 1.3 en tránsito.
+• Cumplimiento con LFPDPPP (México), GDPR (UE) y CCPA (California).
+• Puede solicitar la eliminación completa de sus datos en cualquier momento.`
+        },
+        {
+            title: "9. Limitación de Responsabilidad",
+            content: `• Maity se provee "tal como está" y "según disponibilidad". No garantizamos que el servicio sea ininterrumpido ni libre de errores.
+• Las evaluaciones de IA son herramientas de apoyo y no sustituyen el diagnóstico o consejo profesional.
+• Maity no será responsable por daños indirectos, incidentales, especiales o consecuentes derivados del uso o imposibilidad de uso de la Plataforma.
+• La responsabilidad total de Maity no excederá el monto pagado por el Usuario en los 12 meses anteriores al evento que origina la reclamación.
+• Estas limitaciones se aplican en la máxima medida permitida por la legislación aplicable.`
+        },
+        {
+            title: "10. Disponibilidad del Servicio",
+            content: `• Maity se esfuerza por mantener una disponibilidad del 99.9% (SLA para planes Enterprise).
+• Pueden ocurrir interrupciones planificadas para mantenimiento, notificadas con al menos 48 horas de anticipación.
+• Maity no es responsable por interrupciones causadas por factores fuera de su control (fuerza mayor, fallos de proveedores de infraestructura, desastres naturales).`
+        },
+        {
+            title: "11. Terminación",
+            content: `Terminación por el Usuario:
+• Puede eliminar su cuenta en cualquier momento desde la configuración de su perfil o contactando a soporte.
+• Al eliminar su cuenta, todos sus datos serán eliminados permanentemente dentro de los 30 días siguientes.
+
+Terminación por Maity:
+• Maity puede suspender o terminar cuentas que violen estos términos o el uso aceptable.
+• En caso de terminación por violación, no se realizarán reembolsos.
+• Maity notificará al usuario y proporcionará un plazo razonable para descargar sus datos, excepto en casos de violaciones graves.`
+        },
+        {
+            title: "12. Resolución de Disputas",
+            content: `• Cualquier controversia será resuelta preferentemente mediante negociación directa.
+• Si no se alcanza un acuerdo en 30 días, las partes podrán acudir a mediación.
+• Como última instancia, las disputas se someterán a los tribunales competentes de la Ciudad de México, México.
+• Para usuarios de la Unión Europea: nada en estos términos limita su derecho a acudir a los tribunales de su jurisdicción o a la plataforma de resolución de disputas en línea de la UE.`
+        },
+        {
+            title: "13. Legislación Aplicable",
+            content: `Estos Términos de Servicio se rigen por las leyes de los Estados Unidos Mexicanos, sin perjuicio de las disposiciones imperativas de protección al consumidor aplicables en la jurisdicción del Usuario.`
+        },
+        {
+            title: "14. Contacto",
+            content: `Para consultas sobre estos Términos de Servicio:
+
+Correo electrónico: legal@maity.com.mx
+Soporte general: soporte@maity.com.mx
+Maity Inc., Ciudad de México, México.`
+        }
+    ];
+
+    return (
+        <section className="min-h-screen pt-32 pb-24 bg-[#050505]">
+            <div className="max-w-4xl mx-auto px-4">
+                <FadeIn>
+                    <button onClick={() => setView('product')} className="text-sm text-gray-500 hover:text-white transition-colors mb-8 flex items-center gap-2">
+                        <ArrowRight size={14} className="rotate-180" /> Volver al inicio
+                    </button>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+                            <Scale size={20} className="text-pink-500" />
+                        </div>
+                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest">Documento Legal</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Términos de Servicio</h1>
+                    <p className="text-gray-500 text-sm mb-2">Última actualización: 29 de enero de 2026</p>
+                    <p className="text-gray-400 mb-12 leading-relaxed">
+                        Estos términos regulan el uso de la plataforma Maity. Al utilizar nuestros servicios, aceptas las condiciones aquí descritas.
+                    </p>
+                </FadeIn>
+
+                <div className="space-y-10">
+                    {sections.map((s, i) => (
+                        <FadeIn key={i} delay={i * 50}>
+                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/5 p-8">
+                                <h2 className="text-lg font-bold text-white mb-4">{s.title}</h2>
+                                <div className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">{s.content}</div>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                <FadeIn delay={200}>
+                    <div className="mt-16 flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onClick={() => setView('privacidad')} className="px-6 py-3 rounded-xl font-bold text-white text-sm border border-white/10 hover:bg-white/5 transition-all flex items-center gap-2 justify-center">
+                            <Shield size={16} /> Ver Aviso de Privacidad
+                        </button>
+                        <button onClick={() => setView('seguridad')} className="px-6 py-3 rounded-xl font-bold text-white text-sm border border-white/10 hover:bg-white/5 transition-all flex items-center gap-2 justify-center">
+                            <Lock size={16} /> Ver Seguridad Técnica
+                        </button>
+                    </div>
+                </FadeIn>
+            </div>
+        </section>
+    );
+};
+
 const CTACierre = ({ setView }) => (
     <section className="py-24 bg-gradient-to-b from-[#050505] to-black relative overflow-hidden">
         <div className="absolute inset-0">
@@ -3780,8 +4269,8 @@ const Footer = ({ setView }) => {
             <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
                 <p>© 2026 Maity Inc.</p>
                 <div className="flex gap-4">
-                    <span onClick={() => setView('seguridad')} className="hover:text-gray-400 cursor-pointer transition-colors">Privacidad</span>
-                    <span onClick={() => setView('seguridad')} className="hover:text-gray-400 cursor-pointer transition-colors">Términos</span>
+                    <span onClick={() => setView('privacidad')} className="hover:text-gray-400 cursor-pointer transition-colors">Privacidad</span>
+                    <span onClick={() => setView('terminos')} className="hover:text-gray-400 cursor-pointer transition-colors">Términos</span>
                 </div>
                 <div className="flex gap-4">
                     <a href="https://twitter.com/maityai" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 cursor-pointer transition-colors">Twitter</a>
@@ -3971,6 +4460,15 @@ export default function App() {
                 {/* CORPORATE QUIZ STANDALONE */}
                 {activeView === 'corporate-quiz' && (
                     <CorporateQuiz setView={setActiveView} />
+                )}
+
+                {/* LEGAL VIEWS */}
+                {activeView === 'privacidad' && (
+                    <PrivacyPolicyView setView={setActiveView} />
+                )}
+
+                {activeView === 'terminos' && (
+                    <TermsOfServiceView setView={setActiveView} />
                 )}
             </main>
 
