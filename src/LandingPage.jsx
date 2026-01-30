@@ -4185,6 +4185,287 @@ Maity Inc., Ciudad de México, México.`
     );
 };
 
+const CareersView = ({ setView }) => {
+    const values = [
+        { icon: <Rocket size={24} />, title: "Misión con propósito", desc: "Trabajamos para que millones de personas mejoren cómo se comunican. Cada línea de código, cada diseño, cada decisión impacta vidas reales." },
+        { icon: <Brain size={24} />, title: "IA + Humanidad", desc: "Combinamos lo mejor de la inteligencia artificial con la comprensión profunda del comportamiento humano. No somos solo tech." },
+        { icon: <Users size={24} />, title: "Equipo diverso y remoto", desc: "Operamos desde México, LATAM y el mundo. Valoramos perspectivas diversas y trabajo asíncrono con comunicación clara." },
+        { icon: <TrendingUp size={24} />, title: "Crecimiento real", desc: "Startup en etapa temprana con tracción real. Tu trabajo tiene impacto directo y visible desde el día uno." },
+    ];
+
+    const openings = [
+        { role: "Senior Frontend Engineer", area: "Ingeniería", type: "Remoto", tags: ["React", "TypeScript", "Three.js"] },
+        { role: "AI/ML Engineer", area: "Inteligencia Artificial", type: "Remoto", tags: ["Python", "NLP", "LLMs"] },
+        { role: "Product Designer", area: "Diseño", type: "Remoto", tags: ["Figma", "UX Research", "Design Systems"] },
+        { role: "Content Strategist", area: "Marketing", type: "Remoto", tags: ["Copywriting", "SEO", "Educación"] },
+        { role: "Customer Success Manager", area: "Operaciones", type: "Remoto (LATAM)", tags: ["B2B SaaS", "Onboarding", "Español/Inglés"] },
+    ];
+
+    return (
+        <section className="min-h-screen pt-32 pb-24 bg-[#050505] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[150px]"></div>
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px]"></div>
+
+            <div className="max-w-5xl mx-auto px-4 relative z-10">
+                {/* Header */}
+                <FadeIn>
+                    <button onClick={() => setView('product')} className="text-sm text-gray-500 hover:text-white transition-colors mb-8 flex items-center gap-2">
+                        <ArrowRight size={14} className="rotate-180" /> Volver al inicio
+                    </button>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+                            <Briefcase size={20} className="text-pink-500" />
+                        </div>
+                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest">Únete al equipo</span>
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+                        Construye el futuro de la <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">comunicación humana</span>
+                    </h1>
+                    <p className="text-xl text-gray-400 leading-relaxed max-w-3xl mb-16">
+                        Maity está transformando cómo las personas desarrollan sus habilidades de comunicación con IA. Buscamos personas apasionadas que quieran hacer una diferencia real.
+                    </p>
+                </FadeIn>
+
+                {/* Values */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
+                    {values.map((v, i) => (
+                        <FadeIn key={i} delay={i * 100}>
+                            <div className="p-6 bg-[#0F0F0F] rounded-2xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-pink-500 mb-4">{v.icon}</div>
+                                <h3 className="font-bold text-white text-lg mb-2">{v.title}</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                {/* Benefits */}
+                <FadeIn delay={200}>
+                    <div className="p-8 bg-gradient-to-br from-[#0F0F0F] to-[#1A1A1A] rounded-3xl border border-white/5 mb-20">
+                        <h2 className="text-2xl font-bold text-white mb-8">Lo que ofrecemos</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {[
+                                { icon: <Globe size={20} />, label: "100% Remoto" },
+                                { icon: <Calendar size={20} />, label: "Horario flexible" },
+                                { icon: <Heart size={20} />, label: "Salud y bienestar" },
+                                { icon: <Award size={20} />, label: "Equity" },
+                                { icon: <BookOpen size={20} />, label: "Presupuesto de aprendizaje" },
+                                { icon: <Laptop size={20} />, label: "Equipo de trabajo" },
+                                { icon: <Smartphone size={20} />, label: "Acceso completo a Maity" },
+                                { icon: <Star size={20} />, label: "Vacaciones flexibles" },
+                            ].map((b, i) => (
+                                <div key={i} className="flex items-center gap-3 text-sm">
+                                    <div className="text-blue-500">{b.icon}</div>
+                                    <span className="text-gray-300">{b.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </FadeIn>
+
+                {/* Open Positions */}
+                <FadeIn delay={300}>
+                    <h2 className="text-3xl font-bold text-white mb-2">Posiciones abiertas</h2>
+                    <p className="text-gray-500 text-sm mb-8">Todas nuestras posiciones son remotas. Aplica desde cualquier lugar.</p>
+                </FadeIn>
+
+                <div className="space-y-4 mb-16">
+                    {openings.map((job, i) => (
+                        <FadeIn key={i} delay={300 + i * 80}>
+                            <a
+                                href={`mailto:careers@maity.com.mx?subject=Aplicación: ${job.role}`}
+                                className="block p-6 bg-[#0F0F0F] rounded-2xl border border-white/5 hover:border-pink-500/30 transition-all group"
+                            >
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="font-bold text-white text-lg group-hover:text-pink-400 transition-colors">{job.role}</h3>
+                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                            <span>{job.area}</span>
+                                            <span className="w-1 h-1 rounded-full bg-gray-700"></span>
+                                            <span>{job.type}</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {job.tags.map((tag, j) => (
+                                                <span key={j} className="px-2 py-0.5 bg-white/5 text-[10px] font-bold text-gray-400 rounded-full border border-white/5">{tag}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm font-bold text-pink-500 group-hover:gap-4 transition-all shrink-0">
+                                        Aplicar <ArrowRight size={16} />
+                                    </div>
+                                </div>
+                            </a>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                {/* Open Application */}
+                <FadeIn delay={500}>
+                    <div className="text-center p-10 bg-[#0F0F0F] rounded-3xl border border-white/5">
+                        <h3 className="text-xl font-bold text-white mb-3">¿No ves tu rol ideal?</h3>
+                        <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
+                            Siempre estamos buscando talento excepcional. Envíanos tu CV y cuéntanos cómo quieres contribuir.
+                        </p>
+                        <a
+                            href="mailto:careers@maity.com.mx?subject=Aplicación espontánea"
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white hover:opacity-90 transition-all"
+                            style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}
+                        >
+                            <Mail size={18} /> Enviar aplicación espontánea
+                        </a>
+                    </div>
+                </FadeIn>
+            </div>
+        </section>
+    );
+};
+
+const SoporteView = ({ setView }) => {
+    const faqs = [
+        { q: "¿Cómo empiezo a usar Maity?", a: "Regístrate gratis con tu cuenta de Google o Microsoft. En menos de 5 minutos tendrás acceso a tu primera sesión de práctica con el coach de IA." },
+        { q: "¿Mis grabaciones de voz se almacenan?", a: "No. Utilizamos una arquitectura Zero-Knowledge: el audio se procesa en tiempo real y se elimina inmediatamente. Solo conservamos la transcripción textual y las métricas de evaluación." },
+        { q: "¿Puedo cancelar mi suscripción en cualquier momento?", a: "Sí. Puedes cancelar desde tu cuenta sin penalización. La cancelación es efectiva al final del período de facturación actual y tu cuenta revierte al plan gratuito." },
+        { q: "¿Cómo funciona la evaluación de IA?", a: "Después de cada sesión de práctica, nuestro sistema analiza tu comunicación en múltiples competencias (claridad, empatía, persuasión, estructura) y te da feedback específico y accionable." },
+        { q: "¿Maity funciona para equipos?", a: "Sí. Ofrecemos planes empresariales con dashboards de equipo, escenarios personalizados, integraciones y reportes de análisis. Solicita una demo para conocer más." },
+        { q: "¿En qué idiomas funciona Maity?", a: "Actualmente Maity funciona en español e inglés. Estamos trabajando en agregar más idiomas próximamente." },
+        { q: "¿Qué pasa con mis datos si elimino mi cuenta?", a: "Todos tus datos personales, transcripciones y métricas se eliminan permanentemente dentro de los 30 días siguientes a la eliminación de tu cuenta." },
+        { q: "¿Maity reemplaza a un coach humano?", a: "Maity complementa el desarrollo profesional. Es una herramienta de práctica diaria que permite iterar mucho más rápido que con sesiones presenciales, pero no sustituye el criterio profesional humano cuando es necesario." },
+    ];
+
+    const [openFaq, setOpenFaq] = useState(null);
+
+    const channels = [
+        { icon: <Mail size={24} />, title: "Email", desc: "Respuesta en menos de 24 horas", action: "soporte@maity.com.mx", href: "mailto:soporte@maity.com.mx", color: "text-blue-500" },
+        { icon: <Calendar size={24} />, title: "Videollamada", desc: "Agenda una sesión de soporte 1:1", action: "Agendar llamada", onClick: () => setView('demo-calendar'), color: "text-pink-500" },
+        { icon: <MessageSquare size={24} />, title: "Chat en vivo", desc: "Disponible L-V, 9am - 6pm (CST)", action: "Próximamente", href: null, color: "text-green-500" },
+    ];
+
+    return (
+        <section className="min-h-screen pt-32 pb-24 bg-[#050505] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px]"></div>
+
+            <div className="max-w-5xl mx-auto px-4 relative z-10">
+                {/* Header */}
+                <FadeIn>
+                    <button onClick={() => setView('product')} className="text-sm text-gray-500 hover:text-white transition-colors mb-8 flex items-center gap-2">
+                        <ArrowRight size={14} className="rotate-180" /> Volver al inicio
+                    </button>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                            <Headphones size={20} className="text-blue-500" />
+                        </div>
+                        <span className="text-sm font-bold text-blue-500 uppercase tracking-widest">Centro de Ayuda</span>
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+                        ¿Cómo podemos <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">ayudarte</span>?
+                    </h1>
+                    <p className="text-xl text-gray-400 leading-relaxed max-w-3xl mb-16">
+                        Encuentra respuestas rápidas o contacta a nuestro equipo. Estamos aquí para que tu experiencia con Maity sea excepcional.
+                    </p>
+                </FadeIn>
+
+                {/* Contact Channels */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+                    {channels.map((ch, i) => (
+                        <FadeIn key={i} delay={i * 100}>
+                            <div className="p-6 bg-[#0F0F0F] rounded-2xl border border-white/5 hover:border-white/10 transition-all text-center">
+                                <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 ${ch.color}`}>{ch.icon}</div>
+                                <h3 className="font-bold text-white text-lg mb-1">{ch.title}</h3>
+                                <p className="text-xs text-gray-500 mb-4">{ch.desc}</p>
+                                {ch.href ? (
+                                    <a href={ch.href} className={`text-sm font-bold ${ch.color} hover:opacity-80 transition-all`}>{ch.action}</a>
+                                ) : ch.onClick ? (
+                                    <button onClick={ch.onClick} className={`text-sm font-bold ${ch.color} hover:opacity-80 transition-all`}>{ch.action}</button>
+                                ) : (
+                                    <span className="text-sm font-bold text-gray-600">{ch.action}</span>
+                                )}
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                {/* Quick Links */}
+                <FadeIn delay={200}>
+                    <h2 className="text-2xl font-bold text-white mb-6">Acceso rápido</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-20">
+                        {[
+                            { icon: <BookOpen size={18} />, label: "Guía de inicio", view: 'resources' },
+                            { icon: <Shield size={18} />, label: "Seguridad y datos", view: 'seguridad' },
+                            { icon: <FileText size={18} />, label: "Aviso de privacidad", view: 'privacidad' },
+                            { icon: <Scale size={18} />, label: "Términos de servicio", view: 'terminos' },
+                        ].map((link, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setView(link.view)}
+                                className="flex items-center gap-3 p-4 bg-[#0F0F0F] rounded-xl border border-white/5 hover:border-blue-500/30 transition-all text-left group"
+                            >
+                                <div className="text-blue-500">{link.icon}</div>
+                                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{link.label}</span>
+                                <ArrowRight size={14} className="text-gray-700 group-hover:text-blue-500 ml-auto transition-colors" />
+                            </button>
+                        ))}
+                    </div>
+                </FadeIn>
+
+                {/* FAQ */}
+                <FadeIn delay={300}>
+                    <h2 className="text-2xl font-bold text-white mb-2">Preguntas frecuentes</h2>
+                    <p className="text-gray-500 text-sm mb-8">Las respuestas a las dudas más comunes sobre Maity.</p>
+                </FadeIn>
+
+                <div className="space-y-3 mb-16">
+                    {faqs.map((faq, i) => (
+                        <FadeIn key={i} delay={300 + i * 50}>
+                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/5 overflow-hidden">
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    className="w-full p-6 flex items-center justify-between text-left"
+                                >
+                                    <span className="font-bold text-white text-sm pr-4">{faq.q}</span>
+                                    <div className={`text-gray-500 shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-45' : ''}`}>
+                                        <Plus size={18} />
+                                    </div>
+                                </button>
+                                {openFaq === i && (
+                                    <div className="px-6 pb-6">
+                                        <p className="text-sm text-gray-400 leading-relaxed">{faq.a}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                {/* Still need help */}
+                <FadeIn delay={500}>
+                    <div className="text-center p-10 bg-gradient-to-br from-[#0F0F0F] to-[#1A1A1A] rounded-3xl border border-white/5">
+                        <HelpCircle size={32} className="text-blue-500 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-white mb-3">¿Necesitas más ayuda?</h3>
+                        <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
+                            Nuestro equipo está listo para resolver cualquier duda. Respuesta garantizada en menos de 24 horas.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a
+                                href="mailto:soporte@maity.com.mx"
+                                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white hover:opacity-90 transition-all"
+                                style={{ background: `linear-gradient(90deg, ${COLORS.maityBlue}, ${COLORS.maityGreen})` }}
+                            >
+                                <Mail size={18} /> Escribir a soporte
+                            </a>
+                            <button
+                                onClick={() => setView('demo-calendar')}
+                                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white border border-white/10 hover:bg-white/5 transition-all"
+                            >
+                                <Calendar size={18} /> Agendar videollamada
+                            </button>
+                        </div>
+                    </div>
+                </FadeIn>
+            </div>
+        </section>
+    );
+};
+
 const CTACierre = ({ setView }) => (
     <section className="py-24 bg-gradient-to-b from-[#050505] to-black relative overflow-hidden">
         <div className="absolute inset-0">
@@ -4251,7 +4532,7 @@ const Footer = ({ setView }) => {
                         <li onClick={() => setView('seguridad')} className="hover:text-blue-500 cursor-pointer transition-colors">Seguridad</li>
                         <li onClick={() => setView('demo-calendar')} className="hover:text-blue-500 cursor-pointer transition-colors">Contacto</li>
                         <li className="hover:text-blue-500 cursor-pointer transition-colors">
-                            <a href="mailto:careers@maity.com.mx" className="hover:text-blue-500">Trabaja con nosotros</a>
+                            <span onClick={() => setView('careers')} className="cursor-pointer">Trabaja con nosotros</span>
                         </li>
                     </ul>
                 </div>
@@ -4262,7 +4543,7 @@ const Footer = ({ setView }) => {
                         <li onClick={() => setView('resources')} className="hover:text-gray-300 cursor-pointer transition-colors">Guías</li>
                         <li onClick={() => setView('corporate-quiz')} className="hover:text-gray-300 cursor-pointer transition-colors">Quiz Corporativo</li>
                         <li onClick={() => handleScrollTo('product', 'faq-section')} className="hover:text-gray-300 cursor-pointer transition-colors">FAQs</li>
-                        <li onClick={() => setView('demo-calendar')} className="hover:text-gray-300 cursor-pointer transition-colors">Soporte</li>
+                        <li onClick={() => setView('soporte')} className="hover:text-gray-300 cursor-pointer transition-colors">Soporte</li>
                     </ul>
                 </div>
             </div>
@@ -4469,6 +4750,16 @@ export default function App() {
 
                 {activeView === 'terminos' && (
                     <TermsOfServiceView setView={setActiveView} />
+                )}
+
+                {/* CAREERS VIEW */}
+                {activeView === 'careers' && (
+                    <CareersView setView={setActiveView} />
+                )}
+
+                {/* SOPORTE VIEW */}
+                {activeView === 'soporte' && (
+                    <SoporteView setView={setActiveView} />
                 )}
             </main>
 
