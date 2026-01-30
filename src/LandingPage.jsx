@@ -709,7 +709,7 @@ const LoginView = ({ setView }) => {
                     <div className="space-y-2">
                         <div className="flex justify-between">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Contraseña</label>
-                            <a href="#" className="text-xs text-pink-500 hover:text-pink-400">¿Olvidaste tu contraseña?</a>
+                            <button onClick={() => setView('primeros-pasos')} className="text-xs text-pink-500 hover:text-pink-400">¿Olvidaste tu contraseña?</button>
                         </div>
                         <div className="relative">
                             <Key className="absolute left-3 top-3 text-gray-500" size={18} />
@@ -737,10 +737,10 @@ const LoginView = ({ setView }) => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <button className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">
+                    <button onClick={() => setView('primeros-pasos')} className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">
                         Google
                     </button>
-                    <button className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">
+                    <button onClick={() => setView('primeros-pasos')} className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">
                         Microsoft
                     </button>
                 </div>
@@ -1625,7 +1625,7 @@ const ProductInfoSection = () => {
 
 
 // 11. Unified Pricing Section
-const Pricing = ({ initialTab = 'individual' }) => {
+const Pricing = ({ initialTab = 'individual', setView }) => {
     const [activeTab, setActiveTab] = useState(initialTab);
     const [annual, setAnnual] = useState(true);
 
@@ -1676,7 +1676,7 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Análisis básico</li>
                                     <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Web App access</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
+                                <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                                     Empezar Gratis
                                 </button>
                             </div>
@@ -1693,7 +1693,7 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Todos los escenarios</li>
                                     <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Dashboard de evolución</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-pink-500/20">
+                                <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-pink-500/20">
                                     Suscribirse ahora
                                 </button>
                             </div>
@@ -1708,7 +1708,7 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Feedback háptico</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Privacidad offline</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl border border-blue-500/30 text-blue-400 font-bold hover:bg-blue-500/10 transition-all">
+                                <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-blue-500/30 text-blue-400 font-bold hover:bg-blue-500/10 transition-all">
                                     Reservar Unidad
                                 </button>
                             </div>
@@ -1725,7 +1725,7 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dashboard de manager</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte standard</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
+                                <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                                     Iniciar Piloto
                                 </button>
                             </div>
@@ -1742,7 +1742,7 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Integración con CRM</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> AI Insights avanzados</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:scale-[1.02] transition-all">
+                                <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:scale-[1.02] transition-all">
                                     Hablar con Ventas
                                 </button>
                             </div>
@@ -1758,13 +1758,31 @@ const Pricing = ({ initialTab = 'individual' }) => {
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SLA garantizado</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dedicated CSM</li>
                                 </ul>
-                                <button className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
+                                <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                                     Pedir Cotización
                                 </button>
                             </div>
                         </FadeIn>
                     </div>
                 )}
+
+                {/* Trust Badges */}
+                <FadeIn delay={350}>
+                    <div className="flex flex-wrap justify-center items-center gap-6 mt-12 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                            <Lock size={12} className="text-green-500" /> Cifrado AES-256
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                            <Shield size={12} className="text-blue-500" /> Sin tarjeta para plan gratuito
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                            <Eye size={12} className="text-pink-500" /> Cancela cuando quieras
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                            <UserCheck size={12} className="text-purple-500" /> GDPR Compliant
+                        </div>
+                    </div>
+                </FadeIn>
 
                 {/* Tabla Comparativa */}
                 <FadeIn delay={400}>
@@ -2042,7 +2060,7 @@ const B2BTeaser = ({ setView }) => {
 };
 
 // --- NEW SECTION: TRUST (4 PILLARS) ---
-const TrustSection = ({ variant = 'product' }) => {
+const TrustSection = ({ variant = 'product', setView }) => {
     const basePillars = [
         { t: "Control Total", d: "Tú decides qué se graba, analiza y elimina.", i: <Lock className="text-pink-500" /> },
         { t: "Consentimiento", d: "Maity exige notificar a participantes.", i: <UserCheck className="text-blue-500" /> },
@@ -2202,7 +2220,7 @@ const TrustSection = ({ variant = 'product' }) => {
 
                 <FadeIn delay={variant === 'enterprise' ? 600 : 400}>
                     <div className="text-center mt-10">
-                        <button className="text-sm text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-2 mx-auto">
+                        <button onClick={() => setView && setView('seguridad')} className="text-sm text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-2 mx-auto">
                             <Shield size={14} /> Ver política de privacidad completa <ChevronRight size={14} />
                         </button>
                     </div>
@@ -2226,7 +2244,7 @@ const TrustSection = ({ variant = 'product' }) => {
 };
 
 // 6. Gamification "The Climb"
-const TheClimb = () => {
+const TheClimb = ({ setView }) => {
     const levels = [
         { name: "Aprendiz", color: "bg-gray-600", active: true },
         { name: "Explorador", color: "bg-blue-500", active: true },
@@ -2273,6 +2291,7 @@ const TheClimb = () => {
                             ))}
                         </ul>
                         <button
+                            onClick={() => setView('primeros-pasos')}
                             className="mt-10 px-8 py-4 rounded-full text-white font-bold shadow-xl hover:scale-105 transition-all flex items-center gap-2"
                             style={{ backgroundColor: COLORS.maityPink }}
                         >
@@ -3488,7 +3507,7 @@ const ResourcesView = ({ setView }) => {
                                     </div>
                                     <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors" dangerouslySetInnerHTML={{ __html: res.t }} />
                                     <p className="text-sm text-gray-500 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: res.d }} />
-                                    <button className="flex items-center gap-2 text-xs font-bold text-white group-hover:gap-4 transition-all uppercase tracking-widest">
+                                    <button onClick={() => setView('primeros-pasos')} className="flex items-center gap-2 text-xs font-bold text-white group-hover:gap-4 transition-all uppercase tracking-widest">
                                         Ver Ahora <ArrowRight size={14} className="text-blue-500" />
                                     </button>
                                 </div>
@@ -3752,6 +3771,7 @@ const Footer = ({ setView }) => {
                     <ul className="space-y-3 text-sm text-gray-500">
                         <li onClick={() => setView('resources')} className="hover:text-gray-300 cursor-pointer transition-colors">Blog</li>
                         <li onClick={() => setView('resources')} className="hover:text-gray-300 cursor-pointer transition-colors">Guías</li>
+                        <li onClick={() => setView('corporate-quiz')} className="hover:text-gray-300 cursor-pointer transition-colors">Quiz Corporativo</li>
                         <li onClick={() => handleScrollTo('product', 'faq-section')} className="hover:text-gray-300 cursor-pointer transition-colors">FAQs</li>
                         <li onClick={() => setView('demo-calendar')} className="hover:text-gray-300 cursor-pointer transition-colors">Soporte</li>
                     </ul>
@@ -3877,10 +3897,10 @@ export default function App() {
                         <HowItWorksSection />
                         <SkillsGridSection />
                         <ArchetypeQuiz setView={setActiveView} />
-                        <TheClimb />
+                        <TheClimb setView={setActiveView} />
                         <ProductInfoSection />
-                        <TrustSection />
-                        <Pricing />
+                        <TrustSection setView={setActiveView} />
+                        <Pricing setView={setActiveView} />
                         <VideoTestimonials />
                         <FAQSection />
                         <CTACierre setView={setActiveView} />
@@ -3911,9 +3931,9 @@ export default function App() {
                         <CorporateQuiz setView={setActiveView} />
                         <B2BTeaser setView={setActiveView} />
                         <ROICalculator />
-                        <Pricing initialTab="business" />
+                        <Pricing initialTab="business" setView={setActiveView} />
                         <DemoCalendar setView={setActiveView} />
-                        <TrustSection variant="enterprise" />
+                        <TrustSection variant="enterprise" setView={setActiveView} />
                         <FAQSection />
                     </>
                 )}
@@ -3929,12 +3949,12 @@ export default function App() {
                 )}
 
                 {/* APP VIEWS */}
-                {activeView === 'climb' && <TheClimb />}
+                {activeView === 'climb' && <TheClimb setView={setActiveView} />}
                 {/* NEW ROLEPLAY VIEW */}
                 {activeView === 'roleplay' && (
                     <RoleplaySimulator onExit={() => setView('product')} />
                 )}
-                {activeView === 'pricing' && <Pricing />}
+                {activeView === 'pricing' && <Pricing setView={setActiveView} />}
 
                 {/* NOSOTROS VIEW */}
                 {activeView === 'nosotros' && (
@@ -3944,7 +3964,7 @@ export default function App() {
                 {/* SEGURIDAD VIEW */}
                 {activeView === 'seguridad' && (
                     <div className="pt-24">
-                        <TrustSection variant="enterprise" />
+                        <TrustSection variant="enterprise" setView={setActiveView} />
                     </div>
                 )}
 
