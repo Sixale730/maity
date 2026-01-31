@@ -629,12 +629,10 @@ const Navbar = ({ activeView, setView }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
                     <div
-                        className="flex items-center cursor-pointer gap-2"
+                        className="flex items-center cursor-pointer"
                         onClick={() => setView('product')}
                     >
-                        <span className="text-3xl font-bold tracking-tighter text-white">
-                            maity<span style={{ color: COLORS.maityPink }}>.</span>
-                        </span>
+                        <img src="/assets/maity-logo-color.png" alt="Maity" className="h-8" />
                     </div>
 
                     <div className="hidden md:flex items-center space-x-6">
@@ -1001,17 +999,6 @@ const HeroSection = ({ setView }) => {
                             <span>Control total de tus datos</span>
                         </div>
 
-                        {/* Video: Qué es Maity */}
-                        <VideoCard
-                            title={LANDING_VIDEOS.queEsMaity.title}
-                            description={LANDING_VIDEOS.queEsMaity.description}
-                            duration={LANDING_VIDEOS.queEsMaity.duration}
-                            thumbnailUrl={LANDING_VIDEOS.queEsMaity.thumbnailUrl}
-                            videoUrl={LANDING_VIDEOS.queEsMaity.videoUrl}
-                            variant="featured"
-                            accentColor={COLORS.maityPink}
-                        />
-
                         {/* Trust Bar */}
                         <div className="mt-16 pt-8 border-t border-white/5">
                             <p className="text-[10px] uppercase font-bold text-gray-600 tracking-[0.2em] mb-4">Líderes de alto rendimiento en:</p>
@@ -1025,28 +1012,17 @@ const HeroSection = ({ setView }) => {
                     </FadeIn>
                 </div>
 
-                {/* Hero Persona Image */}
+                {/* Hero Video: Qué es Maity */}
                 <FadeIn delay={300} className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-blue-500/20 blur-[100px] rounded-full"></div>
-                    <div className="relative z-10 perspective-1000">
-                        <img
-                            src="/assets/maity-persona.png"
-                            alt="Maity Persona"
-                            className="w-full h-auto object-contain drop-shadow-[0_0_50px_rgba(255,0,80,0.15)] animate-float"
-                        />
-                        {/* Floating elements */}
-                        <div className="absolute top-1/4 -right-12 bg-[#1A1A1A]/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl animate-float-delayed">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                                    <Check size={16} className="text-green-500" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-gray-500 uppercase font-black">Escucha Activa</p>
-                                    <p className="text-sm font-bold text-green-400">Nivel Superior</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <VideoCard
+                        title={LANDING_VIDEOS.queEsMaity.title}
+                        description={LANDING_VIDEOS.queEsMaity.description}
+                        duration={LANDING_VIDEOS.queEsMaity.duration}
+                        thumbnailUrl={LANDING_VIDEOS.queEsMaity.thumbnailUrl}
+                        videoUrl={LANDING_VIDEOS.queEsMaity.videoUrl}
+                        variant="featured"
+                        accentColor={COLORS.maityPink}
+                    />
                 </FadeIn>
             </div>
         </section>
@@ -3262,352 +3238,164 @@ const PrimerosPasosView = ({ setView }) => {
 };
 
 const DemoCalendar = ({ setView }) => {
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
-    const [bookingStep, setBookingStep] = useState('date');
-    const [formData, setFormData] = useState({ name: '', email: '', company: '' });
-
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const dayNames = ['Lun', 'Mar', 'Mi\u00e9', 'Jue', 'Vie', 'S\u00e1b', 'Dom'];
-
-    const getDaysInMonth = (m, y) => new Date(y, m + 1, 0).getDate();
-    const getFirstDayOfMonth = (m, y) => {
-        const d = new Date(y, m, 1).getDay();
-        return d === 0 ? 6 : d - 1;
-    };
-
-    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
-    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
-
-    const isAvailable = (day) => {
-        const date = new Date(currentYear, currentMonth, day);
-        const dow = date.getDay();
-        return dow !== 0 && dow !== 6 && day >= now.getDate();
-    };
-
-    const timeSlots = [
-        { time: '9:00 AM', period: 'Ma\u00f1ana' },
-        { time: '10:00 AM', period: 'Ma\u00f1ana' },
-        { time: '11:00 AM', period: 'Ma\u00f1ana' },
-        { time: '12:00 PM', period: 'Mediod\u00eda' },
-        { time: '4:00 PM', period: 'Tarde' },
-        { time: '5:00 PM', period: 'Tarde' },
-        { time: '6:00 PM', period: 'Tarde' },
+    const teamMembers = [
+        {
+            name: 'Poncho Robles',
+            role: 'CEO & Fundador',
+            company: 'Maity',
+            description: 'Ayuda a directores y líderes a vender y comunicar con impacto. Conferencista internacional, creador de talleres con IA y arquitecto de soluciones.',
+            linkedin: 'https://www.linkedin.com/in/ponchorobles/',
+            initials: 'PR',
+            accentColor: COLORS.maityPink,
+            tags: ['Ventas', 'Comunicación', 'Liderazgo'],
+        },
+        {
+            name: 'Julio González',
+            role: 'CTO',
+            company: 'Maity',
+            description: 'Ingeniería robótica, ciencia de datos, ML e IA. Arquitecto de la plataforma Maity y responsable de toda la infraestructura tecnológica.',
+            linkedin: 'https://www.linkedin.com/in/julioalexisgonzalezvilla/',
+            initials: 'JG',
+            accentColor: COLORS.maityBlue,
+            tags: ['Tecnología', 'IA', 'Data Science'],
+        },
+        {
+            name: 'Karina Barrera',
+            role: 'Aliada Estratégica · CEO',
+            company: 'Asertio Capacitación',
+            description: 'Transforma equipos de ventas en consultores estratégicos con programas personalizados que integran gamificación, IA y medición de resultados.',
+            linkedin: 'https://www.linkedin.com/in/karinabarreragoytia/',
+            initials: 'KB',
+            accentColor: COLORS.maityGreen,
+            tags: ['Capacitación', 'Equipos', 'Estrategia'],
+        },
     ];
-
-    const steps = [
-        { id: 'date', label: 'Fecha' },
-        { id: 'time', label: 'Hora' },
-        { id: 'details', label: 'Datos' },
-    ];
-
-    const currentStepIndex = steps.findIndex(s => s.id === bookingStep);
-
-    const handleDateSelect = (day) => {
-        if (isAvailable(day)) {
-            setSelectedDate(day);
-            setBookingStep('time');
-        }
-    };
-
-    const handleTimeSelect = (time) => {
-        setSelectedTime(time);
-        setBookingStep('details');
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (formData.name && formData.email) {
-            setBookingStep('confirmed');
-        }
-    };
 
     return (
         <section className="min-h-screen pt-32 pb-24 bg-[#050505]">
             <div className="max-w-7xl mx-auto px-4">
                 {/* Header */}
                 <FadeIn>
-                    <div className="text-center mb-12">
-                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest mb-4 block">Agenda una Demo</span>
+                    <div className="text-center mb-16">
+                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest mb-4 block">Contacto</span>
                         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                            Descubre Maity en <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">20 minutos</span>
+                            Conoce a las personas detrás de{' '}
+                            <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">Maity</span>
                         </h2>
                         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                            Una sesión personalizada donde verás cómo Maity transforma la comunicación de tu equipo.
+                            Conecta directamente con nuestro equipo. Estamos aquí para ayudarte a transformar la comunicación de tu organización.
                         </p>
                     </div>
                 </FadeIn>
 
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Left Sidebar */}
-                    <div className="lg:w-[340px] shrink-0">
-                        <FadeIn>
-                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 lg:sticky lg:top-32">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center">
-                                        <Clock size={20} className="text-pink-500" />
+                {/* Team Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                    {teamMembers.map((member, idx) => (
+                        <FadeIn key={idx} delay={idx * 100}>
+                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 hover:border-white/20 transition-all group relative overflow-hidden h-full flex flex-col">
+                                {/* Accent glow */}
+                                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${member.accentColor}, transparent)` }} />
+
+                                {/* Avatar + Info */}
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div
+                                        className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-black text-white shrink-0 border-2 border-white/10"
+                                        style={{ background: `linear-gradient(135deg, ${member.accentColor}40, ${member.accentColor}15)` }}
+                                    >
+                                        {member.initials}
                                     </div>
                                     <div>
-                                        <p className="text-white font-bold">20 min</p>
-                                        <p className="text-xs text-gray-500">Videollamada 1:1</p>
+                                        <h3 className="text-lg font-bold text-white">{member.name}</h3>
+                                        <p className="text-sm font-medium" style={{ color: member.accentColor }}>{member.role}</p>
+                                        <p className="text-xs text-gray-500">{member.company}</p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 mb-8">
-                                    {[
-                                        { icon: <BarChart2 size={18} />, text: "An\u00e1lisis de ROI para tu equipo", color: "text-green-400" },
-                                        { icon: <Monitor size={18} />, text: "Demo en vivo del dashboard", color: "text-blue-400" },
-                                        { icon: <Target size={18} />, text: "Plan personalizado de implementaci\u00f3n", color: "text-purple-400" },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-3 text-sm">
-                                            <span className={item.color}>{item.icon}</span>
-                                            <span className="text-gray-300">{item.text}</span>
-                                        </div>
+                                {/* Description */}
+                                <p className="text-sm text-gray-400 leading-relaxed mb-6 flex-1">
+                                    {member.description}
+                                </p>
+
+                                {/* Tags */}
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    {member.tags.map((tag, i) => (
+                                        <span key={i} className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5">
+                                            {tag}
+                                        </span>
                                     ))}
                                 </div>
 
-                                <div className="border-t border-white/5 pt-6">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="flex -space-x-2">
-                                            {['bg-pink-500', 'bg-blue-500', 'bg-green-500'].map((c, i) => (
-                                                <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-[#0F0F0F] flex items-center justify-center text-[10px] font-bold text-white`}>
-                                                    {['M', 'A', 'R'][i]}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="text-xs text-gray-500">+120 demos este mes</p>
-                                    </div>
-                                    <div className="flex gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} size={14} className="text-yellow-500 fill-yellow-500" />
-                                        ))}
-                                        <span className="text-xs text-gray-500 ml-1">4.9/5</span>
-                                    </div>
-                                </div>
+                                {/* LinkedIn CTA */}
+                                <a
+                                    href={member.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/10 text-sm font-bold text-white hover:bg-white/5 hover:border-white/20 transition-all group/btn"
+                                >
+                                    <Linkedin size={16} className="text-[#0A66C2]" />
+                                    <span>Conectar en LinkedIn</span>
+                                    <ArrowUpRight size={14} className="text-gray-500 group-hover/btn:text-white transition-colors" />
+                                </a>
                             </div>
                         </FadeIn>
-                    </div>
-
-                    {/* Right Content - Booking Flow */}
-                    <div className="flex-1">
-                        <FadeIn>
-                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 md:p-10">
-                                {/* Step Indicator */}
-                                {bookingStep !== 'confirmed' && (
-                                    <div className="flex items-center gap-2 mb-8">
-                                        {steps.map((s, i) => (
-                                            <React.Fragment key={s.id}>
-                                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                                                    bookingStep === s.id ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30' :
-                                                    currentStepIndex > i ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                                    'bg-white/5 text-gray-600 border border-white/5'
-                                                }`}>
-                                                    {currentStepIndex > i ? <Check size={12} /> : <span>{i + 1}</span>}
-                                                    <span>{s.label}</span>
-                                                </div>
-                                                {i < steps.length - 1 && (
-                                                    <div className={`h-px flex-1 ${currentStepIndex > i ? 'bg-green-500/30' : 'bg-white/10'}`}></div>
-                                                )}
-                                            </React.Fragment>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Step: Date Selection */}
-                                {bookingStep === 'date' && (
-                                    <div>
-                                        <h3 className="text-xl font-bold text-white mb-1">Selecciona una fecha</h3>
-                                        <p className="text-sm text-gray-500 mb-6">{monthNames[currentMonth]} {currentYear} · Horario Ciudad de México (CST)</p>
-
-                                        <div className="grid grid-cols-7 gap-1 mb-2">
-                                            {dayNames.map(d => (
-                                                <div key={d} className="text-center text-xs font-bold text-gray-600 py-2">{d}</div>
-                                            ))}
-                                        </div>
-
-                                        <div className="grid grid-cols-7 gap-1">
-                                            {[...Array(firstDay)].map((_, i) => (
-                                                <div key={`empty-${i}`} className="aspect-square"></div>
-                                            ))}
-                                            {[...Array(daysInMonth)].map((_, i) => {
-                                                const day = i + 1;
-                                                const available = isAvailable(day);
-                                                const isToday = day === now.getDate();
-                                                const isSelected = selectedDate === day;
-                                                return (
-                                                    <button
-                                                        key={day}
-                                                        onClick={() => available && handleDateSelect(day)}
-                                                        disabled={!available}
-                                                        className={`aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all ${
-                                                            isSelected ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25 scale-110' :
-                                                            available ? 'bg-white/5 text-white hover:bg-pink-500/20 hover:text-pink-400 hover:border-pink-500/30 border border-transparent cursor-pointer' :
-                                                            'text-gray-800 cursor-not-allowed'
-                                                        } ${isToday && !isSelected ? 'ring-1 ring-pink-500/50' : ''}`}
-                                                    >
-                                                        {day}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-
-                                        <p className="text-xs text-gray-600 mt-4 flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-pink-500/50"></span>
-                                            Hoy
-                                            <span className="w-2 h-2 rounded-full bg-white/20 ml-2"></span>
-                                            Disponible
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Step: Time Selection */}
-                                {bookingStep === 'time' && (
-                                    <div>
-                                        <button onClick={() => setBookingStep('date')} className="text-sm text-gray-500 hover:text-pink-400 mb-4 flex items-center gap-1 transition-colors">
-                                            <ChevronRight size={14} className="rotate-180" /> Cambiar fecha
-                                        </button>
-                                        <h3 className="text-xl font-bold text-white mb-1">Selecciona un horario</h3>
-                                        <p className="text-sm text-gray-500 mb-6">{selectedDate} de {monthNames[currentMonth]} · Horario CST (Ciudad de México)</p>
-
-                                        <div className="space-y-2">
-                                            {timeSlots.map((slot) => (
-                                                <button
-                                                    key={slot.time}
-                                                    onClick={() => handleTimeSelect(slot.time)}
-                                                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                                                        selectedTime === slot.time
-                                                            ? 'bg-pink-500/20 border-pink-500/50 text-pink-400'
-                                                            : 'bg-white/5 border-white/5 text-white hover:border-pink-500/30 hover:bg-pink-500/10'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Clock size={16} className="text-gray-500" />
-                                                        <span className="font-medium">{slot.time}</span>
-                                                    </div>
-                                                    <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full">{slot.period}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Step: Details Form */}
-                                {bookingStep === 'details' && (
-                                    <div>
-                                        <button onClick={() => setBookingStep('time')} className="text-sm text-gray-500 hover:text-pink-400 mb-4 flex items-center gap-1 transition-colors">
-                                            <ChevronRight size={14} className="rotate-180" /> Cambiar hora
-                                        </button>
-                                        <h3 className="text-xl font-bold text-white mb-1">Completa tus datos</h3>
-                                        <p className="text-sm text-gray-500 mb-6">{selectedDate} de {monthNames[currentMonth]} a las {selectedTime}</p>
-
-                                        <form onSubmit={handleSubmit} className="space-y-4">
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Nombre completo</label>
-                                                <div className="relative">
-                                                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
-                                                    <input
-                                                        type="text"
-                                                        value={formData.name}
-                                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                        placeholder="Tu nombre"
-                                                        required
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Email corporativo</label>
-                                                <div className="relative">
-                                                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
-                                                    <input
-                                                        type="email"
-                                                        value={formData.email}
-                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                        placeholder="tu@empresa.com"
-                                                        required
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Empresa</label>
-                                                <div className="relative">
-                                                    <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
-                                                    <input
-                                                        type="text"
-                                                        value={formData.company}
-                                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                                        placeholder="Nombre de tu empresa"
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                className="w-full mt-4 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:shadow-pink-500/25 transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <Send size={18} />
-                                                Confirmar Demo
-                                            </button>
-                                        </form>
-
-                                        <p className="text-xs text-gray-600 mt-4 text-center">
-                                            <Lock size={12} className="inline mr-1" />
-                                            Tus datos están protegidos. No compartimos información con terceros.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Step: Confirmed */}
-                                {bookingStep === 'confirmed' && (
-                                    <div className="text-center py-8">
-                                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/30">
-                                            <Check size={40} className="text-green-500" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Demo Confirmada</h3>
-                                        <p className="text-gray-400 mb-6">
-                                            {selectedDate} de {monthNames[currentMonth]} a las {selectedTime}
-                                        </p>
-                                        <div className="bg-white/5 rounded-xl p-6 border border-white/10 max-w-sm mx-auto mb-8">
-                                            <div className="space-y-3 text-sm text-left">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Nombre</span>
-                                                    <span className="text-white font-medium">{formData.name}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Email</span>
-                                                    <span className="text-white font-medium">{formData.email}</span>
-                                                </div>
-                                                {formData.company && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-500">Empresa</span>
-                                                        <span className="text-white font-medium">{formData.company}</span>
-                                                    </div>
-                                                )}
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Duración</span>
-                                                    <span className="text-white font-medium">20 minutos</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mb-6">
-                                            Te enviaremos un correo de confirmación con el enlace de la videollamada.
-                                        </p>
-                                        <button
-                                            onClick={() => setView('product')}
-                                            className="text-pink-400 hover:text-pink-300 text-sm font-medium transition-colors"
-                                        >
-                                            ← Volver al inicio
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </FadeIn>
-                    </div>
+                    ))}
                 </div>
+
+                {/* Contact Methods */}
+                <FadeIn delay={300}>
+                    <div className="bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 md:p-12">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {/* Email */}
+                            <div className="text-center">
+                                <div className="w-14 h-14 rounded-full bg-pink-500/10 flex items-center justify-center mx-auto mb-4 border border-pink-500/20">
+                                    <Mail size={24} className="text-pink-500" />
+                                </div>
+                                <h4 className="text-white font-bold mb-1">Email</h4>
+                                <p className="text-sm text-gray-500 mb-3">Respuesta en menos de 24h</p>
+                                <a href="mailto:hola@maity.com.mx" className="text-sm font-medium text-pink-400 hover:text-pink-300 transition-colors">
+                                    hola@maity.com.mx
+                                </a>
+                            </div>
+
+                            {/* LinkedIn */}
+                            <div className="text-center">
+                                <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                                    <Linkedin size={24} className="text-blue-500" />
+                                </div>
+                                <h4 className="text-white font-bold mb-1">LinkedIn</h4>
+                                <p className="text-sm text-gray-500 mb-3">Síguenos y conecta</p>
+                                <a href="https://linkedin.com/company/maity" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                                    MAITY Inteligencia Artificial
+                                </a>
+                            </div>
+
+                            {/* Location */}
+                            <div className="text-center">
+                                <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+                                    <Globe size={24} className="text-green-500" />
+                                </div>
+                                <h4 className="text-white font-bold mb-1">Ubicación</h4>
+                                <p className="text-sm text-gray-500 mb-3">Operando desde</p>
+                                <span className="text-sm font-medium text-green-400">
+                                    Guadalajara, Jalisco, MX
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Bottom CTA */}
+                        <div className="mt-10 pt-8 border-t border-white/5 text-center">
+                            <p className="text-gray-400 mb-4">¿Quieres una demostración personalizada para tu equipo?</p>
+                            <a
+                                href="mailto:hola@maity.com.mx?subject=Solicitud de Demo - Maity"
+                                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-white font-bold text-sm shadow-lg hover:scale-105 transition-all"
+                                style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}
+                            >
+                                <Send size={16} />
+                                Solicitar Demo por Email
+                            </a>
+                        </div>
+                    </div>
+                </FadeIn>
             </div>
         </section>
     );
@@ -4790,7 +4578,7 @@ const Footer = ({ setView }) => {
         <footer className="bg-black text-white pt-20 pb-10 border-t border-white/10">
             <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
                 <div>
-                    <span onClick={() => setView('product')} className="text-2xl font-bold tracking-tighter block mb-6 cursor-pointer">maity<span className="text-pink-500">.</span></span>
+                    <img onClick={() => setView('product')} src="/assets/maity-logo-white.png" alt="Maity" className="h-7 mb-6 cursor-pointer" />
                     <p className="text-sm text-gray-500 leading-relaxed">
                         Transformando el aprendizaje en evolución diaria a través de IA ética y humana.
                     </p>
