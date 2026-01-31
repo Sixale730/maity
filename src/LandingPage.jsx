@@ -40,7 +40,7 @@ const LANDING_VIDEOS = {
         description: 'Conoce la plataforma que transforma tu comunicación',
         duration: '0:55',
         thumbnailUrl: null,
-        videoUrl: null,
+        videoUrl: 'https://youtu.be/Nf3Y_SEuhbw',
         placement: 'hero'
     },
     elProblema: {
@@ -133,57 +133,77 @@ const FadeIn = ({ children, delay = 0, className = "" }) => {
 
 // --- VIDEO CARD COMPONENT ---
 const VideoCard = ({ title, description, duration, thumbnailUrl, videoUrl, variant = 'inline', accentColor = COLORS.maityPink }) => {
-    const isPlaceholder = !videoUrl && !thumbnailUrl;
+    const [playing, setPlaying] = useState(false);
+    const isPlaceholder = !videoUrl && !thumbnailUrl && !autoThumbnail;
 
-    const content = (
-        <div className={`relative overflow-hidden rounded-2xl border transition-all group cursor-pointer ${
-            variant === 'featured' ? 'max-w-2xl mx-auto' : 'max-w-xl mx-auto'
-        } ${isPlaceholder ? 'border-white/5 hover:border-white/10' : 'border-white/10 hover:border-pink-500/30'}`}
-            style={{ aspectRatio: '16/9' }}
-        >
-            {/* Background */}
-            {thumbnailUrl ? (
-                <img src={thumbnailUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-            ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]" />
-            )}
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
+        return match ? match[1] : null;
+    };
 
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-            {/* Play Button */}
-            <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`${variant === 'featured' ? 'w-20 h-20' : 'w-14 h-14'} rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all border border-white/20`}>
-                    <Play size={variant === 'featured' ? 32 : 22} className="text-white ml-1" fill="currentColor" />
-                </div>
-            </div>
-
-            {/* Placeholder State */}
-            {isPlaceholder && (
-                <div className="absolute top-4 right-4">
-                    <span className="text-[10px] uppercase tracking-widest text-gray-500 bg-black/50 px-2 py-1 rounded-full">Próximamente</span>
-                </div>
-            )}
-
-            {/* Duration Badge */}
-            {duration && (
-                <div className="absolute bottom-14 right-4 bg-black/70 px-2 py-0.5 rounded text-xs font-mono text-gray-300">
-                    {duration}
-                </div>
-            )}
-
-            {/* Bottom Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h4 className="font-bold text-white text-sm mb-0.5">{title}</h4>
-                {description && <p className="text-xs text-gray-400">{description}</p>}
-            </div>
-        </div>
-    );
+    const ytId = getYouTubeId(videoUrl);
+    const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0` : null;
+    const autoThumbnail = !thumbnailUrl && ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : thumbnailUrl;
 
     return (
         <FadeIn delay={200}>
             <div className={`${variant === 'featured' ? 'mt-12' : 'mt-10'}`}>
-                {content}
+                <div className={`relative overflow-hidden rounded-2xl border transition-all group ${
+                    variant === 'featured' ? 'max-w-2xl mx-auto' : 'max-w-xl mx-auto'
+                } ${isPlaceholder ? 'border-white/5 hover:border-white/10 cursor-default' : 'border-white/10 hover:border-pink-500/30 cursor-pointer'}`}
+                    style={{ aspectRatio: '16/9' }}
+                    onClick={() => !isPlaceholder && embedUrl && setPlaying(true)}
+                >
+                    {playing && embedUrl ? (
+                        <iframe
+                            src={embedUrl}
+                            className="absolute inset-0 w-full h-full"
+                            allow="autoplay; encrypted-media; picture-in-picture"
+                            allowFullScreen
+                            frameBorder="0"
+                        />
+                    ) : (
+                        <>
+                            {/* Background */}
+                            {autoThumbnail ? (
+                                <img src={autoThumbnail} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]" />
+                            )}
+
+                            {/* Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                            {/* Play Button */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className={`${variant === 'featured' ? 'w-20 h-20' : 'w-14 h-14'} rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all border border-white/20`}>
+                                    <Play size={variant === 'featured' ? 32 : 22} className="text-white ml-1" fill="currentColor" />
+                                </div>
+                            </div>
+
+                            {/* Placeholder State */}
+                            {isPlaceholder && (
+                                <div className="absolute top-4 right-4">
+                                    <span className="text-[10px] uppercase tracking-widest text-gray-500 bg-black/50 px-2 py-1 rounded-full">Próximamente</span>
+                                </div>
+                            )}
+
+                            {/* Duration Badge */}
+                            {duration && (
+                                <div className="absolute bottom-14 right-4 bg-black/70 px-2 py-0.5 rounded text-xs font-mono text-gray-300">
+                                    {duration}
+                                </div>
+                            )}
+
+                            {/* Bottom Info */}
+                            <div className="absolute bottom-0 left-0 right-0 p-4">
+                                <h4 className="font-bold text-white text-sm mb-0.5">{title}</h4>
+                                {description && <p className="text-xs text-gray-400">{description}</p>}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </FadeIn>
     );
@@ -1092,6 +1112,16 @@ const BusinessHeroSection = ({ setView }) => {
                                 Ver Casos de Éxito
                             </button>
                         </div>
+
+                        {/* Video Empresarial */}
+                        <VideoCard
+                            title="Maity para Empresas"
+                            description="Descubre cómo Maity transforma equipos completos"
+                            duration="1:30"
+                            videoUrl="https://youtu.be/YiyN6K-Ng_c"
+                            variant="featured"
+                            accentColor={COLORS.maityBlue}
+                        />
                     </FadeIn>
                 </div>
 
@@ -2617,6 +2647,144 @@ const ArchetypeQuiz = ({ setView }) => {
                         </div>
                     </FadeIn>
                 )}
+            </div>
+        </section>
+    );
+};
+
+const ScenariosSection = ({ setView }) => {
+    const scenarios = [
+        {
+            icon: <DollarSign size={22} />,
+            skill: "Negociación",
+            title: "Cierre de venta con objeciones de precio",
+            desc: "El cliente dice que es muy caro. Practica cómo defender tu propuesta de valor sin ceder en precio.",
+            color: "text-pink-500",
+            bg: "bg-pink-500/10"
+        },
+        {
+            icon: <Users size={22} />,
+            skill: "Liderazgo",
+            title: "Retroalimentación a un colaborador difícil",
+            desc: "Tu mejor talento tiene actitud negativa. Practica cómo dar feedback directo sin perder al empleado.",
+            color: "text-blue-500",
+            bg: "bg-blue-500/10"
+        },
+        {
+            icon: <Target size={22} />,
+            skill: "Presentación",
+            title: "Pitch de producto ante directivos",
+            desc: "Tienes 5 minutos frente al comité. Practica cómo presentar resultados y pedir presupuesto con confianza.",
+            color: "text-green-500",
+            bg: "bg-green-500/10"
+        },
+        {
+            icon: <Shield size={22} />,
+            skill: "Manejo de objeciones",
+            title: "Cliente que quiere cancelar el contrato",
+            desc: "Tu cliente más importante amenaza con irse. Practica retención con empatía y soluciones concretas.",
+            color: "text-yellow-500",
+            bg: "bg-yellow-500/10"
+        },
+        {
+            icon: <Heart size={22} />,
+            skill: "Empatía",
+            title: "Comunicar malas noticias al equipo",
+            desc: "Hay recortes de presupuesto. Practica cómo comunicar con transparencia sin destruir la moral.",
+            color: "text-red-500",
+            bg: "bg-red-500/10"
+        },
+        {
+            icon: <Briefcase size={22} />,
+            skill: "Confianza",
+            title: "Primera reunión con un prospecto enterprise",
+            desc: "No te conocen y son escépticos. Practica cómo generar credibilidad y confianza en los primeros 3 minutos.",
+            color: "text-purple-500",
+            bg: "bg-purple-500/10"
+        },
+    ];
+
+    return (
+        <section className="py-24 bg-[#050505] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px]"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink-500/5 rounded-full blur-[150px]"></div>
+
+            <div className="max-w-6xl mx-auto px-4 relative z-10">
+                <FadeIn>
+                    <div className="text-center mb-6">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-full text-xs font-bold text-blue-400 border border-blue-500/20 mb-6">
+                            <Mic size={14} /> Conversaciones simuladas con IA
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+                            Escenarios que <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">transforman habilidades</span>
+                        </h2>
+                        <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+                            Tu equipo practica conversaciones reales con un agente de IA que responde, desafía y evalúa. Después de cada sesión, reciben feedback detallado sobre qué mejorar y cómo hacerlo.
+                        </p>
+                    </div>
+                </FadeIn>
+
+                {/* Video */}
+                <VideoCard
+                    title="Escenarios en Acción"
+                    description="Mira cómo funciona una sesión de práctica con IA"
+                    duration="2:00"
+                    videoUrl="https://youtu.be/gCfLZJHGfjU"
+                    variant="featured"
+                    accentColor={COLORS.maityBlue}
+                />
+
+                {/* How it works */}
+                <FadeIn delay={200}>
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-16 mb-16">
+                        {[
+                            { step: "1", label: "Elige un escenario", detail: "Selecciona la situación que quieres practicar" },
+                            { step: "2", label: "Conversa con la IA", detail: "El agente responde en tiempo real como lo haría un interlocutor real" },
+                            { step: "3", label: "Recibe feedback", detail: "Evaluación detallada de claridad, empatía, persuasión y estructura" },
+                        ].map((s, i) => (
+                            <div key={i} className="flex items-center gap-4">
+                                {i > 0 && <div className="hidden md:block w-12 h-px bg-white/10"></div>}
+                                <div className="text-center">
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-white text-lg" style={{ background: `linear-gradient(135deg, ${COLORS.maityBlue}, ${COLORS.maityGreen})` }}>
+                                        {s.step}
+                                    </div>
+                                    <h4 className="font-bold text-white text-sm mb-1">{s.label}</h4>
+                                    <p className="text-xs text-gray-500 max-w-[180px]">{s.detail}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </FadeIn>
+
+                {/* Scenarios Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {scenarios.map((sc, i) => (
+                        <FadeIn key={i} delay={i * 80}>
+                            <div className="bg-[#0F0F0F] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all group h-full flex flex-col">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className={`w-10 h-10 rounded-xl ${sc.bg} flex items-center justify-center ${sc.color}`}>{sc.icon}</div>
+                                    <span className={`text-xs font-bold uppercase tracking-widest ${sc.color}`}>{sc.skill}</span>
+                                </div>
+                                <h3 className="font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{sc.title}</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed flex-grow">{sc.desc}</p>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                {/* CTA */}
+                <FadeIn delay={500}>
+                    <div className="text-center mt-16">
+                        <p className="text-gray-400 text-sm mb-6">Cada escenario es personalizable. Crea los tuyos propios para tu industria y equipo.</p>
+                        <button
+                            onClick={() => setView('demo-calendar')}
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white hover:opacity-90 transition-all"
+                            style={{ background: `linear-gradient(90deg, ${COLORS.maityBlue}, ${COLORS.maityGreen})` }}
+                        >
+                            <Play size={18} /> Ver Demo de Escenarios
+                        </button>
+                    </div>
+                </FadeIn>
             </div>
         </section>
     );
@@ -4811,6 +4979,7 @@ export default function App() {
                     <>
                         <BusinessHeroSection setView={setActiveView} />
                         <BusinessDeepDive />
+                        <ScenariosSection setView={setActiveView} />
                         <CorporateQuiz setView={setActiveView} />
                         <B2BTeaser setView={setActiveView} />
                         <ROICalculator />
