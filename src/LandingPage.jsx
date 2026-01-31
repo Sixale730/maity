@@ -610,7 +610,7 @@ const Navbar = ({ activeView, setView }) => {
         { id: 'la-escalada', label: 'La Escalada', scroll: true },
         { id: 'business', label: 'Empresas' },
         { id: 'pricing', label: 'Precios' },
-        { id: 'demo-calendar', label: 'Agenda' },
+        { id: 'demo-calendar', label: 'Conócenos' },
     ];
 
     const handleNavClick = (link) => {
@@ -3238,6 +3238,27 @@ const PrimerosPasosView = ({ setView }) => {
 };
 
 const DemoCalendar = ({ setView }) => {
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedTime, setSelectedTime] = useState(null);
+    const [bookingStep, setBookingStep] = useState('calendar');
+    const [formData, setFormData] = useState({ name: '', email: '', company: '' });
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const dayNames = ['Lun','Mar','Mi\u00e9','Jue','Vie','S\u00e1b','Dom'];
+    const getDaysInMonth = (m, y) => new Date(y, m + 1, 0).getDate();
+    const getFirstDayOfMonth = (m, y) => { const d = new Date(y, m, 1).getDay(); return d === 0 ? 6 : d - 1; };
+    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+    const isAvailable = (day) => { const date = new Date(currentYear, currentMonth, day); const dow = date.getDay(); return dow !== 0 && dow !== 6 && day >= now.getDate(); };
+    const timeSlots = [
+        { time: '9:00 AM', period: 'Ma\u00f1ana' }, { time: '10:00 AM', period: 'Ma\u00f1ana' }, { time: '11:00 AM', period: 'Ma\u00f1ana' },
+        { time: '12:00 PM', period: 'Mediod\u00eda' },
+        { time: '4:00 PM', period: 'Tarde' }, { time: '5:00 PM', period: 'Tarde' }, { time: '6:00 PM', period: 'Tarde' },
+    ];
+
     const teamMembers = [
         {
             name: 'Poncho Robles',
@@ -3277,13 +3298,13 @@ const DemoCalendar = ({ setView }) => {
                 {/* Header */}
                 <FadeIn>
                     <div className="text-center mb-16">
-                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest mb-4 block">Contacto</span>
+                        <span className="text-sm font-bold text-pink-500 uppercase tracking-widest mb-4 block">Nuestro Equipo</span>
                         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                            Conoce a las personas detrás de{' '}
+                            Las personas detrás de{' '}
                             <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">Maity</span>
                         </h2>
                         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                            Conecta directamente con nuestro equipo. Estamos aquí para ayudarte a transformar la comunicación de tu organización.
+                            Conoce a nuestro equipo y agenda una reunión directa. Estamos aquí para transformar la comunicación de tu organización.
                         </p>
                     </div>
                 </FadeIn>
@@ -3325,17 +3346,26 @@ const DemoCalendar = ({ setView }) => {
                                     ))}
                                 </div>
 
-                                {/* LinkedIn CTA */}
-                                <a
-                                    href={member.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/10 text-sm font-bold text-white hover:bg-white/5 hover:border-white/20 transition-all group/btn"
-                                >
-                                    <Linkedin size={16} className="text-[#0A66C2]" />
-                                    <span>Conectar en LinkedIn</span>
-                                    <ArrowUpRight size={14} className="text-gray-500 group-hover/btn:text-white transition-colors" />
-                                </a>
+                                {/* Action Buttons */}
+                                <div className="flex gap-2">
+                                    <a
+                                        href={member.linkedin}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 text-sm font-bold text-white hover:bg-white/5 hover:border-white/20 transition-all"
+                                    >
+                                        <Linkedin size={16} className="text-[#0A66C2]" />
+                                        <span>LinkedIn</span>
+                                    </a>
+                                    <button
+                                        onClick={() => document.getElementById('booking-calendar')?.scrollIntoView({ behavior: 'smooth' })}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/20"
+                                        style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}
+                                    >
+                                        <Calendar size={16} />
+                                        <span>Agendar</span>
+                                    </button>
+                                </div>
                             </div>
                         </FadeIn>
                     ))}
@@ -3382,18 +3412,119 @@ const DemoCalendar = ({ setView }) => {
                             </div>
                         </div>
 
-                        {/* Bottom CTA */}
-                        <div className="mt-10 pt-8 border-t border-white/5 text-center">
-                            <p className="text-gray-400 mb-4">¿Quieres una demostración personalizada para tu equipo?</p>
-                            <a
-                                href="mailto:hola@maity.com.mx?subject=Solicitud de Demo - Maity"
-                                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-white font-bold text-sm shadow-lg hover:scale-105 transition-all"
-                                style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}
-                            >
-                                <Send size={16} />
-                                Solicitar Demo por Email
-                            </a>
+                    </div>
+                </FadeIn>
+
+                {/* Booking Calendar */}
+                <FadeIn delay={400}>
+                    <div id="booking-calendar" className="mt-16 bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 md:p-12 scroll-mt-24">
+                        <div className="text-center mb-8">
+                            <h3 className="text-2xl font-bold text-white mb-2">Agenda una reunión con nuestro equipo</h3>
+                            <p className="text-gray-500 text-sm">20 minutos · Videollamada 1:1 · Horario Ciudad de México (CST)</p>
                         </div>
+
+                        {bookingStep === 'calendar' && (
+                            <div className="max-w-md mx-auto">
+                                <p className="text-sm text-gray-400 mb-4 text-center">{monthNames[currentMonth]} {currentYear}</p>
+                                <div className="grid grid-cols-7 gap-1 mb-2">
+                                    {dayNames.map(d => (
+                                        <div key={d} className="text-center text-xs font-bold text-gray-600 py-2">{d}</div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                    {[...Array(firstDay)].map((_, i) => <div key={`e-${i}`} className="aspect-square" />)}
+                                    {[...Array(daysInMonth)].map((_, i) => {
+                                        const day = i + 1;
+                                        const avail = isAvailable(day);
+                                        const isToday = day === now.getDate();
+                                        return (
+                                            <button key={day} onClick={() => { if (avail) { setSelectedDate(day); setBookingStep('time'); } }} disabled={!avail}
+                                                className={`aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all ${avail ? 'bg-white/5 text-white hover:bg-pink-500/20 hover:text-pink-400 border border-transparent cursor-pointer' : 'text-gray-800 cursor-not-allowed'} ${isToday ? 'ring-1 ring-pink-500/50' : ''}`}>
+                                                {day}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-gray-600 mt-4 flex items-center justify-center gap-4">
+                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-pink-500/50" /> Hoy</span>
+                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-white/20" /> Disponible</span>
+                                </p>
+                            </div>
+                        )}
+
+                        {bookingStep === 'time' && (
+                            <div className="max-w-md mx-auto">
+                                <button onClick={() => setBookingStep('calendar')} className="text-sm text-gray-500 hover:text-pink-400 mb-4 flex items-center gap-1 transition-colors">
+                                    <ChevronRight size={14} className="rotate-180" /> Cambiar fecha
+                                </button>
+                                <p className="text-white font-bold mb-1">{selectedDate} de {monthNames[currentMonth]}</p>
+                                <p className="text-xs text-gray-500 mb-6">Selecciona un horario</p>
+                                <div className="space-y-2">
+                                    {timeSlots.map((slot) => (
+                                        <button key={slot.time} onClick={() => { setSelectedTime(slot.time); setBookingStep('details'); }}
+                                            className="w-full flex items-center justify-between p-4 rounded-xl border bg-white/5 border-white/5 text-white hover:border-pink-500/30 hover:bg-pink-500/10 transition-all">
+                                            <div className="flex items-center gap-3"><Clock size={16} className="text-gray-500" /><span className="font-medium">{slot.time}</span></div>
+                                            <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full">{slot.period}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {bookingStep === 'details' && (
+                            <div className="max-w-md mx-auto">
+                                <button onClick={() => setBookingStep('time')} className="text-sm text-gray-500 hover:text-pink-400 mb-4 flex items-center gap-1 transition-colors">
+                                    <ChevronRight size={14} className="rotate-180" /> Cambiar hora
+                                </button>
+                                <p className="text-white font-bold mb-1">{selectedDate} de {monthNames[currentMonth]} a las {selectedTime}</p>
+                                <p className="text-xs text-gray-500 mb-6">Completa tus datos</p>
+                                <form onSubmit={(e) => { e.preventDefault(); if (formData.name && formData.email) setBookingStep('confirmed'); }} className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Nombre completo</label>
+                                        <div className="relative">
+                                            <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                                            <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Tu nombre" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Email</label>
+                                        <div className="relative">
+                                            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                                            <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="tu@empresa.com" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">Empresa (opcional)</label>
+                                        <div className="relative">
+                                            <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                                            <input type="text" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} placeholder="Nombre de tu empresa" className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/25 transition-all" />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full mt-2 py-4 rounded-xl text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-500/25 transition-all" style={{ background: `linear-gradient(90deg, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}>
+                                        <Send size={18} /> Confirmar Reunión
+                                    </button>
+                                </form>
+                                <p className="text-xs text-gray-600 mt-4 text-center"><Lock size={12} className="inline mr-1" />Tus datos están protegidos.</p>
+                            </div>
+                        )}
+
+                        {bookingStep === 'confirmed' && (
+                            <div className="text-center py-8 max-w-md mx-auto">
+                                <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/30">
+                                    <Check size={40} className="text-green-500" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-2">Reunión Agendada</h3>
+                                <p className="text-gray-400 mb-6">{selectedDate} de {monthNames[currentMonth]} a las {selectedTime}</p>
+                                <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8 text-sm text-left space-y-3">
+                                    <div className="flex justify-between"><span className="text-gray-500">Nombre</span><span className="text-white font-medium">{formData.name}</span></div>
+                                    <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="text-white font-medium">{formData.email}</span></div>
+                                    {formData.company && <div className="flex justify-between"><span className="text-gray-500">Empresa</span><span className="text-white font-medium">{formData.company}</span></div>}
+                                    <div className="flex justify-between"><span className="text-gray-500">Duración</span><span className="text-white font-medium">20 minutos</span></div>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-6">Te enviaremos un correo de confirmación con el enlace de la videollamada.</p>
+                                <button onClick={() => setView('product')} className="text-pink-400 hover:text-pink-300 text-sm font-medium transition-colors">← Volver al inicio</button>
+                            </div>
+                        )}
                     </div>
                 </FadeIn>
             </div>
