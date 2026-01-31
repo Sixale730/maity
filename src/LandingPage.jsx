@@ -134,7 +134,6 @@ const FadeIn = ({ children, delay = 0, className = "" }) => {
 // --- VIDEO CARD COMPONENT ---
 const VideoCard = ({ title, description, duration, thumbnailUrl, videoUrl, variant = 'inline', accentColor = COLORS.maityPink }) => {
     const [playing, setPlaying] = useState(false);
-    const isPlaceholder = !videoUrl && !thumbnailUrl && !autoThumbnail;
 
     const getYouTubeId = (url) => {
         if (!url) return null;
@@ -145,6 +144,7 @@ const VideoCard = ({ title, description, duration, thumbnailUrl, videoUrl, varia
     const ytId = getYouTubeId(videoUrl);
     const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0` : null;
     const autoThumbnail = !thumbnailUrl && ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : thumbnailUrl;
+    const isPlaceholder = !videoUrl && !thumbnailUrl && !autoThumbnail;
 
     return (
         <FadeIn delay={200}>
