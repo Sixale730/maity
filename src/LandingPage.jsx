@@ -1629,6 +1629,79 @@ const ProductInfoSection = () => {
     );
 };
 
+// --- WEARABLE SECTION ---
+const WearableSection = ({ setView }) => {
+    const specs = [
+        { icon: <Mic size={18} />, label: "Micrófono + speaker de alta fidelidad", color: COLORS.maityPink },
+        { icon: <Bluetooth size={18} />, label: "Bluetooth Low Energy 5.0", color: COLORS.maityBlue },
+        { icon: <Battery size={18} />, label: "16 horas de batería", color: COLORS.maityGreen },
+        { icon: <Thermometer size={18} />, label: "Solo 35 gramos", color: "#ff8c42" },
+        { icon: <Smartphone size={18} />, label: "Companion App (iOS / Android)", color: "#9b4dca" },
+        { icon: <Shield size={18} />, label: "Procesamiento local — sin grabación", color: "#06b6d4" },
+    ];
+
+    return (
+        <section className="py-24 bg-[#0A0A0A] border-t border-white/5">
+            <div className="max-w-6xl mx-auto px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <FadeIn>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/10 border border-blue-500/20 mb-6">
+                            <HardDrive size={14} className="text-blue-500" />
+                            <span className="text-xs font-bold text-blue-300 tracking-wide uppercase">Hardware</span>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                            Maity <span style={{ color: COLORS.maityBlue }}>Wearable</span>
+                        </h2>
+                        <p className="text-xl text-gray-400 mb-8 leading-relaxed">
+                            Un dispositivo que escucha tus conversaciones reales (con tu consentimiento) y te da feedback en tiempo real. Privacidad total: procesa localmente y no almacena audio.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                            {specs.map((spec, i) => (
+                                <div key={i} className="flex items-center gap-3 p-3 bg-[#0F0F0F] rounded-xl border border-white/5">
+                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${spec.color}20` }}>
+                                        <div style={{ color: spec.color }}>{spec.icon}</div>
+                                    </div>
+                                    <span className="text-sm text-gray-300">{spec.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setView('demo-calendar')}
+                            className="px-8 py-4 rounded-full font-bold text-white shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+                            style={{ background: `linear-gradient(90deg, ${COLORS.maityBlue}, ${COLORS.maityGreen})` }}
+                        >
+                            <HardDrive size={18} /> Reservar Wearable
+                        </button>
+                    </FadeIn>
+
+                    <FadeIn delay={200} className="relative">
+                        <div className="bg-[#0F0F0F] rounded-3xl border border-white/10 p-12 text-center">
+                            <div className="w-32 h-32 rounded-full mx-auto mb-8 flex items-center justify-center" style={{ backgroundColor: `${COLORS.maityBlue}15`, border: `2px solid ${COLORS.maityBlue}30` }}>
+                                <HardDrive size={48} style={{ color: COLORS.maityBlue }} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-2">Maity Pendant</h3>
+                            <p className="text-gray-500 text-sm mb-6">Tu coach de comunicación — siempre contigo</p>
+                            <div className="flex justify-center gap-6 text-center">
+                                <div>
+                                    <p className="text-2xl font-bold text-white">35g</p>
+                                    <p className="text-[10px] text-gray-600 uppercase">Peso</p>
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-white">16h</p>
+                                    <p className="text-[10px] text-gray-600 uppercase">Batería</p>
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-white">BLE 5</p>
+                                    <p className="text-[10px] text-gray-600 uppercase">Conexión</p>
+                                </div>
+                            </div>
+                        </div>
+                    </FadeIn>
+                </div>
+            </div>
+        </section>
+    );
+};
 
 // 11. Unified Pricing Section
 const Pricing = ({ initialTab = 'individual', setView }) => {
@@ -1675,12 +1748,14 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                         <FadeIn delay={100} className="flex flex-col h-full">
                             <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left hover:border-white/20 transition-all flex flex-col h-full group">
-                                <h3 className="font-bold text-xl text-white mb-2">Maity Free</h3>
-                                <p className="text-3xl font-bold text-white mb-6">$0</p>
+                                <h3 className="font-bold text-xl text-white mb-2">Explorador</h3>
+                                <p className="text-3xl font-bold text-white mb-1">Gratis</p>
+                                <p className="text-xs text-gray-500 mb-6">Para siempre, sin tarjeta</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 5 prácticas mensuales</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Análisis básico</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Web App access</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 3 roleplays mensuales</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Análisis básico de comunicación</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 1 montaña disponible</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Web App</li>
                                 </ul>
                                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                                     Empezar Gratis
@@ -1691,13 +1766,15 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                         <FadeIn delay={200} className="flex flex-col h-full">
                             <div className="p-8 bg-black border-2 border-pink-500 rounded-3xl text-left shadow-2xl shadow-pink-500/10 flex flex-col h-full relative transform md:-translate-y-4">
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter">Más Popular</div>
-                                <h3 className="font-bold text-xl text-white mb-2">Maity Pro</h3>
-                                <p className="text-3xl font-bold text-white mb-6">${annual ? '9.99' : '12.99'}<span className="text-sm font-normal text-gray-500">/mes</span></p>
+                                <h3 className="font-bold text-xl text-white mb-2">Escalador</h3>
+                                <p className="text-3xl font-bold text-white mb-1">${annual ? '15' : '19'}<span className="text-sm font-normal text-gray-500"> USD/mes</span></p>
+                                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente' : 'Facturado mensual'}</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-300 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> <strong>Llamadas reales ilimitadas</strong></li>
-                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Feedback táctico IA</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Todos los escenarios</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> <strong>Roleplays ilimitados</strong></li>
+                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Coach IA personalizado</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> 6 montañas completas</li>
                                     <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Dashboard de evolución</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Todos los escenarios</li>
                                 </ul>
                                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-pink-500/20">
                                     Suscribirse ahora
@@ -1707,15 +1784,18 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
 
                         <FadeIn delay={300} className="flex flex-col h-full">
                             <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left hover:border-blue-500/30 transition-all flex flex-col h-full">
-                                <h3 className="font-bold text-xl text-blue-400 mb-2">Maity Pendant</h3>
-                                <p className="text-3xl font-bold text-white mb-6">$99<span className="text-sm font-normal text-gray-500"> (Pago único)</span></p>
+                                <h3 className="font-bold text-xl text-blue-400 mb-2">Guía</h3>
+                                <p className="text-3xl font-bold text-white mb-1">${annual ? '39' : '49'}<span className="text-sm font-normal text-gray-500"> USD/mes</span></p>
+                                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente' : 'Facturado mensual'}</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Hardware Maity Original</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Feedback háptico</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Privacidad offline</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Todo lo de Escalador</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Mentor humano asignado</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Reportes ejecutivos</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Acceso API</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte prioritario</li>
                                 </ul>
                                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-blue-500/30 text-blue-400 font-bold hover:bg-blue-500/10 transition-all">
-                                    Reservar Unidad
+                                    Comenzar Guía
                                 </button>
                             </div>
                         </FadeIn>
@@ -1724,29 +1804,33 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                         <FadeIn delay={100} className="flex flex-col h-full">
                             <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left flex flex-col h-full">
-                                <h3 className="font-bold text-xl text-white mb-2">Starter</h3>
-                                <p className="text-3xl font-bold text-white mb-6">${annual ? '19' : '22'}<span className="text-sm font-normal text-gray-500">/user/mes</span></p>
+                                <h3 className="font-bold text-xl text-white mb-2">Equipo</h3>
+                                <p className="text-3xl font-bold text-white mb-1">${annual ? '12' : '15'}<span className="text-sm font-normal text-gray-500"> USD/user/mes</span></p>
+                                <p className="text-xs text-gray-500 mb-6">Hasta 20 usuarios</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Equipos hasta 20 personas</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dashboard de manager</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte standard</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Escenarios estándar</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Reportes de equipo</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte estándar</li>
                                 </ul>
                                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
-                                    Iniciar Piloto
+                                    Iniciar Piloto Gratis
                                 </button>
                             </div>
                         </FadeIn>
 
                         <FadeIn delay={200} className="flex flex-col h-full">
                             <div className="p-8 bg-black border-2 border-blue-600 rounded-3xl text-left shadow-2xl shadow-blue-500/10 flex flex-col h-full relative transform md:-translate-y-4">
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter">Escalable</div>
-                                <h3 className="font-bold text-xl text-white mb-2">Growth</h3>
-                                <p className="text-3xl font-bold text-white mb-6">${annual ? '39' : '45'}<span className="text-sm font-normal text-gray-500">/user/mes</span></p>
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter">Mejor Valor</div>
+                                <h3 className="font-bold text-xl text-white mb-2">Organización</h3>
+                                <p className="text-3xl font-bold text-white mb-1">${annual ? '10' : '12'}<span className="text-sm font-normal text-gray-500"> USD/user/mes</span></p>
+                                <p className="text-xs text-gray-500 mb-6">50+ usuarios — precio por volumen</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-300 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Hasta 100 personas</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Escenarios customizados</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Integración con CRM</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> AI Insights avanzados</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> ROI Dashboard</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte prioritario</li>
                                 </ul>
                                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:scale-[1.02] transition-all">
                                     Hablar con Ventas
@@ -1757,12 +1841,14 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                         <FadeIn delay={300} className="flex flex-col h-full">
                             <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left flex flex-col h-full">
                                 <h3 className="font-bold text-xl text-white mb-2">Enterprise</h3>
-                                <p className="text-3xl font-bold text-white mb-6">Custom</p>
+                                <p className="text-3xl font-bold text-white mb-1">Custom</p>
+                                <p className="text-xs text-gray-500 mb-6">Usuarios ilimitados</p>
                                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Usuarios ilimitados</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SSO / SAML</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> On-premise / Private Cloud</li>
                                     <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SLA garantizado</li>
-                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dedicated CSM</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> CSM dedicado</li>
+                                    <li className="flex gap-3"><Check size={16} className="text-blue-500" /> API completa</li>
                                 </ul>
                                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                                     Pedir Cotización
@@ -1802,34 +1888,34 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                                     <thead>
                                         <tr className="border-b border-white/10">
                                             <th className="py-4 px-4 text-gray-400 font-medium w-1/3">Característica</th>
-                                            <th className="py-4 px-4 text-center text-white font-bold">Free</th>
-                                            <th className="py-4 px-4 text-center text-pink-400 font-bold">Pro</th>
-                                            <th className="py-4 px-4 text-center text-blue-400 font-bold">Pendant</th>
+                                            <th className="py-4 px-4 text-center text-white font-bold">Explorador</th>
+                                            <th className="py-4 px-4 text-center text-pink-400 font-bold">Escalador</th>
+                                            <th className="py-4 px-4 text-center text-blue-400 font-bold">Guía</th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-gray-400">
                                         {[
-                                            { feature: "Conversaciones analizadas", free: "5/mes", pro: "Ilimitadas", pendant: "Ilimitadas" },
-                                            { feature: "Feedback de IA", free: "Básico", pro: "Táctico avanzado", pendant: "Táctico avanzado" },
-                                            { feature: "Escenarios de práctica", free: "2", pro: "Todos", pendant: "Todos" },
-                                            { feature: "Dashboard de evolución", free: false, pro: true, pendant: true },
-                                            { feature: "La Escalada (gamificación)", free: "Básica", pro: "Completa", pendant: "Completa" },
-                                            { feature: "Competencias certificables", free: false, pro: true, pendant: true },
-                                            { feature: "Feedback háptico", free: false, pro: false, pendant: true },
-                                            { feature: "Hardware Maity", free: false, pro: false, pendant: true },
-                                            { feature: "Modo offline", free: false, pro: false, pendant: true },
-                                            { feature: "Soporte", free: "Comunidad", pro: "Email prioritario", pendant: "Prioritario" },
+                                            { feature: "Roleplays con IA", explorador: "3/mes", escalador: "Ilimitados", guia: "Ilimitados" },
+                                            { feature: "Feedback de IA", explorador: "Básico", escalador: "Táctico avanzado", guia: "Táctico + estratégico" },
+                                            { feature: "Montañas disponibles", explorador: "1", escalador: "6 completas", guia: "6 completas" },
+                                            { feature: "Coach IA personalizado", explorador: false, escalador: true, guia: true },
+                                            { feature: "Dashboard de evolución", explorador: false, escalador: true, guia: true },
+                                            { feature: "Mentor humano asignado", explorador: false, escalador: false, guia: true },
+                                            { feature: "Reportes ejecutivos", explorador: false, escalador: false, guia: true },
+                                            { feature: "Acceso API", explorador: false, escalador: false, guia: true },
+                                            { feature: "Competencias certificables", explorador: false, escalador: true, guia: true },
+                                            { feature: "Soporte", explorador: "Comunidad", escalador: "Email", guia: "Prioritario" },
                                         ].map((row, i) => (
                                             <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                                                 <td className="py-3.5 px-4 text-gray-300">{row.feature}</td>
-                                                {['free', 'pro', 'pendant'].map((plan) => (
+                                                {['explorador', 'escalador', 'guia'].map((plan) => (
                                                     <td key={plan} className="py-3.5 px-4 text-center">
                                                         {row[plan] === true ? (
-                                                            <Check size={16} className={`mx-auto ${plan === 'pro' ? 'text-pink-500' : plan === 'pendant' ? 'text-blue-500' : 'text-green-500'}`} />
+                                                            <Check size={16} className={`mx-auto ${plan === 'escalador' ? 'text-pink-500' : plan === 'guia' ? 'text-blue-500' : 'text-green-500'}`} />
                                                         ) : row[plan] === false ? (
                                                             <span className="text-gray-700">—</span>
                                                         ) : (
-                                                            <span className={plan === 'pro' ? 'text-pink-400' : plan === 'pendant' ? 'text-blue-400' : ''}>{row[plan]}</span>
+                                                            <span className={plan === 'escalador' ? 'text-pink-400' : plan === 'guia' ? 'text-blue-400' : ''}>{row[plan]}</span>
                                                         )}
                                                     </td>
                                                 ))}
@@ -1844,34 +1930,37 @@ const Pricing = ({ initialTab = 'individual', setView }) => {
                                     <thead>
                                         <tr className="border-b border-white/10">
                                             <th className="py-4 px-4 text-gray-400 font-medium w-1/3">Característica</th>
-                                            <th className="py-4 px-4 text-center text-white font-bold">Starter</th>
-                                            <th className="py-4 px-4 text-center text-blue-400 font-bold">Growth</th>
+                                            <th className="py-4 px-4 text-center text-white font-bold">Equipo</th>
+                                            <th className="py-4 px-4 text-center text-blue-400 font-bold">Organización</th>
                                             <th className="py-4 px-4 text-center text-white font-bold">Enterprise</th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-gray-400">
                                         {[
-                                            { feature: "Usuarios", starter: "Hasta 20", growth: "Hasta 100", enterprise: "Ilimitados" },
-                                            { feature: "Dashboard de manager", starter: true, growth: true, enterprise: true },
-                                            { feature: "Escenarios customizados", starter: false, growth: true, enterprise: true },
-                                            { feature: "Integración con CRM", starter: false, growth: true, enterprise: true },
-                                            { feature: "AI Insights avanzados", starter: false, growth: true, enterprise: true },
-                                            { feature: "ROI Dashboard", starter: false, growth: true, enterprise: true },
-                                            { feature: "On-premise / Private Cloud", starter: false, growth: false, enterprise: true },
-                                            { feature: "SLA garantizado", starter: false, growth: false, enterprise: true },
-                                            { feature: "CSM dedicado", starter: false, growth: false, enterprise: true },
-                                            { feature: "Soporte", starter: "Standard", growth: "Prioritario", enterprise: "24/7 dedicado" },
+                                            { feature: "Usuarios", equipo: "Hasta 20", organizacion: "50+", enterprise: "Ilimitados" },
+                                            { feature: "Dashboard de manager", equipo: true, organizacion: true, enterprise: true },
+                                            { feature: "Reportes de equipo", equipo: true, organizacion: true, enterprise: true },
+                                            { feature: "Escenarios customizados", equipo: false, organizacion: true, enterprise: true },
+                                            { feature: "Integración con CRM", equipo: false, organizacion: true, enterprise: true },
+                                            { feature: "AI Insights avanzados", equipo: false, organizacion: true, enterprise: true },
+                                            { feature: "ROI Dashboard", equipo: false, organizacion: true, enterprise: true },
+                                            { feature: "SSO / SAML", equipo: false, organizacion: false, enterprise: true },
+                                            { feature: "On-premise / Private Cloud", equipo: false, organizacion: false, enterprise: true },
+                                            { feature: "SLA garantizado", equipo: false, organizacion: false, enterprise: true },
+                                            { feature: "CSM dedicado", equipo: false, organizacion: false, enterprise: true },
+                                            { feature: "API completa", equipo: false, organizacion: false, enterprise: true },
+                                            { feature: "Soporte", equipo: "Estándar", organizacion: "Prioritario", enterprise: "24/7 dedicado" },
                                         ].map((row, i) => (
                                             <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                                                 <td className="py-3.5 px-4 text-gray-300">{row.feature}</td>
-                                                {['starter', 'growth', 'enterprise'].map((plan) => (
+                                                {['equipo', 'organizacion', 'enterprise'].map((plan) => (
                                                     <td key={plan} className="py-3.5 px-4 text-center">
                                                         {row[plan] === true ? (
-                                                            <Check size={16} className={`mx-auto ${plan === 'growth' ? 'text-blue-500' : 'text-green-500'}`} />
+                                                            <Check size={16} className={`mx-auto ${plan === 'organizacion' ? 'text-blue-500' : 'text-green-500'}`} />
                                                         ) : row[plan] === false ? (
                                                             <span className="text-gray-700">—</span>
                                                         ) : (
-                                                            <span className={plan === 'growth' ? 'text-blue-400' : ''}>{row[plan]}</span>
+                                                            <span className={plan === 'organizacion' ? 'text-blue-400' : ''}>{row[plan]}</span>
                                                         )}
                                                     </td>
                                                 ))}
@@ -2016,6 +2105,76 @@ const SkillsGridSection = () => {
                         </FadeIn>
                     ))}
                 </div>
+            </div>
+        </section>
+    );
+};
+
+// --- PILOT SECTION (B2B) ---
+const PilotSection = ({ setView }) => {
+    const steps = [
+        { step: "01", title: "Configuración", desc: "Setup gratuito. Definimos objetivos y escenarios con tu equipo.", icon: <Zap size={20} />, color: COLORS.maityBlue },
+        { step: "02", title: "Selección", desc: "Elige 5 a 20 usuarios piloto de tu organización.", icon: <Users size={20} />, color: COLORS.maityGreen },
+        { step: "03", title: "Entrenamiento", desc: "30 días de práctica con IA, feedback táctico y gamificación.", icon: <Activity size={20} />, color: COLORS.maityPink },
+        { step: "04", title: "Reporte ROI", desc: "Métricas de impacto, progreso por usuario y recomendaciones.", icon: <BarChart2 size={20} />, color: "#ff8c42" },
+    ];
+
+    return (
+        <section className="py-24 bg-[#0A0A0A] border-y border-white/5">
+            <div className="max-w-6xl mx-auto px-4">
+                <FadeIn>
+                    <div className="text-center mb-16">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-900/20 border border-green-500/20 mb-6">
+                            <Shield size={14} className="text-green-500" />
+                            <span className="text-xs font-bold text-green-300 tracking-wide uppercase">Sin riesgo</span>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                            Piloto de <span style={{ color: COLORS.maityGreen }}>30 días</span> — gratis
+                        </h2>
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                            Prueba Maity con tu equipo antes de comprometerte. Sin tarjeta, sin contrato, con resultados medibles.
+                        </p>
+                    </div>
+                </FadeIn>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    {steps.map((s, i) => (
+                        <FadeIn key={i} delay={i * 100}>
+                            <div className="p-6 bg-[#0F0F0F] rounded-2xl border border-white/5 hover:border-white/15 transition-all text-center h-full">
+                                <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${s.color}20` }}>
+                                    <div style={{ color: s.color }}>{s.icon}</div>
+                                </div>
+                                <p className="text-xs font-bold text-gray-600 mb-2">PASO {s.step}</p>
+                                <h4 className="text-lg font-bold text-white mb-2">{s.title}</h4>
+                                <p className="text-sm text-gray-500">{s.desc}</p>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+
+                <FadeIn delay={500}>
+                    <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm text-gray-400">
+                        {[
+                            { v: "Setup gratis", i: <Check size={14} className="text-green-500" /> },
+                            { v: "30 días completos", i: <Calendar size={14} className="text-blue-500" /> },
+                            { v: "5-20 usuarios", i: <Users size={14} className="text-pink-500" /> },
+                            { v: "ROI medible", i: <BarChart2 size={14} className="text-orange-500" /> },
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                                {item.i} {item.v}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-center">
+                        <button
+                            onClick={() => setView('demo-calendar')}
+                            className="px-10 py-4 rounded-full text-white font-bold text-lg shadow-xl hover:scale-105 transition-all"
+                            style={{ background: `linear-gradient(90deg, ${COLORS.maityBlue}, ${COLORS.maityGreen})` }}
+                        >
+                            Solicitar Piloto Gratuito
+                        </button>
+                    </div>
+                </FadeIn>
             </div>
         </section>
     );
@@ -2249,22 +2408,18 @@ const TrustSection = ({ variant = 'product', setView }) => {
     );
 };
 
-// 6. Gamification "The Climb"
+// 6. Gamification "The Climb" — 6 Mountains System
 const TheClimb = ({ setView }) => {
-    const levels = [
-        { name: "Aprendiz", color: "bg-gray-600", active: true },
-        { name: "Explorador", color: "bg-blue-500", active: true },
-        { name: "Comunicador", color: "bg-purple-500", active: true },
-        { name: "Experto", color: "bg-pink-500", active: false },
-        { name: "Leyenda", color: "bg-yellow-500", active: false },
+    const mountains = [
+        { name: "Claridad", emoji: "💎", color: COLORS.maityBlue, pct: 72, desc: "Expresión clara y estructurada" },
+        { name: "Empatía", emoji: "💚", color: COLORS.maityGreen, pct: 45, desc: "Escucha activa y conexión" },
+        { name: "Persuasión", emoji: "🔥", color: COLORS.maityPink, pct: 58, desc: "Influencia y convicción" },
+        { name: "Consultor", emoji: "🧠", color: "#9b4dca", pct: 40, desc: "Asesoría y diagnóstico" },
+        { name: "Negociador", emoji: "🤝", color: "#ff8c42", pct: 33, desc: "Acuerdos y resolución" },
+        { name: "Servicio", emoji: "⭐", color: "#06b6d4", pct: 25, desc: "Atención al cliente" },
     ];
 
-    const skills = [
-        { name: "Claridad", pct: 72, color: "bg-pink-500" },
-        { name: "Empat\u00eda", pct: 45, color: "bg-blue-500" },
-        { name: "Persuasi\u00f3n", pct: 58, color: "bg-purple-500" },
-        { name: "Negociaci\u00f3n", pct: 33, color: "bg-green-500" },
-    ];
+    const camps = ["Base", "Medio", "Avanzado", "Cumbre", "Boss"];
 
     return (
         <section id="la-escalada" className="py-24 bg-[#050505] relative overflow-hidden">
@@ -2273,19 +2428,19 @@ const TheClimb = ({ setView }) => {
                     <FadeIn>
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 mb-6">
                             <Mountain size={14} className="text-pink-500" />
-                            <span className="text-xs font-bold text-pink-200 tracking-wide uppercase">Tu Ruta de Crecimiento</span>
+                            <span className="text-xs font-bold text-pink-200 tracking-wide uppercase">La Escalada — 6 Montañas</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Tu progreso, <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}>visible y medible</span></h2>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Conquista cada <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${COLORS.maityPink}, ${COLORS.maityBlue})` }}>montaña de comunicación</span></h2>
                         <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-                            Cada conversación que analizas suma a tu desarrollo. Maity convierte tu evolución en una ruta clara con niveles, hitos y reconocimientos que puedes compartir.
+                            Cada habilidad es una montaña con 5 campamentos. Avanza con práctica real, supera boss fights y desbloquea equipamiento mientras dominas la comunicación.
                         </p>
                         <ul className="space-y-5 text-gray-300">
                             {[
-                                { t: "Avance por pr\u00e1ctica real", d: "Cada conversaci\u00f3n analizada suma a tu nivel de competencia.", i: <TrendingUp size={18} className="text-green-500" /> },
-                                { t: "H\u00e1bito diario", d: "Mant\u00e9n tu ritmo de entrenamiento y acelera tu crecimiento.", i: <Activity size={18} className="text-orange-500" /> },
-                                { t: "Niveles de maestr\u00eda", d: "Progresa de Aprendiz a Leyenda en 5 niveles medibles.", i: <Award size={18} className="text-blue-500" /> },
-                                { t: "Competencias certificables", d: "Claridad, Empat\u00eda, Persuasi\u00f3n: cada habilidad tiene su propia ruta.", i: <Target size={18} className="text-purple-500" /> },
-                                { t: "Reconocimientos", d: "Insignias por logros reales: primera llamada, racha de 7 d\u00edas, nivel avanzado.", i: <Trophy size={18} className="text-yellow-500" /> }
+                                { t: "6 montañas temáticas", d: "Claridad, Empatía, Persuasión, Consultor, Negociador y Servicio.", i: <Mountain size={18} className="text-pink-500" /> },
+                                { t: "5 campamentos por montaña", d: "Base → Medio → Avanzado → Cumbre → Boss Fight final.", i: <TrendingUp size={18} className="text-green-500" /> },
+                                { t: "Boss Fights", d: "Desafíos de roleplay intensivo al final de cada campamento.", i: <Zap size={18} className="text-orange-500" /> },
+                                { t: "Equipamiento y XP", d: "Gana experiencia, desbloquea insignias y herramientas por cada logro.", i: <Award size={18} className="text-blue-500" /> },
+                                { t: "Competencias certificables", d: "Cada montaña mide una competencia específica con progreso visible.", i: <Target size={18} className="text-purple-500" /> }
                             ].map((item, i) => (
                                 <li key={i} className="flex gap-4">
                                     <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">{item.i}</div>
@@ -2301,49 +2456,53 @@ const TheClimb = ({ setView }) => {
                             className="mt-10 px-8 py-4 rounded-full text-white font-bold shadow-xl hover:scale-105 transition-all flex items-center gap-2"
                             style={{ backgroundColor: COLORS.maityPink }}
                         >
-                            <Mountain size={18} /> Descubre tu nivel
+                            <Mountain size={18} /> Empieza tu escalada
                         </button>
                     </FadeIn>
 
-                    {/* Right — Professional Progress Mockup */}
+                    {/* Right — 6 Mountains Progress Mockup */}
                     <FadeIn delay={200} className="relative">
                         <div className="bg-[#0F0F0F] rounded-3xl border border-white/10 overflow-hidden shadow-2xl p-8">
-                            {/* Level Progress Header */}
+                            {/* Header */}
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Tu nivel actual</p>
-                                    <h3 className="text-2xl font-bold text-white">Comunicador</h3>
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Tu expedición</p>
+                                    <h3 className="text-2xl font-bold text-white">6 Montañas</h3>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Nivel 3 de 5</p>
-                                    <p className="text-sm font-bold text-pink-400">60% completado</p>
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Progreso global</p>
+                                    <p className="text-sm font-bold text-pink-400">45% completado</p>
                                 </div>
                             </div>
 
-                            {/* Level Steps */}
-                            <div className="flex items-center gap-1 mb-8">
-                                {levels.map((level, i) => (
-                                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                        <div className={`w-full h-2 rounded-full ${level.active ? level.color : 'bg-gray-800'} transition-all`}></div>
-                                        <span className={`text-[10px] font-bold ${level.active ? 'text-gray-300' : 'text-gray-700'}`}>{level.name}</span>
+                            {/* Mountains Grid */}
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {mountains.map((m, i) => (
+                                    <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/15 transition-all">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-lg">{m.emoji}</span>
+                                            <span className="text-sm font-bold text-white">{m.name}</span>
+                                        </div>
+                                        <p className="text-[10px] text-gray-500 mb-2">{m.desc}</p>
+                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-1">
+                                            <div className="h-full rounded-full transition-all" style={{ width: `${m.pct}%`, backgroundColor: m.color }}></div>
+                                        </div>
+                                        <p className="text-[10px] text-gray-600 text-right">{m.pct}%</p>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Skill Bars */}
-                            <div className="space-y-4 mb-8">
-                                <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Competencias</p>
-                                {skills.map((skill, i) => (
-                                    <div key={i}>
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span className="text-gray-300 font-medium">{skill.name}</span>
-                                            <span className="text-gray-500">{skill.pct}%</span>
+                            {/* Campamentos Preview */}
+                            <div className="mb-6">
+                                <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Campamentos — Montaña de Claridad</p>
+                                <div className="flex items-center gap-1">
+                                    {camps.map((camp, i) => (
+                                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                                            <div className={`w-full h-2 rounded-full transition-all ${i < 3 ? '' : 'bg-gray-800'}`} style={i < 3 ? { backgroundColor: COLORS.maityBlue } : {}}></div>
+                                            <span className={`text-[9px] font-bold ${i < 3 ? 'text-gray-300' : 'text-gray-700'}`}>{camp}</span>
                                         </div>
-                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                            <div className={`h-full ${skill.color} rounded-full transition-all`} style={{ width: `${skill.pct}%` }}></div>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Streak Badge */}
@@ -2387,34 +2546,34 @@ const ArchetypeQuiz = ({ setView }) => {
 
     const archetypes = {
         driver: {
-            name: "Comunicador Directo",
+            name: "Estratega",
             emoji: "⚡",
             color: COLORS.maityPink,
             tagline: "Tu superpoder: ir al punto con claridad y seguridad",
             description: "No te andas con rodeos. Cuando hablas, la gente sabe exactamente qué esperas. Tu franqueza genera respeto y tus ideas se entienden a la primera. Pero a veces la velocidad puede hacer que otros sientan que no hay espacio para su voz.",
             strengths: ["Claridad bajo presión", "Mensajes directos y memorables", "Decisiones rápidas y comunicadas"],
             growth: ["Dar espacio a la escucha activa", "Suavizar el tono en temas sensibles", "Pausar antes de responder"],
-            maityPlan: "Tu Escalada Maity: Empatía Track — 21 días de micro-retos para conectar sin perder tu fuerza."
+            maityPlan: "Tu Escalada Maity: Montaña de Empatía — micro-retos para conectar sin perder tu fuerza."
         },
         connector: {
-            name: "Comunicador Empático",
+            name: "Conector",
             emoji: "💫",
             color: COLORS.maityBlue,
             tagline: "Tu superpoder: que la gente se sienta escuchada y segura contigo",
             description: "Las personas confían en ti porque genuinamente escuchas. Creas ambientes donde todos se atreven a hablar. Tu calidez desarma conflictos y construye equipos fuertes. Pero a veces tu amabilidad puede diluir tu mensaje cuando necesitas ser firme.",
             strengths: ["Escucha activa y validación", "Construcción de confianza rápida", "Resolución natural de tensiones"],
             growth: ["Comunicar con firmeza cuando es necesario", "Decir que no sin culpa", "Estructurar ideas antes de compartirlas"],
-            maityPlan: "Tu Escalada Maity: Claridad Track — 21 días para comunicar con fuerza sin perder tu calidez."
+            maityPlan: "Tu Escalada Maity: Montaña de Claridad — entrena para comunicar con fuerza sin perder tu calidez."
         },
         strategist: {
-            name: "Comunicador Analítico",
+            name: "Analítico",
             emoji: "🎯",
             color: COLORS.maityGreen,
             tagline: "Tu superpoder: que nadie cuestione tu lógica ni tu preparación",
             description: "Piensas antes de hablar y se nota. Tus argumentos son sólidos, tus presentaciones impecables. La gente respeta tu rigor y confía en tus conclusiones. Pero a veces el exceso de análisis puede frenar la conversación y alejar a quienes buscan conexión emocional.",
             strengths: ["Argumentación sólida y estructurada", "Preparación meticulosa", "Análisis objetivo de situaciones"],
             growth: ["Storytelling emocional", "Improvisar con confianza", "Conectar antes de convencer"],
-            maityPlan: "Tu Escalada Maity: Persuasión Track — 21 días para inspirar y mover a la acción."
+            maityPlan: "Tu Escalada Maity: Montaña de Persuasión — inspira y mueve a la acción con narrativa."
         }
     };
 
@@ -2601,9 +2760,10 @@ const ArchetypeQuiz = ({ setView }) => {
                         </div>
 
                         {/* Maity Plan */}
-                        <div className="p-5 bg-gradient-to-r from-pink-900/10 to-blue-900/10 rounded-xl border border-pink-500/20 mb-8">
+                        <div className="p-5 bg-gradient-to-r from-pink-900/10 to-blue-900/10 rounded-xl border border-pink-500/20 mb-4">
                             <p className="text-white font-bold text-sm">{result.archetype.maityPlan}</p>
                         </div>
+                        <p className="text-xs text-gray-500 mb-8 italic">Este es 1 de los 6 tipos de comunicador que Maity evalúa: Estratega, Conector, Persuasor, Mediador, Analítico e Inspirador. Descubre tu perfil completo al registrarte.</p>
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -2615,7 +2775,7 @@ const ArchetypeQuiz = ({ setView }) => {
                                 Empieza Tu Escalada Gratis
                             </button>
                             <button
-                                onClick={() => { if (navigator.share) { navigator.share({ title: `Mi arquetipo Maity: ${result.archetype.name}`, text: `${result.archetype.tagline}. Descubre el tuyo en maity.com` }); } }}
+                                onClick={() => { if (navigator.share) { navigator.share({ title: `Soy ${result.archetype.name} — Maity`, text: `${result.archetype.tagline}. Descubre tu tipo en maity.com` }); } }}
                                 className="px-6 py-4 font-bold rounded-full border border-white/20 text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
                             >
                                 <Share2 size={18} /> Compartir Resultado
@@ -2623,6 +2783,86 @@ const ArchetypeQuiz = ({ setView }) => {
                         </div>
                     </FadeIn>
                 )}
+            </div>
+        </section>
+    );
+};
+
+// --- SOLUCIONES GRID (B2B) ---
+const SolucionesGrid = () => {
+    const soluciones = [
+        {
+            icon: <DollarSign size={24} />,
+            title: "Ventas",
+            desc: "Cierra más tratos con comunicación persuasiva. Entrena objeciones, negociación y pitch con IA.",
+            color: COLORS.maityPink,
+            tags: ["Pitch", "Objeciones", "Cierre"]
+        },
+        {
+            icon: <Award size={24} />,
+            title: "Liderazgo",
+            desc: "Desarrolla líderes que inspiran y retienen talento. Feedback, delegación y resolución de conflictos.",
+            color: COLORS.maityBlue,
+            tags: ["Feedback", "Delegación", "Conflictos"]
+        },
+        {
+            icon: <Headphones size={24} />,
+            title: "Servicio al Cliente",
+            desc: "Transforma la experiencia del cliente. Escucha activa, manejo de quejas y resolución empática.",
+            color: COLORS.maityGreen,
+            tags: ["Escucha", "Quejas", "Resolución"]
+        },
+        {
+            icon: <Globe size={24} />,
+            title: "Equipos Remotos",
+            desc: "Conecta equipos distribuidos. Comunicación asíncrona efectiva, reuniones productivas y cohesión.",
+            color: "#9b4dca",
+            tags: ["Async", "Reuniones", "Cohesión"]
+        },
+    ];
+
+    return (
+        <section className="py-24 bg-[#050505]">
+            <div className="max-w-6xl mx-auto px-4">
+                <FadeIn>
+                    <div className="text-center mb-16">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/10 border border-blue-500/20 mb-6">
+                            <Layout size={14} className="text-blue-500" />
+                            <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Soluciones por Área</span>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                            Un coach IA para cada <span style={{ color: COLORS.maityBlue }}>necesidad</span>
+                        </h2>
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                            Maity se adapta al contexto de tu equipo con escenarios específicos por área de negocio.
+                        </p>
+                    </div>
+                </FadeIn>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {soluciones.map((sol, i) => (
+                        <FadeIn key={i} delay={i * 100}>
+                            <div className="p-8 bg-[#0F0F0F] rounded-2xl border border-white/5 hover:border-white/15 transition-all group h-full">
+                                <div className="flex items-start gap-5">
+                                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${sol.color}20` }}>
+                                        <div style={{ color: sol.color }}>{sol.icon}</div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{sol.title}</h3>
+                                        <p className="text-sm text-gray-400 leading-relaxed mb-4">{sol.desc}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {sol.tags.map((tag, j) => (
+                                                <span key={j} className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-white/5 text-gray-500 border border-white/5">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
             </div>
         </section>
     );
@@ -3908,7 +4148,7 @@ const PrivacyPolicyView = ({ setView }) => {
     const sections = [
         {
             title: "1. Responsable del Tratamiento",
-            content: `Maity Inc. (en adelante "Maity"), con domicilio en Ciudad de México, México, es responsable del tratamiento de sus datos personales. Para cualquier consulta relacionada con la protección de sus datos puede contactarnos en: privacy@maity.com.mx`
+            content: `Maity SAPI de CV (en adelante "Maity"), con domicilio en Ciudad de México, México, es responsable del tratamiento de sus datos personales. Para cualquier consulta relacionada con la protección de sus datos puede contactarnos en: privacy@maity.com.mx`
         },
         {
             title: "2. Datos Personales que Recopilamos",
@@ -4029,7 +4269,7 @@ La fecha de última actualización se indica al final de este documento.`
             content: `Para consultas, solicitudes o quejas relacionadas con la protección de sus datos personales:
 
 Correo electrónico: privacy@maity.com.mx
-Responsable de Protección de Datos: Maity Inc., Ciudad de México, México.`
+Responsable de Protección de Datos: Maity SAPI de CV, Ciudad de México, México.`
         }
     ];
 
@@ -4047,7 +4287,7 @@ Responsable de Protección de Datos: Maity Inc., Ciudad de México, México.`
                         <span className="text-sm font-bold text-blue-500 uppercase tracking-widest">Aviso de Privacidad</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Aviso de Privacidad</h1>
-                    <p className="text-gray-500 text-sm mb-2">Última actualización: 29 de enero de 2026</p>
+                    <p className="text-gray-500 text-sm mb-2">Última actualización: 31 de enero de 2026</p>
                     <p className="text-gray-400 mb-12 leading-relaxed">
                         En Maity, la protección de tus datos personales es una prioridad. Este aviso describe cómo recopilamos, usamos, protegemos y compartimos tu información.
                     </p>
@@ -4086,7 +4326,7 @@ const TermsOfServiceView = ({ setView }) => {
     const sections = [
         {
             title: "1. Definiciones",
-            content: `• "Maity" o "la Plataforma": se refiere al servicio de coaching de comunicación con inteligencia artificial operado por Maity Inc.
+            content: `• "Maity" o "la Plataforma": se refiere al servicio de coaching de comunicación con inteligencia artificial operado por Maity SAPI de CV
 • "Usuario": toda persona física que accede y utiliza la Plataforma, ya sea en modalidad gratuita o de pago.
 • "Cuenta": el perfil personal creado por el Usuario para acceder a los servicios de Maity.
 • "Contenido del Usuario": toda información, grabaciones de voz, transcripciones y datos generados por el Usuario al utilizar la Plataforma.
@@ -4147,7 +4387,7 @@ Cancelación:
         {
             title: "6. Propiedad Intelectual",
             content: `Propiedad de Maity:
-• La plataforma, su diseño, código fuente, algoritmos, modelos de IA, marcas, logotipos y todo el contenido original son propiedad exclusiva de Maity Inc.
+• La plataforma, su diseño, código fuente, algoritmos, modelos de IA, marcas, logotipos y todo el contenido original son propiedad exclusiva de Maity SAPI de CV
 • Queda prohibida la reproducción, distribución o modificación sin autorización expresa.
 
 Contenido del Usuario:
@@ -4222,7 +4462,7 @@ Terminación por Maity:
 
 Correo electrónico: legal@maity.com.mx
 Soporte general: soporte@maity.com.mx
-Maity Inc., Ciudad de México, México.`
+Maity SAPI de CV, Ciudad de México, México.`
         }
     ];
 
@@ -4240,7 +4480,7 @@ Maity Inc., Ciudad de México, México.`
                         <span className="text-sm font-bold text-pink-500 uppercase tracking-widest">Documento Legal</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Términos de Servicio</h1>
-                    <p className="text-gray-500 text-sm mb-2">Última actualización: 29 de enero de 2026</p>
+                    <p className="text-gray-500 text-sm mb-2">Última actualización: 31 de enero de 2026</p>
                     <p className="text-gray-400 mb-12 leading-relaxed">
                         Estos términos regulan el uso de la plataforma Maity. Al utilizar nuestros servicios, aceptas las condiciones aquí descritas.
                     </p>
@@ -4557,9 +4797,9 @@ const CommunityPartnerSection = ({ setView }) => {
     const tracks = [
         {
             icon: <Mic size={28} />,
-            title: "Coach Certificado Maity",
-            desc: "Usa Maity como tu herramienta principal de coaching. Ofrece entrenamiento de comunicación a tus clientes con tecnología de IA y gana una comisión recurrente por cada membresía activa.",
-            benefits: ["Comisión recurrente por membresía", "Panel de seguimiento de clientes", "Material de marca compartida", "Soporte prioritario"],
+            title: "Coach Certificado",
+            desc: "Usa Maity como tu herramienta principal de coaching. Ofrece entrenamiento de comunicación a tus clientes con tecnología de IA y gana el 30% recurrente por cada membresía activa.",
+            benefits: ["30% comisión recurrente", "Panel de seguimiento de clientes", "Material de marca compartida", "Soporte prioritario"],
             cta: "Aplicar como Coach",
             color: COLORS.maityPink,
             accent: "pink"
@@ -4567,18 +4807,18 @@ const CommunityPartnerSection = ({ setView }) => {
         {
             icon: <Users size={28} />,
             title: "Referenciador",
-            desc: "Recomienda Maity a empresas y profesionales. Por cada venta que generes, recibes un porcentaje de la suscripción mientras el cliente se mantenga activo. Sin inversión, sin riesgo.",
-            benefits: ["Ingreso pasivo recurrente", "Link de referido personalizado", "Dashboard de conversiones", "Sin mínimos ni exclusividad"],
+            desc: "Recomienda Maity a empresas y profesionales. Recibe el 15% del primer año de suscripción por cada cliente que refieras. Sin inversión, sin riesgo.",
+            benefits: ["15% del primer año", "Link de referido personalizado", "Dashboard de conversiones", "Sin mínimos ni exclusividad"],
             cta: "Unirme al Programa",
             color: COLORS.maityBlue,
             accent: "blue"
         },
         {
-            icon: <Briefcase size={28} />,
-            title: "Socio o Inversionista",
-            desc: "Maity está en pleno crecimiento. Buscamos socios estratégicos e inversionistas que crean en el futuro del desarrollo humano potenciado por IA.",
-            benefits: ["Acceso a métricas de tracción", "Reunión directa con founders", "Oportunidad de equity", "Impacto en millones de profesionales"],
-            cta: "Agendar Conversación",
+            icon: <Building2 size={28} />,
+            title: "Embajador Corporativo",
+            desc: "Conecta a Maity con empresas de tu red. Gana el 10% de cada contrato empresarial que se cierre gracias a tu introducción.",
+            benefits: ["10% de contratos empresariales", "Capacitación de producto", "Eventos exclusivos", "Red de embajadores"],
+            cta: "Ser Embajador",
             color: COLORS.maityGreen,
             accent: "green"
         },
@@ -4636,10 +4876,10 @@ const CommunityPartnerSection = ({ setView }) => {
                     <div className="bg-gradient-to-r from-[#0F0F0F] to-[#1A1A1A] rounded-3xl border border-white/5 p-10 text-center">
                         <div className="flex flex-wrap justify-center gap-8 mb-8">
                             {[
-                                { value: "30%", label: "Comisión por referido" },
-                                { value: "Recurrente", label: "Mientras el cliente siga activo" },
+                                { value: "30%", label: "Coaches — recurrente" },
+                                { value: "15%", label: "Referenciadores — primer año" },
+                                { value: "10%", label: "Embajadores — contratos B2B" },
                                 { value: "$0", label: "Inversión para empezar" },
-                                { value: "24h", label: "Aprobación de aplicación" },
                             ].map((stat, i) => (
                                 <div key={i} className="text-center">
                                     <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -4747,7 +4987,7 @@ const Footer = ({ setView }) => {
                 </div>
             </div>
             <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
-                <p>© 2026 Maity Inc.</p>
+                <p>© 2026 Maity SAPI de CV — Ciudad de México, México</p>
                 <div className="flex gap-4">
                     <span onClick={() => setView('privacidad')} className="hover:text-gray-400 cursor-pointer transition-colors">Privacidad</span>
                     <span onClick={() => setView('terminos')} className="hover:text-gray-400 cursor-pointer transition-colors">Términos</span>
@@ -4868,6 +5108,7 @@ export default function App() {
                         <ArchetypeQuiz setView={setActiveView} />
                         <TheClimb setView={setActiveView} />
                         <ProductInfoSection />
+                        <WearableSection setView={setActiveView} />
                         <TrustSection setView={setActiveView} />
                         <Pricing setView={setActiveView} />
                         <VideoTestimonials />
@@ -4898,10 +5139,12 @@ export default function App() {
                     <>
                         <BusinessHeroSection setView={setActiveView} />
                         <BusinessDeepDive />
+                        <SolucionesGrid />
                         <ScenariosSection setView={setActiveView} />
                         <CorporateQuiz setView={setActiveView} />
                         <B2BTeaser setView={setActiveView} />
                         <ROICalculator />
+                        <PilotSection setView={setActiveView} />
                         <Pricing initialTab="business" setView={setActiveView} />
                         <DemoCalendar setView={setActiveView} />
                         <TrustSection variant="enterprise" setView={setActiveView} />

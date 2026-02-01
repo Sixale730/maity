@@ -29,8 +29,9 @@ Pagina principal para usuarios individuales (profesionales, coaches, etc.)
 | 5 | Quiz de Comunicacion | `ArchetypeQuiz` | 7 preguntas sobre estilo comunicativo, 3 arquetipos: Directo/Empatico/Analitico |
 | 6 | La Escalada | `TheClimb` | 5 niveles de progresion: Aprendiz > Explorador > Lider > Maestro > Leyenda (id: `la-escalada`) |
 | 7 | Info Producto | `ProductInfoSection` | Detalle de funcionalidades de la plataforma |
+| 7.5 | Wearable | `WearableSection` | Hardware Maity: specs (mic, BLE, 16h, 35g), CTA reservar |
 | 8 | Seguridad | `TrustSection` | 4 pilares de confianza (version producto, sin compliance enterprise) |
-| 9 | Precios | `Pricing` | 3 planes: Gratis / Pro / Pendiente, con trust badges (AES-256, GDPR, etc.) |
+| 9 | Precios | `Pricing` | 3 planes: Explorador(Gratis) / Escalador($15-19 USD) / Guia($39-49 USD), con trust badges |
 | 10 | Testimoniales | `VideoTestimonials` | Testimonios en video de usuarios |
 | 11 | FAQ | `FAQSection` | Preguntas frecuentes con accordion (id: `faq-section`) |
 | 12 | Comunidad Partners | `CommunityPartnerSection` | 3 tracks: Coach Certificado, Referenciador, Socio/Inversionista |
@@ -46,11 +47,13 @@ Pagina para empresas y decision makers (B2B).
 |---|---------|------------|-------------|
 | 1 | Hero Empresarial | `BusinessHeroSection` | CTA "Solicitar Demo", video corporativo (YouTube embed) |
 | 2 | Deep Dive B2B | `BusinessDeepDive` | Propuesta de valor detallada para equipos |
+| 2.5 | Soluciones | `SolucionesGrid` | Grid 2x2: Ventas, Liderazgo, Servicio al Cliente, Equipos Remotos |
 | 3 | Escenarios IA | `ScenariosSection` | Conversaciones simuladas con IA, video explicativo, 6 escenarios (negociacion, liderazgo, etc.) |
 | 4 | Quiz Corporativo | `CorporateQuiz` | 7 preguntas sobre liderazgo, 3 arquetipos: Visionario/Negociador/Arquitecto |
 | 5 | B2B Teaser | `B2BTeaser` | Resumen de beneficios empresariales |
 | 6 | Calculadora ROI | `ROICalculator` | Calcula ahorro estimado segun tamano de equipo |
-| 7 | Precios | `Pricing` | Tab empresarial: Starter / Growth / Enterprise |
+| 6.5 | Piloto B2B | `PilotSection` | Piloto 30 dias gratis: 4 pasos, stats, CTA solicitar piloto |
+| 7 | Precios | `Pricing` | Tab empresarial: Equipo($12-15 USD) / Organizacion($10-12 USD) / Enterprise(Custom) |
 | 8 | Contacto/Equipo | `DemoCalendar` | Perfiles del equipo (Poncho, Julio, Karina) con LinkedIn, metodos de contacto, agenda demo |
 | 9 | Seguridad Enterprise | `TrustSection` | Version expandida: compliance badges (SOC2, ISO, GDPR, CCPA, LFPDPPP), cifrado, organizacional |
 | 10 | FAQ | `FAQSection` | Preguntas frecuentes |
@@ -89,6 +92,9 @@ Accesibles desde navbar, footer, o botones internos.
 |------------|-------------|
 | `FadeIn` | Wrapper de animacion con IntersectionObserver, prop `delay` |
 | `VideoCard` | Reproduce YouTube inline (no redirect), auto-thumbnail, variantes `inline` y `featured` |
+| `PilotSection` | Seccion piloto B2B 30 dias: 4 pasos, stats strip, CTA |
+| `SolucionesGrid` | Grid 2x2 de soluciones por area de negocio (Ventas, Liderazgo, Servicio, Equipos) |
+| `WearableSection` | Specs del hardware Maity Pendant: mic, BLE, bateria, peso, app companion |
 | `RadarChart` | Grafica radar SVG para resultados de quiz |
 | `Navbar` | Barra fija, acepta `activeView` y `setView`, menu responsive |
 | `Footer` | 4 columnas, 16+ links funcionales, acepta `setView` |
@@ -152,6 +158,19 @@ Accesibles desde navbar, footer, o botones internos.
 ## Historial de Cambios (Landing Page)
 
 ### 2026-01-31
+
+**Commit: feat(landing): align with business model, fix legal, update pricing and gamification**
+- Entidad legal corregida: "Maity Inc." → "Maity SAPI de CV" en Privacy, Terms y Footer
+- Precios B2C alineados al documento maestro: Explorador(Gratis) / Escalador($15-19 USD) / Guia($39-49 USD)
+- Precios B2B alineados: Equipo($12-15 USD/user) / Organizacion($10-12 USD/user) / Enterprise(Custom)
+- La Escalada rediseñada: 6 Montanas tematicas (Claridad, Empatia, Persuasion, Consultor, Negociador, Servicio) con 5 campamentos cada una
+- Arquetipos quiz renombrados: Estratega / Conector / Analitico (de los 6 tipos oficiales)
+- Nota "1 de 6 tipos de comunicador" agregada al resultado del quiz
+- CommunityPartnerSection actualizada: Coach(30%), Referenciador(15%), Embajador Corporativo(10%)
+- Nueva seccion PilotSection: piloto B2B 30 dias gratis, 4 pasos, stats, CTA
+- Nueva seccion SolucionesGrid: 4 areas (Ventas, Liderazgo, Servicio, Equipos Remotos) en business view
+- Nueva seccion WearableSection: specs hardware (mic, BLE 5.0, 16h bateria, 35g, companion app)
+- Tablas comparativas actualizadas para ambos tabs (individual y empresas)
 
 **Commit: feat(landing): add team section with booking calendar and audit**
 - Seccion "Conocenos" con perfiles de equipo (Poncho, Julio, Karina) + LinkedIn
