@@ -1,4 +1,4 @@
-﻿// src/App.tsx
+// src/App.tsx
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/ui/components/ui/toaster";
 import { Toaster as Sonner } from "@/ui/components/ui/sonner";
@@ -12,7 +12,6 @@ import { PlatformTourProvider } from "@/contexts/PlatformTourContext";
 import LoadingFallback from "@/components/LoadingFallback";
 
 // Critical routes (loaded immediately)
-import { IndexPage } from "./features/dashboard";
 import { AuthPage, AuthCallbackPage } from "./features/auth";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -70,6 +69,24 @@ const UsersPage = lazy(() => import("./features/organizations").then(m => ({ def
 const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ default: m.NavigationHub })));
 const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
 
+// Landing page (modular)
+const LandingLayout = lazy(() => import("./features/landing").then(m => ({ default: m.LandingLayout })));
+const LandingPage = lazy(() => import("./features/landing").then(m => ({ default: m.LandingPage })));
+const BusinessView = lazy(() => import("./features/landing").then(m => ({ default: m.BusinessView })));
+const LandingPricing = lazy(() => import("./features/landing").then(m => ({ default: m.Pricing })));
+const ArchetypeQuiz = lazy(() => import("./features/landing").then(m => ({ default: m.ArchetypeQuiz })));
+const CorporateQuiz = lazy(() => import("./features/landing").then(m => ({ default: m.CorporateQuiz })));
+const DemoCalendarPage = lazy(() => import("./features/landing").then(m => ({ default: m.DemoCalendarPage })));
+const ResourcesPage = lazy(() => import("./features/landing").then(m => ({ default: m.ResourcesPage })));
+const PrimerosPasosPage = lazy(() => import("./features/landing").then(m => ({ default: m.PrimerosPasosPage })));
+const NosotrosPage = lazy(() => import("./features/landing").then(m => ({ default: m.NosotrosPage })));
+const CareersPage = lazy(() => import("./features/landing").then(m => ({ default: m.CareersPage })));
+const SoportePage = lazy(() => import("./features/landing").then(m => ({ default: m.SoportePage })));
+const SuccessStoriesPage = lazy(() => import("./features/landing").then(m => ({ default: m.SuccessStoriesPage })));
+const RoleplaySimulator = lazy(() => import("./features/landing").then(m => ({ default: m.RoleplaySimulator })));
+const PrivacyPolicyPage = lazy(() => import("./features/landing").then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import("./features/landing").then(m => ({ default: m.TermsOfServicePage })));
+
 const OAuthTest = lazy(() => import("./pages/OAuthTest"));
 const InvitationConflict = lazy(() => import("./pages/InvitationConflict"));
 const InvitationRequired = lazy(() => import("./pages/InvitationRequired"));
@@ -92,10 +109,28 @@ const App = () => (
               <PlatformTourProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                  {/* Critical routes (no lazy loading) */}
-                  <Route path="/" element={<IndexPage />} />
+                  {/* Critical routes */}
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+                  {/* Landing page routes (public, no auth) */}
+                  <Route element={<LandingLayout />}>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/empresas" element={<BusinessView />} />
+                    <Route path="/precios" element={<LandingPricing />} />
+                    <Route path="/quiz" element={<ArchetypeQuiz />} />
+                    <Route path="/quiz-corporativo" element={<CorporateQuiz />} />
+                    <Route path="/contacto" element={<DemoCalendarPage />} />
+                    <Route path="/recursos" element={<ResourcesPage />} />
+                    <Route path="/primeros-pasos" element={<PrimerosPasosPage />} />
+                    <Route path="/nosotros" element={<NosotrosPage />} />
+                    <Route path="/carreras" element={<CareersPage />} />
+                    <Route path="/soporte" element={<SoportePage />} />
+                    <Route path="/casos-de-exito" element={<SuccessStoriesPage />} />
+                    <Route path="/simulador" element={<RoleplaySimulator />} />
+                    <Route path="/privacidad" element={<PrivacyPolicyPage />} />
+                    <Route path="/terminos" element={<TermsOfServicePage />} />
+                  </Route>
 
                   {/* Lazy-loaded routes */}
                   <Route path="/oauth-test" element={<OAuthTest />} />
@@ -180,6 +215,3 @@ const App = () => (
 );
 
 export default App;
-
-
-

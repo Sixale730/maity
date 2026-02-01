@@ -1,98 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    /* Maity Dark Mode - Extended Color Palette */
+    /* Maity Dark Mode - Base */
     --background: 0 0% 0%;
-    /* #000000 */
     --foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
     --card: 0 0% 6%;
-    /* #0F0F0F */
     --card-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
     --popover: 0 0% 6%;
-    /* #0F0F0F */
     --popover-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
-    --primary: 229 93% 65%;
-    /* #485df4 */
+    /* Default Primary (Individual Section - Maity Rosa #ff0050) */
+    --primary: 341 100% 50%;
     --primary-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
     --secondary: 0 0% 6%;
-    /* #0F0F0F */
     --secondary-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
     --muted: 0 0% 6%;
-    /* #0F0F0F */
     --muted-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
-    --accent: 161 81% 51%;
-    /* #1bea9a */
+    /* Accent (Business Section - Maity Green #1bea9a) */
+    --accent: 156 82% 51%;
     --accent-foreground: 0 0% 0%;
-    /* #000000 */
 
     --destructive: 340 100% 50%;
-    /* #ff0050 */
     --destructive-foreground: 240 4% 91%;
-    /* #e7e7e9 */
 
-    /* Red accent colors for Maity branding */
-    --red-primary: 340 100% 50%;
-    /* #ff0050 */
-    --red-muted: 340 100% 35%;
-    /* #b30038 */
-    --red-light: 340 100% 57%;
-    /* #ff2a70 - Medium lighter red for balanced gradients */
-    --red-subtle: 340 100% 95%;
-    /* #ffe6f0 */
+    /* Brand Specific Colors */
+    --maity-pink: 341 100% 50%;
+    --maity-blue: 229 93% 65%;
+    --maity-green: 156 82% 51%;
 
-    /* Blue accent colors for Maity branding */
-    --blue-light: 229 93% 72%;
-    /* #6c83f6 - Medium lighter blue for balanced gradients */
-
-    /* Platinum color */
-    --platinum: 210 11% 71%;
-    /* #b3b8c4 */
-
-    --border: 0 0% 6%;
-    /* #0F0F0F */
-    --input: 0 0% 6%;
-    /* #0F0F0F */
-    --ring: 229 93% 65%;
-    /* #485df4 */
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 341 100% 50%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 3%;
-    /* #080808 */
     --sidebar-foreground: 240 4% 91%;
-    /* #e7e7e9 */
-    --sidebar-primary: 340 100% 50%;
-    /* #ff0050 - Red primary */
+    --sidebar-primary: 341 100% 50%;
     --sidebar-primary-foreground: 240 4% 91%;
-    /* #e7e7e9 */
     --sidebar-accent: 0 0% 8%;
-    /* #141414 */
     --sidebar-accent-foreground: 240 4% 91%;
-    /* #e7e7e9 */
-    --sidebar-border: 340 100% 15%;
-    /* #330014 - Red border */
-    --sidebar-ring: 340 100% 50%;
-    /* #ff0050 */
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 341 100% 50%;
   }
 }
 
@@ -102,78 +73,60 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   html {
     color-scheme: dark;
+    background: #000;
   }
 
-  body {
-    background: hsl(0 0% 0%);
-    /* #000000 */
-    color: hsl(240 4% 91%);
-    /* #e7e7e9 */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    @apply tracking-tighter;
   }
 
-  /* Input styles - Different font for input text vs placeholder */
-  input::placeholder,
-  textarea::placeholder {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 400;
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
   }
 
-  input,
-  textarea {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-weight: 500;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #444;
   }
 }
 
-/* Phone Input Custom Styles */
 @layer components {
-  .phone-input-custom {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .font-geist {
+    font-family: 'Geist', sans-serif;
   }
 
-  .phone-input-custom .PhoneInputCountry {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    background: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.375rem;
-    height: 3rem;
-    min-width: 5rem;
+  .font-inter {
+    font-family: 'Inter', sans-serif;
   }
 
-  .phone-input-custom .PhoneInputCountryIcon {
-    width: 1.5rem;
-    height: 1.5rem;
-    margin-right: 0.25rem;
+  .btn-primary-pink {
+    @apply bg-[hsl(var(--maity-pink))] hover:opacity-90 text-white font-bold transition-all;
   }
 
-  .phone-input-custom .PhoneInputCountrySelect {
-    font-size: 0.875rem;
-    background: transparent;
-    border: none;
-    color: hsl(var(--foreground));
-    cursor: pointer;
-  }
-
-  .phone-input-custom .PhoneInputCountrySelect:focus {
-    outline: none;
-  }
-
-  .phone-input-custom .PhoneInputCountrySelectArrow {
-    margin-left: 0.25rem;
-    opacity: 0.6;
-  }
-
-  .phone-input-custom input[type="tel"] {
-    flex: 1;
+  .btn-primary-blue {
+    @apply bg-[hsl(var(--maity-blue))] hover:opacity-90 text-white font-bold transition-all;
   }
 }
 
@@ -182,7 +135,11 @@ All colors MUST be HSL.
     @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
 
-  .text-gradient-hero {
+  .text-gradient-pink {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-[#ff0050] to-[#485df4];
+  }
+
+  .text-gradient-business {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-[#485df4] to-[#1bea9a];
   }
 }

@@ -1,7 +1,7 @@
-import MarketingLanding from "@/components/marketing/MarketingLanding";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  return <MarketingLanding />;
+  return <Navigate to="/" replace />;
 };
 
 export default Index;
