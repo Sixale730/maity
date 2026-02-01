@@ -1,0 +1,65 @@
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2a2a40;stop-opacity:1" /> <stop offset="50%" style="stop-color:#3e3e5e;stop-opacity:1" /> <stop offset="100%" style="stop-color:#2a2a40;stop-opacity:1" /> </linearGradient>
+
+    <linearGradient id="forestGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d5a27;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a3315;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="templeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff7cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffcc00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="#1a1a20" />
+  
+  <path d="M0,0 L100,100 M500,0 L400,100 M0,300 L50,350 M600,300 L550,350" stroke="#252530" stroke-width="5" fill="none"/>
+
+  <path d="M100,500 L150,300 L250,150 L300,120 L350,150 L450,300 L500,500 Z" fill="url(#mountainGrad)" />
+  
+  <path d="M100,500 L180,250 L220,350 Z" fill="#32324a" />
+  <path d="M500,500 L420,250 L380,350 Z" fill="#32324a" />
+
+  <path d="M250,150 L300,120 L350,150 L330,220 L300,180 L270,220 Z" fill="#aaddff" />
+  <path d="M165,290 L180,250 L195,290 L180,280 Z" fill="#aaddff" />
+  <path d="M405,290 L420,250 L435,290 L420,280 Z" fill="#aaddff" />
+  
+  <g fill="#8b5a2b">
+    <rect x="160" y="380" width="15" height="4" transform="rotate(-20 160 380)" />
+    <rect x="170" y="375" width="15" height="4" transform="rotate(-20 170 375)" />
+    <rect x="180" y="370" width="15" height="4" transform="rotate(-20 180 370)" />
+  </g>
+  <g fill="#8b5a2b">
+     <rect x="420" y="380" width="15" height="4" transform="rotate(20 420 380)" />
+     <rect x="410" y="375" width="15" height="4" transform="rotate(20 410 375)" />
+  </g>
+
+  <path d="M0,600 L0,450 Q50,420 100,450 Q150,400 200,450 Q300,380 400,450 Q450,400 500,450 Q550,420 600,450 L600,600 Z" fill="url(#forestGrad)" />
+  <circle cx="100" cy="500" r="20" fill="#3a7a35" opacity="0.5"/>
+  <circle cx="200" cy="520" r="25" fill="#3a7a35" opacity="0.5"/>
+  <circle cx="500" cy="510" r="22" fill="#3a7a35" opacity="0.5"/>
+
+  <g transform="translate(275, 80)" filter="url(#glow)">
+    <rect x="0" y="30" width="50" height="10" fill="#e6b800" />
+    <rect x="5" y="15" width="5" height="15" fill="#ffe066" />
+    <rect x="15" y="15" width="5" height="15" fill="#ffe066" />
+    <rect x="25" y="15" width="5" height="15" fill="#ffe066" />
+    <rect x="35" y="15" width="5" height="15" fill="#ffe066" />
+    <path d="M-5,15 L25,0 L55,15 Z" fill="url(#templeGrad)" />
+  </g>
+  
+  <polyline points="20,150 60,180 50,220 80,250" fill="none" stroke="#aaddff" stroke-width="2" filter="url(#glow)" />
+  <polyline points="500,50 520,100 480,120 500,160 450,200" fill="none" stroke="#aaddff" stroke-width="2" filter="url(#glow)" />
+
+</svg>

@@ -33,6 +33,20 @@ export const translations = {
     'nav.avatar': 'Mi Avatar',
     'nav.hero_journey': "Hero's Journey",
     'nav.desc.hero_journey': 'Visualiza tu camino como una montaña',
+    'nav.learning_path': 'Ruta de Aprendizaje',
+    'nav.team_learning_progress': 'Progreso del Equipo',
+    'nav.ai_resources': 'Recursos IA',
+    'nav.avatar_showcase': 'Galería de Avatares',
+    'nav.omi_conversations': 'Conversaciones Omi',
+    'nav.svg_converter': 'Convertidor SVG',
+
+    // Sidebar Groups
+    'sidebar.groups.profile': 'Perfil',
+    'sidebar.groups.practice': 'Práctica',
+    'sidebar.groups.progress': 'Progreso',
+    'sidebar.groups.team': 'Equipo',
+    'sidebar.groups.config': 'Configuración',
+    'sidebar.groups.admin': 'Administración',
 
     // Hero Journey
     'hero_journey.title': "Hero's Journey",
@@ -129,6 +143,23 @@ export const translations = {
     'common.view': 'Ver',
     'common.show_more': 'Ver más',
     'common.show_less': 'Ver menos',
+
+    // Gamified Dashboard
+    'nav.gamified_dashboard': 'Dashboard Gamificado',
+    'nav.desc.gamified_dashboard': 'Tu progreso con monta\u00F1a, logros y ranking',
+    'gamified.mountain_title': 'Monta\u00F1a de Fuego',
+    'gamified.streak_days': 'D\u00EDas Racha',
+    'gamified.yesterday': 'AYER',
+    'gamified.today': 'HOY',
+    'gamified.daily_climb': 'Escalada Diaria',
+    'gamified.rewards': 'Recompensas',
+    'gamified.filler_words': 'Muletillas',
+    'gamified.ranking': 'Ranking',
+    'gamified.feedback': 'Feedback',
+    'gamified.insight': 'Insight',
+    'gamified.progress_listen': 'Escucha',
+    'gamified.progress_security': 'Seguridad',
+    'gamified.progress_speak': 'Speak',
   },
   en: {
     // Navigation
@@ -162,6 +193,20 @@ export const translations = {
     'nav.avatar': 'My Avatar',
     'nav.hero_journey': "Hero's Journey",
     'nav.desc.hero_journey': 'Visualize your path as a mountain',
+    'nav.learning_path': 'Learning Path',
+    'nav.team_learning_progress': 'Team Progress',
+    'nav.ai_resources': 'AI Resources',
+    'nav.avatar_showcase': 'Avatar Gallery',
+    'nav.omi_conversations': 'Omi Conversations',
+    'nav.svg_converter': 'SVG Converter',
+
+    // Sidebar Groups
+    'sidebar.groups.profile': 'Profile',
+    'sidebar.groups.practice': 'Practice',
+    'sidebar.groups.progress': 'Progress',
+    'sidebar.groups.team': 'Team',
+    'sidebar.groups.config': 'Configuration',
+    'sidebar.groups.admin': 'Administration',
 
     // Hero Journey
     'hero_journey.title': "Hero's Journey",
@@ -258,6 +303,23 @@ export const translations = {
     'common.view': 'View',
     'common.show_more': 'Show more',
     'common.show_less': 'Show less',
+
+    // Gamified Dashboard
+    'nav.gamified_dashboard': 'Gamified Dashboard',
+    'nav.desc.gamified_dashboard': 'Your progress with mountain, achievements and ranking',
+    'gamified.mountain_title': 'Fire Mountain',
+    'gamified.streak_days': 'Day Streak',
+    'gamified.yesterday': 'YESTERDAY',
+    'gamified.today': 'TODAY',
+    'gamified.daily_climb': 'Daily Climb',
+    'gamified.rewards': 'Rewards',
+    'gamified.filler_words': 'Filler Words',
+    'gamified.ranking': 'Ranking',
+    'gamified.feedback': 'Feedback',
+    'gamified.insight': 'Insight',
+    'gamified.progress_listen': 'Listen',
+    'gamified.progress_security': 'Security',
+    'gamified.progress_speak': 'Speak',
   }
 };
 

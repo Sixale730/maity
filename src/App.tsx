@@ -1,4 +1,4 @@
-﻿// src/App.tsx
+// src/App.tsx
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/ui/components/ui/toaster";
 import { Toaster as Sonner } from "@/ui/components/ui/sonner";
@@ -12,7 +12,6 @@ import { PlatformTourProvider } from "@/contexts/PlatformTourContext";
 import LoadingFallback from "@/components/LoadingFallback";
 
 // Critical routes (loaded immediately)
-import { IndexPage } from "./features/dashboard";
 import { AuthPage, AuthCallbackPage } from "./features/auth";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -57,6 +56,7 @@ const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.D
 
 const HeroJourneyPage = lazy(() => import("./features/hero-journey").then(m => ({ default: m.HeroJourneyPage })));
 const SVGConverterPage = lazy(() => import("./features/svg-converter").then(m => ({ default: m.SVGConverterPage })));
+const GamifiedDashboardPage = lazy(() => import("./features/dashboard/components/gamified/GamifiedDashboard"));
 
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
 const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
@@ -69,8 +69,23 @@ const UsersPage = lazy(() => import("./features/organizations").then(m => ({ def
 const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ default: m.NavigationHub })));
 const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
 
-// Custom Landing Page with user updates
-const LandingPage = lazy(() => import("./LandingPage"));
+// Landing page (modular)
+const LandingLayout = lazy(() => import("./features/landing").then(m => ({ default: m.LandingLayout })));
+const LandingPage = lazy(() => import("./features/landing").then(m => ({ default: m.LandingPage })));
+const BusinessView = lazy(() => import("./features/landing").then(m => ({ default: m.BusinessView })));
+const LandingPricing = lazy(() => import("./features/landing").then(m => ({ default: m.Pricing })));
+const ArchetypeQuiz = lazy(() => import("./features/landing").then(m => ({ default: m.ArchetypeQuiz })));
+const CorporateQuiz = lazy(() => import("./features/landing").then(m => ({ default: m.CorporateQuiz })));
+const DemoCalendarPage = lazy(() => import("./features/landing").then(m => ({ default: m.DemoCalendarPage })));
+const ResourcesPage = lazy(() => import("./features/landing").then(m => ({ default: m.ResourcesPage })));
+const PrimerosPasosPage = lazy(() => import("./features/landing").then(m => ({ default: m.PrimerosPasosPage })));
+const NosotrosPage = lazy(() => import("./features/landing").then(m => ({ default: m.NosotrosPage })));
+const CareersPage = lazy(() => import("./features/landing").then(m => ({ default: m.CareersPage })));
+const SoportePage = lazy(() => import("./features/landing").then(m => ({ default: m.SoportePage })));
+const SuccessStoriesPage = lazy(() => import("./features/landing").then(m => ({ default: m.SuccessStoriesPage })));
+const RoleplaySimulator = lazy(() => import("./features/landing").then(m => ({ default: m.RoleplaySimulator })));
+const PrivacyPolicyPage = lazy(() => import("./features/landing").then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import("./features/landing").then(m => ({ default: m.TermsOfServicePage })));
 
 const OAuthTest = lazy(() => import("./pages/OAuthTest"));
 const InvitationConflict = lazy(() => import("./pages/InvitationConflict"));
@@ -94,87 +109,104 @@ const App = () => (
               <PlatformTourProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    {/* Critical routes (no lazy loading) */}
-                    <Route path="/" element={<IndexPage />} />
+                  {/* Critical routes */}
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-                    {/* Custom Landing Page with updates */}
-                    <Route path="/landing" element={<LandingPage />} />
+                  {/* Landing page routes (public, no auth) */}
+                  <Route element={<LandingLayout />}>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/empresas" element={<BusinessView />} />
+                    <Route path="/precios" element={<LandingPricing />} />
+                    <Route path="/quiz" element={<ArchetypeQuiz />} />
+                    <Route path="/quiz-corporativo" element={<CorporateQuiz />} />
+                    <Route path="/contacto" element={<DemoCalendarPage />} />
+                    <Route path="/recursos" element={<ResourcesPage />} />
+                    <Route path="/primeros-pasos" element={<PrimerosPasosPage />} />
+                    <Route path="/nosotros" element={<NosotrosPage />} />
+                    <Route path="/carreras" element={<CareersPage />} />
+                    <Route path="/soporte" element={<SoportePage />} />
+                    <Route path="/casos-de-exito" element={<SuccessStoriesPage />} />
+                    <Route path="/simulador" element={<RoleplaySimulator />} />
+                    <Route path="/privacidad" element={<PrivacyPolicyPage />} />
+                    <Route path="/terminos" element={<TermsOfServicePage />} />
+                  </Route>
 
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                  {/* Lazy-loaded routes */}
+                  <Route path="/oauth-test" element={<OAuthTest />} />
+                  <Route path="/registration" element={<RegistrationPage />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
+                  <Route path="/onboarding/success" element={<OnboardingSuccessPage />} />
+                  <Route path="/levels-intro" element={<LevelsIntroPage />} />
+                  <Route path="/invitation-confirm" element={<InvitationConflict />} />
+                  <Route path="/pending" element={<PendingPage />} />
+                  <Route path="/invitation-required" element={<InvitationRequired />} />
+                  <Route path="/user-status-error" element={<UserStatusError />} />
 
-                    {/* Lazy-loaded routes */}
-                    <Route path="/oauth-test" element={<OAuthTest />} />
-                    <Route path="/registration" element={<RegistrationPage />} />
-                    <Route path="/onboarding" element={<OnboardingPage />} />
-                    <Route path="/onboarding/success" element={<OnboardingSuccessPage />} />
-                    <Route path="/levels-intro" element={<LevelsIntroPage />} />
-                    <Route path="/invitation-confirm" element={<InvitationConflict />} />
-                    <Route path="/pending" element={<PendingPage />} />
-                    <Route path="/invitation-required" element={<InvitationRequired />} />
-                    <Route path="/user-status-error" element={<UserStatusError />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                      <Route path="/dashboard" element={<NavigationHub />} />
+                      <Route path="/home" element={<NavigationHub />} />
+                      <Route path="/stats" element={<DashboardPage />} />
+                      <Route path="/coach" element={<CoachPage />} />
+                      <Route path="/roleplay" element={<RoleplayPage />} />
+                      <Route path="/primera-entrevista" element={<InterviewPage />} />
+                      <Route path="/progress" element={<MyProgressPage />} />
+                      <Route path="/learning-path" element={<LearningPathPage />} />
+                      <Route path="/team/learning-progress" element={<TeamProgressPage />} />
+                      <Route path="/sessions" element={<SessionsPage />} />
+                      <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
+                      <Route path="/omi" element={<OmiConversationsPage />} />
+                      <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
+                      <Route path="/organizations" element={<OrganizationsPage />} />
+                      <Route path="/usuarios" element={<UsersPage />} />
+                      <Route path="/team" element={<TeamPage />} />
+                      <Route path="/reports" element={<ReportsPage />} />
+                      <Route path="/trends" element={<TrendsPage />} />
+                      <Route path="/planes" element={<PlansPage />} />
+                      <Route path="/plan" element={<PlanPage />} />
+                      <Route path="/documentos" element={<DocumentsPage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/logros" element={<AchievementsPage />} />
+                      <Route path="/avatar" element={<AvatarEditorPage />} />
+                      <Route path="/demo" element={<DemoPage />} />
+                      <Route path="/demo-training" element={<DemoTrainingPage />} />
 
-                    <Route element={<ProtectedRoute />}>
-                      <Route element={<AppLayout />}>
-                        <Route path="/dashboard" element={<NavigationHub />} />
-                        <Route path="/home" element={<NavigationHub />} />
-                        <Route path="/stats" element={<DashboardPage />} />
-                        <Route path="/coach" element={<CoachPage />} />
-                        <Route path="/roleplay" element={<RoleplayPage />} />
-                        <Route path="/primera-entrevista" element={<InterviewPage />} />
-                        <Route path="/progress" element={<MyProgressPage />} />
-                        <Route path="/learning-path" element={<LearningPathPage />} />
-                        <Route path="/team/learning-progress" element={<TeamProgressPage />} />
-                        <Route path="/sessions" element={<SessionsPage />} />
-                        <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
-                        <Route path="/omi" element={<OmiConversationsPage />} />
-                        <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
-                        <Route path="/organizations" element={<OrganizationsPage />} />
-                        <Route path="/usuarios" element={<UsersPage />} />
-                        <Route path="/team" element={<TeamPage />} />
-                        <Route path="/reports" element={<ReportsPage />} />
-                        <Route path="/trends" element={<TrendsPage />} />
-                        <Route path="/planes" element={<PlansPage />} />
-                        <Route path="/plan" element={<PlanPage />} />
-                        <Route path="/documentos" element={<DocumentsPage />} />
-                        <Route path="/settings" element={<SettingsPage />} />
-                        <Route path="/logros" element={<AchievementsPage />} />
-                        <Route path="/avatar" element={<AvatarEditorPage />} />
-                        <Route path="/demo" element={<DemoPage />} />
-                        <Route path="/demo-training" element={<DemoTrainingPage />} />
+                      {/* Tech Week Routes (Admin Only) */}
+                      <Route path="/tech-week" element={<AdminRoute><TechWeekPage /></AdminRoute>} />
+                      <Route path="/tech-week/sessions" element={<AdminRoute><TechWeekSessionsPage /></AdminRoute>} />
+                      <Route path="/tech-week/sessions/:sessionId" element={<AdminRoute><TechWeekResultsPage /></AdminRoute>} />
 
-                        {/* Tech Week Routes (Admin Only) */}
-                        <Route path="/tech-week" element={<AdminRoute><TechWeekPage /></AdminRoute>} />
-                        <Route path="/tech-week/sessions" element={<AdminRoute><TechWeekSessionsPage /></AdminRoute>} />
-                        <Route path="/tech-week/sessions/:sessionId" element={<AdminRoute><TechWeekResultsPage /></AdminRoute>} />
+                      {/* Agent Configuration (Admin Only) */}
+                      <Route path="/admin/agent-config" element={<AdminRoute><AgentConfigPage /></AdminRoute>} />
 
-                        {/* Agent Configuration (Admin Only) */}
-                        <Route path="/admin/agent-config" element={<AdminRoute><AgentConfigPage /></AdminRoute>} />
+                      {/* AI Educational Resources (Admin Only) */}
+                      <Route path="/ai-resources" element={<AdminRoute><AIResourcesPage /></AdminRoute>} />
 
-                        {/* AI Educational Resources (Admin Only) */}
-                        <Route path="/ai-resources" element={<AdminRoute><AIResourcesPage /></AdminRoute>} />
+                      {/* Avatar Showcase (Admin Only) */}
+                      <Route path="/avatar-showcase" element={<AdminRoute><AvatarShowcasePage /></AdminRoute>} />
 
-                        {/* Avatar Showcase (Admin Only) */}
-                        <Route path="/avatar-showcase" element={<AdminRoute><AvatarShowcasePage /></AdminRoute>} />
+                      {/* Gamified Dashboard (Admin Only) */}
+                      <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboardPage /></AdminRoute>} />
 
-                        {/* Hero Journey (Admin/Manager) */}
-                        <Route path="/hero-journey" element={<AdminRoute><HeroJourneyPage /></AdminRoute>} />
+                      {/* Hero Journey (Admin/Manager) */}
+                      <Route path="/hero-journey" element={<AdminRoute><HeroJourneyPage /></AdminRoute>} />
 
-                        {/* SVG Converter (Admin Only) */}
-                        <Route path="/admin/svg-converter" element={<AdminRoute><SVGConverterPage /></AdminRoute>} />
+                      {/* SVG Converter (Admin Only) */}
+                      <Route path="/admin/svg-converter" element={<AdminRoute><SVGConverterPage /></AdminRoute>} />
 
-                        {/* Interview Routes (Admin Only) */}
-                        <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />
-                        <Route path="/primera-entrevista/resultados/:sessionId" element={<AdminRoute><InterviewResultsPage /></AdminRoute>} />
-                      </Route>
+                      {/* Interview Routes (Admin Only) */}
+                      <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />
+                      <Route path="/primera-entrevista/resultados/:sessionId" element={<AdminRoute><InterviewResultsPage /></AdminRoute>} />
                     </Route>
+                  </Route>
 
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </PlatformTourProvider>
-            </ViewRoleProvider>
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </PlatformTourProvider>
+          </ViewRoleProvider>
           </UserProvider>
         </BrowserRouter>
       </TooltipProvider>
@@ -183,6 +215,3 @@ const App = () => (
 );
 
 export default App;
-
-
-
