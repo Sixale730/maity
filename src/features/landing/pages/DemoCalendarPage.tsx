@@ -56,7 +56,7 @@ const TIME_SLOTS = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2
 
 const CONTACTS = [
   { icon: Mail, label: 'Email', value: 'hola@maity.com.mx', href: 'mailto:hola@maity.com.mx' },
-  { icon: Linkedin, label: 'LinkedIn', value: 'MAITY Inteligencia Artificial', href: 'https://www.linkedin.com/company/maity-ai' },
+  { icon: Linkedin, label: 'LinkedIn', value: 'MAITY Inteligencia Artificial', href: 'https://www.linkedin.com/company/maity-inteligencia-artificial/' },
   { icon: MapPin, label: 'Ubicacion', value: 'Guadalajara, JAL \u00b7 Mexico', href: null },
 ];
 

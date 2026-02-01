@@ -51,7 +51,7 @@ interface SocialLink {
 
 const SOCIAL_LINKS: SocialLink[] = [
   { label: 'Twitter', href: 'https://twitter.com/maityapp', icon: Twitter },
-  { label: 'LinkedIn', href: 'https://linkedin.com/company/maity', icon: Linkedin },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/maity-inteligencia-artificial/', icon: Linkedin },
 ];
 
 export const LandingFooter = () => {
