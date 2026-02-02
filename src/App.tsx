@@ -12,7 +12,6 @@ import { PlatformTourProvider } from "@/contexts/PlatformTourContext";
 import LoadingFallback from "@/components/LoadingFallback";
 
 // Critical routes (loaded immediately)
-import { IndexPage } from "./features/dashboard";
 import { AuthPage, AuthCallbackPage } from "./features/auth";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -69,8 +68,8 @@ const UsersPage = lazy(() => import("./features/organizations").then(m => ({ def
 const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ default: m.NavigationHub })));
 const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
 
-// Custom Landing Page with user updates
-const LandingPage = lazy(() => import("./LandingPage"));
+// Modular Landing Page
+const LandingPage = lazy(() => import("./features/landing/LandingApp"));
 
 const OAuthTest = lazy(() => import("./pages/OAuthTest"));
 const InvitationConflict = lazy(() => import("./pages/InvitationConflict"));
@@ -94,11 +93,8 @@ const App = () => (
               <PlatformTourProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    {/* Critical routes (no lazy loading) */}
-                    <Route path="/" element={<IndexPage />} />
-
-                    {/* Custom Landing Page with updates */}
-                    <Route path="/landing" element={<LandingPage />} />
+                    {/* Landing page */}
+                    <Route path="/" element={<LandingPage />} />
 
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/auth/callback" element={<AuthCallbackPage />} />

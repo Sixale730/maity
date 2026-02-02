@@ -5,7 +5,6 @@
 
 // Pages
 export { default as DashboardPage } from './pages/Dashboard';
-export { default as IndexPage } from './pages/Index';
 export { MyProgress as MyProgressPage } from './pages/MyProgress';
 export { default as AnalyticsPage } from './pages/Analytics';
 export { default as ReportsPage } from './pages/Reports';
