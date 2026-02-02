@@ -33,7 +33,7 @@ const TEAM: TeamMember[] = [
     role: 'CTO',
     company: 'Maity',
     description: 'Arquitecto de la plataforma de IA que impulsa el feedback en tiempo real de Maity.',
-    linkedin: 'https://www.linkedin.com/in/julioalexisgonzalezvilla/',
+    linkedin: 'https://www.linkedin.com/in/julio-alexis-gonz%C3%A1lez-villa-58690920a/',
     initials: 'JG',
     accent: LANDING_COLORS.maityBlue,
     tags: ['Tecnologia', 'IA', 'Data Science'],
