@@ -36,6 +36,7 @@ export const LandingNavbar = ({ activeView, setView }: LandingNavbarProps) => {
       );
     } else {
       setView(link.id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
