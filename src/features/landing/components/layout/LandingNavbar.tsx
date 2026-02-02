@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 
@@ -15,6 +16,7 @@ interface LandingNavbarProps {
 
 export const LandingNavbar = ({ activeView, setView }: LandingNavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks: NavLink[] = [
     { id: 'product', label: 'Producto' },
@@ -68,7 +70,7 @@ export const LandingNavbar = ({ activeView, setView }: LandingNavbarProps) => {
 
             <button
               className="text-sm font-medium text-gray-300 hover:text-white transition-colors ml-4"
-              onClick={() => setView('login')}
+              onClick={() => navigate('/auth')}
             >
               Entrar
             </button>
@@ -109,7 +111,7 @@ export const LandingNavbar = ({ activeView, setView }: LandingNavbarProps) => {
             ))}
             <button
               onClick={() => {
-                setView('login');
+                navigate('/auth');
                 setIsOpen(false);
               }}
               className="block w-full text-left px-3 py-3 rounded-md text-base font-medium text-white bg-white/10 hover:bg-white/20 mt-4"
