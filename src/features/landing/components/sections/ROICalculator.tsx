@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { DollarSign, Clock, Zap } from 'lucide-react';
+import { FadeIn } from '../shared/FadeIn';
 
 export const ROICalculator = () => {
   const [employees, setEmployees] = useState(100);
   const hourlyRate = 25;
   const hoursSavedPerMonth = 4;
+
   const monthlySavings = employees * hoursSavedPerMonth * hourlyRate;
   const yearlySavings = monthlySavings * 12;
   const productivityGain = Math.floor(employees * 0.15);
@@ -19,14 +21,18 @@ export const ROICalculator = () => {
           <h2 className="text-3xl font-bold text-white mb-4">Calculadora de ROI</h2>
           <p className="text-gray-400">Estima el impacto de Maity en tu organización.</p>
         </div>
+
         <div className="bg-[#0F0F0F] rounded-2xl border border-white/10 p-8 md:p-12 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-[100px]"></div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">
                 Número de Empleados
               </label>
-              <div className="text-5xl font-bold text-white mb-6 font-mono">{employees}</div>
+              <div className="text-5xl font-bold text-white mb-6 font-mono">
+                {employees}
+              </div>
               <input
                 type="range"
                 min="10"
@@ -45,6 +51,7 @@ export const ROICalculator = () => {
                 *Cálculo basado en un ahorro promedio de 4 horas/mes por empleado y un costo hora promedio de $25 USD.
               </p>
             </div>
+
             <div className="space-y-6">
               <div className="bg-[#141414] p-6 rounded-xl border border-green-500/20">
                 <div className="text-sm text-green-400 mb-1 flex items-center gap-2">
@@ -54,6 +61,7 @@ export const ROICalculator = () => {
                   ${yearlySavings.toLocaleString()}
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-[#141414] p-4 rounded-xl border border-white/5">
                   <div className="text-xs text-blue-400 mb-1 flex items-center gap-2">

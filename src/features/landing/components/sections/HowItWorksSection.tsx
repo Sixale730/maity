@@ -1,115 +1,83 @@
-import { User, Mic, Brain, Target, TrendingUp } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
-import { VideoCard } from '../shared/VideoCard';
+import { UserCheck, Mic, Brain, Trophy, BarChart2 } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
-
-const STEPS = [
-  {
-    icon: User,
-    title: 'Configura tu perfil',
-    description: 'Define tu rol, industria y objetivos de comunicacion. Maity personaliza todo desde el primer momento.',
-  },
-  {
-    icon: Mic,
-    title: 'Captura tus conversaciones',
-    description: 'Conecta tus llamadas de Zoom, Meet o Teams. Maity escucha (con tu permiso) y analiza en tiempo real.',
-  },
-  {
-    icon: Brain,
-    title: 'La IA analiza',
-    description: 'Recibe feedback tactico inmediato: que hiciste bien, que puedes mejorar y como hacerlo.',
-  },
-  {
-    icon: Target,
-    title: 'Retos personalizados',
-    description: 'Cada dia, micro-retos basados en tus patrones reales. Practica con escenarios de IA que simulan situaciones reales.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Ve tu evolucion',
-    description: 'Dashboards claros, niveles desbloqueables y metricas que demuestran tu progreso semana a semana.',
-  },
-];
+import { FadeIn } from '../shared/FadeIn';
+import { VideoCard } from '../shared/VideoCard';
 
 export const HowItWorksSection = () => {
-  const video = LANDING_VIDEOS.comoFunciona;
-
   return (
-    <section id="como-funciona" className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <FadeIn>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-              Como funciona
-            </h2>
-            <p className="text-lg max-w-2xl mx-auto" style={{ color: LANDING_COLORS.textMuted }}>
-              5 pasos simples para transformar tu comunicacion
-            </p>
-          </div>
-        </FadeIn>
-
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Steps */}
-          <div className="relative">
-            {/* Vertical connecting line */}
-            <div
-              className="absolute left-6 top-8 bottom-8 w-px"
-              style={{ background: `linear-gradient(to bottom, ${LANDING_COLORS.maityPink}, ${LANDING_COLORS.maityBlue}, ${LANDING_COLORS.maityGreen})` }}
-            />
-
-            <div className="space-y-8">
-              {STEPS.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <FadeIn key={step.title} delay={index * 100}>
-                    <div className="flex items-start gap-6 relative">
-                      {/* Step number + icon */}
-                      <div className="relative z-10 flex-shrink-0">
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center border border-white/10"
-                          style={{ backgroundColor: LANDING_COLORS.bgCard }}
-                        >
-                          <Icon className="w-5 h-5" style={{ color: LANDING_COLORS.maityPink }} />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="pt-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span
-                            className="text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{ backgroundColor: `${LANDING_COLORS.maityPink}20`, color: LANDING_COLORS.maityPink }}
-                          >
-                            {index + 1}
-                          </span>
-                          <h3 className="font-semibold text-lg" style={{ color: LANDING_COLORS.textMain }}>
-                            {step.title}
-                          </h3>
-                        </div>
-                        <p className="text-sm leading-relaxed" style={{ color: LANDING_COLORS.textMuted }}>
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  </FadeIn>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Video */}
-          <FadeIn delay={300} className="flex justify-center lg:sticky lg:top-24">
-            <VideoCard
-              title={video.title}
-              description={video.description}
-              duration={video.duration}
-              thumbnailUrl={video.thumbnailUrl}
-              videoUrl={video.videoUrl}
-              variant="featured"
-            />
+    <section id="como-funciona" className="py-24 bg-[#0A0A0A] border-y border-white/5">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-16">
+          <FadeIn>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Tu Escalada en 5 Pasos</h2>
+            <p className="text-gray-400">Cada conversación es una oportunidad de crecer. Sin fricción. Sin excusas. Sin pausa.</p>
           </FadeIn>
         </div>
+        <div className="flex flex-wrap justify-center gap-8 relative">
+          {/* Connecting Line (Desktop) */}
+          <div className="hidden md:block absolute top-12 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500/0 via-pink-500/30 to-pink-500/0 z-0"></div>
+
+          {[
+            {
+              icon: <UserCheck size={24} className="text-pink-500" />,
+              step: "01",
+              title: "Configura tu perfil",
+              desc: "Crea tu perfil, define tu rol y elige tu objetivo. Maity personaliza tu ruta de desarrollo."
+            },
+            {
+              icon: <Mic size={24} className="text-blue-500" />,
+              step: "02",
+              title: "Captura conversaciones",
+              desc: "Graba reuniones (Windows) o conversaciones del día a día (móvil + wearable). Solo cuando tú lo eliges."
+            },
+            {
+              icon: <Brain size={24} className="text-purple-500" />,
+              step: "03",
+              title: "Maity analiza con IA",
+              desc: "Dashboard con score general, métricas por habilidad y momentos destacados. Recomendaciones accionables."
+            },
+            {
+              icon: <Trophy size={24} className="text-yellow-500" />,
+              step: "04",
+              title: "Retos personalizados",
+              desc: "Retos diarios de 3-7 minutos. Progresa con XP, racha, insignias y niveles."
+            },
+            {
+              icon: <BarChart2 size={24} className="text-green-500" />,
+              step: "05",
+              title: "Ve tu evolución",
+              desc: "Métricas claras de tu crecimiento. Ve cómo evolucionan tus habilidades semana a semana."
+            }
+          ].map((item, idx) => (
+            <FadeIn key={idx} delay={idx * 150} className="relative z-10 flex flex-col items-center text-center group w-full md:w-1/6">
+              <div className="w-20 h-20 rounded-3xl bg-[#141414] border border-white/10 flex items-center justify-center mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-500 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl"></div>
+                {item.icon}
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#1A1A1A] border border-white/10 flex items-center justify-center text-xs font-bold text-gray-500">
+                  {item.step}
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2 leading-tight">{item.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed px-2">{item.desc}</p>
+            </FadeIn>
+          ))}
+        </div>
+
+        {/* Video: Cómo funciona Maity */}
+        <FadeIn delay={400}>
+          <div className="max-w-2xl mx-auto mt-16">
+            <VideoCard
+              title={LANDING_VIDEOS.comoFunciona.title}
+              description={LANDING_VIDEOS.comoFunciona.description}
+              duration={LANDING_VIDEOS.comoFunciona.duration}
+              thumbnailUrl={LANDING_VIDEOS.comoFunciona.thumbnailUrl}
+              videoUrl={LANDING_VIDEOS.comoFunciona.videoUrl}
+              variant="featured"
+              accentColor={LANDING_COLORS.maityBlue}
+            />
+          </div>
+        </FadeIn>
       </div>
     </section>
   );

@@ -33,7 +33,7 @@ const TEAM: TeamMember[] = [
     role: 'CTO',
     company: 'Maity',
     description: 'Arquitecto de la plataforma de IA que impulsa el feedback en tiempo real de Maity.',
-    linkedin: 'https://www.linkedin.com/in/julioalexisgonzalezvilla/',
+    linkedin: 'https://www.linkedin.com/in/julio-alexis-gonz%C3%A1lez-villa-58690920a/',
     initials: 'JG',
     accent: LANDING_COLORS.maityBlue,
     tags: ['Tecnologia', 'IA', 'Data Science'],
@@ -41,7 +41,7 @@ const TEAM: TeamMember[] = [
   },
   {
     name: 'Karina Barrera',
-    role: 'Aliada Estrategica \u00b7 CEO',
+    role: 'Aliada Estrategica · CEO',
     company: 'Asertio Capacitacion',
     description: 'Experta en desarrollo organizacional y capacitacion de equipos de alto rendimiento.',
     linkedin: 'https://www.linkedin.com/in/karinabarreragoytia/',
@@ -57,7 +57,7 @@ const TIME_SLOTS = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2
 const CONTACTS = [
   { icon: Mail, label: 'Email', value: 'hola@maity.com.mx', href: 'mailto:hola@maity.com.mx' },
   { icon: Linkedin, label: 'LinkedIn', value: 'MAITY Inteligencia Artificial', href: 'https://www.linkedin.com/company/maity-inteligencia-artificial/' },
-  { icon: MapPin, label: 'Ubicacion', value: 'Guadalajara, JAL \u00b7 Mexico', href: null },
+  { icon: MapPin, label: 'Ubicacion', value: 'Guadalajara, JAL · Mexico', href: null },
 ];
 
 type BookingStep = 'calendar' | 'details' | 'confirmed';

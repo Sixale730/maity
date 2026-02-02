@@ -1,7 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import { Star, Quote, ArrowRight } from 'lucide-react';
 import { FadeIn } from '../components/shared/FadeIn';
 import { LANDING_COLORS } from '../constants/colors';
+
+interface SuccessStoriesPageProps {
+  setView: (view: string) => void;
+}
 
 const stories = [
   { name: "Ana García", role: "Gerente de Ventas, Tech Corp", quote: "Maity me ayudó a cerrar un 20% más de ventas en solo 3 meses. El feedback de IA después de cada llamada es invaluable.", metric: "+20% ventas", color: "border-pink-500" },
@@ -12,8 +15,7 @@ const stories = [
   { name: "Roberto Sánchez", role: "Director Comercial", quote: "La combinación de práctica con IA y análisis de conversaciones reales es lo que hacía falta en el mercado.", metric: "ROI 4.2x en 6 meses", color: "border-yellow-500" },
 ];
 
-export const SuccessStoriesPage = () => {
-  const navigate = useNavigate();
+export const SuccessStoriesPage = ({ setView }: SuccessStoriesPageProps) => {
   return (
     <section className="min-h-screen pt-32 pb-24 bg-[#050505]">
       <div className="max-w-6xl mx-auto px-4">
@@ -51,7 +53,7 @@ export const SuccessStoriesPage = () => {
         <FadeIn delay={600}>
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-6">¿Listo para escribir tu propia historia?</h2>
-            <button onClick={() => navigate('/primeros-pasos')} className="inline-flex items-center gap-2 px-10 py-5 rounded-full text-white font-bold text-lg shadow-2xl hover:scale-105 transition-all" style={{ backgroundColor: LANDING_COLORS.maityPink }}>
+            <button onClick={() => setView('primeros-pasos')} className="inline-flex items-center gap-2 px-10 py-5 rounded-full text-white font-bold text-lg shadow-2xl hover:scale-105 transition-all" style={{ backgroundColor: LANDING_COLORS.maityPink }}>
               Empieza tu transformación <ArrowRight size={20} />
             </button>
           </div>

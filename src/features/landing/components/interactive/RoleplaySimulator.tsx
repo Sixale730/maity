@@ -1,255 +1,238 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles, Send, Mic, MicOff, User, Bot, X, Loader } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
-import { LANDING_COLORS } from '../../constants/colors';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Send, Bot, User, Loader, Mic } from 'lucide-react';
 
-interface Message {
+// --- GEMINI API CONFIGURATION ---
+const apiKey = ""; // La clave se inyecta en tiempo de ejecución
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+// --- Gemini API Call Helper ---
+interface GeminiPayload {
+  contents: { parts: { text: string }[] }[];
+  systemInstruction?: { parts: { text: string }[] };
+}
+
+async function callGemini(prompt: string, systemInstruction: string | null = null): Promise<string> {
+  try {
+    const payload: GeminiPayload = {
+      contents: [{ parts: [{ text: prompt }] }],
+    };
+
+    if (systemInstruction) {
+      payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+    }
+
+    const response = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error("Gemini API Error");
+
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Error en la respuesta de la IA.";
+  } catch (error) {
+    console.error(error);
+    return "Lo siento, hubo un problema de conexión con la IA. Inténtalo de nuevo.";
+  }
+}
+
+// --- Types ---
+interface RoleplaySimulatorProps {
+  onExit: () => void;
+}
+
+interface ChatMessage {
   role: 'user' | 'model';
   text: string;
 }
 
-const INITIAL_MESSAGE: Message = {
-  role: 'model',
-  text: 'Hola. Veo tu propuesta de Maity, pero sinceramente, el presupuesto está muy apretado este trimestre. Convénceme de por qué debería invertir en esto ahora.',
-};
-
-const SYSTEM_PROMPT =
-  'Eres Carlos, un director de recursos humanos escéptico y ocupado. Tienes 15 años de experiencia y has visto muchas soluciones de capacitación fallar. Responde de forma realista: haz objeciones sobre presupuesto, tiempo de implementación, ROI, y resistencia del equipo. No seas fácil de convencer pero tampoco imposible. Si el usuario presenta buenos argumentos, muestra interés gradualmente. Responde en español, máximo 3 oraciones. No rompas el personaje.';
-
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=';
-
-async function callGemini(prompt: string, systemInstruction?: string): Promise<string> {
-  try {
-    const payload: Record<string, unknown> = { contents: [{ parts: [{ text: prompt }] }] };
-    if (systemInstruction) {
-      payload.systemInstruction = { parts: [{ text: systemInstruction }] };
-    }
-    const response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) throw new Error('Gemini API Error');
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Error en la respuesta de la IA.';
-  } catch {
-    return 'Lo siento, hubo un problema de conexión con la IA. Inténtalo de nuevo.';
-  }
-}
-
-export const RoleplaySimulator = () => {
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
-  const [input, setInput] = useState('');
+// --- Component ---
+export const RoleplaySimulator = ({ onExit }: RoleplaySimulatorProps) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: 'model',
+      text: "Hola. Veo tu propuesta de Maity, pero sinceramente, el presupuesto está muy apretado este trimestre. Convénceme de por qué debería invertir en esto ahora.",
+    },
+  ]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const chatRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Speech Recognition Setup
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  // Auto-scroll to bottom
   useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognitionCtor =
+        (window as unknown as { SpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
+        (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+
+      if (SpeechRecognitionCtor) {
+        recognitionRef.current = new SpeechRecognitionCtor();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.lang = 'es-ES';
+        recognitionRef.current.interimResults = false;
+
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error("Speech recognition error", event.error);
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
-  }, [messages, loading]);
-
-  // Setup speech recognition
-  useEffect(() => {
-    const SpeechRecognitionAPI =
-      (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition ||
-      window.SpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
-
-    const recognition = new SpeechRecognitionAPI();
-    recognition.lang = 'es-ES';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0]?.[0]?.transcript;
-      if (transcript) setInput((prev) => prev + transcript);
-    };
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-
-    recognitionRef.current = recognition;
   }, []);
 
   const toggleListening = () => {
-    if (!recognitionRef.current) return;
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      recognitionRef.current?.stop();
     } else {
-      recognitionRef.current.start();
+      recognitionRef.current?.start();
       setIsListening(true);
     }
   };
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-    const userMsg: Message = { role: 'user', text };
-    const updated = [...messages, userMsg];
-    setMessages(updated);
-    setInput('');
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+
+    const userMsg: ChatMessage = { role: 'user', text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
     setLoading(true);
 
-    // Build conversation context
-    const conversationContext = updated
-      .map((m) => `${m.role === 'user' ? 'Usuario' : 'Carlos'}: ${m.text}`)
+    const conversationHistory = messages
+      .map((m) =>
+        `${m.role === 'user' ? 'Vendedor (Usuario)' : 'Cliente (Carlos)'}: ${m.text}`
+      )
       .join('\n');
 
-    const reply = await callGemini(
-      `Continúa esta conversación de negociación. Solo responde como Carlos.\n\n${conversationContext}\nCarlos:`,
-      SYSTEM_PROMPT,
-    );
+    const prompt = `${conversationHistory}\nVendedor (Usuario): ${input}\nCliente (Carlos): [Responde corto (max 2 frases), mantén tu postura escéptica pero profesional, reacciona a lo que dijo el vendedor]`;
+    const systemPrompt =
+      "Eres Carlos, un director de recursos humanos escéptico y ocupado. Estás en una negociación simulada. Tu objetivo es desafiar al vendedor sobre el valor y precio de 'Maity'. No cedas fácilmente. Sé breve y directo.";
 
-    setMessages((prev) => [...prev, { role: 'model', text: reply }]);
+    const aiResponseText = await callGemini(prompt, systemPrompt);
+
+    setMessages((prev) => [...prev, { role: 'model', text: aiResponseText }]);
     setLoading(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
-    <section className="min-h-screen flex flex-col px-4 py-6 md:px-6 md:py-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <FadeIn>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${LANDING_COLORS.maityPink}20` }}
-            >
-              <Sparkles className="w-5 h-5" style={{ color: LANDING_COLORS.maityPink }} />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold" style={{ color: LANDING_COLORS.textMain }}>
-                Simulador de Negociación
-              </h1>
-              <p className="text-xs" style={{ color: LANDING_COLORS.textMuted }}>
-                Practica persuasión con IA en tiempo real
-              </p>
-            </div>
+    <div className="pt-24 pb-12 min-h-screen bg-[#050505] text-[#e7e7e9] flex flex-col items-center">
+      <div className="w-full max-w-3xl px-4 flex-grow flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Sparkles className="text-pink-500" /> Simulador de Negociación
+            </h2>
+            <p className="text-sm text-gray-400">
+              Objetivo: Convencer a Carlos (Director RH)
+            </p>
           </div>
           <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm border border-white/10 hover:bg-white/5 transition-colors"
-            style={{ color: LANDING_COLORS.textMuted }}
+            onClick={onExit}
+            className="text-sm text-gray-500 hover:text-white underline"
           >
-            <X className="w-4 h-4" /> Salir
+            Salir
           </button>
         </div>
-      </FadeIn>
 
-      {/* Chat window */}
-      <div
-        ref={chatRef}
-        className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 min-h-0"
-        style={{ maxHeight: 'calc(100vh - 220px)' }}
-      >
-        {messages.map((msg, i) => {
-          const isUser = msg.role === 'user';
-          return (
-            <div key={i} className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-              {!isUser && (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${LANDING_COLORS.maityBlue}20` }}
-                >
-                  <Bot className="w-4 h-4" style={{ color: LANDING_COLORS.maityBlue }} />
-                </div>
-              )}
+        {/* Chat Window */}
+        <div className="flex-grow bg-[#0F0F0F] rounded-xl border border-white/10 p-6 overflow-y-auto mb-4 min-h-[400px] max-h-[60vh] custom-scrollbar">
+          {messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`flex gap-4 mb-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+            >
               <div
-                className="max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed"
-                style={{
-                  backgroundColor: isUser ? LANDING_COLORS.maityPink : `${LANDING_COLORS.maityBlue}20`,
-                  color: isUser ? '#ffffff' : LANDING_COLORS.textMain,
-                  borderBottomRightRadius: isUser ? '4px' : undefined,
-                  borderBottomLeftRadius: !isUser ? '4px' : undefined,
-                }}
+                className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${
+                  msg.role === 'user' ? 'bg-pink-600' : 'bg-blue-600'
+                }`}
+              >
+                {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
+              </div>
+              <div
+                className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-pink-900/20 border border-pink-500/30 text-pink-100'
+                    : 'bg-blue-900/20 border border-blue-500/30 text-blue-100'
+                }`}
               >
                 {msg.text}
               </div>
-              {isUser && (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${LANDING_COLORS.maityPink}20` }}
-                >
-                  <User className="w-4 h-4" style={{ color: LANDING_COLORS.maityPink }} />
-                </div>
-              )}
             </div>
-          );
-        })}
-
-        {/* Loading indicator */}
-        {loading && (
-          <div className="flex items-end gap-2 justify-start">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${LANDING_COLORS.maityBlue}20` }}
-            >
-              <Bot className="w-4 h-4" style={{ color: LANDING_COLORS.maityBlue }} />
+          ))}
+          {loading && (
+            <div className="flex gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center animate-pulse">
+                <Bot size={18} />
+              </div>
+              <div className="p-4 rounded-2xl bg-blue-900/10 border border-blue-500/10 text-blue-200 flex items-center gap-2">
+                <Loader size={16} className="animate-spin" /> Escribiendo...
+              </div>
             </div>
-            <div className="px-4 py-3 rounded-2xl" style={{ backgroundColor: `${LANDING_COLORS.maityBlue}20` }}>
-              <Loader className="w-4 h-4 animate-spin" style={{ color: LANDING_COLORS.maityBlue }} />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Input area */}
-      <div
-        className="flex items-center gap-2 p-3 rounded-xl border border-white/10"
-        style={{ backgroundColor: LANDING_COLORS.bgCard }}
-      >
-        <button
-          onClick={toggleListening}
-          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-          style={{
-            backgroundColor: isListening ? '#ef444430' : 'rgba(255,255,255,0.05)',
-            border: isListening ? '1px solid #ef4444' : '1px solid transparent',
-          }}
-          title={isListening ? 'Detener micrófono' : 'Hablar'}
-        >
-          {isListening ? (
-            <MicOff className="w-4 h-4" style={{ color: '#ef4444' }} />
-          ) : (
-            <Mic className="w-4 h-4" style={{ color: LANDING_COLORS.textMuted }} />
           )}
-        </button>
+          <div ref={messagesEndRef} />
+        </div>
 
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Escribe tu argumento..."
-          className="flex-1 bg-transparent outline-none text-sm"
-          style={{ color: LANDING_COLORS.textMain }}
-          disabled={loading}
-        />
+        {/* Input Area */}
+        <div className="bg-[#141414] p-2 rounded-xl border border-white/10 flex gap-2 items-center">
+          {/* Voice Input Button */}
+          <button
+            onClick={toggleListening}
+            className={`p-3 rounded-lg transition-all ${
+              isListening
+                ? 'bg-red-500/20 text-red-500 animate-pulse border border-red-500/50'
+                : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+            title="Usar micrófono"
+          >
+            <Mic size={20} />
+          </button>
 
-        <button
-          onClick={handleSend}
-          disabled={!input.trim() || loading}
-          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-          style={{
-            backgroundColor: input.trim() ? LANDING_COLORS.maityPink : 'rgba(255,255,255,0.05)',
-            cursor: input.trim() && !loading ? 'pointer' : 'default',
-          }}
-        >
-          <Send className="w-4 h-4" style={{ color: input.trim() ? '#ffffff' : LANDING_COLORS.textMuted }} />
-        </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder={isListening ? "Escuchando..." : "Escribe o habla tu argumento..."}
+            className="flex-grow bg-transparent border-none outline-none text-white px-4 py-3 placeholder-gray-600"
+            disabled={loading}
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className={`p-3 rounded-lg transition-all ${
+              loading || !input.trim()
+                ? 'bg-gray-800 text-gray-500'
+                : 'bg-pink-600 text-white hover:bg-pink-700'
+            }`}
+          >
+            <Send size={20} />
+          </button>
+        </div>
+        <div className="text-center mt-2 text-xs text-gray-600">
+          {isListening && "Te estamos escuchando..."}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };

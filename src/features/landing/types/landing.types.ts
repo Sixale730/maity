@@ -115,7 +115,6 @@ export type LandingView =
   | 'archetype-quiz'
   | 'corporate-quiz'
   | 'success-stories'
-  | 'login'
   | 'climb'
   | 'roleplay'
   | 'seguridad'

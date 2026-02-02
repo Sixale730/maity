@@ -1,166 +1,164 @@
-import { Link } from 'react-router-dom';
-import { Twitter, Linkedin } from 'lucide-react';
-import { LANDING_COLORS } from '../../constants/colors';
-
-interface FooterLinkItem {
-  label: string;
-  to: string;
-  external?: boolean;
+interface LandingFooterProps {
+  setView: (view: string) => void;
 }
 
-interface FooterColumn {
-  title: string;
-  links: FooterLinkItem[];
-}
+export const LandingFooter = ({ setView }: LandingFooterProps) => {
+  const handleScrollTo = (viewId: string, sectionId: string) => {
+    setView(viewId);
+    setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  };
 
-const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    title: 'Producto',
-    links: [
-      { label: 'Como Funciona', to: '/#como-funciona' },
-      { label: 'La Escalada', to: '/#la-escalada' },
-      { label: 'Precios', to: '/precios' },
-      { label: 'Quiz', to: '/quiz' },
-    ],
-  },
-  {
-    title: 'Empresa',
-    links: [
-      { label: 'Nosotros', to: '/nosotros' },
-      { label: 'Carreras', to: '/carreras' },
-      { label: 'Soporte', to: '/soporte' },
-      { label: 'Conocenos', to: '/contacto' },
-    ],
-  },
-  {
-    title: 'Recursos',
-    links: [
-      { label: 'Blog', to: '/recursos' },
-      { label: 'Primeros Pasos', to: '/primeros-pasos' },
-      { label: 'Casos de Exito', to: '/casos-de-exito' },
-      { label: 'Comunidad', to: '/nosotros' },
-    ],
-  },
-];
-
-interface SocialLink {
-  label: string;
-  href: string;
-  icon: typeof Twitter;
-}
-
-const SOCIAL_LINKS: SocialLink[] = [
-  { label: 'Twitter', href: 'https://twitter.com/maityapp', icon: Twitter },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/maity-inteligencia-artificial/', icon: Linkedin },
-];
-
-export const LandingFooter = () => {
   return (
-    <footer
-      className="border-t border-white/10"
-      style={{ backgroundColor: LANDING_COLORS.bgDark }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Brand column */}
-          <div className="space-y-4">
-            <Link to="/" className="inline-block">
-              <img
-                src="/assets/maity-logo-color.png"
-                alt="Maity"
-                className="h-8 w-auto"
-              />
-            </Link>
-            <p
-              className="text-sm leading-relaxed"
-              style={{ color: LANDING_COLORS.textMuted }}
+    <footer className="bg-black text-white pt-20 pb-10 border-t border-white/10">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div>
+          <img
+            onClick={() => setView('product')}
+            src="/assets/maity-logo-white.png"
+            alt="Maity"
+            className="h-7 mb-6 cursor-pointer"
+          />
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Transformando el aprendizaje en evolución diaria a través de IA ética y humana.
+          </p>
+        </div>
+        <div>
+          <h4 className="font-bold mb-6 text-gray-200">Producto</h4>
+          <ul className="space-y-3 text-sm text-gray-500">
+            <li
+              onClick={() => setView('primeros-pasos')}
+              className="hover:text-pink-500 cursor-pointer transition-colors"
             >
-              Tu coach de soft skills con IA
-            </p>
-          </div>
-
-          {/* Link columns */}
-          {FOOTER_COLUMNS.map(col => (
-            <div key={col.title}>
-              <h4
-                className="text-sm font-semibold mb-4"
-                style={{ color: LANDING_COLORS.textMain }}
+              Dashboard
+            </li>
+            <li
+              onClick={() => setView('primeros-pasos')}
+              className="hover:text-pink-500 cursor-pointer transition-colors"
+            >
+              App Windows
+            </li>
+            <li
+              onClick={() => setView('primeros-pasos')}
+              className="hover:text-pink-500 cursor-pointer transition-colors"
+            >
+              App Móvil
+            </li>
+            <li
+              onClick={() => handleScrollTo('product', 'la-escalada')}
+              className="hover:text-pink-500 cursor-pointer transition-colors"
+            >
+              La Escalada
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold mb-6 text-gray-200">Empresa</h4>
+          <ul className="space-y-3 text-sm text-gray-500">
+            <li
+              onClick={() => setView('nosotros')}
+              className="hover:text-blue-500 cursor-pointer transition-colors"
+            >
+              Nosotros
+            </li>
+            <li
+              onClick={() => setView('seguridad')}
+              className="hover:text-blue-500 cursor-pointer transition-colors"
+            >
+              Seguridad
+            </li>
+            <li
+              onClick={() => setView('demo-calendar')}
+              className="hover:text-blue-500 cursor-pointer transition-colors"
+            >
+              Contacto
+            </li>
+            <li className="hover:text-blue-500 cursor-pointer transition-colors">
+              <span
+                onClick={() => setView('careers')}
+                className="cursor-pointer"
               >
-                {col.title}
-              </h4>
-              <ul className="space-y-3">
-                {col.links.map(link => (
-                  <li key={link.label}>
-                    {link.external ? (
-                      <a
-                        href={link.to}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm transition-colors hover:text-white"
-                        style={{ color: LANDING_COLORS.textMuted }}
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link
-                        to={link.to}
-                        className="text-sm transition-colors hover:text-white"
-                        style={{ color: LANDING_COLORS.textMuted }}
-                      >
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                Trabaja con nosotros
+              </span>
+            </li>
+            <li
+              onClick={() => setView('comunidad')}
+              className="hover:text-blue-500 cursor-pointer transition-colors"
+            >
+              Sé Partner
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold mb-6 text-gray-200">Recursos</h4>
+          <ul className="space-y-3 text-sm text-gray-500">
+            <li
+              onClick={() => setView('resources')}
+              className="hover:text-gray-300 cursor-pointer transition-colors"
+            >
+              Blog
+            </li>
+            <li
+              onClick={() => setView('resources')}
+              className="hover:text-gray-300 cursor-pointer transition-colors"
+            >
+              Guías
+            </li>
+            <li
+              onClick={() => setView('corporate-quiz')}
+              className="hover:text-gray-300 cursor-pointer transition-colors"
+            >
+              Quiz Corporativo
+            </li>
+            <li
+              onClick={() => handleScrollTo('product', 'faq-section')}
+              className="hover:text-gray-300 cursor-pointer transition-colors"
+            >
+              FAQs
+            </li>
+            <li
+              onClick={() => setView('soporte')}
+              className="hover:text-gray-300 cursor-pointer transition-colors"
+            >
+              Soporte
+            </li>
+          </ul>
         </div>
       </div>
-
-      {/* Bottom bar */}
-      <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p
-              className="text-xs"
-              style={{ color: LANDING_COLORS.textMuted }}
-            >
-              &copy; 2026 Maity. Todos los derechos reservados.
-            </p>
-
-            <div className="flex items-center gap-6">
-              <Link
-                to="/privacidad"
-                className="text-xs transition-colors hover:text-white"
-                style={{ color: LANDING_COLORS.textMuted }}
-              >
-                Privacidad
-              </Link>
-              <Link
-                to="/terminos"
-                className="text-xs transition-colors hover:text-white"
-                style={{ color: LANDING_COLORS.textMuted }}
-              >
-                Terminos
-              </Link>
-
-              {/* Social links */}
-              {SOCIAL_LINKS.map(social => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
-                  style={{ color: LANDING_COLORS.textMuted }}
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+        <p>&copy; 2026 Maity SAPI de CV — Ciudad de México, México</p>
+        <div className="flex gap-4">
+          <span
+            onClick={() => setView('privacidad')}
+            className="hover:text-gray-400 cursor-pointer transition-colors"
+          >
+            Privacidad
+          </span>
+          <span
+            onClick={() => setView('terminos')}
+            className="hover:text-gray-400 cursor-pointer transition-colors"
+          >
+            Términos
+          </span>
+        </div>
+        <div className="flex gap-4">
+          <a
+            href="https://twitter.com/maityai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-400 cursor-pointer transition-colors"
+          >
+            Twitter
+          </a>
+          <a
+            href="https://www.linkedin.com/company/maity-inteligencia-artificial/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-400 cursor-pointer transition-colors"
+          >
+            LinkedIn
+          </a>
         </div>
       </div>
     </footer>

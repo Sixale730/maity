@@ -1,198 +1,185 @@
-import { useNavigate } from 'react-router-dom';
-import { Lock, UserCheck, Shield, Check, ArrowRight } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
-import { VideoCard } from '../shared/VideoCard';
+import { Lock, UserCheck, Shield, Check, Eye, AlertTriangle, Globe, FileText, Key, Download, Users, Brain, HardDrive, ChevronRight } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
+import { FadeIn } from '../shared/FadeIn';
+import { VideoCard } from '../shared/VideoCard';
 
 interface TrustSectionProps {
-  variant: 'product' | 'enterprise';
+  variant?: 'product' | 'enterprise';
+  setView?: (view: string) => void;
 }
 
-const BASE_PILLARS = [
-  { icon: Lock, title: 'Control Total', desc: 'Tu decides que se graba, que se analiza y que se elimina. Siempre.' },
-  { icon: UserCheck, title: 'Consentimiento', desc: 'Nada sucede sin tu permiso explicito. Opt-in siempre.' },
-  { icon: Shield, title: 'Cifrado', desc: 'Datos cifrados en transito y en reposo con estandares bancarios.' },
-  { icon: Check, title: 'Sin Venta de Datos', desc: 'Tus datos son tuyos. No los vendemos ni compartimos. Punto.' },
-];
+export const TrustSection = ({ variant = 'product', setView }: TrustSectionProps) => {
+  const basePillars = [
+    { t: "Control Total", d: "Tú decides qué se graba, analiza y elimina.", i: <Lock className="text-pink-500" /> },
+    { t: "Consentimiento", d: "Maity exige notificar a participantes.", i: <UserCheck className="text-blue-500" /> },
+    { t: "Cifrado", d: "Datos protegidos en tránsito y reposo.", i: <Shield className="text-green-500" /> },
+    { t: "Sin Venta de Datos", d: "Tu información nunca se comparte con terceros.", i: <Check className="text-yellow-500" /> }
+  ];
 
-const COMPLIANCE = ['SOC2 Type II', 'ISO 27001', 'GDPR', 'CCPA', 'LFPDPPP'];
+  const complianceBadges = [
+    { name: "SOC 2 Type II", status: "En proceso", color: "#ffd93d" },
+    { name: "ISO 27001", status: "Diseñado conforme", color: LANDING_COLORS.maityBlue },
+    { name: "GDPR", status: "Cumplimiento total", color: LANDING_COLORS.maityGreen },
+    { name: "CCPA", status: "Cumplimiento total", color: LANDING_COLORS.maityGreen },
+    { name: "LFPDPPP", status: "Cumplimiento total", color: LANDING_COLORS.maityGreen }
+  ];
 
-const TECH_SECURITY = [
-  'Cifrado AES-256 en reposo',
-  'TLS 1.3 en transito',
-  'Autenticacion multifactor',
-  'Auditorias de seguridad trimestrales',
-  'Pruebas de penetracion anuales',
-];
+  const technicalSecurity = [
+    { t: "Cifrado AES-256", d: "Datos protegidos en reposo con cifrado de grado militar.", i: <Lock size={18} /> },
+    { t: "TLS 1.3 en tránsito", d: "Toda la comunicación encriptada con el estándar más reciente.", i: <Shield size={18} /> },
+    { t: "Arquitectura Zero-Knowledge", d: "Tus datos de voz se procesan y se eliminan. No almacenamos grabaciones.", i: <Eye size={18} /> },
+    { t: "Pruebas de penetración", d: "Auditorías de seguridad regulares por terceros certificados.", i: <AlertTriangle size={18} /> },
+    { t: "Residencia de datos", d: "Elige dónde se almacenan tus datos: NA, EU o LATAM.", i: <Globe size={18} /> }
+  ];
 
-const PRIVACY_DESIGN = [
-  'Minimizacion de datos por defecto',
-  'Anonimizacion automatica',
-  'Derecho al olvido en 72 horas',
-  'Retencion configurable',
-  'Sin tracking de terceros',
-];
+  const privacyByDesign = [
+    { t: "Minimización de datos", d: "Solo recopilamos lo estrictamente necesario para el servicio.", i: <FileText size={18} /> },
+    { t: "Consentimiento granular", d: "Cada participante debe dar consentimiento explícito.", i: <UserCheck size={18} /> },
+    { t: "Derecho al olvido", d: "Elimina todos tus datos en cualquier momento con un click.", i: <Key size={18} /> },
+    { t: "Portabilidad", d: "Exporta todos tus datos en formato estándar cuando quieras.", i: <Download size={18} /> },
+    { t: "Sin venta de datos", d: "Tu información nunca se comparte ni se vende. Punto.", i: <Check size={18} /> }
+  ];
 
-const ORG_SECURITY = [
-  'Equipo de seguridad dedicado',
-  'Capacitacion continua en seguridad',
-  'Politicas de acceso zero-trust',
-  'Monitoreo 24/7 de infraestructura',
-];
-
-const TRANSPARENCY = [
-  'Informe de transparencia anual',
-  'Politica de privacidad clara',
-  'Notificacion de brechas en 24h',
-  'Canal de reporte de vulnerabilidades',
-];
-
-export const TrustSection = ({ variant }: TrustSectionProps) => {
-  const navigate = useNavigate();
-  const video = LANDING_VIDEOS.privacidad;
+  const orgSecurity = [
+    { t: "Verificación de equipo", d: "Background checks para todo el personal con acceso a datos.", i: <Users size={18} /> },
+    { t: "Capacitación continua", d: "Entrenamiento obligatorio de seguridad para todo el equipo.", i: <Brain size={18} /> },
+    { t: "Plan de respuesta", d: "Protocolo de respuesta a incidentes con notificación en 72h.", i: <AlertTriangle size={18} /> },
+    { t: "Continuidad", d: "Plan de continuidad de negocio con backup geo-redundante.", i: <HardDrive size={18} /> }
+  ];
 
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <FadeIn>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-              Tu privacidad es sagrada
+    <section className="py-24 bg-[#0A0A0A] border-y border-white/5">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <FadeIn>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              {variant === 'enterprise' ? 'Seguridad y privacidad Enterprise' : 'Tu información, tu control'}
             </h2>
-            <p className="text-lg max-w-2xl mx-auto" style={{ color: LANDING_COLORS.textMuted }}>
-              La confianza se construye con hechos, no con promesas
+            <p className="text-gray-400">
+              {variant === 'enterprise'
+                ? 'Cumplimiento normativo, cifrado de grado militar y privacidad por diseño. Tus datos están seguros.'
+                : 'Maity está diseñado con privacidad desde el día uno.'}
             </p>
-          </div>
-        </FadeIn>
-
-        {/* Base pillars */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {BASE_PILLARS.map((pillar, i) => {
-            const Icon = pillar.icon;
-            return (
-              <FadeIn key={pillar.title} delay={i * 75}>
-                <div className="p-6 rounded-2xl border border-white/5 text-center" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 bg-green-500/10">
-                    <Icon className="w-6 h-6 text-green-500" />
-                  </div>
-                  <h3 className="font-semibold mb-2" style={{ color: LANDING_COLORS.textMain }}>{pillar.title}</h3>
-                  <p className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>{pillar.desc}</p>
-                </div>
-              </FadeIn>
-            );
-          })}
+          </FadeIn>
         </div>
 
-        {/* Enterprise-only sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {basePillars.map((item, i) => (
+            <FadeIn key={i} delay={i * 100} className="p-8 rounded-2xl bg-white/2 hover:bg-white/5 transition-colors border border-white/5">
+              <div className="mb-4">{item.i}</div>
+              <h4 className="font-bold text-white mb-2">{item.t}</h4>
+              <p className="text-sm text-gray-500 leading-relaxed">{item.d}</p>
+            </FadeIn>
+          ))}
+        </div>
+
         {variant === 'enterprise' && (
           <>
-            {/* Compliance badges */}
             <FadeIn delay={200}>
-              <div className="flex flex-wrap justify-center gap-3 mb-12">
-                {COMPLIANCE.map((badge) => (
-                  <span
-                    key={badge}
-                    className="px-4 py-2 rounded-full text-sm font-semibold border border-green-500/20 bg-green-500/10 text-green-400"
-                  >
-                    {badge}
-                  </span>
-                ))}
-              </div>
-            </FadeIn>
-
-            {/* Technical security + Privacy by design */}
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              <FadeIn delay={250}>
-                <div className="p-6 rounded-2xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                  <h3 className="font-semibold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-                    Seguridad Tecnica
-                  </h3>
-                  <ul className="space-y-3">
-                    {TECH_SECURITY.map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm" style={{ color: LANDING_COLORS.textMuted }}>
-                        <Shield className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </FadeIn>
-
-              <FadeIn delay={300}>
-                <div className="p-6 rounded-2xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                  <h3 className="font-semibold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-                    Privacy by Design
-                  </h3>
-                  <ul className="space-y-3">
-                    {PRIVACY_DESIGN.map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm" style={{ color: LANDING_COLORS.textMuted }}>
-                        <Lock className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </FadeIn>
-            </div>
-
-            {/* Organizational security */}
-            <FadeIn delay={350}>
-              <div className="p-6 rounded-2xl border border-white/5 mb-12" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                <h3 className="font-semibold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-                  Seguridad Organizacional
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {ORG_SECURITY.map((item) => (
-                    <div key={item} className="flex items-center gap-2 text-sm" style={{ color: LANDING_COLORS.textMuted }}>
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      {item}
+              <div className="mt-16 mb-12">
+                <h3 className="text-xl font-bold text-white mb-6 text-center">Cumplimiento Normativo</h3>
+                <div className="flex flex-wrap justify-center gap-4">
+                  {complianceBadges.map((badge, i) => (
+                    <div key={i} className="flex items-center gap-3 px-5 py-3 bg-[#0F0F0F] rounded-xl border border-white/10">
+                      <Shield size={16} style={{ color: badge.color }} />
+                      <div>
+                        <div className="text-sm font-bold text-white">{badge.name}</div>
+                        <div className="text-xs" style={{ color: badge.color }}>{badge.status}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </FadeIn>
 
-            {/* Transparency strip */}
+            <FadeIn delay={300}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div className="p-8 bg-[#0F0F0F] rounded-2xl border border-white/5">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <Shield size={20} style={{ color: LANDING_COLORS.maityBlue }} /> Seguridad Técnica
+                  </h3>
+                  <div className="space-y-5">
+                    {technicalSecurity.map((item, i) => (
+                      <div key={i} className="flex gap-4">
+                        <div className="mt-0.5 text-blue-400 flex-shrink-0">{item.i}</div>
+                        <div>
+                          <div className="text-sm font-bold text-white mb-1">{item.t}</div>
+                          <div className="text-xs text-gray-500 leading-relaxed">{item.d}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-8 bg-[#0F0F0F] rounded-2xl border border-white/5">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <Lock size={20} style={{ color: LANDING_COLORS.maityGreen }} /> Privacidad por Diseño
+                  </h3>
+                  <div className="space-y-5">
+                    {privacyByDesign.map((item, i) => (
+                      <div key={i} className="flex gap-4">
+                        <div className="mt-0.5 text-green-400 flex-shrink-0">{item.i}</div>
+                        <div>
+                          <div className="text-sm font-bold text-white mb-1">{item.t}</div>
+                          <div className="text-xs text-gray-500 leading-relaxed">{item.d}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
             <FadeIn delay={400}>
-              <div className="flex flex-wrap justify-center gap-3 mb-12">
-                {TRANSPARENCY.map((item) => (
-                  <span
-                    key={item}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/5"
-                    style={{ color: LANDING_COLORS.textMuted }}
-                  >
-                    {item}
-                  </span>
+              <div className="p-8 bg-[#0F0F0F] rounded-2xl border border-white/5 mb-12">
+                <h3 className="text-lg font-bold text-white mb-6 text-center">Seguridad Organizacional</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {orgSecurity.map((item, i) => (
+                    <div key={i} className="text-center">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3 text-gray-400">
+                        {item.i}
+                      </div>
+                      <div className="text-sm font-bold text-white mb-1">{item.t}</div>
+                      <div className="text-xs text-gray-500 leading-relaxed">{item.d}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={500}>
+              <div className="flex flex-wrap justify-center gap-3 text-xs text-gray-500 mb-8">
+                {["Auditorías de seguridad regulares", "Programa de divulgación responsable", "Acuerdos de procesamiento de datos (DPA)", "Lista de sub-procesadores publicada"].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full">
+                    <Check size={12} className="text-green-500" />
+                    <span>{item}</span>
+                  </div>
                 ))}
               </div>
             </FadeIn>
           </>
         )}
 
-        {/* Video + link */}
-        <div className="flex flex-col items-center gap-6">
-          <FadeIn delay={variant === 'enterprise' ? 450 : 200}>
-            <VideoCard
-              title={video.title}
-              description={video.description}
-              duration={video.duration}
-              thumbnailUrl={video.thumbnailUrl}
-              videoUrl={video.videoUrl}
-            />
-          </FadeIn>
-
-          <FadeIn delay={variant === 'enterprise' ? 500 : 250}>
-            <button
-              onClick={() => navigate('/privacy')}
-              className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
-              style={{ color: LANDING_COLORS.maityGreen }}
-            >
-              Ver politica de privacidad completa
-              <ArrowRight className="w-4 h-4" />
+        <FadeIn delay={variant === 'enterprise' ? 600 : 400}>
+          <div className="text-center mt-10">
+            <button onClick={() => setView && setView('seguridad')} className="text-sm text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-2 mx-auto">
+              <Shield size={14} /> Ver política de privacidad completa <ChevronRight size={14} />
             </button>
-          </FadeIn>
-        </div>
+          </div>
+
+          <div className="max-w-xl mx-auto mt-12">
+            <VideoCard
+              title={LANDING_VIDEOS.privacidad.title}
+              description={LANDING_VIDEOS.privacidad.description}
+              duration={LANDING_VIDEOS.privacidad.duration}
+              thumbnailUrl={LANDING_VIDEOS.privacidad.thumbnailUrl}
+              videoUrl={LANDING_VIDEOS.privacidad.videoUrl}
+              variant="inline"
+              accentColor={LANDING_COLORS.maityGreen}
+            />
+          </div>
+        </FadeIn>
       </div>
     </section>
   );

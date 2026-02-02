@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Play, Clock } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { FadeIn } from './FadeIn';
 
 interface VideoCardProps {
   title: string;
-  description: string;
+  description?: string;
   duration: string;
   thumbnailUrl?: string | null;
   videoUrl?: string | null;
@@ -14,21 +14,8 @@ interface VideoCardProps {
 }
 
 function getYouTubeId(url: string): string | null {
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  if (shortMatch) return shortMatch[1];
-  const longMatch = url.match(/youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/);
-  if (longMatch) return longMatch[1];
-  return null;
-}
-
-function getYouTubeEmbedUrl(url: string): string | null {
-  const id = getYouTubeId(url);
-  return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null;
-}
-
-function getYouTubeThumbnail(url: string): string | null {
-  const id = getYouTubeId(url);
-  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
 }
 
 export const VideoCard = ({
@@ -40,111 +27,65 @@ export const VideoCard = ({
   variant = 'inline',
   accentColor = LANDING_COLORS.maityPink,
 }: VideoCardProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
-  const autoThumbnail = videoUrl ? getYouTubeThumbnail(videoUrl) : null;
-  const displayThumbnail = thumbnailUrl || autoThumbnail;
-  const isPlaceholder = !videoUrl && !displayThumbnail;
-  const embedUrl = videoUrl ? getYouTubeEmbedUrl(videoUrl) : null;
-
-  const maxWidth = variant === 'featured' ? 'max-w-2xl' : 'max-w-xl';
-
-  const handlePlay = () => {
-    if (embedUrl) setIsPlaying(true);
-  };
+  const ytId = videoUrl ? getYouTubeId(videoUrl) : null;
+  const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0` : null;
+  const autoThumbnail = !thumbnailUrl && ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : thumbnailUrl;
+  const isPlaceholder = !videoUrl && !thumbnailUrl && !autoThumbnail;
 
   return (
-    <FadeIn delay={200} className={`w-full ${maxWidth}`}>
-      <div
-        className="rounded-xl overflow-hidden border border-white/10"
-        style={{ backgroundColor: LANDING_COLORS.bgCard }}
-      >
-        {/* Video / Thumbnail area */}
-        <div className="relative aspect-video bg-black/50">
-          {isPlaying && embedUrl ? (
+    <FadeIn delay={200}>
+      <div className={`${variant === 'featured' ? 'mt-12' : 'mt-10'}`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl border transition-all group ${
+            variant === 'featured' ? 'max-w-2xl mx-auto' : 'max-w-xl mx-auto'
+          } ${isPlaceholder ? 'border-white/5 hover:border-white/10 cursor-default' : 'border-white/10 hover:border-pink-500/30 cursor-pointer'}`}
+          style={{ aspectRatio: '16/9' }}
+          onClick={() => !isPlaceholder && embedUrl && setPlaying(true)}
+        >
+          {playing && embedUrl ? (
             <iframe
               src={embedUrl}
-              title={title}
               className="absolute inset-0 w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
+              frameBorder="0"
             />
           ) : (
-            <button
-              type="button"
-              onClick={handlePlay}
-              className="absolute inset-0 w-full h-full cursor-pointer group"
-              disabled={!embedUrl}
-              aria-label={`Play ${title}`}
-            >
-              {displayThumbnail ? (
-                <img
-                  src={displayThumbnail}
-                  alt={title}
-                  className="w-full h-full object-cover"
-                />
+            <>
+              {autoThumbnail ? (
+                <img src={autoThumbnail} alt={title} className="absolute inset-0 w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-black/60 to-black/80">
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center opacity-40"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    <Play className="w-8 h-8 text-white ml-1" />
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]" />
               )}
 
-              {/* Play overlay */}
-              {!isPlaceholder && embedUrl && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    <Play className="w-8 h-8 text-white ml-1" />
-                  </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`${variant === 'featured' ? 'w-20 h-20' : 'w-14 h-14'} rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all border border-white/20`}>
+                  <Play size={variant === 'featured' ? 32 : 22} className="text-white ml-1" fill="currentColor" />
                 </div>
-              )}
+              </div>
 
-              {/* Duration badge */}
-              <span
-                className="absolute bottom-3 right-3 px-2 py-1 rounded text-xs font-medium text-white flex items-center gap-1"
-                style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-              >
-                <Clock className="w-3 h-3" />
-                {duration}
-              </span>
-
-              {/* Placeholder badge */}
               {isPlaceholder && (
-                <span
-                  className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{
-                    backgroundColor: `${accentColor}20`,
-                    color: accentColor,
-                  }}
-                >
-                  Proximamente
-                </span>
+                <div className="absolute top-4 right-4">
+                  <span className="text-[10px] uppercase tracking-widest text-gray-500 bg-black/50 px-2 py-1 rounded-full">Próximamente</span>
+                </div>
               )}
-            </button>
-          )}
-        </div>
 
-        {/* Info */}
-        <div className="p-4">
-          <h3
-            className="font-semibold text-base mb-1"
-            style={{ color: LANDING_COLORS.textMain }}
-          >
-            {title}
-          </h3>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: LANDING_COLORS.textMuted }}
-          >
-            {description}
-          </p>
+              {duration && (
+                <div className="absolute bottom-14 right-4 bg-black/70 px-2 py-0.5 rounded text-xs font-mono text-gray-300">
+                  {duration}
+                </div>
+              )}
+
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h4 className="font-bold text-white text-sm mb-0.5">{title}</h4>
+                {description && <p className="text-xs text-gray-400">{description}</p>}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </FadeIn>

@@ -1,200 +1,289 @@
 import {
-  AlertTriangle, Monitor, Download, Eye, Brain, MessageSquare, BarChart2, RefreshCw,
-  Zap, Heart, DollarSign, Scale, Headphones, Flag, Shield, Lock, Check,
-  TrendingUp, Users, Award, Clock, Target, Briefcase,
+  AlertTriangle,
+  Laptop,
+  Video,
+  FileText,
+  RefreshCcw,
+  BarChart2,
+  Users,
+  Lightbulb,
+  Shield,
+  Lock,
+  UserCheck,
+  Check,
+  Eye,
 } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
 import { LANDING_COLORS } from '../../constants/colors';
-
-const HOW_STEPS = [
-  { icon: Download, title: 'Instalacion', desc: 'Plugin ligero para Zoom, Meet o Teams. 2 minutos.' },
-  { icon: Eye, title: 'Deteccion', desc: 'Escucha conversaciones reales con consentimiento del equipo.' },
-  { icon: Brain, title: 'Analisis', desc: 'IA evalua 6 competencias de comunicacion en tiempo real.' },
-  { icon: MessageSquare, title: 'Seguimiento', desc: 'Feedback tactico automatico despues de cada llamada.' },
-  { icon: BarChart2, title: 'Dashboard Lider', desc: 'Metricas de equipo, tendencias y areas de enfoque.' },
-  { icon: RefreshCw, title: 'Hibrido', desc: 'Combina IA con coaching humano para maximo impacto.' },
-];
-
-const ENTERPRISE_SKILLS = [
-  { icon: Zap, title: 'Presentaciones', color: LANDING_COLORS.maityPink },
-  { icon: Heart, title: 'Servicio', color: LANDING_COLORS.maityBlue },
-  { icon: DollarSign, title: 'Ventas', color: LANDING_COLORS.maityGreen },
-  { icon: Scale, title: 'Negociacion', color: '#9b4dca' },
-  { icon: Headphones, title: 'Soporte', color: '#ff8c42' },
-  { icon: Flag, title: 'Liderazgo', color: '#4ade80' },
-];
-
-const BENEFITS = [
-  { icon: TrendingUp, title: 'ROI Medible', desc: 'Metricas claras de mejora por persona y equipo.' },
-  { icon: Clock, title: 'Ahorro de Tiempo', desc: 'Reduce horas de capacitacion presencial hasta 60%.' },
-  { icon: Users, title: 'Escalabilidad', desc: 'De 10 a 10,000 usuarios sin perder personalizacion.' },
-  { icon: Target, title: 'Personalizacion', desc: 'Escenarios custom para tu industria y cultura.' },
-  { icon: Award, title: 'Certificaciones', desc: 'Competencias certificables para desarrollo de talento.' },
-  { icon: Briefcase, title: 'Integraciones', desc: 'CRM, LMS, HRIS y mas via API o integraciones nativas.' },
-];
+import { FadeIn } from '../shared/FadeIn';
 
 export const BusinessDeepDive = () => {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-7xl mx-auto space-y-24">
-        {/* Problem statement */}
-        <FadeIn>
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-6 bg-red-500/10">
-              <AlertTriangle className="w-7 h-7 text-red-500" />
+    <div className="bg-[#050505] text-[#e7e7e9]">
+      {/* La Realidad Incomoda */}
+      <section className="py-24 border-t border-white/5 bg-gradient-to-b from-[#050505] to-[#0A0A0A]">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <FadeIn>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-900/10 border border-red-500/20 mb-8">
+              <AlertTriangle size={16} className="text-red-500" />
+              <span className="text-xs font-bold text-red-400 tracking-wider uppercase">
+                La Realidad Incomoda
+              </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-              La Realidad Incomoda
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
+              La capacitacion tradicional se ha vuelto un <br />
+              <span className="text-gray-600">placebo corporativo.</span>
             </h2>
-            <p className="text-lg leading-relaxed" style={{ color: LANDING_COLORS.textMuted }}>
-              Tu equipo invierte miles de horas en reuniones, llamadas y presentaciones. Pero nadie mide
-              si esas conversaciones estan funcionando. La capacitacion tradicional no escala, no mide
-              y no genera habitos. Maity si.
+            <p className="text-xl text-gray-400 leading-relaxed max-w-3xl mx-auto">
+              Cursos aislados, sin seguimiento, sin mentoria real. Mientras tanto, las
+              habilidades mas humanas &mdash;comunicacion, liderazgo y toma de decisiones&mdash;
+              estan en declive.
+              <br />
+              <br />
+              <span className="text-white">
+                Si no lo resolvemos, terminamos con equipos poco efectivos y lideres que no
+                inspiran.
+              </span>
             </p>
-          </div>
-        </FadeIn>
-
-        {/* Desktop explanation with mockup */}
-        <div>
-          <FadeIn>
-            <div className="text-center mb-12">
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 bg-blue-500/10">
-                <Monitor className="w-7 h-7" style={{ color: LANDING_COLORS.maityBlue }} />
-              </div>
-              <h3 className="text-2xl font-bold mb-2" style={{ color: LANDING_COLORS.textMain }}>
-                Maity Desktop
-              </h3>
-              <p style={{ color: LANDING_COLORS.textMuted }}>
-                Se integra a tus reuniones sin friccion. Tu equipo mejora mientras trabaja.
-              </p>
-            </div>
           </FadeIn>
+        </div>
+      </section>
 
+      {/* Que es Maity */}
+      <section className="py-20 bg-[#0F0F0F] relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]"></div>
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <FadeIn delay={100}>
-            <div className="p-6 rounded-2xl border border-white/10 max-w-2xl mx-auto" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="ml-2 text-xs" style={{ color: LANDING_COLORS.textMuted }}>Meeting - Q4 Review</span>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {['Clarity: 8.2', 'Engagement: 7.5', 'Structure: 9.1'].map((stat) => (
-                  <div key={stat} className="p-3 rounded-lg bg-white/5 text-center">
-                    <span className="text-xs font-medium" style={{ color: LANDING_COLORS.maityGreen }}>{stat}</span>
-                  </div>
-                ))}
+            <span
+              className="text-sm font-bold tracking-widest uppercase mb-4 block"
+              style={{ color: LANDING_COLORS.maityBlue }}
+            >
+              Que es Maity
+            </span>
+            <h2 className="text-4xl font-bold text-white mb-6">Maity Desktop</h2>
+            <div className="prose prose-invert prose-lg text-gray-400">
+              <p className="leading-relaxed mb-6">
+                Maity no es un curso mas. Es un mentor de IA que acompana, desafia y mide el
+                crecimiento real de cada colaborador &mdash; todos los dias.
+              </p>
+              <div className="p-6 bg-[#141414] rounded-xl border border-white/10 flex gap-4 items-start">
+                <div className="p-3 bg-blue-500/20 rounded-lg">
+                  <Laptop size={24} className="text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white mb-2">Integracion Nativa</h4>
+                  <p className="text-sm">
+                    Presente en Teams, Google Meet o Zoom, escuchando (con permiso) y
+                    entregando retroalimentacion practica.
+                  </p>
+                </div>
               </div>
             </div>
           </FadeIn>
-        </div>
-
-        {/* 6-step how it works */}
-        <div>
-          <FadeIn>
-            <h3 className="text-2xl font-bold text-center mb-10" style={{ color: LANDING_COLORS.textMain }}>
-              Como funciona para empresas
-            </h3>
-          </FadeIn>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {HOW_STEPS.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <FadeIn key={step.title} delay={i * 75}>
-                  <div className="p-6 rounded-2xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${LANDING_COLORS.maityBlue}20`, color: LANDING_COLORS.maityBlue }}>
-                        {i + 1}
-                      </span>
-                      <Icon className="w-5 h-5" style={{ color: LANDING_COLORS.maityBlue }} />
+          <div className="relative">
+            <FadeIn delay={300}>
+              <div className="absolute inset-0 bg-blue-500/10 blur-3xl"></div>
+              <div className="relative bg-black border border-white/10 rounded-2xl p-8">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-lg border border-white/5 opacity-50">
+                    <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+                    <div className="h-4 bg-gray-700 w-32 rounded"></div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-[#1A1A1A] rounded-lg border border-blue-500/30 shadow-[0_0_20px_rgba(72,93,244,0.1)]">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                      <span className="font-bold text-white">M</span>
                     </div>
-                    <h4 className="font-semibold mb-1" style={{ color: LANDING_COLORS.textMain }}>{step.title}</h4>
-                    <p className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>{step.desc}</p>
+                    <div>
+                      <div className="h-4 bg-white w-48 rounded mb-2"></div>
+                      <div className="text-xs text-blue-400">
+                        Grabando y analizando con permiso...
+                      </div>
+                    </div>
                   </div>
-                </FadeIn>
-              );
-            })}
+                  <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-lg border border-white/5 opacity-50">
+                    <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+                    <div className="h-4 bg-gray-700 w-32 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
           </div>
         </div>
+      </section>
 
-        {/* Enterprise skills */}
-        <div>
-          <FadeIn>
-            <h3 className="text-2xl font-bold text-center mb-10" style={{ color: LANDING_COLORS.textMain }}>
-              Habilidades que entrenamos
-            </h3>
-          </FadeIn>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {ENTERPRISE_SKILLS.map((skill, i) => {
-              const Icon = skill.icon;
-              return (
-                <FadeIn key={skill.title} delay={i * 50}>
-                  <div className="p-4 rounded-xl border border-white/5 text-center" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                    <Icon className="w-6 h-6 mx-auto mb-2" style={{ color: skill.color }} />
-                    <span className="text-sm font-medium" style={{ color: LANDING_COLORS.textMain }}>{skill.title}</span>
+      {/* Como funciona */}
+      <section className="py-24 bg-[#050505]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <FadeIn>
+              <h2 className="text-3xl font-bold text-white mb-4">Como funciona</h2>
+              <p className="text-gray-500">Simple, transparente y seguro.</p>
+            </FadeIn>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Laptop size={32} className="text-white" />,
+                title: '1. Instalacion',
+                desc: 'Se instala Maity Desktop en el equipo del colaborador. Silencioso y ligero.',
+              },
+              {
+                icon: <Video size={32} className="text-white" />,
+                title: '2. Deteccion',
+                desc: 'Detecta reuniones y solicita permiso para grabar. El usuario siempre tiene el control.',
+              },
+              {
+                icon: <FileText size={32} className="text-white" />,
+                title: '3. Analisis',
+                desc: 'Al terminar, entrega insights y recomendaciones accionables al instante.',
+              },
+              {
+                icon: <RefreshCcw size={32} className="text-white" />,
+                title: '4. Seguimiento',
+                desc: 'Maity refuerza habitos con retos y practicas continuas, no solo teoria.',
+              },
+              {
+                icon: <BarChart2 size={32} className="text-white" />,
+                title: '5. Dashboard Lider',
+                desc: 'Vision de equipo para detectar patrones y tomar decisiones de desarrollo.',
+              },
+              {
+                icon: <Users size={32} className="text-white" />,
+                title: '6. Hibrido',
+                desc: 'Opcion de consultoria y coaching humano para potenciar la implementacion.',
+              },
+            ].map((step, idx) => (
+              <FadeIn key={idx} delay={idx * 100}>
+                <div className="p-8 rounded-2xl bg-[#0F0F0F] border border-white/10 hover:border-blue-500/30 transition-all hover:-translate-y-1 h-full">
+                  <div className="w-16 h-16 rounded-xl bg-blue-900/20 flex items-center justify-center mb-6 border border-blue-500/10">
+                    {step.icon}
                   </div>
-                </FadeIn>
-              );
-            })}
+                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{step.desc}</p>
+                </div>
+              </FadeIn>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Security mini */}
-        <FadeIn>
-          <div className="p-8 rounded-2xl border border-green-500/20 bg-green-500/5 text-center">
-            <Shield className="w-8 h-8 mx-auto mb-4 text-green-500" />
-            <h3 className="text-xl font-bold mb-2" style={{ color: LANDING_COLORS.textMain }}>
-              Seguridad Enterprise-Grade
+      {/* Skills + Security */}
+      <section className="py-24 bg-[#0A0A0A] border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-20">
+          <FadeIn className="h-full">
+            <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+              <Lightbulb className="text-yellow-400" /> Que mejora Maity
             </h3>
-            <p className="text-sm max-w-xl mx-auto mb-4" style={{ color: LANDING_COLORS.textMuted }}>
-              SOC2 Type II, ISO 27001, GDPR, cifrado AES-256, zero-trust architecture.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {['SOC2', 'ISO27001', 'GDPR', 'CCPA'].map((badge) => (
-                <span key={badge} className="px-3 py-1 rounded-full text-xs font-semibold border border-green-500/20 text-green-400">
-                  {badge}
-                </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                'Comunicacion y claridad',
+                'Liderazgo',
+                'Toma de decisiones',
+                'Empatia y servicio',
+                'Negociacion',
+                'Ventas',
+              ].map((skill, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-4 bg-[#141414] rounded-lg border border-white/5"
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                  <span className="text-gray-300 font-medium">{skill}</span>
+                </div>
               ))}
             </div>
-          </div>
-        </FadeIn>
 
-        {/* Benefits */}
-        <div>
-          <FadeIn>
-            <h3 className="text-2xl font-bold text-center mb-10" style={{ color: LANDING_COLORS.textMain }}>
-              Beneficios para tu organizacion
-            </h3>
+            <div className="mt-10 p-6 bg-blue-900/10 rounded-xl border border-blue-500/20">
+              <h4 className="font-bold text-blue-200 mb-2">Aprendizaje Aplicado</h4>
+              <ul className="space-y-2 text-sm text-blue-100/70">
+                <li>&bull; Base de conocimiento especializada.</li>
+                <li>&bull; Role playing y ejercicios practicos.</li>
+                <li>&bull; Practicas cortas "en el momento".</li>
+              </ul>
+            </div>
           </FadeIn>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {BENEFITS.map((b, i) => {
-              const Icon = b.icon;
-              return (
-                <FadeIn key={b.title} delay={i * 75}>
-                  <div className="p-6 rounded-2xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                    <Icon className="w-6 h-6 mb-3" style={{ color: LANDING_COLORS.maityBlue }} />
-                    <h4 className="font-semibold mb-1" style={{ color: LANDING_COLORS.textMain }}>{b.title}</h4>
-                    <p className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>{b.desc}</p>
-                  </div>
-                </FadeIn>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Vision */}
-        <FadeIn>
-          <div className="text-center max-w-3xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: LANDING_COLORS.textMain }}>
-              La comunicacion es la habilidad #1 del siglo XXI
+          <FadeIn delay={200} className="h-full">
+            <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+              <Shield className="text-green-400" /> Seguridad y Confianza
             </h3>
-            <p className="text-lg" style={{ color: LANDING_COLORS.textMuted }}>
-              Las empresas que invierten en las soft skills de su equipo ven resultados medibles:
-              mejores cierres, menos rotacion, equipos mas alineados. Maity hace que esa inversion escale.
+            <p className="text-gray-400 mb-8">
+              Sabemos que la informacion es de lo mas valioso. Por eso, la seguridad es nuestra
+              prioridad #1.
             </p>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
+            <div className="space-y-4">
+              <div className="flex gap-4 items-start">
+                <div className="p-2 bg-green-900/20 rounded-lg text-green-400 mt-1">
+                  <Lock size={18} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white">Proteccion Enterprise</h4>
+                  <p className="text-sm text-gray-500">
+                    Datos manejados bajo estrictas politicas y encriptacion de punta a punta.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="p-2 bg-green-900/20 rounded-lg text-green-400 mt-1">
+                  <UserCheck size={18} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white">Permiso Explicito</h4>
+                  <p className="text-sm text-gray-500">
+                    La grabacion solo ocurre con permiso del usuario y enfoque laboral.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section className="py-24 bg-[#050505]">
+        <div className="max-w-4xl mx-auto px-4">
+          <FadeIn>
+            <h2 className="text-3xl font-bold text-white mb-12 text-center">
+              Beneficios para la Empresa
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                'Capacitacion con seguimiento real y evolutivo.',
+                'Equipos mas efectivos y menor friccion.',
+                'Mejor liderazgo que inspira y alinea.',
+                'Conversaciones de ventas mas solidas.',
+                'Visibilidad accionable para directores.',
+                'Democratizacion del mentor para todos.',
+              ].map((benefit, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 border-b border-white/5">
+                  <Check className="text-blue-500" size={20} />
+                  <span className="text-gray-300">{benefit}</span>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Vision */}
+      <section className="py-24 bg-gradient-to-t from-blue-900/20 to-[#050505] text-center border-t border-white/5">
+        <div className="max-w-3xl mx-auto px-4">
+          <FadeIn>
+            <div className="mb-6 mx-auto w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+              <Eye size={32} className="text-white" />
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-6">Nuestra Vision</h2>
+            <p className="text-xl text-gray-300 leading-relaxed mb-8">
+              Queremos democratizar el acceso a mentores capaces de llevar a cualquier
+              profesional a su maximo potencial. Maity sera el coach digital mas cercano,
+              convirtiendo aprendizaje en resultados.
+            </p>
+            <p className="text-sm text-gray-500 font-mono uppercase tracking-widest">
+              El nuevo estandar global de desarrollo humano
+            </p>
+          </FadeIn>
+        </div>
+      </section>
+    </div>
   );
 };

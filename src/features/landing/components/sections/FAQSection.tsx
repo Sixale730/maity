@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { HelpCircle, Plus, Minus } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
 import { LANDING_FAQS } from '../../constants/faq-data';
+import { FadeIn } from '../shared/FadeIn';
 
 export const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleFAQ = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   return (
     <div id="faq-section" className="py-24 bg-[#0F0F0F] border-t border-white/5 text-[#e7e7e9]">
@@ -18,18 +22,18 @@ export const FAQSection = () => {
             <p className="text-gray-500">Todo lo que necesitas saber para empezar tu evolución.</p>
           </FadeIn>
         </div>
+
         <div className="space-y-4">
           {LANDING_FAQS.map((faq, index) => (
             <FadeIn key={index} delay={index * 50}>
               <div
-                className={`rounded-xl border transition-all duration-300 overflow-hidden ${
-                  openIndex === index
-                    ? 'bg-[#141414] border-pink-500/50 shadow-lg shadow-pink-900/10'
-                    : 'bg-[#0A0A0A] border-white/10 hover:border-white/20'
+                className={`rounded-xl border transition-all duration-300 overflow-hidden ${openIndex === index
+                  ? 'bg-[#141414] border-pink-500/50 shadow-lg shadow-pink-900/10'
+                  : 'bg-[#0A0A0A] border-white/10 hover:border-white/20'
                 }`}
               >
                 <button
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                  onClick={() => toggleFAQ(index)}
                   className="w-full flex justify-between items-center p-5 text-left focus:outline-none"
                 >
                   <span className={`font-medium text-lg ${openIndex === index ? 'text-white' : 'text-gray-300'}`}>
@@ -39,10 +43,9 @@ export const FAQSection = () => {
                     {openIndex === index ? <Minus size={16} /> : <Plus size={16} />}
                   </div>
                 </button>
+
                 <div
-                  className={`transition-all duration-300 ease-in-out ${
-                    openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}
+                  className={`transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
                   <div className="p-5 pt-0 text-gray-400 leading-relaxed border-t border-white/5 mt-2">
                     {faq.a}

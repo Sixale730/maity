@@ -1,161 +1,129 @@
-import { useNavigate } from 'react-router-dom';
-import { Mountain, TrendingUp, Activity, Award, Target, Trophy, ArrowRight, Flame } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
-import { VideoCard } from '../shared/VideoCard';
+import { Mountain, TrendingUp, Zap, Award, Target, Flame } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
+import { FadeIn } from '../shared/FadeIn';
+import { VideoCard } from '../shared/VideoCard';
 
-const FEATURES = [
-  { icon: TrendingUp, text: 'Niveles desbloqueables que miden tu progreso real' },
-  { icon: Activity, text: 'Metricas basadas en conversaciones reales, no tests' },
-  { icon: Award, text: 'Insignias y logros que celebran tu evolucion' },
-  { icon: Target, text: 'Retos diarios personalizados a tu nivel' },
-  { icon: Trophy, text: 'Competencias certificables para tu CV' },
-];
+interface TheClimbProps {
+  setView: (view: string) => void;
+}
 
-const LEVELS = [
-  { name: 'Aprendiz', pct: 20, color: '#6b7280' },
-  { name: 'Explorador', pct: 40, color: LANDING_COLORS.maityBlue },
-  { name: 'Estratega', pct: 60, color: LANDING_COLORS.maityGreen },
-  { name: 'Maestro', pct: 80, color: '#ffd93d' },
-  { name: 'Leyenda', pct: 100, color: LANDING_COLORS.maityPink },
-];
+export const TheClimb = ({ setView }: TheClimbProps) => {
+  const mountains = [
+    { name: "Claridad", emoji: "💎", color: LANDING_COLORS.maityBlue, pct: 72, desc: "Expresión clara y estructurada" },
+    { name: "Empatía", emoji: "💚", color: LANDING_COLORS.maityGreen, pct: 45, desc: "Escucha activa y conexión" },
+    { name: "Persuasión", emoji: "🔥", color: LANDING_COLORS.maityPink, pct: 58, desc: "Influencia y convicción" },
+    { name: "Consultor", emoji: "🧠", color: "#9b4dca", pct: 40, desc: "Asesoría y diagnóstico" },
+    { name: "Negociador", emoji: "🤝", color: "#ff8c42", pct: 33, desc: "Acuerdos y resolución" },
+    { name: "Servicio", emoji: "⭐", color: "#06b6d4", pct: 25, desc: "Atención al cliente" },
+  ];
 
-const COMPETENCIES = [
-  { name: 'Claridad', pct: 72, color: LANDING_COLORS.maityBlue },
-  { name: 'Empatia', pct: 45, color: LANDING_COLORS.maityGreen },
-  { name: 'Persuasion', pct: 58, color: '#9b4dca' },
-  { name: 'Negociacion', pct: 33, color: '#ff8c42' },
-];
-
-export const TheClimb = () => {
-  const navigate = useNavigate();
-  const video = LANDING_VIDEOS.laEscalada;
+  const camps = ["Base", "Medio", "Avanzado", "Cumbre", "Boss"];
 
   return (
-    <section id="la-escalada" className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Left content */}
-          <div>
-            <FadeIn>
-              <div
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 mb-6"
-                style={{ backgroundColor: `${LANDING_COLORS.maityGreen}10` }}
-              >
-                <Mountain className="w-4 h-4" style={{ color: LANDING_COLORS.maityGreen }} />
-                <span className="text-sm font-medium" style={{ color: LANDING_COLORS.maityGreen }}>
-                  Tu Ruta de Crecimiento
-                </span>
-              </div>
-            </FadeIn>
+    <section id="la-escalada" className="py-24 bg-[#050505] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <FadeIn>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 mb-6">
+              <Mountain size={14} className="text-pink-500" />
+              <span className="text-xs font-bold text-pink-200 tracking-wide uppercase">La Escalada — 6 Montañas</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Conquista cada <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${LANDING_COLORS.maityPink}, ${LANDING_COLORS.maityBlue})` }}>montaña de comunicación</span></h2>
+            <p className="text-xl text-gray-400 mb-10 leading-relaxed">
+              Cada habilidad es una montaña con 5 campamentos. Avanza con práctica real, supera boss fights y desbloquea equipamiento mientras dominas la comunicación.
+            </p>
+            <ul className="space-y-5 text-gray-300">
+              {[
+                { t: "6 montañas temáticas", d: "Claridad, Empatía, Persuasión, Consultor, Negociador y Servicio.", i: <Mountain size={18} className="text-pink-500" /> },
+                { t: "5 campamentos por montaña", d: "Base → Medio → Avanzado → Cumbre → Boss Fight final.", i: <TrendingUp size={18} className="text-green-500" /> },
+                { t: "Boss Fights", d: "Desafíos de roleplay intensivo al final de cada campamento.", i: <Zap size={18} className="text-orange-500" /> },
+                { t: "Equipamiento y XP", d: "Gana experiencia, desbloquea insignias y herramientas por cada logro.", i: <Award size={18} className="text-blue-500" /> },
+                { t: "Competencias certificables", d: "Cada montaña mide una competencia específica con progreso visible.", i: <Target size={18} className="text-purple-500" /> }
+              ].map((item, i) => (
+                <li key={i} className="flex gap-4">
+                  <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">{item.i}</div>
+                  <div>
+                    <h4 className="font-bold text-white">{item.t}</h4>
+                    <p className="text-sm text-gray-500">{item.d}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setView('primeros-pasos')}
+              className="mt-10 px-8 py-4 rounded-full text-white font-bold shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+              style={{ backgroundColor: LANDING_COLORS.maityPink }}
+            >
+              <Mountain size={18} /> Empieza tu escalada
+            </button>
+          </FadeIn>
 
-            <FadeIn delay={100}>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                <span style={{ color: LANDING_COLORS.textMain }}>Aprender no tiene que ser aburrido. </span>
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${LANDING_COLORS.maityGreen}, ${LANDING_COLORS.maityBlue})`,
-                  }}
-                >
-                  La Escalada lo hace adictivo.
-                </span>
-              </h2>
-            </FadeIn>
-
-            <FadeIn delay={200}>
-              <div className="space-y-4 mb-8">
-                {FEATURES.map((feat, i) => {
-                  const Icon = feat.icon;
-                  return (
-                    <div key={i} className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 flex-shrink-0" style={{ color: LANDING_COLORS.maityGreen }} />
-                      <span className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>{feat.text}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </FadeIn>
-
-            <FadeIn delay={300}>
-              <button
-                onClick={() => navigate('/primeros-pasos')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105"
-                style={{ backgroundColor: LANDING_COLORS.maityGreen }}
-              >
-                Empieza tu escalada
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </FadeIn>
-          </div>
-
-          {/* Right mockup card */}
-          <FadeIn delay={200}>
-            <div className="p-6 rounded-2xl border border-white/10" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
+          <FadeIn delay={200} className="relative">
+            <div className="bg-[#0F0F0F] rounded-3xl border border-white/10 overflow-hidden shadow-2xl p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold" style={{ color: LANDING_COLORS.textMain }}>Tu Progreso</h3>
-                <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-orange-500/10">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm font-bold text-orange-500">7 dias</span>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Tu expedición</p>
+                  <h3 className="text-2xl font-bold text-white">6 Montañas</h3>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Progreso global</p>
+                  <p className="text-sm font-bold text-pink-400">45% completado</p>
                 </div>
               </div>
 
-              {/* Level bars */}
-              <div className="mb-8">
-                <p className="text-xs uppercase tracking-wider mb-3" style={{ color: LANDING_COLORS.textMuted }}>Niveles</p>
-                <div className="space-y-3">
-                  {LEVELS.map((level) => (
-                    <div key={level.name}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium" style={{ color: LANDING_COLORS.textMuted }}>{level.name}</span>
-                        <span className="text-xs" style={{ color: level.color }}>{level.pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${level.pct}%`, backgroundColor: level.color }}
-                        />
-                      </div>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {mountains.map((m, i) => (
+                  <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/15 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">{m.emoji}</span>
+                      <span className="text-sm font-bold text-white">{m.name}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mb-2">{m.desc}</p>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-1">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${m.pct}%`, backgroundColor: m.color }}></div>
+                    </div>
+                    <p className="text-[10px] text-gray-600 text-right">{m.pct}%</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-6">
+                <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Campamentos — Montaña de Claridad</p>
+                <div className="flex items-center gap-1">
+                  {camps.map((camp, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                      <div className={`w-full h-2 rounded-full transition-all ${i < 3 ? '' : 'bg-gray-800'}`} style={i < 3 ? { backgroundColor: LANDING_COLORS.maityBlue } : {}}></div>
+                      <span className={`text-[9px] font-bold ${i < 3 ? 'text-gray-300' : 'text-gray-700'}`}>{camp}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Skill competency bars */}
-              <div>
-                <p className="text-xs uppercase tracking-wider mb-3" style={{ color: LANDING_COLORS.textMuted }}>Competencias</p>
-                <div className="space-y-3">
-                  {COMPETENCIES.map((comp) => (
-                    <div key={comp.name}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium" style={{ color: LANDING_COLORS.textMuted }}>{comp.name}</span>
-                        <span className="text-xs font-bold" style={{ color: comp.color }}>{comp.pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${comp.pct}%`, backgroundColor: comp.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+              <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                  <Flame size={20} className="text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Racha activa: 7 días</p>
+                  <p className="text-xs text-gray-500">Tu mejor racha: 14 días</p>
                 </div>
               </div>
             </div>
           </FadeIn>
         </div>
 
-        {/* Video below */}
-        <FadeIn delay={400} className="mt-12 flex justify-center">
+        <div className="mt-12 max-w-xl mx-auto">
           <VideoCard
-            title={video.title}
-            description={video.description}
-            duration={video.duration}
-            thumbnailUrl={video.thumbnailUrl}
-            videoUrl={video.videoUrl}
+            title={LANDING_VIDEOS.laEscalada.title}
+            description={LANDING_VIDEOS.laEscalada.description}
+            duration={LANDING_VIDEOS.laEscalada.duration}
+            thumbnailUrl={LANDING_VIDEOS.laEscalada.thumbnailUrl}
+            videoUrl={LANDING_VIDEOS.laEscalada.videoUrl}
+            variant="inline"
+            accentColor={LANDING_COLORS.maityGreen}
           />
-        </FadeIn>
+        </div>
       </div>
     </section>
   );

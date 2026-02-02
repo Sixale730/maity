@@ -1,145 +1,121 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
-import { VideoCard } from '../shared/VideoCard';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
+import { FadeIn } from '../shared/FadeIn';
+import { VideoCard } from '../shared/VideoCard';
 
 export const ProblemSection = () => {
-  const video = LANDING_VIDEOS.elProblema;
-
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left content */}
-          <div>
-            <FadeIn>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: LANDING_COLORS.textMain }}>
-                El <span style={{ color: LANDING_COLORS.maityPink }}>70%</span> de lo aprendido se pierde en 24 horas
-              </h2>
-            </FadeIn>
+    <section className="py-24 bg-[#050505] relative overflow-hidden border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <FadeIn>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6">
+              <span className="text-xs font-bold text-gray-400 tracking-wide uppercase">El Problema</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6 text-white">
+              La capacitación inspira. <br />
+              <span className="text-gray-500">Pero el progreso ocurre cuando entrenas.</span>
+            </h2>
+            <p className="text-lg text-gray-400 mb-8 leading-relaxed border-l-2 pl-6" style={{ borderColor: LANDING_COLORS.maityBlue }}>
+              Sin práctica guiada, la <strong className="text-white">curva de olvido</strong> gana.
+              El 70% de lo que aprendes en un curso se pierde en 24 horas.
+              Maity convierte lo aprendido en evolución diaria: una rutina simple, medible y motivante.
+            </p>
 
-            <FadeIn delay={100}>
-              <div className="border-l-2 pl-6 mb-8" style={{ borderColor: LANDING_COLORS.maityPink }}>
-                <p className="text-lg italic" style={{ color: LANDING_COLORS.textMuted }}>
-                  "La curva del olvido demuestra que sin refuerzo continuo, la capacitacion tradicional es dinero tirado."
-                </p>
-              </div>
-            </FadeIn>
-
-            <FadeIn delay={200}>
-              <div className="space-y-6">
-                {/* Traditional */}
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                  <div className="p-2 rounded-lg bg-red-500/10">
-                    <TrendingDown className="w-6 h-6 text-red-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1" style={{ color: LANDING_COLORS.textMain }}>
-                      Cursos Tradicionales
-                    </h3>
-                    <p className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>
-                      Un evento, un PDF, cero seguimiento. El conocimiento se evapora en dias.
-                    </p>
-                  </div>
+            <div className="flex flex-col sm:flex-row gap-8">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-500/10 rounded-lg mt-1">
+                  <TrendingDown size={20} className="text-red-500" />
                 </div>
-
-                {/* Maity method */}
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <TrendingUp className="w-6 h-6 text-green-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1" style={{ color: LANDING_COLORS.textMain }}>
-                      Metodo Maity
-                    </h3>
-                    <p className="text-sm" style={{ color: LANDING_COLORS.textMuted }}>
-                      Practica diaria, feedback en tiempo real, retos personalizados. El aprendizaje que se queda.
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">Cursos Tradicionales</h4>
+                  <p className="text-xs text-gray-500">Pico alto, caída rápida</p>
                 </div>
               </div>
-            </FadeIn>
-          </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-500/10 rounded-lg mt-1">
+                  <TrendingUp size={20} style={{ color: LANDING_COLORS.maityGreen }} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">Método Maity</h4>
+                  <p className="text-xs text-gray-500">Mejora continua y sostenida</p>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
 
-          {/* Right chart + video */}
-          <div className="space-y-8">
-            <FadeIn delay={200}>
-              <div className="p-6 rounded-2xl border border-white/5" style={{ backgroundColor: LANDING_COLORS.bgCard }}>
-                <svg viewBox="0 0 400 220" className="w-full" aria-label="Forgetting curve comparison chart">
+          <FadeIn delay={200} className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-3xl rounded-full"></div>
+            <div className="bg-[#0F0F0F] p-8 rounded-2xl border border-white/10 relative z-10 shadow-2xl">
+              <h3 className="text-sm font-bold text-gray-400 mb-6 tracking-wider uppercase flex justify-between">
+                <span>Retención de Habilidad</span>
+                <span>30 Días</span>
+              </h3>
+              <div className="relative h-64 w-full border-l border-b border-gray-800">
+                <svg className="absolute inset-0 h-full w-full overflow-visible">
+                  <path d="M0,10 Q100,200 400,240" fill="none" stroke="#333" strokeWidth="3" strokeDasharray="5,5" />
+                  <circle cx="400" cy="240" r="4" fill="#333" />
+                  <text x="350" y="230" fill="#666" fontSize="10" fontWeight="bold">Olvido (70%)</text>
+                </svg>
+
+                <svg className="absolute inset-0 h-full w-full overflow-visible">
+                  <path
+                    d="M0,10 C50,10 50,50 100,40 C150,30 150,80 200,70 C250,60 250,110 300,90 C350,70 350,20 400,10"
+                    fill="none"
+                    stroke={LANDING_COLORS.maityGreen}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    className="drop-shadow-[0_0_10px_rgba(27,234,154,0.5)]"
+                  />
                   <defs>
-                    <linearGradient id="maity-gradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={LANDING_COLORS.maityGreen} stopOpacity="0.3" />
+                    <linearGradient id="gradientGreen" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor={LANDING_COLORS.maityGreen} stopOpacity="0.2" />
                       <stop offset="100%" stopColor={LANDING_COLORS.maityGreen} stopOpacity="0" />
                     </linearGradient>
                   </defs>
-
-                  {/* Grid lines */}
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <line
-                      key={`grid-${i}`}
-                      x1="40" y1={30 + i * 40} x2="380" y2={30 + i * 40}
-                      stroke="rgba(255,255,255,0.05)" strokeWidth="1"
-                    />
+                  <path
+                    d="M0,10 C50,10 50,50 100,40 C150,30 150,80 200,70 C250,60 250,110 300,90 C350,70 350,20 400,10 V256 H0 Z"
+                    fill="url(#gradientGreen)"
+                    stroke="none"
+                  />
+                  {[100, 200, 300].map((x, i) => (
+                    <g key={i}>
+                      <circle cx={x} cy={i === 0 ? 40 : i === 1 ? 70 : 90} r="6" fill="#0F0F0F" stroke={LANDING_COLORS.maityPink} strokeWidth="2" />
+                    </g>
                   ))}
-
-                  {/* Y-axis labels */}
-                  <text x="30" y="35" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="end">100%</text>
-                  <text x="30" y="115" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="end">50%</text>
-                  <text x="30" y="195" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="end">0%</text>
-
-                  {/* X-axis labels */}
-                  <text x="60" y="215" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="middle">1d</text>
-                  <text x="150" y="215" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="middle">7d</text>
-                  <text x="260" y="215" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="middle">30d</text>
-                  <text x="370" y="215" fill="rgba(255,255,255,0.3)" fontSize="10" textAnchor="middle">90d</text>
-
-                  {/* Traditional decline curve (dashed gray) */}
-                  <path
-                    d="M 40 30 Q 100 60, 150 130 Q 200 170, 260 175 Q 320 180, 380 185"
-                    fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="6,4"
-                  />
-
-                  {/* Maity growth curve with gradient fill */}
-                  <path
-                    d="M 40 30 Q 100 40, 150 55 Q 200 65, 260 60 Q 320 55, 380 45"
-                    fill="url(#maity-gradient)" stroke="none"
-                  />
-                  <path
-                    d="M 40 30 L 40 200 L 380 200 L 380 45 Q 320 55, 260 60 Q 200 65, 150 55 Q 100 40, 40 30"
-                    fill="url(#maity-gradient)" stroke="none" opacity="0.3"
-                  />
-                  <path
-                    d="M 40 30 Q 100 40, 150 55 Q 200 65, 260 60 Q 320 55, 380 45"
-                    fill="none" stroke={LANDING_COLORS.maityGreen} strokeWidth="2.5"
-                  />
-
-                  {/* Pink dot markers on Maity curve */}
-                  {[
-                    { x: 40, y: 30 }, { x: 150, y: 55 }, { x: 260, y: 60 }, { x: 380, y: 45 },
-                  ].map((p, i) => (
-                    <circle key={`dot-${i}`} cx={p.x} cy={p.y} r="4" fill={LANDING_COLORS.maityPink} />
-                  ))}
-
-                  {/* Legend */}
-                  <line x1="50" y1="205" x2="70" y2="205" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="4,3" />
-                  <text x="75" y="208" fill="rgba(255,255,255,0.4)" fontSize="9">Tradicional</text>
-                  <line x1="160" y1="205" x2="180" y2="205" stroke={LANDING_COLORS.maityGreen} strokeWidth="2" />
-                  <text x="185" y="208" fill="rgba(255,255,255,0.4)" fontSize="9">Maity</text>
+                  <text x="320" y="30" fill={LANDING_COLORS.maityGreen} fontSize="12" fontWeight="bold">Evolución Maity</text>
                 </svg>
+                <div className="absolute -left-8 top-0 text-xs text-gray-600">100%</div>
+                <div className="absolute -left-6 bottom-0 text-xs text-gray-600">0%</div>
               </div>
-            </FadeIn>
 
-            <FadeIn delay={300}>
-              <VideoCard
-                title={video.title}
-                description={video.description}
-                duration={video.duration}
-                thumbnailUrl={video.thumbnailUrl}
-                videoUrl={video.videoUrl}
-              />
-            </FadeIn>
-          </div>
+              <div className="mt-4 flex gap-4 justify-center text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-gray-700"></div>
+                  <span className="text-gray-500">Sin práctica</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full border-2 border-green-400 shadow-[0_0_10px_rgba(27,234,154,0.5)]"></div>
+                  <span className="text-white">Con Maity</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full border-2 border-pink-500"></div>
+                  <span className="text-gray-500">Micro-práctica</span>
+                </div>
+              </div>
+            </div>
+
+            <VideoCard
+              title={LANDING_VIDEOS.elProblema.title}
+              description={LANDING_VIDEOS.elProblema.description}
+              duration={LANDING_VIDEOS.elProblema.duration}
+              thumbnailUrl={LANDING_VIDEOS.elProblema.thumbnailUrl}
+              videoUrl={LANDING_VIDEOS.elProblema.videoUrl}
+              variant="inline"
+              accentColor={LANDING_COLORS.maityPink}
+            />
+          </FadeIn>
         </div>
       </div>
     </section>

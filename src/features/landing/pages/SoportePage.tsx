@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Headphones, Mail, Calendar, MessageSquare, HelpCircle, ArrowLeft, ArrowRight, ChevronDown, ChevronUp, BookOpen, Shield, FileText, Clock } from 'lucide-react';
 import { FadeIn } from '../components/shared/FadeIn';
 import { LANDING_COLORS } from '../constants/colors';
+
+interface SoportePageProps {
+  setView: (view: string) => void;
+}
 
 const channels = [
   {
@@ -18,8 +21,7 @@ const channels = [
     title: 'Videollamada',
     description: 'Agenda con nuestro equipo',
     detail: 'Sesión de 30 minutos',
-    href: '/contacto',
-    isRoute: true,
+    viewTarget: 'demo-calendar',
     color: LANDING_COLORS.maityBlue,
   },
   {
@@ -33,10 +35,10 @@ const channels = [
 ];
 
 const quickLinks = [
-  { icon: BookOpen, label: 'Primeros Pasos', to: '/primeros-pasos' },
-  { icon: HelpCircle, label: 'Preguntas Frecuentes', to: '#faq' },
-  { icon: Shield, label: 'Política de Privacidad', to: '/privacidad' },
-  { icon: FileText, label: 'Términos de Servicio', to: '/terminos' },
+  { icon: BookOpen, label: 'Primeros Pasos', view: 'primeros-pasos' },
+  { icon: HelpCircle, label: 'Preguntas Frecuentes', anchor: 'faq' },
+  { icon: Shield, label: 'Política de Privacidad', view: 'privacidad' },
+  { icon: FileText, label: 'Términos de Servicio', view: 'terminos' },
 ];
 
 const faqs = [
@@ -74,20 +76,19 @@ const faqs = [
   },
 ];
 
-export const SoportePage = () => {
-  const navigate = useNavigate();
+export const SoportePage = ({ setView }: SoportePageProps) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (i: number) => {
     setOpenFaq((prev) => (prev === i ? null : i));
   };
 
-  const handleQuickLinkClick = (to: string) => {
-    if (to.startsWith('#')) {
-      const el = document.getElementById(to.slice(1));
+  const handleQuickLinkClick = (link: typeof quickLinks[0]) => {
+    if (link.anchor) {
+      const el = document.getElementById(link.anchor);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate(to);
+    } else if (link.view) {
+      setView(link.view);
     }
   };
 
@@ -97,7 +98,7 @@ export const SoportePage = () => {
         {/* Back Button */}
         <FadeIn>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => setView('product')}
             className="inline-flex items-center gap-2 mb-8 text-sm text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft size={16} /> Volver
@@ -135,10 +136,10 @@ export const SoportePage = () => {
             );
             return (
               <FadeIn key={ch.title} delay={i * 80}>
-                {ch.isRoute ? (
-                  <div onClick={() => navigate(ch.href)}>{card}</div>
+                {ch.viewTarget ? (
+                  <div onClick={() => setView(ch.viewTarget!)}>{card}</div>
                 ) : (
-                  <a href={ch.href} target={ch.href.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer">{card}</a>
+                  <a href={ch.href} target={ch.href?.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer">{card}</a>
                 )}
               </FadeIn>
             );
@@ -148,16 +149,19 @@ export const SoportePage = () => {
         {/* Quick Links */}
         <FadeIn delay={200}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-20">
-            {quickLinks.map(({ icon: Icon, label, to }) => (
-              <button
-                key={label}
-                onClick={() => handleQuickLinkClick(to)}
-                className="flex items-center gap-3 p-4 bg-[#0F0F0F] border border-white/10 rounded-xl hover:bg-white/5 transition-colors text-left"
-              >
-                <Icon size={16} className="text-pink-400 flex-shrink-0" />
-                <span className="text-sm text-white">{label}</span>
-              </button>
-            ))}
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <button
+                  key={link.label}
+                  onClick={() => handleQuickLinkClick(link)}
+                  className="flex items-center gap-3 p-4 bg-[#0F0F0F] border border-white/10 rounded-xl hover:bg-white/5 transition-colors text-left"
+                >
+                  <Icon size={16} className="text-pink-400 flex-shrink-0" />
+                  <span className="text-sm text-white">{link.label}</span>
+                </button>
+              );
+            })}
           </div>
         </FadeIn>
 

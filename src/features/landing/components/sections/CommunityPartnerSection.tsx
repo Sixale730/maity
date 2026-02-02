@@ -1,43 +1,46 @@
-import { useNavigate } from 'react-router-dom';
-import { Mic, Users, Briefcase, Check, Rocket, UserPlus } from 'lucide-react';
-import { FadeIn } from '../shared/FadeIn';
+import { Mic, Users, Building2, Check, Rocket, UserPlus } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
+import { FadeIn } from '../shared/FadeIn';
 
-const tracks = [
-  {
-    icon: <Mic size={28} />,
-    title: "Coach Certificado Maity",
-    desc: "Usa Maity como tu herramienta principal de coaching. Ofrece entrenamiento de comunicación a tus clientes con tecnología de IA y gana una comisión recurrente por cada membresía activa.",
-    benefits: ["Comisión recurrente por membresía", "Panel de seguimiento de clientes", "Material de marca compartida", "Soporte prioritario"],
-    cta: "Aplicar como Coach",
-    color: LANDING_COLORS.maityPink,
-    accent: "pink",
-  },
-  {
-    icon: <Users size={28} />,
-    title: "Referenciador",
-    desc: "Recomienda Maity a empresas y profesionales. Por cada venta que generes, recibes un porcentaje de la suscripción mientras el cliente se mantenga activo. Sin inversión, sin riesgo.",
-    benefits: ["Ingreso pasivo recurrente", "Link de referido personalizado", "Dashboard de conversiones", "Sin mínimos ni exclusividad"],
-    cta: "Unirme al Programa",
-    color: LANDING_COLORS.maityBlue,
-    accent: "blue",
-  },
-  {
-    icon: <Briefcase size={28} />,
-    title: "Socio o Inversionista",
-    desc: "Maity está en pleno crecimiento. Buscamos socios estratégicos e inversionistas que crean en el futuro del desarrollo humano potenciado por IA.",
-    benefits: ["Acceso a métricas de tracción", "Reunión directa con founders", "Oportunidad de equity", "Impacto en millones de profesionales"],
-    cta: "Agendar Conversación",
-    color: LANDING_COLORS.maityGreen,
-    accent: "green",
-  },
-];
+interface CommunityPartnerSectionProps {
+  setView: (view: string) => void;
+}
 
-export const CommunityPartnerSection = () => {
-  const navigate = useNavigate();
+export const CommunityPartnerSection = ({ setView }: CommunityPartnerSectionProps) => {
+  const tracks = [
+    {
+      icon: <Mic size={28} />,
+      title: "Coach Certificado",
+      desc: "Usa Maity como tu herramienta principal de coaching. Ofrece entrenamiento de comunicación a tus clientes con tecnología de IA y gana el 30% recurrente por cada membresía activa.",
+      benefits: ["30% comisión recurrente", "Panel de seguimiento de clientes", "Material de marca compartida", "Soporte prioritario"],
+      cta: "Aplicar como Coach",
+      color: LANDING_COLORS.maityPink,
+      accent: "pink"
+    },
+    {
+      icon: <Users size={28} />,
+      title: "Referenciador",
+      desc: "Recomienda Maity a empresas y profesionales. Recibe el 15% del primer año de suscripción por cada cliente que refieras. Sin inversión, sin riesgo.",
+      benefits: ["15% del primer año", "Link de referido personalizado", "Dashboard de conversiones", "Sin mínimos ni exclusividad"],
+      cta: "Unirme al Programa",
+      color: LANDING_COLORS.maityBlue,
+      accent: "blue"
+    },
+    {
+      icon: <Building2 size={28} />,
+      title: "Embajador Corporativo",
+      desc: "Conecta a Maity con empresas de tu red. Gana el 10% de cada contrato empresarial que se cierre gracias a tu introducción.",
+      benefits: ["10% de contratos empresariales", "Capacitación de producto", "Eventos exclusivos", "Red de embajadores"],
+      cta: "Ser Embajador",
+      color: LANDING_COLORS.maityGreen,
+      accent: "green"
+    },
+  ];
+
   return (
     <section className="py-24 bg-[#050505] relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-pink-500/5 rounded-full blur-[150px]"></div>
+
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         <FadeIn>
           <div className="text-center mb-16">
@@ -45,19 +48,14 @@ export const CommunityPartnerSection = () => {
               <Rocket size={14} className="text-pink-500" /> Oportunidad de crecimiento
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-              Crece con{' '}
-              <span
-                className="text-transparent bg-clip-text bg-gradient-to-r"
-                style={{ backgroundImage: `linear-gradient(90deg, ${LANDING_COLORS.maityPink}, ${LANDING_COLORS.maityBlue})` }}
-              >
-                Maity
-              </span>
+              Crece con <span className="text-transparent bg-clip-text bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(90deg, ${LANDING_COLORS.maityPink}, ${LANDING_COLORS.maityBlue})` }}>Maity</span>
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
               No solo uses Maity. Sé parte de la revolución. Gana dinero ayudando a otros a comunicarse mejor.
             </p>
           </div>
         </FadeIn>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {tracks.map((track, i) => (
             <FadeIn key={i} delay={i * 120}>
@@ -76,7 +74,7 @@ export const CommunityPartnerSection = () => {
                   ))}
                 </ul>
                 <button
-                  onClick={() => navigate('/contacto')}
+                  onClick={() => setView('demo-calendar')}
                   className="w-full py-4 rounded-xl font-bold text-white hover:opacity-90 transition-all"
                   style={{ backgroundColor: track.color }}
                 >
@@ -86,14 +84,15 @@ export const CommunityPartnerSection = () => {
             </FadeIn>
           ))}
         </div>
+
         <FadeIn delay={400}>
           <div className="bg-gradient-to-r from-[#0F0F0F] to-[#1A1A1A] rounded-3xl border border-white/5 p-10 text-center">
             <div className="flex flex-wrap justify-center gap-8 mb-8">
               {[
-                { value: "30%", label: "Comisión por referido" },
-                { value: "Recurrente", label: "Mientras el cliente siga activo" },
+                { value: "30%", label: "Coaches — recurrente" },
+                { value: "15%", label: "Referenciadores — primer año" },
+                { value: "10%", label: "Embajadores — contratos B2B" },
                 { value: "$0", label: "Inversión para empezar" },
-                { value: "24h", label: "Aprobación de aplicación" },
               ].map((stat, i) => (
                 <div key={i} className="text-center">
                   <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -105,7 +104,7 @@ export const CommunityPartnerSection = () => {
               Ya sea como coach, asesor, capacitador, referenciador o inversionista — hay un lugar para ti en el ecosistema Maity.
             </p>
             <button
-              onClick={() => navigate('/contacto')}
+              onClick={() => setView('demo-calendar')}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white hover:opacity-90 transition-all"
               style={{ background: `linear-gradient(90deg, ${LANDING_COLORS.maityPink}, ${LANDING_COLORS.maityBlue})` }}
             >

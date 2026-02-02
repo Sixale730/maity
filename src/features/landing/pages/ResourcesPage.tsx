@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { BookOpen, Newspaper, Video, Podcast, ArrowLeft, Clock, Mail, ArrowRight } from 'lucide-react';
 import { FadeIn } from '../components/shared/FadeIn';
 import { LANDING_COLORS } from '../constants/colors';
 import { RESOURCES, RESOURCE_CATEGORIES } from '../constants/resources-data';
+
+interface ResourcesPageProps {
+  setView: (view: string) => void;
+}
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   BookOpen,
@@ -12,7 +15,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Podcast,
 };
 
-export const ResourcesPage = () => {
+export const ResourcesPage = ({ setView }: ResourcesPageProps) => {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -30,13 +33,13 @@ export const ResourcesPage = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <FadeIn>
-          <Link
-            to="/"
+          <button
+            onClick={() => setView('product')}
             className="inline-flex items-center gap-2 mb-8 text-sm hover:text-white transition-colors"
             style={{ color: LANDING_COLORS.textMuted }}
           >
             <ArrowLeft className="w-4 h-4" /> Volver
-          </Link>
+          </button>
           <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: LANDING_COLORS.textMain }}>
             Centro de Recursos
           </h1>

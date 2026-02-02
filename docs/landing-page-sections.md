@@ -29,8 +29,9 @@ Pagina principal para usuarios individuales (profesionales, coaches, etc.)
 | 5 | Quiz de Comunicacion | `ArchetypeQuiz` | 7 preguntas sobre estilo comunicativo, 3 arquetipos: Directo/Empatico/Analitico |
 | 6 | La Escalada | `TheClimb` | 5 niveles de progresion: Aprendiz > Explorador > Lider > Maestro > Leyenda (id: `la-escalada`) |
 | 7 | Info Producto | `ProductInfoSection` | Detalle de funcionalidades de la plataforma |
+| 7.5 | Wearable | `WearableSection` | Hardware Maity: specs (mic, BLE, 16h, 35g), CTA reservar |
 | 8 | Seguridad | `TrustSection` | 4 pilares de confianza (version producto, sin compliance enterprise) |
-| 9 | Precios | `Pricing` | 3 planes: Gratis / Pro / Pendiente, con trust badges (AES-256, GDPR, etc.) |
+| 9 | Precios | `Pricing` | 3 planes: Explorador(Gratis) / Escalador($15-19 USD) / Guia($39-49 USD), con trust badges |
 | 10 | Testimoniales | `VideoTestimonials` | Testimonios en video de usuarios |
 | 11 | FAQ | `FAQSection` | Preguntas frecuentes con accordion (id: `faq-section`) |
 | 12 | Comunidad Partners | `CommunityPartnerSection` | 3 tracks: Coach Certificado, Referenciador, Socio/Inversionista |
@@ -46,11 +47,13 @@ Pagina para empresas y decision makers (B2B).
 |---|---------|------------|-------------|
 | 1 | Hero Empresarial | `BusinessHeroSection` | CTA "Solicitar Demo", video corporativo (YouTube embed) |
 | 2 | Deep Dive B2B | `BusinessDeepDive` | Propuesta de valor detallada para equipos |
+| 2.5 | Soluciones | `SolucionesGrid` | Grid 2x2: Ventas, Liderazgo, Servicio al Cliente, Equipos Remotos |
 | 3 | Escenarios IA | `ScenariosSection` | Conversaciones simuladas con IA, video explicativo, 6 escenarios (negociacion, liderazgo, etc.) |
 | 4 | Quiz Corporativo | `CorporateQuiz` | 7 preguntas sobre liderazgo, 3 arquetipos: Visionario/Negociador/Arquitecto |
 | 5 | B2B Teaser | `B2BTeaser` | Resumen de beneficios empresariales |
 | 6 | Calculadora ROI | `ROICalculator` | Calcula ahorro estimado segun tamano de equipo |
-| 7 | Precios | `Pricing` | Tab empresarial: Starter / Growth / Enterprise |
+| 6.5 | Piloto B2B | `PilotSection` | Piloto 30 dias gratis: 4 pasos, stats, CTA solicitar piloto |
+| 7 | Precios | `Pricing` | Tab empresarial: Equipo($12-15 USD) / Organizacion($10-12 USD) / Enterprise(Custom) |
 | 8 | Contacto/Equipo | `DemoCalendar` | Perfiles del equipo (Poncho, Julio, Karina) con LinkedIn, metodos de contacto, agenda demo |
 | 9 | Seguridad Enterprise | `TrustSection` | Version expandida: compliance badges (SOC2, ISO, GDPR, CCPA, LFPDPPP), cifrado, organizacional |
 | 10 | FAQ | `FAQSection` | Preguntas frecuentes |
@@ -89,6 +92,9 @@ Accesibles desde navbar, footer, o botones internos.
 |------------|-------------|
 | `FadeIn` | Wrapper de animacion con IntersectionObserver, prop `delay` |
 | `VideoCard` | Reproduce YouTube inline (no redirect), auto-thumbnail, variantes `inline` y `featured` |
+| `PilotSection` | Seccion piloto B2B 30 dias: 4 pasos, stats strip, CTA |
+| `SolucionesGrid` | Grid 2x2 de soluciones por area de negocio (Ventas, Liderazgo, Servicio, Equipos) |
+| `WearableSection` | Specs del hardware Maity Pendant: mic, BLE, bateria, peso, app companion |
 | `RadarChart` | Grafica radar SVG para resultados de quiz |
 | `Navbar` | Barra fija, acepta `activeView` y `setView`, menu responsive |
 | `Footer` | 4 columnas, 16+ links funcionales, acepta `setView` |
@@ -152,6 +158,72 @@ Accesibles desde navbar, footer, o botones internos.
 ## Historial de Cambios (Landing Page)
 
 ### 2026-01-31
+
+**Commit 5eb9494: feat(landing): align with business model — pricing, legal, gamification, new sections**
+
+Alineacion del landing page con el Documento Maestro MAITY v2.0 (Enero 2026).
+Cambios realizados: 399 lineas agregadas, 137 eliminadas en `src/LandingPage.jsx`.
+
+**Correcciones legales/criticas:**
+- Entidad legal: "Maity Inc." → "Maity SAPI de CV" en PrivacyPolicyView (6 ocurrencias), TermsOfServiceView y Footer
+- Fecha legal actualizada: "29 de enero de 2026" → "31 de enero de 2026"
+- Footer: "© 2026 Maity SAPI de CV — Ciudad de Mexico, Mexico"
+
+**Precios alineados al documento maestro (con USD explicito):**
+- B2C Individual:
+  - Maity Free → **Explorador** (Gratis, 3 roleplays/mes, 1 montana, Web App)
+  - Maity Pro $9.99 → **Escalador** ($15-19 USD/mes, roleplays ilimitados, 6 montanas, coach IA)
+  - Maity Pendant $99 → **Guia** ($39-49 USD/mes, mentor humano, reportes ejecutivos, API)
+- B2B Empresas:
+  - Starter $19-22 → **Equipo** ($12-15 USD/user/mes, hasta 20 usuarios)
+  - Growth $39-45 → **Organizacion** ($10-12 USD/user/mes, 50+ usuarios, precio por volumen)
+  - Enterprise Custom → **Enterprise** (Custom, SSO/SAML, API completa, CSM dedicado)
+- Tablas comparativas actualizadas para ambos tabs con features reales
+
+**La Escalada rediseñada — 6 Montanas:**
+- Antes: 5 niveles lineales (Aprendiz→Leyenda) + 4 skill bars
+- Ahora: 6 montanas tematicas con colores/emojis:
+  1. Claridad (azul, 💎) — Expresion clara y estructurada
+  2. Empatia (verde, 💚) — Escucha activa y conexion
+  3. Persuasion (rosa, 🔥) — Influencia y conviccion
+  4. Consultor (morado, 🧠) — Asesoria y diagnostico
+  5. Negociador (naranja, 🤝) — Acuerdos y resolucion
+  6. Servicio (cyan, ⭐) — Atencion al cliente
+- 5 campamentos por montana: Base → Medio → Avanzado → Cumbre → Boss
+- Mockup visual: grid 2x2 de montanas con barras de progreso
+
+**Quiz arquetipos renombrados:**
+- driver: "Comunicador Directo" → **"Estratega"**
+- connector: "Comunicador Empatico" → **"Conector"**
+- strategist: "Comunicador Analitico" → **"Analitico"**
+- maityPlan actualizado con nombres de montanas
+- Nota agregada al resultado: "Este es 1 de los 6 tipos de comunicador que Maity evalua"
+
+**CommunityPartnerSection actualizada:**
+- Coach Certificado: 30% recurrente (se mantiene)
+- Referenciador: ahora 15% del primer ano (antes generico)
+- Socio/Inversionista → **Embajador Corporativo**: 10% de contratos empresariales
+- Stats strip actualizado: "30% Coaches", "15% Referenciadores", "10% Embajadores"
+
+**Nuevos componentes:**
+
+1. **PilotSection** (~80 lineas) — Seccion piloto B2B
+   - Ubicacion: Business view, despues de ROICalculator
+   - 4 pasos: Configuracion → Seleccion (5-20 users) → Entrenamiento (30 dias) → Reporte ROI
+   - Stats pills: Setup gratis, 30 dias, 5-20 usuarios, ROI medible
+   - CTA: "Solicitar Piloto Gratuito" → demo-calendar
+
+2. **SolucionesGrid** (~70 lineas) — Soluciones por area de negocio
+   - Ubicacion: Business view, entre BusinessDeepDive y ScenariosSection
+   - Grid 2x2: Ventas (rosa), Liderazgo (azul), Servicio al Cliente (verde), Equipos Remotos (morado)
+   - Cada card: icono, titulo, descripcion, tags de competencias
+
+3. **WearableSection** (~85 lineas) — Hardware Maity
+   - Ubicacion: Product view, entre ProductInfoSection y TrustSection
+   - Specs: Microfono HiFi, BLE 5.0, 16h bateria, 35g, companion app iOS/Android
+   - Privacidad: procesamiento local, sin grabacion permanente
+   - Mockup visual del Pendant con stats (35g, 16h, BLE 5)
+   - CTA: "Reservar Wearable" → demo-calendar
 
 **Commit: feat(landing): add team section with booking calendar and audit**
 - Seccion "Conocenos" con perfiles de equipo (Poncho, Julio, Karina) + LinkedIn

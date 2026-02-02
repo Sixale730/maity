@@ -9,7 +9,7 @@ export const PRODUCT_ARCHETYPES: Record<string, Archetype> = {
     description: 'No te andas con rodeos. Cuando hablas, la gente sabe exactamente qué esperas. Tu franqueza genera respeto y tus ideas se entienden a la primera. Pero a veces la velocidad puede hacer que otros sientan que no hay espacio para su voz.',
     strengths: ['Claridad bajo presión', 'Mensajes directos y memorables', 'Decisiones rápidas y comunicadas'],
     growth: ['Dar espacio a la escucha activa', 'Suavizar el tono en temas sensibles', 'Pausar antes de responder'],
-    maityPlan: 'Tu Escalada Maity: Empatía Track \u2014 21 días de micro-retos para conectar sin perder tu fuerza.',
+    maityPlan: 'Tu Escalada Maity: Empatía Track — 21 días de micro-retos para conectar sin perder tu fuerza.',
   },
   connector: {
     name: 'Comunicador Empático',
@@ -19,7 +19,7 @@ export const PRODUCT_ARCHETYPES: Record<string, Archetype> = {
     description: 'Las personas confían en ti porque genuinamente escuchas. Creas ambientes donde todos se atreven a hablar. Tu calidez desarma conflictos y construye equipos fuertes. Pero a veces tu amabilidad puede diluir tu mensaje cuando necesitas ser firme.',
     strengths: ['Escucha activa y validación', 'Construcción de confianza rápida', 'Resolución natural de tensiones'],
     growth: ['Comunicar con firmeza cuando es necesario', 'Decir que no sin culpa', 'Estructurar ideas antes de compartirlas'],
-    maityPlan: 'Tu Escalada Maity: Claridad Track \u2014 21 días para comunicar con fuerza sin perder tu calidez.',
+    maityPlan: 'Tu Escalada Maity: Claridad Track — 21 días para comunicar con fuerza sin perder tu calidez.',
   },
   strategist: {
     name: 'Comunicador Analítico',
@@ -29,7 +29,7 @@ export const PRODUCT_ARCHETYPES: Record<string, Archetype> = {
     description: 'Piensas antes de hablar y se nota. Tus argumentos son sólidos, tus presentaciones impecables. La gente respeta tu rigor y confía en tus conclusiones. Pero a veces el exceso de análisis puede frenar la conversación y alejar a quienes buscan conexión emocional.',
     strengths: ['Argumentación sólida y estructurada', 'Preparación meticulosa', 'Análisis objetivo de situaciones'],
     growth: ['Storytelling emocional', 'Improvisar con confianza', 'Conectar antes de convencer'],
-    maityPlan: 'Tu Escalada Maity: Persuasión Track \u2014 21 días para inspirar y mover a la acción.',
+    maityPlan: 'Tu Escalada Maity: Persuasión Track — 21 días para inspirar y mover a la acción.',
   },
 };
 
@@ -101,7 +101,7 @@ export const CORPORATE_ARCHETYPES: Record<string, Archetype> = {
     description: 'Ves el panorama completo. Tu comunicación inspira equipos a moverse hacia una visión compartida. Los stakeholders confían en tu capacidad para articular el futuro. Pero a veces la visión puede sentirse lejana para quienes necesitan instrucciones concretas.',
     strengths: ['Visión estratégica clara', 'Comunicación inspiradora', 'Alineación de equipos grandes'],
     growth: ['Bajar la estrategia a tácticas concretas', 'Escuchar las necesidades operativas', 'Medir impacto en el corto plazo'],
-    maityPlan: 'Escalada Corporativa: Ejecución Track \u2014 21 días para convertir tu visión en planes de acción concretos.',
+    maityPlan: 'Escalada Corporativa: Ejecución Track — 21 días para convertir tu visión en planes de acción concretos.',
   },
   negotiator: {
     name: 'Negociador Natural',
@@ -111,7 +111,7 @@ export const CORPORATE_ARCHETYPES: Record<string, Archetype> = {
     description: 'Lees a las personas como nadie. Sabes cuándo presionar y cuándo ceder. Tu habilidad para persuadir y cerrar acuerdos es tu mayor activo. Pero a veces la orientación al resultado puede hacer que otros sientan que solo te importa ganar.',
     strengths: ['Lectura de interlocutores', 'Manejo de objeciones', 'Cierre de acuerdos complejos'],
     growth: ['Construir relaciones a largo plazo', 'Ceder estratégicamente', 'Comunicar valor más allá del precio'],
-    maityPlan: 'Escalada Corporativa: Relaciones Track \u2014 21 días para convertir negociaciones en alianzas duraderas.',
+    maityPlan: 'Escalada Corporativa: Relaciones Track — 21 días para convertir negociaciones en alianzas duraderas.',
   },
   architect: {
     name: 'Arquitecto de Equipos',
@@ -121,7 +121,7 @@ export const CORPORATE_ARCHETYPES: Record<string, Archetype> = {
     description: 'Tu fortaleza está en desarrollar personas. Sabes dar feedback que transforma, resolver conflictos internos y crear ambientes de alto rendimiento. Pero a veces la atención al equipo puede hacerte perder velocidad en decisiones de negocio.',
     strengths: ['Feedback transformador', 'Resolución de conflictos internos', 'Desarrollo de talento'],
     growth: ['Tomar decisiones impopulares', 'Comunicar urgencia sin perder empatía', 'Delegar con confianza'],
-    maityPlan: 'Escalada Corporativa: Impacto Track \u2014 21 días para liderar con resultados sin perder tu humanidad.',
+    maityPlan: 'Escalada Corporativa: Impacto Track — 21 días para liderar con resultados sin perder tu humanidad.',
   },
 };
 
