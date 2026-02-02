@@ -539,8 +539,8 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
               type="submit"
               className={`w-full font-inter ${
                 isLogin
-                  ? 'bg-gradient-to-r from-[hsl(var(--blue-light))] to-[hsl(var(--primary))] hover:from-[hsl(var(--primary))] hover:to-[hsl(var(--primary))] text-white border-0'
-                  : 'bg-gradient-to-r from-[hsl(var(--red-light))] to-[hsl(var(--red-primary))] hover:from-[hsl(var(--red-primary))] hover:to-[hsl(var(--red-muted))] text-white border-0'
+                  ? 'bg-[hsl(var(--maity-blue))] hover:opacity-90 text-white border-0'
+                  : 'bg-[hsl(var(--maity-pink))] hover:opacity-90 text-white border-0'
               }`}
               disabled={loading}
             >
