@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, Lock, Shield, Eye, UserCheck } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
-import { INDIVIDUAL_COMPARISON_CATEGORIES } from '../../constants/pricing-data';
+import { INDIVIDUAL_COMPARISON_CATEGORIES, BUSINESS_COMPARISON_CATEGORIES } from '../../constants/pricing-data';
 import { FadeIn } from '../shared/FadeIn';
 import { VideoCard } from '../shared/VideoCard';
 
@@ -115,16 +115,17 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
             <FadeIn delay={100} className="flex flex-col h-full">
               <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left flex flex-col h-full">
                 <h3 className="font-bold text-xl text-white mb-2">Equipo</h3>
-                <p className="text-3xl font-bold text-white mb-1">${annual ? '12' : '15'}<span className="text-sm font-normal text-gray-500"> USD/user/mes</span></p>
-                <p className="text-xs text-gray-500 mb-6">Hasta 20 usuarios</p>
+                <p className="text-3xl font-bold text-white mb-1">${annual ? '29' : '35'}<span className="text-sm font-normal text-gray-500"> USD/usuario/mes</span></p>
+                <p className="text-xs text-gray-500 mb-6">Mínimo 5 usuarios</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dashboard de manager</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Escenarios estándar</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Reportes de equipo</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte estándar</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Coach IA 24/7</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Conversaciones ilimitadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> 30 simulaciones IA/usuario/mes</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dashboard equipo</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Integraciones básicas</li>
                 </ul>
                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
-                  Iniciar Piloto Gratis
+                  Iniciar Piloto
                 </button>
               </div>
             </FadeIn>
@@ -133,14 +134,14 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
               <div className="p-8 bg-black border-2 border-blue-600 rounded-3xl text-left shadow-2xl shadow-blue-500/10 flex flex-col h-full relative transform md:-translate-y-4">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter">Mejor Valor</div>
                 <h3 className="font-bold text-xl text-white mb-2">Organización</h3>
-                <p className="text-3xl font-bold text-white mb-1">${annual ? '10' : '12'}<span className="text-sm font-normal text-gray-500"> USD/user/mes</span></p>
-                <p className="text-xs text-gray-500 mb-6">50+ usuarios — precio por volumen</p>
+                <p className="text-3xl font-bold text-white mb-1">{annual ? '$39' : 'Solo Anual'}<span className="text-sm font-normal text-gray-500">{annual ? ' USD/usuario/mes' : ''}</span></p>
+                <p className="text-xs text-gray-500 mb-6">Mínimo 25 usuarios</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-300 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Escenarios customizados</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Integración con CRM</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> AI Insights avanzados</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> ROI Dashboard</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte prioritario</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> 2 sesiones coach real/trimestre</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Dashboard RH/Talent</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Simulaciones ilimitadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SSO + Integraciones avanzadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> CSM compartido</li>
                 </ul>
                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:scale-[1.02] transition-all">
                   Hablar con Ventas
@@ -151,14 +152,14 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
             <FadeIn delay={300} className="flex flex-col h-full">
               <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left flex flex-col h-full">
                 <h3 className="font-bold text-xl text-white mb-2">Enterprise</h3>
-                <p className="text-3xl font-bold text-white mb-1">Custom</p>
-                <p className="text-xs text-gray-500 mb-6">Usuarios ilimitados</p>
+                <p className="text-3xl font-bold text-white mb-1">{annual ? '$49+' : 'Solo Anual'}<span className="text-sm font-normal text-gray-500">{annual ? ' USD/usuario/mes' : ''}</span></p>
+                <p className="text-xs text-gray-500 mb-6">100+ usuarios</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SSO / SAML</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> On-premise / Private Cloud</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SLA garantizado</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> CSM dedicado</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> API completa</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Coach dedicado + sesiones ilimitadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Analítica predictiva + ROI</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SOC 2, GDPR, HIPAA</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> CSM dedicado + 50hrs consultoría</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> SLA 30min + onboarding dedicado</li>
                 </ul>
                 <button onClick={() => setView('demo-calendar')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                   Pedir Cotización
@@ -245,35 +246,31 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
                     </tr>
                   </thead>
                   <tbody className="text-gray-400">
-                    {[
-                      { feature: "Usuarios", equipo: "Hasta 20", organizacion: "50+", enterprise: "Ilimitados" },
-                      { feature: "Dashboard de manager", equipo: true, organizacion: true, enterprise: true },
-                      { feature: "Reportes de equipo", equipo: true, organizacion: true, enterprise: true },
-                      { feature: "Escenarios customizados", equipo: false, organizacion: true, enterprise: true },
-                      { feature: "Integración con CRM", equipo: false, organizacion: true, enterprise: true },
-                      { feature: "AI Insights avanzados", equipo: false, organizacion: true, enterprise: true },
-                      { feature: "ROI Dashboard", equipo: false, organizacion: true, enterprise: true },
-                      { feature: "SSO / SAML", equipo: false, organizacion: false, enterprise: true },
-                      { feature: "On-premise / Private Cloud", equipo: false, organizacion: false, enterprise: true },
-                      { feature: "SLA garantizado", equipo: false, organizacion: false, enterprise: true },
-                      { feature: "CSM dedicado", equipo: false, organizacion: false, enterprise: true },
-                      { feature: "API completa", equipo: false, organizacion: false, enterprise: true },
-                      { feature: "Soporte", equipo: "Estándar", organizacion: "Prioritario", enterprise: "24/7 dedicado" },
-                    ].map((row: Record<string, string | boolean>, i) => (
-                      <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5 px-4 text-gray-300">{row.feature as string}</td>
-                        {(['equipo', 'organizacion', 'enterprise'] as const).map((plan) => (
-                          <td key={plan} className="py-3.5 px-4 text-center">
-                            {row[plan] === true ? (
-                              <Check size={16} className={`mx-auto ${plan === 'organizacion' ? 'text-blue-500' : 'text-green-500'}`} />
-                            ) : row[plan] === false ? (
-                              <span className="text-gray-700">—</span>
-                            ) : (
-                              <span className={plan === 'organizacion' ? 'text-blue-400' : ''}>{row[plan] as string}</span>
-                            )}
+                    {BUSINESS_COMPARISON_CATEGORIES.map((category, categoryIndex) => (
+                      <React.Fragment key={`business-category-${categoryIndex}`}>
+                        <tr className="bg-white/[0.03]">
+                          <td colSpan={4} className="py-3 px-4 text-white font-semibold text-xs uppercase tracking-wider">
+                            <span className="mr-2">{category.emoji}</span>
+                            {category.name}
                           </td>
+                        </tr>
+                        {category.rows.map((row, rowIndex) => (
+                          <tr key={`business-row-${categoryIndex}-${rowIndex}`} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="py-3.5 px-4 text-gray-300 pl-8">{row.feature}</td>
+                            {(['equipo', 'organizacion', 'enterprise'] as const).map((plan) => (
+                              <td key={plan} className="py-3.5 px-4 text-center">
+                                {row[plan] === true ? (
+                                  <Check size={16} className={`mx-auto ${plan === 'organizacion' ? 'text-blue-500' : 'text-green-500'}`} />
+                                ) : row[plan] === false ? (
+                                  <span className="text-gray-700">—</span>
+                                ) : (
+                                  <span className={plan === 'organizacion' ? 'text-blue-400' : ''}>{row[plan] as string}</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
                         ))}
-                      </tr>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

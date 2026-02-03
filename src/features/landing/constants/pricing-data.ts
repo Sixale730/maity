@@ -56,45 +56,52 @@ export const INDIVIDUAL_PLANS = [
 
 export const BUSINESS_PLANS = [
   {
-    name: 'Starter',
-    priceMonthly: '$22',
-    priceAnnual: '$19',
-    priceSuffix: '/user/mes',
+    name: 'Equipo',
+    priceMonthly: '$35',
+    priceAnnual: '$29',
+    priceSuffix: '/usuario/mes',
     features: [
-      'Equipos hasta 20 personas',
-      'Dashboard de manager',
-      'Soporte standard',
+      'Mínimo 5 usuarios',
+      'Coach IA 24/7',
+      'Conversaciones ilimitadas',
+      '30 simulaciones IA/usuario/mes',
+      'Dashboard equipo',
+      'Integraciones básicas',
     ],
     cta: 'Iniciar Piloto',
     highlighted: false,
     accentColor: '',
   },
   {
-    name: 'Growth',
-    priceMonthly: '$45',
+    name: 'Organización',
+    priceMonthly: 'Solo Anual',
     priceAnnual: '$39',
-    priceSuffix: '/user/mes',
+    priceSuffix: '/usuario/mes',
     features: [
-      'Hasta 100 personas',
-      'Escenarios customizados',
-      'Integración con CRM',
-      'AI Insights avanzados',
+      'Mínimo 25 usuarios',
+      '2 sesiones coach real/trimestre',
+      'Dashboard RH/Talent',
+      'Simulaciones ilimitadas',
+      'SSO + Integraciones avanzadas',
+      'CSM compartido',
     ],
     cta: 'Hablar con Ventas',
     highlighted: true,
-    highlightLabel: 'Escalable',
+    highlightLabel: 'Mejor Valor',
     accentColor: 'blue',
   },
   {
     name: 'Enterprise',
-    priceMonthly: 'Custom',
-    priceAnnual: 'Custom',
-    priceSuffix: '',
+    priceMonthly: 'Solo Anual',
+    priceAnnual: '$49+',
+    priceSuffix: '/usuario/mes',
     features: [
-      'Usuarios ilimitados',
-      'On-premise / Private Cloud',
-      'SLA garantizado',
-      'Dedicated CSM',
+      '100+ usuarios',
+      'Coach dedicado + sesiones ilimitadas',
+      'Analítica predictiva + ROI',
+      'SOC 2, GDPR, HIPAA',
+      'CSM dedicado + 50hrs consultoría',
+      'SLA 30min + onboarding dedicado',
     ],
     cta: 'Pedir Cotización',
     highlighted: false,
@@ -168,15 +175,95 @@ export const INDIVIDUAL_COMPARISON: ComparisonRow[] = INDIVIDUAL_COMPARISON_CATE
   (category) => category.rows
 );
 
-export const BUSINESS_COMPARISON: ComparisonRow[] = [
-  { feature: 'Usuarios', starter: 'Hasta 20', growth: 'Hasta 100', enterprise: 'Ilimitados' },
-  { feature: 'Dashboard de manager', starter: true, growth: true, enterprise: true },
-  { feature: 'Escenarios customizados', starter: false, growth: true, enterprise: true },
-  { feature: 'Integración con CRM', starter: false, growth: true, enterprise: true },
-  { feature: 'AI Insights avanzados', starter: false, growth: true, enterprise: true },
-  { feature: 'ROI Dashboard', starter: false, growth: true, enterprise: true },
-  { feature: 'On-premise / Private Cloud', starter: false, growth: false, enterprise: true },
-  { feature: 'SLA garantizado', starter: false, growth: false, enterprise: true },
-  { feature: 'CSM dedicado', starter: false, growth: false, enterprise: true },
-  { feature: 'Soporte', starter: 'Standard', growth: 'Prioritario', enterprise: '24/7 dedicado' },
+// Comparison data organized by category for business plans
+export const BUSINESS_COMPARISON_CATEGORIES: ComparisonCategory[] = [
+  {
+    name: 'Precios',
+    emoji: '💰',
+    rows: [
+      { feature: 'Precio anual', equipo: '$29/usuario/mes', organizacion: '$39/usuario/mes', enterprise: '$49+/usuario/mes' },
+      { feature: 'Precio mensual', equipo: '$35/usuario/mes', organizacion: 'Solo Anual', enterprise: 'Solo Anual' },
+      { feature: 'Ahorro vs coaching tradicional', equipo: '90%', organizacion: '92%', enterprise: '95%' },
+      { feature: 'Mínimo usuarios', equipo: '5', organizacion: '25', enterprise: '100+' },
+      { feature: 'Compromiso', equipo: 'Mensual o Anual', organizacion: 'Anual', enterprise: 'Anual (1-3 años)' },
+    ],
+  },
+  {
+    name: 'Coaching profesional',
+    emoji: '👨‍💼',
+    rows: [
+      { feature: 'Coach IA 24/7', equipo: true, organizacion: true, enterprise: true },
+      { feature: 'Sesiones con coaches reales', equipo: false, organizacion: '2/trimestre', enterprise: 'Ilimitadas' },
+      { feature: 'Planes de desarrollo', equipo: 'IA automático', organizacion: 'IA + Revisión coach', enterprise: 'Coach dedicado' },
+      { feature: 'Evaluaciones de competencias', equipo: 'Trimestrales', organizacion: 'Mensuales', enterprise: 'On-demand + 360°' },
+      { feature: 'Mentoría de liderazgo', equipo: false, organizacion: 'Managers', enterprise: 'Todos los niveles' },
+    ],
+  },
+  {
+    name: 'Conversación',
+    emoji: '💬',
+    rows: [
+      { feature: 'Conversaciones', equipo: 'Ilimitadas', organizacion: 'Ilimitadas', enterprise: 'Ilimitadas' },
+      { feature: 'Audio', equipo: 'Ilimitado', organizacion: 'Ilimitado', enterprise: 'Ilimitado' },
+      { feature: 'ChatGPT Enterprise', equipo: true, organizacion: true, enterprise: '✓ Premium' },
+      { feature: 'Memoria organizacional', equipo: 'Individual', organizacion: 'Equipo', enterprise: 'Org + Cross-teams' },
+    ],
+  },
+  {
+    name: 'Calendario',
+    emoji: '📅',
+    rows: [
+      { feature: 'Conexión a calendario', equipo: true, organizacion: true, enterprise: true },
+      { feature: 'Tips antes de reuniones', equipo: true, organizacion: '✓ + Análisis', enterprise: '✓ + Estrategias' },
+      { feature: 'Preparación automática', equipo: 'Básica', organizacion: 'Avanzada', enterprise: 'Completa + Simulaciones' },
+      { feature: 'Integraciones', equipo: 'Google/Outlook/Slack', organizacion: '+Teams +Zoom', enterprise: 'API completa + SSO' },
+    ],
+  },
+  {
+    name: 'Dashboards RH',
+    emoji: '📊',
+    rows: [
+      { feature: 'Dashboard individual', equipo: true, organizacion: true, enterprise: true },
+      { feature: 'Dashboard equipo', equipo: true, organizacion: true, enterprise: true },
+      { feature: 'Dashboard RH/Talent', equipo: false, organizacion: true, enterprise: '✓ Avanzado' },
+      { feature: 'Reportes de desarrollo', equipo: 'Mensuales', organizacion: 'Semanales', enterprise: 'Tiempo real' },
+      { feature: 'Analítica de productividad', equipo: 'Básica', organizacion: 'Avanzada + Benchmarks', enterprise: 'Predictiva + ROI' },
+      { feature: 'Métricas de engagement', equipo: 'Básicas', organizacion: 'Completas', enterprise: '+Predictores' },
+    ],
+  },
+  {
+    name: 'Seguridad',
+    emoji: '🔒',
+    rows: [
+      { feature: 'Roles y permisos', equipo: 'Básicos (3)', organizacion: 'Avanzados (10+)', enterprise: 'Ilimitados custom' },
+      { feature: 'Seguridad', equipo: 'Básica + 2FA', organizacion: 'SSO', enterprise: 'SSO + Audit + DLP' },
+      { feature: 'Cumplimiento', equipo: 'GDPR', organizacion: 'SOC 2, GDPR', enterprise: 'SOC 2, GDPR, HIPAA' },
+      { feature: 'Retención de datos', equipo: '1 año', organizacion: '3 años', enterprise: 'Ilimitado' },
+    ],
+  },
+  {
+    name: 'Gamificación',
+    emoji: '🎮',
+    rows: [
+      { feature: 'Simulaciones IA', equipo: '30/usuario/mes', organizacion: 'Ilimitadas', enterprise: 'Ilimitadas' },
+      { feature: 'Certificaciones', equipo: false, organizacion: '✓ Estándar', enterprise: '✓ Personalizadas' },
+      { feature: 'Planes de carrera', equipo: false, organizacion: true, enterprise: '✓ Avanzados' },
+    ],
+  },
+  {
+    name: 'Soporte',
+    emoji: '🚀',
+    rows: [
+      { feature: 'Onboarding', equipo: 'Self-service', organizacion: 'Guiado (4hrs)', enterprise: 'Dedicado (2 semanas)' },
+      { feature: 'Soporte', equipo: 'Email (12hrs)', organizacion: 'Email (2hrs)', enterprise: 'Chat + SLA 30min' },
+      { feature: 'CSM Dedicado', equipo: false, organizacion: 'Compartido', enterprise: '✓ Dedicado' },
+      { feature: 'Revisiones de cuenta', equipo: false, organizacion: 'Trimestrales', enterprise: 'Mensuales + QBR' },
+      { feature: 'Consultoría incluida', equipo: false, organizacion: '10hrs', enterprise: '50+ hrs' },
+    ],
+  },
 ];
+
+// Flat array for backwards compatibility
+export const BUSINESS_COMPARISON: ComparisonRow[] = BUSINESS_COMPARISON_CATEGORIES.flatMap(
+  (category) => category.rows
+);
