@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Check, Lock, Shield, Eye, UserCheck } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
+import { INDIVIDUAL_COMPARISON_CATEGORIES } from '../../constants/pricing-data';
 import { FadeIn } from '../shared/FadeIn';
 import { VideoCard } from '../shared/VideoCard';
 
@@ -58,10 +59,10 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
                 <p className="text-3xl font-bold text-white mb-1">Gratis</p>
                 <p className="text-xs text-gray-500 mb-6">Para siempre, sin tarjeta</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 3 roleplays mensuales</li>
-                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Análisis básico de comunicación</li>
-                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 1 montaña disponible</li>
-                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Web App</li>
+                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 5 conversaciones/mes</li>
+                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 1200 min audio/mes</li>
+                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> Dashboard básico</li>
+                  <li className="flex gap-3"><Check size={16} className="text-gray-700" /> 1 reto diario</li>
                 </ul>
                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-white/10 font-bold hover:bg-white hover:text-black transition-all">
                   Empezar Gratis
@@ -74,13 +75,14 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter">Más Popular</div>
                 <h3 className="font-bold text-xl text-white mb-2">Escalador</h3>
                 <p className="text-3xl font-bold text-white mb-1">${annual ? '15' : '19'}<span className="text-sm font-normal text-gray-500"> USD/mes</span></p>
-                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente' : 'Facturado mensual'}</p>
+                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente ($180/año)' : 'Facturado mensual'}</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-300 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> <strong>Roleplays ilimitados</strong></li>
-                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Coach IA personalizado</li>
-                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> 6 montañas completas</li>
-                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Dashboard de evolución</li>
-                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Todos los escenarios</li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> <strong>50 conversaciones/mes</strong></li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Acceso a ChatGPT ilimitado</li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Conexión a calendario</li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> Dashboard avanzado</li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> 3 retos diarios + misiones</li>
+                  <li className="flex gap-3"><Check size={16} className="text-pink-500" /> 5 simulaciones IA/mes</li>
                 </ul>
                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-pink-500/20">
                   Suscribirse ahora
@@ -91,14 +93,16 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
             <FadeIn delay={300} className="flex flex-col h-full">
               <div className="p-8 bg-[#0F0F0F] border border-white/10 rounded-3xl text-left hover:border-blue-500/30 transition-all flex flex-col h-full">
                 <h3 className="font-bold text-xl text-blue-400 mb-2">Guía</h3>
-                <p className="text-3xl font-bold text-white mb-1">${annual ? '39' : '49'}<span className="text-sm font-normal text-gray-500"> USD/mes</span></p>
-                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente' : 'Facturado mensual'}</p>
+                <p className="text-3xl font-bold text-white mb-1">${annual ? '23' : '29'}<span className="text-sm font-normal text-gray-500"> USD/mes</span></p>
+                <p className="text-xs text-gray-500 mb-6">{annual ? 'Facturado anualmente ($276/año)' : 'Facturado mensual'}</p>
                 <ul className="space-y-4 mb-12 text-sm text-gray-500 flex-grow">
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Todo lo de Escalador</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Mentor humano asignado</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Reportes ejecutivos</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Acceso API</li>
-                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte prioritario</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Conversaciones ilimitadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Recordatorios con IA</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Tips personalizados</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Simulaciones IA ilimitadas</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Jefes de montaña</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Exportar datos</li>
+                  <li className="flex gap-3"><Check size={16} className="text-blue-500" /> Soporte prioritario + chat</li>
                 </ul>
                 <button onClick={() => setView('primeros-pasos')} className="w-full py-4 rounded-xl border border-blue-500/30 text-blue-400 font-bold hover:bg-blue-500/10 transition-all">
                   Comenzar Guía
@@ -200,32 +204,31 @@ export const Pricing = ({ initialTab = 'individual', setView }: PricingProps) =>
                     </tr>
                   </thead>
                   <tbody className="text-gray-400">
-                    {[
-                      { feature: "Roleplays con IA", explorador: "3/mes", escalador: "Ilimitados", guia: "Ilimitados" },
-                      { feature: "Feedback de IA", explorador: "Básico", escalador: "Táctico avanzado", guia: "Táctico + estratégico" },
-                      { feature: "Montañas disponibles", explorador: "1", escalador: "6 completas", guia: "6 completas" },
-                      { feature: "Coach IA personalizado", explorador: false, escalador: true, guia: true },
-                      { feature: "Dashboard de evolución", explorador: false, escalador: true, guia: true },
-                      { feature: "Mentor humano asignado", explorador: false, escalador: false, guia: true },
-                      { feature: "Reportes ejecutivos", explorador: false, escalador: false, guia: true },
-                      { feature: "Acceso API", explorador: false, escalador: false, guia: true },
-                      { feature: "Competencias certificables", explorador: false, escalador: true, guia: true },
-                      { feature: "Soporte", explorador: "Comunidad", escalador: "Email", guia: "Prioritario" },
-                    ].map((row: Record<string, string | boolean>, i) => (
-                      <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5 px-4 text-gray-300">{row.feature as string}</td>
-                        {(['explorador', 'escalador', 'guia'] as const).map((plan) => (
-                          <td key={plan} className="py-3.5 px-4 text-center">
-                            {row[plan] === true ? (
-                              <Check size={16} className={`mx-auto ${plan === 'escalador' ? 'text-pink-500' : plan === 'guia' ? 'text-blue-500' : 'text-green-500'}`} />
-                            ) : row[plan] === false ? (
-                              <span className="text-gray-700">—</span>
-                            ) : (
-                              <span className={plan === 'escalador' ? 'text-pink-400' : plan === 'guia' ? 'text-blue-400' : ''}>{row[plan] as string}</span>
-                            )}
+                    {INDIVIDUAL_COMPARISON_CATEGORIES.map((category, categoryIndex) => (
+                      <React.Fragment key={`category-${categoryIndex}`}>
+                        <tr className="bg-white/[0.03]">
+                          <td colSpan={4} className="py-3 px-4 text-white font-semibold text-xs uppercase tracking-wider">
+                            <span className="mr-2">{category.emoji}</span>
+                            {category.name}
                           </td>
+                        </tr>
+                        {category.rows.map((row, rowIndex) => (
+                          <tr key={`row-${categoryIndex}-${rowIndex}`} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="py-3.5 px-4 text-gray-300 pl-8">{row.feature}</td>
+                            {(['explorador', 'escalador', 'guia'] as const).map((plan) => (
+                              <td key={plan} className="py-3.5 px-4 text-center">
+                                {row[plan] === true ? (
+                                  <Check size={16} className={`mx-auto ${plan === 'escalador' ? 'text-pink-500' : plan === 'guia' ? 'text-blue-500' : 'text-green-500'}`} />
+                                ) : row[plan] === false ? (
+                                  <span className="text-gray-700">—</span>
+                                ) : (
+                                  <span className={plan === 'escalador' ? 'text-pink-400' : plan === 'guia' ? 'text-blue-400' : ''}>{row[plan] as string}</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
                         ))}
-                      </tr>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

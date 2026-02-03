@@ -2,29 +2,32 @@ import type { ComparisonRow } from '../types/landing.types';
 
 export const INDIVIDUAL_PLANS = [
   {
-    name: 'Maity Free',
+    name: 'Explorador',
     priceMonthly: '$0',
     priceAnnual: '$0',
     priceSuffix: '',
     features: [
-      '5 prácticas mensuales',
-      'Análisis básico',
-      'Web App access',
+      '5 conversaciones/mes',
+      '1200 min audio/mes',
+      'Dashboard básico',
+      '1 reto diario',
     ],
     cta: 'Empezar Gratis',
     highlighted: false,
     accentColor: '',
   },
   {
-    name: 'Maity Pro',
-    priceMonthly: '$12.99',
-    priceAnnual: '$9.99',
+    name: 'Escalador',
+    priceMonthly: '$19',
+    priceAnnual: '$15',
     priceSuffix: '/mes',
     features: [
-      'Llamadas reales ilimitadas',
-      'Feedback táctico IA',
-      'Todos los escenarios',
-      'Dashboard de evolución',
+      '50 conversaciones/mes',
+      'Acceso a ChatGPT ilimitado',
+      'Conexión a calendario',
+      'Dashboard avanzado',
+      '3 retos diarios + misiones',
+      '5 simulaciones IA/mes',
     ],
     cta: 'Suscribirse ahora',
     highlighted: true,
@@ -32,16 +35,20 @@ export const INDIVIDUAL_PLANS = [
     accentColor: 'pink',
   },
   {
-    name: 'Maity Pendant',
-    priceMonthly: '$99',
-    priceAnnual: '$99',
-    priceSuffix: ' (Pago único)',
+    name: 'Guía',
+    priceMonthly: '$29',
+    priceAnnual: '$23',
+    priceSuffix: '/mes',
     features: [
-      'Hardware Maity Original',
-      'Feedback háptico',
-      'Privacidad offline',
+      'Conversaciones ilimitadas',
+      'Recordatorios con IA',
+      'Tips personalizados',
+      'Simulaciones IA ilimitadas',
+      'Jefes de montaña',
+      'Exportar datos',
+      'Soporte prioritario + chat',
     ],
-    cta: 'Reservar Unidad',
+    cta: 'Comenzar Guía',
     highlighted: false,
     accentColor: 'blue',
   },
@@ -95,18 +102,71 @@ export const BUSINESS_PLANS = [
   },
 ];
 
-export const INDIVIDUAL_COMPARISON: ComparisonRow[] = [
-  { feature: 'Conversaciones analizadas', free: '5/mes', pro: 'Ilimitadas', pendant: 'Ilimitadas' },
-  { feature: 'Feedback de IA', free: 'Básico', pro: 'Táctico avanzado', pendant: 'Táctico avanzado' },
-  { feature: 'Escenarios de práctica', free: '2', pro: 'Todos', pendant: 'Todos' },
-  { feature: 'Dashboard de evolución', free: false, pro: true, pendant: true },
-  { feature: 'La Escalada (gamificación)', free: 'Básica', pro: 'Completa', pendant: 'Completa' },
-  { feature: 'Competencias certificables', free: false, pro: true, pendant: true },
-  { feature: 'Feedback háptico', free: false, pro: false, pendant: true },
-  { feature: 'Hardware Maity', free: false, pro: false, pendant: true },
-  { feature: 'Modo offline', free: false, pro: false, pendant: true },
-  { feature: 'Soporte', free: 'Comunidad', pro: 'Email prioritario', pendant: 'Prioritario' },
+// Comparison data organized by category for individual plans
+export interface ComparisonCategory {
+  name: string;
+  emoji: string;
+  rows: ComparisonRow[];
+}
+
+export const INDIVIDUAL_COMPARISON_CATEGORIES: ComparisonCategory[] = [
+  {
+    name: 'Conversación y audio',
+    emoji: '📱',
+    rows: [
+      { feature: 'Conversaciones/mes', explorador: '5', escalador: '50', guia: 'Ilimitadas' },
+      { feature: 'Minutos audio/mes', explorador: '1200 min', escalador: 'Ilimitados', guia: 'Ilimitados' },
+      { feature: 'Acceso a ChatGPT', explorador: false, escalador: 'Ilimitado', guia: 'Ilimitado' },
+      { feature: 'Conversar con tus recuerdos', explorador: '5/mes', escalador: true, guia: 'Ilimitado' },
+    ],
+  },
+  {
+    name: 'Calendario e integraciones',
+    emoji: '📅',
+    rows: [
+      { feature: 'Conexión a calendario', explorador: false, escalador: true, guia: true },
+      { feature: 'Recordatorios inteligentes', explorador: false, escalador: 'Básicos', guia: 'Avanzados + IA' },
+      { feature: 'Tips antes de reuniones', explorador: false, escalador: true, guia: '✓ + Personalizados' },
+    ],
+  },
+  {
+    name: 'Dashboards y análisis',
+    emoji: '📊',
+    rows: [
+      { feature: 'Dashboard básico', explorador: true, escalador: true, guia: true },
+      { feature: 'Dashboard avanzado', explorador: false, escalador: true, guia: true },
+    ],
+  },
+  {
+    name: 'Gamificación',
+    emoji: '🎮',
+    rows: [
+      { feature: 'Retos diarios', explorador: '1/día', escalador: '3/día', guia: 'Ilimitados' },
+      { feature: 'Misiones semanales', explorador: false, escalador: true, guia: true },
+      { feature: 'Jefes de montaña', explorador: false, escalador: false, guia: true },
+    ],
+  },
+  {
+    name: 'IA y simulaciones',
+    emoji: '🤖',
+    rows: [
+      { feature: 'Simulaciones IA', explorador: false, escalador: '5/mes', guia: 'Ilimitadas' },
+    ],
+  },
+  {
+    name: 'Datos y soporte',
+    emoji: '🔧',
+    rows: [
+      { feature: 'Exportar datos', explorador: false, escalador: false, guia: true },
+      { feature: 'Soporte', explorador: 'Comunidad', escalador: 'Email', guia: 'Prioritario + Chat' },
+    ],
+  },
 ];
+
+// Flat array for backwards compatibility
+export const INDIVIDUAL_COMPARISON: ComparisonRow[] = INDIVIDUAL_COMPARISON_CATEGORIES.flatMap(
+  (category) => category.rows
+);
 
 export const BUSINESS_COMPARISON: ComparisonRow[] = [
   { feature: 'Usuarios', starter: 'Hasta 20', growth: 'Hasta 100', enterprise: 'Ilimitados' },
