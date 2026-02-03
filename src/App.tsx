@@ -24,6 +24,7 @@ const OnboardingSuccessPage = lazy(() => import("./features/auth").then(m => ({ 
 const LevelsIntroPage = lazy(() => import("./features/levels").then(m => ({ default: m.LevelsIntroPage })));
 
 const DashboardPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.DashboardPage })));
+const GamifiedDashboard = lazy(() => import("./features/dashboard").then(m => ({ default: m.GamifiedDashboard })));
 const MyProgressPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.MyProgressPage })));
 const AdminAnalyticsPage = lazy(() => import("./features/analytics").then(m => ({ default: m.AnalyticsPage })));
 const ReportsPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.ReportsPage })));
@@ -158,6 +159,9 @@ const App = () => (
 
                         {/* SVG Converter (Admin Only) */}
                         <Route path="/admin/svg-converter" element={<AdminRoute><SVGConverterPage /></AdminRoute>} />
+
+                        {/* Gamified Dashboard (Admin Only) */}
+                        <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboard /></AdminRoute>} />
 
                         {/* Interview Routes (Admin Only) */}
                         <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />
