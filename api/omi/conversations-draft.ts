@@ -123,7 +123,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     userId: maityUser.id,
   });
 
-  return res.status(201).json({
+  res.status(201).json({
     ok: true,
     conversation_id: conversation.id,
     created_at: conversation.created_at,
