@@ -28,6 +28,7 @@ import {
   Download,
   Sparkles,
   Gamepad2,
+  BookOpen,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -40,8 +41,8 @@ export const userNavigationItems: NavigationItem[] = [
     url: '/download',
     icon: Download,
     roles: ['admin', 'manager', 'user'],
-    group: 'profile',
-    order: 0,
+    group: 'practice',
+    order: 2.5,
   },
   {
     id: 'dashboard',
@@ -49,9 +50,9 @@ export const userNavigationItems: NavigationItem[] = [
     descriptionKey: 'nav.desc.dashboard',
     url: '/stats',
     icon: ChartArea,
-    roles: ['admin', 'manager', 'user'],
-    group: 'profile',
-    order: 1,
+    roles: ['admin'],
+    group: 'admin',
+    order: 13.5,
   },
   {
     id: 'avatar',
@@ -60,8 +61,8 @@ export const userNavigationItems: NavigationItem[] = [
     url: '/avatar',
     icon: UserCircle,
     roles: ['admin', 'manager', 'user'],
-    group: 'profile',
-    order: 2,
+    group: 'practice',
+    order: 2.7,
   },
   {
     id: 'first-interview',
@@ -90,8 +91,18 @@ export const userNavigationItems: NavigationItem[] = [
     url: '/skills-arena',
     icon: Gamepad2,
     roles: ['admin', 'manager', 'user'],
-    group: 'practice',
-    order: 4.5,
+    group: 'profile',
+    order: 3,
+  },
+  {
+    id: 'learning-content',
+    titleKey: 'nav.learning_content',
+    descriptionKey: 'nav.desc.learning_content',
+    url: '/learning-content',
+    icon: BookOpen,
+    roles: ['admin', 'manager', 'user'],
+    group: 'profile',
+    order: 3.5,
   },
   {
     id: 'learning-path',
@@ -130,8 +141,8 @@ export const userNavigationItems: NavigationItem[] = [
     url: '/omi',
     icon: AudioLines,
     roles: ['admin', 'manager', 'user'],
-    group: 'progress',
-    order: 8,
+    group: 'profile',
+    order: 2,
   },
   {
     id: 'web-recorder',
@@ -217,9 +228,9 @@ export const adminNavigationItems: NavigationItem[] = [
     descriptionKey: 'nav.desc.gamified_dashboard_v2',
     url: '/gamified-dashboard-v2',
     icon: Sparkles,
-    roles: ['admin'],
-    group: 'admin',
-    order: 13.5,
+    roles: ['admin', 'manager', 'user'],
+    group: 'profile',
+    order: 1,
   },
   {
     id: 'coach',

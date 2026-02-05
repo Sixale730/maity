@@ -101,6 +101,11 @@ export { AIResourcesService } from './domain/ai-resources/ai-resources.service';
 export type { AIResource, CreateResourceInput } from './domain/ai-resources/ai-resources.service';
 export * from './domain/ai-resources/hooks/useAIResources';
 
+// ===== Domain: Learning Content =====
+export { LearningContentService } from './domain/learning-content/learning-content.service';
+export type { LearningContent, CreateLearningContentInput } from './domain/learning-content/learning-content.service';
+export * from './domain/learning-content/hooks/useLearningContent';
+
 // ===== Domain: Learning Path =====
 export { LearningPathService } from './domain/learning-path/learning-path.service';
 export * from './domain/learning-path/learning-path.types';
