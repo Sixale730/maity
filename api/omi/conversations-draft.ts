@@ -90,15 +90,13 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   }
 
   // Create draft conversation
+  // Note: title and overview are NOT NULL with default '', so we omit them to use the DB default
+  // emoji and category are nullable, so we omit them as well (will be null by default)
   const { data: conversation, error: insertError } = await supabase
     .schema('maity')
     .from('omi_conversations')
     .insert({
       user_id: maityUser.id,
-      title: null, // Will be set on finalize
-      overview: null,
-      emoji: null,
-      category: null,
       transcript_text: '',
       action_items: [],
       events: [],
@@ -107,7 +105,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
       discarded: false,
       deleted: false,
       starred: false,
-      // Mark as draft
       structured_generated: false,
     })
     .select('id, created_at')
