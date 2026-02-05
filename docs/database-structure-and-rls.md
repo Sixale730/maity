@@ -2519,6 +2519,68 @@ CREATE INDEX idx_ai_resources_created_at ON maity.ai_resources(created_at DESC);
 
 ---
 
+### Learning Content (Biblioteca)
+
+#### maity.learning_content
+
+**Purpose:** Store educational content (videos, podcasts, PDFs, articles) managed by admins, viewable by all authenticated users.
+
+**Schema:**
+```sql
+CREATE TABLE maity.learning_content (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT NOT NULL,
+  content_type TEXT NOT NULL CHECK (content_type IN ('video', 'podcast', 'pdf', 'article')),
+  thumbnail_url TEXT,               -- URL de imagen de portada
+  duration TEXT,                    -- "15 min", "1h 30min", "20 pags"
+  icon TEXT DEFAULT 'book-open',
+  color TEXT DEFAULT 'blue',
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES maity.users(id)
+);
+```
+
+**RLS Policies:**
+```sql
+-- Authenticated users can read active content
+CREATE POLICY "authenticated_can_read_active_learning_content"
+  ON maity.learning_content FOR SELECT TO authenticated
+  USING (is_active = true);
+
+-- Admins can manage all content (CRUD)
+CREATE POLICY "admins_can_manage_learning_content"
+  ON maity.learning_content FOR ALL TO authenticated
+  USING (EXISTS (SELECT 1 FROM maity.user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM maity.user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin'));
+```
+
+**RPC Functions:**
+```sql
+-- Get all content (admins see all, others see active only)
+public.get_all_learning_content() RETURNS SETOF maity.learning_content
+
+-- Create new content (admin only)
+public.create_learning_content(p_title, p_description, p_url, p_content_type, p_thumbnail_url, p_duration, p_icon, p_color) RETURNS maity.learning_content
+
+-- Delete content (admin only)
+public.delete_learning_content(p_id) RETURNS VOID
+```
+
+**Content Types:** `video`, `podcast`, `pdf`, `article`
+
+**Indexes:**
+```sql
+CREATE INDEX idx_learning_content_active ON maity.learning_content(is_active);
+CREATE INDEX idx_learning_content_created_at ON maity.learning_content(created_at DESC);
+CREATE INDEX idx_learning_content_type ON maity.learning_content(content_type);
+```
+
+---
+
 ### SVG Assets
 
 #### maity.svg_assets
