@@ -26,6 +26,8 @@ import {
   Wand2,
   Flame,
   Download,
+  Sparkles,
+  Gamepad2,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -80,6 +82,16 @@ export const userNavigationItems: NavigationItem[] = [
     roles: ['admin', 'manager', 'user'],
     group: 'practice',
     order: 4,
+  },
+  {
+    id: 'skills-arena',
+    titleKey: 'nav.skills_arena',
+    descriptionKey: 'nav.desc.skills_arena',
+    url: '/skills-arena',
+    icon: Gamepad2,
+    roles: ['admin', 'manager', 'user'],
+    group: 'practice',
+    order: 4.5,
   },
   {
     id: 'learning-path',
@@ -198,6 +210,16 @@ export const adminNavigationItems: NavigationItem[] = [
     roles: ['admin'],
     group: 'admin',
     order: 13,
+  },
+  {
+    id: 'gamified-dashboard-v2',
+    titleKey: 'nav.gamified_dashboard_v2',
+    descriptionKey: 'nav.desc.gamified_dashboard_v2',
+    url: '/gamified-dashboard-v2',
+    icon: Sparkles,
+    roles: ['admin'],
+    group: 'admin',
+    order: 13.5,
   },
   {
     id: 'coach',

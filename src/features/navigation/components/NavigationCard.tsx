@@ -13,8 +13,8 @@ export function NavigationCard({
   const cardContent = (
     <Card
       className={cn(
-        'group border border-border/50 transition-all duration-200',
-        !disabled && 'hover:shadow-md hover:scale-[1.02] hover:border-primary/30 cursor-pointer',
+        'group bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl transition-all duration-300',
+        !disabled && 'hover:scale-105 hover:shadow-[0_0_30px_rgba(72,93,244,0.15)] hover:border-primary/30 cursor-pointer',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >

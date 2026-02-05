@@ -18,7 +18,12 @@ const AppLayout = () => {
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
       <SidebarInset>
-        <div className="min-h-screen flex flex-col">
+        {/* Decorative background blobs - matching landing page style */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#485df4] rounded-full opacity-10 blur-[120px]" />
+          <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#ff0050] rounded-full opacity-10 blur-[120px]" />
+        </div>
+        <div className="min-h-screen flex flex-col relative z-10">
           {/* Navigation Header */}
           <NavigationHeader />
 
