@@ -11,14 +11,12 @@ import { Switch } from "@/ui/components/ui/switch";
 import { useToast } from "@/shared/hooks/use-toast";
 import { OrganizationService, getAppUrl } from "@maity/shared";
 import type { Database, CompanyDeletionImpact } from "@maity/shared";
-import { Copy, Plus, Trash2, Settings2 } from "lucide-react";
+import { Plus, Trash2, Settings2 } from "lucide-react";
 
 type SupabaseCompany = Database["public"]["Functions"]["get_companies"]["Returns"][number];
 
 type Company = SupabaseCompany & {
   registration_url?: string;
-  user_invite_token?: string;
-  manager_invite_token?: string;
   domain?: string | null;
   auto_join_enabled?: boolean | null;
 };
@@ -51,7 +49,7 @@ export function OrganizationsManager() {
 
   const fetchCompanies = useCallback(async () => {
     try {
-      const data = await OrganizationService.getWithInviteTokens();
+      const data = await OrganizationService.getAll();
 
       const companiesWithUrls: Company[] = data.map((company) => ({
         ...company,
@@ -184,23 +182,6 @@ export function OrganizationsManager() {
       });
     } finally {
       setDeleteLoading(null);
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copiado",
-        description: "Link copiado al portapapeles",
-      });
-    } catch (error) {
-      console.error("Error copying link:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo copiar el link",
-        variant: "destructive",
-      });
     }
   };
 
@@ -381,7 +362,6 @@ export function OrganizationsManager() {
                   <TableHead>Plan</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Autojoin</TableHead>
-                  <TableHead>Links de Invitación</TableHead>
                   <TableHead>Creado</TableHead>
                   <TableHead className="w-[100px]">Acciones</TableHead>
                 </TableRow>
@@ -418,37 +398,6 @@ export function OrganizationsManager() {
                           <Settings2 className="h-3 w-3 mr-1" />
                           Configurar
                         </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="flex flex-col gap-2">
-                        {company.user_invite_token && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start"
-                            onClick={() => copyToClipboard(`https://api.maity.com.mx/api/accept-invite?invite=${company.user_invite_token}`)}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            👤 Copiar Link Usuario
-                          </Button>
-                        )}
-
-                        {company.manager_invite_token && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start"
-                            onClick={() => copyToClipboard(`https://api.maity.com.mx/api/accept-invite?invite=${company.manager_invite_token}`)}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            👑 Copiar Link Manager
-                          </Button>
-                        )}
-
-                        {!company.user_invite_token && !company.manager_invite_token && (
-                          <p className="text-xs text-muted-foreground">No hay tokens de invitación</p>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="py-4">

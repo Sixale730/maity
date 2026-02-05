@@ -87,9 +87,6 @@ export interface PostLoginOptions {
   /** Path to return to after login (optional) */
   returnTo?: string | null;
 
-  /** Skip invite cookie check (used when invite already processed) */
-  skipInviteCheck?: boolean;
-
   /** Access token for API calls (optional, will get from session if not provided) */
   accessToken?: string;
 }
@@ -103,9 +100,6 @@ export interface PostLoginResult {
 
   /** Whether user was auto-joined to a company */
   autoJoined?: boolean;
-
-  /** Whether an invite was processed */
-  inviteProcessed?: boolean;
 
   /** User's current phase */
   phase?: UserPhase;

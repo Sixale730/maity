@@ -31,8 +31,6 @@ vi.mock('../../organizations/autojoin.service', () => ({
   }
 }));
 
-// Mock global fetch
-global.fetch = vi.fn();
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -549,12 +547,6 @@ describe('AuthService', () => {
       vi.mocked(AutojoinService.isSuccessful).mockReturnValue(false);
       vi.mocked(AutojoinService.noMatchingDomain).mockReturnValue(true);
       vi.mocked(AutojoinService.userAlreadyHasCompany).mockReturnValue(false);
-
-      // Default fetch mock: no invite cookie
-      vi.mocked(global.fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true, note: 'NO_INVITE_COOKIE' })
-      } as Response);
     });
 
     it('should throw error when no session exists', async () => {
@@ -751,64 +743,6 @@ describe('AuthService', () => {
       expect(AutojoinService.tryAutojoinByDomain).toHaveBeenCalledWith('user@acme.com');
     });
 
-    it('should set inviteProcessed flag when invite is finalized', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          company_id: 'company-456',
-          role_assigned: 'user',
-          note: 'INVITE_PROCESSED'
-        })
-      } as Response);
-
-      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
-        if (funcName === 'ensure_user') {
-          return Promise.resolve({ data: null, error: null });
-        }
-        if (funcName === 'my_roles') {
-          return Promise.resolve({ data: ['user'], error: null });
-        }
-        if (funcName === 'my_phase') {
-          return Promise.resolve({ data: 'ACTIVE', error: null });
-        }
-        return Promise.resolve({ data: null, error: null });
-      });
-
-      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
-
-      expect(result.inviteProcessed).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${mockApiUrl}/api/finalize-invite`,
-        expect.objectContaining({
-          method: 'POST',
-          credentials: 'include'
-        })
-      );
-    });
-
-    it('should skip invite check when skipInviteCheck is true', async () => {
-      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
-        if (funcName === 'ensure_user') {
-          return Promise.resolve({ data: null, error: null });
-        }
-        if (funcName === 'my_roles') {
-          return Promise.resolve({ data: ['user'], error: null });
-        }
-        if (funcName === 'my_phase') {
-          return Promise.resolve({ data: 'ACTIVE', error: null });
-        }
-        return Promise.resolve({ data: null, error: null });
-      });
-
-      await AuthService.handlePostLogin({
-        apiUrl: mockApiUrl,
-        skipInviteCheck: true
-      });
-
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
     it('should continue normally when autojoin fails', async () => {
       vi.mocked(AutojoinService.tryAutojoinByDomain).mockRejectedValueOnce(
         new Error('Autojoin error')
@@ -832,29 +766,6 @@ describe('AuthService', () => {
       // Should still complete successfully
       expect(result.destination).toBe('/dashboard');
       expect(result.autoJoined).toBeUndefined();
-    });
-
-    it('should continue normally when invite finalization fails', async () => {
-      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('API error'));
-
-      vi.mocked(supabase.rpc).mockImplementation((funcName: string) => {
-        if (funcName === 'ensure_user') {
-          return Promise.resolve({ data: null, error: null });
-        }
-        if (funcName === 'my_roles') {
-          return Promise.resolve({ data: ['user'], error: null });
-        }
-        if (funcName === 'my_phase') {
-          return Promise.resolve({ data: 'ACTIVE', error: null });
-        }
-        return Promise.resolve({ data: null, error: null });
-      });
-
-      const result = await AuthService.handlePostLogin({ apiUrl: mockApiUrl });
-
-      // Should still complete successfully
-      expect(result.destination).toBe('/dashboard');
-      expect(result.inviteProcessed).toBeUndefined();
     });
 
     it('should call ensureUser to create user record', async () => {

@@ -56,24 +56,10 @@ export const evaluationCompleteRequestSchema = z.object({
 export type EvaluationCompleteRequest = z.infer<typeof evaluationCompleteRequestSchema>;
 
 /**
- * Finalize Invite Request Schema
- */
-export const finalizeInviteRequestSchema = z.object({
-  // No body fields - uses Authorization header and invite cookie
-});
-
-/**
  * Tally Link Request Schema
  */
 export const tallyLinkRequestSchema = z.object({
   // No body fields - uses Authorization header
-});
-
-/**
- * Accept Invite Request Schema
- */
-export const acceptInviteRequestSchema = z.object({
-  token: z.string().min(1),
 });
 
 /**

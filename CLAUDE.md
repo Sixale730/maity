@@ -68,12 +68,11 @@ GRANT EXECUTE ON FUNCTION public.fn TO authenticated;
 
 ### Auth Flow
 ```
-OAuth → ensureUser() → try autojoin by domain → finalize invite (cookie) → check my_roles()/my_phase() → redirect
+OAuth → ensureUser() → try autojoin by domain → check my_roles()/my_phase() → redirect
 ```
 
 ### Organization Assignment
-1. **Autojoin**: Email domain matching (`maity.companies.domain` + `auto_join_enabled`)
-2. **Invite**: HttpOnly cookie system via `/api/accept-invite` + `/api/finalize-invite`
+- **Autojoin**: Email domain matching (`maity.companies.domain` + `auto_join_enabled`)
 
 ## Navigation System (Sidebar + Cards)
 
@@ -287,7 +286,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 - [ ] Handle loading/error states
 
 ## Known Issues
-- Invite cookies: `.maity.com.mx` domain only
 - Role changes may need page refresh
 - OTK requires service_role permissions
 

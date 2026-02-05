@@ -68,19 +68,13 @@ export default function AuthCallback() {
           }
         }
 
-        // Clean up old invite-related data
-        localStorage.removeItem("inviteToken");
-        sessionStorage.removeItem("inviteToken");
-        localStorage.removeItem("companyId");
-
         // Use centralized post-login service to handle all logic
         const returnTo = url.searchParams.get("returnTo");
         console.log("[AuthCb] Calling handlePostLogin service...");
 
         const result = await AuthService.handlePostLogin({
           returnTo,
-          apiUrl: env.apiUrl,
-          skipInviteCheck: false
+          apiUrl: env.apiUrl
         });
 
         console.log("[AuthCb] Post-login processing completed:", result);
