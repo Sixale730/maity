@@ -57,6 +57,7 @@ const DemoPage = lazy(() => import("./features/coach").then(m => ({ default: m.D
 
 const HeroJourneyPage = lazy(() => import("./features/hero-journey").then(m => ({ default: m.HeroJourneyPage })));
 const SVGConverterPage = lazy(() => import("./features/svg-converter").then(m => ({ default: m.SVGConverterPage })));
+const DesktopDownloadPage = lazy(() => import("./features/desktop-download").then(m => ({ default: m.DesktopDownloadPage })));
 
 const InterviewPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewPage })));
 const InterviewHistoryPage = lazy(() => import("./features/interview").then(m => ({ default: m.InterviewHistoryPage })));
@@ -68,6 +69,10 @@ const UsersPage = lazy(() => import("./features/organizations").then(m => ({ def
 
 const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ default: m.NavigationHub })));
 const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
+
+// Web Recorder
+const RecorderLandingPage = lazy(() => import("./features/web-recorder").then(m => ({ default: m.RecorderLandingPage })));
+const RecorderPage = lazy(() => import("./features/web-recorder").then(m => ({ default: m.RecorderPage })));
 
 // Modular Landing Page
 const LandingPage = lazy(() => import("./features/landing/LandingApp"));
@@ -139,6 +144,7 @@ const App = () => (
                         <Route path="/avatar" element={<AvatarEditorPage />} />
                         <Route path="/demo" element={<DemoPage />} />
                         <Route path="/demo-training" element={<DemoTrainingPage />} />
+                        <Route path="/download" element={<DesktopDownloadPage />} />
 
                         {/* Tech Week Routes (Admin Only) */}
                         <Route path="/tech-week" element={<AdminRoute><TechWeekPage /></AdminRoute>} />
@@ -162,6 +168,10 @@ const App = () => (
 
                         {/* Gamified Dashboard (Admin Only) */}
                         <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboard /></AdminRoute>} />
+
+                        {/* Web Recorder */}
+                        <Route path="/recorder" element={<RecorderLandingPage />} />
+                        <Route path="/recorder/session" element={<RecorderPage />} />
 
                         {/* Interview Routes (Admin Only) */}
                         <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />

@@ -1,0 +1,26 @@
+{
+  "name": "Maity Recorder",
+  "short_name": "Maity",
+  "description": "Graba y transcribe conversaciones desde tu navegador",
+  "start_url": "/recorder",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#485DF4",
+  "background_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icons/recorder-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/recorder-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "es-MX"
+}

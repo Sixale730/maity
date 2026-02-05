@@ -25,11 +25,22 @@ import {
   Mountain,
   Wand2,
   Flame,
+  Download,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
 // User navigation items (visible to all roles)
 export const userNavigationItems: NavigationItem[] = [
+  {
+    id: 'desktop-app',
+    titleKey: 'nav.desktop_app',
+    descriptionKey: 'nav.desc.desktop_app',
+    url: '/download',
+    icon: Download,
+    roles: ['admin', 'manager', 'user'],
+    group: 'profile',
+    order: 0,
+  },
   {
     id: 'dashboard',
     titleKey: 'nav.dashboard',
@@ -109,6 +120,16 @@ export const userNavigationItems: NavigationItem[] = [
     roles: ['admin', 'manager', 'user'],
     group: 'progress',
     order: 8,
+  },
+  {
+    id: 'web-recorder',
+    titleKey: 'nav.web_recorder',
+    descriptionKey: 'nav.desc.web_recorder',
+    url: '/recorder',
+    icon: Mic,
+    roles: ['admin', 'manager', 'user'],
+    group: 'practice',
+    order: 4.5,
   },
 ];
 

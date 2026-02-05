@@ -251,6 +251,8 @@ const translations = {
     'nav.hero_journey': "Hero's Journey",
     'nav.omi_conversations': 'Mis Conversaciones',
     'nav.desc.omi_conversations': 'Grabaciones y análisis de Omi',
+    'nav.web_recorder': 'Grabadora Web',
+    'nav.desc.web_recorder': 'Graba conversaciones desde el navegador',
 
     // Navigation - Section headers
     'nav.section.profile': 'Mi Perfil',
@@ -384,6 +386,31 @@ const translations = {
     'svg_converter.delete_confirm_description': 'Esta acción desactivará el asset. Podrás reactivarlo más tarde.',
     'svg_converter.asset_deleted': 'Asset eliminado',
     'svg_converter.error_delete_failed': 'Error al eliminar',
+
+    // Desktop App Download
+    'nav.desktop_app': 'App de Escritorio',
+    'nav.desc.desktop_app': 'Descarga Maity para tu computadora',
+    'download.title': 'App de Escritorio',
+    'download.subtitle': 'Descarga Maity para tu computadora',
+    'download.description': 'Instala la aplicación de escritorio para una experiencia optimizada',
+    'download.version': 'Versión',
+    'download.download_for': 'Descargar para',
+    'download.recommended': 'Recomendado para ti',
+    'download.windows': 'Windows',
+    'download.macos': 'macOS',
+    'download.other_platforms': 'Otras plataformas',
+    'download.features_title': 'Características',
+    'download.feature_offline': 'Acceso offline',
+    'download.feature_notifications': 'Notificaciones nativas',
+    'download.feature_performance': 'Mejor rendimiento',
+    'download.feature_auto_updates': 'Actualizaciones automáticas',
+    'download.requirements_windows': 'Windows 10 o superior (64-bit)',
+    'download.requirements_macos': 'macOS 10.15 o superior',
+    'download.view_all_releases': 'Ver todas las versiones',
+    'download.loading': 'Cargando información de descarga...',
+    'download.error': 'Error al cargar',
+    'download.error_description': 'No se pudo obtener la información de descarga. Intenta de nuevo más tarde.',
+    'download.retry': 'Reintentar',
 
     // Gamified Dashboard
     'nav.gamified_dashboard': 'Dashboard Gamificado',
@@ -657,6 +684,8 @@ const translations = {
     'nav.hero_journey': "Hero's Journey",
     'nav.omi_conversations': 'My Conversations',
     'nav.desc.omi_conversations': 'Omi recordings and analysis',
+    'nav.web_recorder': 'Web Recorder',
+    'nav.desc.web_recorder': 'Record conversations from your browser',
 
     // Navigation - Section headers
     'nav.section.profile': 'My Profile',
@@ -784,6 +813,31 @@ const translations = {
     'svg_converter.delete_confirm_description': 'This action will deactivate the asset. You can reactivate it later.',
     'svg_converter.asset_deleted': 'Asset deleted',
     'svg_converter.error_delete_failed': 'Error deleting',
+
+    // Desktop App Download
+    'nav.desktop_app': 'Desktop App',
+    'nav.desc.desktop_app': 'Download Maity for your computer',
+    'download.title': 'Desktop App',
+    'download.subtitle': 'Download Maity for your computer',
+    'download.description': 'Install the desktop application for an optimized experience',
+    'download.version': 'Version',
+    'download.download_for': 'Download for',
+    'download.recommended': 'Recommended for you',
+    'download.windows': 'Windows',
+    'download.macos': 'macOS',
+    'download.other_platforms': 'Other platforms',
+    'download.features_title': 'Features',
+    'download.feature_offline': 'Offline access',
+    'download.feature_notifications': 'Native notifications',
+    'download.feature_performance': 'Better performance',
+    'download.feature_auto_updates': 'Automatic updates',
+    'download.requirements_windows': 'Windows 10 or later (64-bit)',
+    'download.requirements_macos': 'macOS 10.15 or later',
+    'download.view_all_releases': 'View all releases',
+    'download.loading': 'Loading download information...',
+    'download.error': 'Error loading',
+    'download.error_description': 'Could not get download information. Please try again later.',
+    'download.retry': 'Retry',
 
     // Gamified Dashboard
     'nav.gamified_dashboard': 'Gamified Dashboard',

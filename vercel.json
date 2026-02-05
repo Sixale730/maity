@@ -3,6 +3,14 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/recorder",
+      "has": [{ "type": "host", "value": "app.maity.com.mx" }],
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
