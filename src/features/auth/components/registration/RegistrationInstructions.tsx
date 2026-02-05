@@ -9,11 +9,21 @@ interface RegistrationInstructionsProps {
 export function RegistrationInstructions({ onStart }: RegistrationInstructionsProps) {
   return (
     <div className="w-full space-y-6">
+      {/* Welcome Message */}
+      <div className="text-center space-y-2 mb-4">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+          ¡Bienvenido a Maity!
+        </h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">
+          Tu coach de comunicación con IA. En solo 3 minutos configuraremos tu experiencia.
+        </p>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
           Autoevaluación Maity: Descubre tu estilo de comunicación
-        </h1>
+        </h2>
         <div className="space-y-1">
           <p className="text-base sm:text-lg text-muted-foreground">
             Explora cómo te expresas, conectas e inspiras a los demás.
@@ -98,7 +108,7 @@ export function RegistrationInstructions({ onStart }: RegistrationInstructionsPr
         <Button
           onClick={onStart}
           size="lg"
-          className="w-full sm:w-auto px-8 bg-[#1bea9a] hover:bg-[#18d18a] text-black font-semibold"
+          className="w-full sm:w-auto px-8 bg-[#ff0050] hover:bg-[#ff0050]/90 text-white font-semibold shadow-lg hover:shadow-pink-500/25 hover:-translate-y-0.5 transition-all"
         >
           Comenzar
         </Button>

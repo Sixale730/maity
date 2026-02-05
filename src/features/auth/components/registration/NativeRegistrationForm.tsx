@@ -279,7 +279,7 @@ export function NativeRegistrationForm({
         transition={{ duration: 0.3 }}
         className="space-y-8"
       >
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-lg p-6">
           <div className="flex items-start gap-4">
             <Checkbox
               id={questionId}
@@ -289,7 +289,7 @@ export function NativeRegistrationForm({
             />
             <Label
               htmlFor={questionId}
-              className="text-base font-medium text-gray-900 cursor-pointer leading-relaxed"
+              className="text-base font-medium text-foreground cursor-pointer leading-relaxed"
             >
               {ConsentQuestion.text}
             </Label>
