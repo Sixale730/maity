@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** January 22, 2026
-**Version:** 2.3
+**Last Updated:** February 4, 2026
+**Version:** 2.4
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `public.get_omi_admin_insights()` RPC function for platform-wide Omi analytics (v2.4)
 - Added `maity.svg_assets` table for SVG Converter & Asset Gallery feature (v2.3)
 - Expanded `avatar_character_preset_check` constraint to support all 15 character presets (v2.2)
 - Added `maity.omi_conversations` and `maity.omi_transcript_segments` tables for Omi wearable integration (v2.1)
@@ -1056,6 +1057,75 @@ console.log('Coach session created:', data.id);
 **Related Functions:**
 - `public.create_voice_session` - For Roleplay sessions (requires profile + scenario)
 - `/api/evaluate-session` - Evaluates Coach sessions via OpenAI
+
+---
+
+#### public.get_omi_admin_insights
+
+**Purpose:** Returns platform-wide analytics for Omi conversations including counts, averages, storage estimates, and growth trends.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.get_omi_admin_insights()
+RETURNS TABLE (
+  total_conversations BIGINT,
+  total_transcript_segments BIGINT,
+  total_users_with_conversations BIGINT,
+  total_users BIGINT,
+  avg_conversations_per_user NUMERIC,
+  median_conversations_per_user NUMERIC,
+  users_with_zero_conversations BIGINT,
+  avg_transcript_text_size_bytes NUMERIC,
+  avg_segments_per_conversation NUMERIC,
+  avg_duration_seconds NUMERIC,
+  avg_words_count NUMERIC,
+  avg_overall_score NUMERIC,
+  conversations_with_feedback BIGINT,
+  estimated_storage_bytes BIGINT,
+  conversations_last_7_days BIGINT,
+  conversations_last_30_days BIGINT
+)
+```
+
+**Behavior:**
+1. Aggregates metrics across all Omi conversations and transcript segments
+2. Calculates engagement metrics (average/median conversations per user)
+3. Estimates storage usage for scalability planning
+4. Provides growth trends (last 7/30 days)
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- Verifies caller has `admin` role in `maity.user_roles`
+- Raises exception if non-admin attempts to call
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.get_omi_admin_insights() TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data, error } = await supabase.rpc('get_omi_admin_insights');
+
+// Returns (single row):
+// {
+//   total_conversations: 1234,
+//   total_transcript_segments: 5678,
+//   total_users_with_conversations: 45,
+//   avg_conversations_per_user: 27.42,
+//   estimated_storage_bytes: 45678901,
+//   conversations_last_7_days: 89,
+//   ...
+// }
+```
+
+**Use Cases:**
+- Admin dashboard for Omi platform insights
+- Scalability planning (storage projections)
+- Growth tracking and engagement metrics
+
+**Related Migration:**
+- `create_omi_admin_insights_rpc.sql`
 
 ---
 

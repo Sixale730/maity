@@ -7,6 +7,7 @@ import { Badge } from "@/ui/components/ui/badge";
 import { AdminTestingButton } from "@/features/admin-testing";
 import { useUser } from "@/contexts/UserContext";
 import { OmiStatsSection } from "../OmiStatsSection";
+import { OmiAdminInsights } from "@/features/omi/components/OmiAdminInsights";
 import { 
   BarChart, 
   Bar, 
@@ -272,6 +273,9 @@ export function PlatformAdminDashboard() {
 
       {/* Omi Conversations Stats Section */}
       <OmiStatsSection userId={userProfile?.id} />
+
+      {/* Omi Platform Insights (Admin Only) */}
+      <OmiAdminInsights />
     </div>
   );
 }

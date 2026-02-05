@@ -1,4 +1,9 @@
 import { supabase } from '@maity/shared';
+import {
+  OmiAdminInsights,
+  OmiAdminInsightsRaw,
+  transformOmiInsights,
+} from '../types/omi-insights.types';
 
 export interface OmiConversation {
   id: string;
@@ -209,4 +214,46 @@ export async function getOmiStats(userId?: string): Promise<OmiStats | null> {
     totalDurationMinutes: Math.round(totalDurationSeconds / 60),
     scoreHistory,
   };
+}
+
+/**
+ * Get platform-wide Omi insights (admin only)
+ * Returns aggregated metrics across all users and conversations
+ */
+export async function getOmiAdminInsights(): Promise<OmiAdminInsights> {
+  const { data, error } = await supabase.rpc('get_omi_admin_insights');
+
+  if (error) {
+    console.error('Error fetching omi admin insights:', error);
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    // Return empty insights if no data
+    return {
+      totalConversations: 0,
+      totalTranscriptSegments: 0,
+      totalUsersWithConversations: 0,
+      totalUsers: 0,
+      avgConversationsPerUser: 0,
+      medianConversationsPerUser: 0,
+      usersWithZeroConversations: 0,
+      avgTranscriptTextSizeBytes: 0,
+      avgSegmentsPerConversation: 0,
+      avgDurationSeconds: 0,
+      avgWordsCount: 0,
+      avgOverallScore: 0,
+      conversationsWithFeedback: 0,
+      feedbackCoveragePercent: 0,
+      estimatedStorageBytes: 0,
+      estimatedStorageMB: 0,
+      conversationsLast7Days: 0,
+      conversationsLast30Days: 0,
+      dailyGrowthRate: 0,
+    };
+  }
+
+  // RPC returns an array with one row
+  const rawInsights = data[0] as OmiAdminInsightsRaw;
+  return transformOmiInsights(rawInsights);
 }
