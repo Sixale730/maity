@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Download, Play } from 'lucide-react';
+import { Download, Play, Mic } from 'lucide-react';
 import { LANDING_COLORS } from '../../constants/colors';
 import { LANDING_VIDEOS } from '../../constants/videos';
 import { FadeIn } from '../shared/FadeIn';
 import { VideoCard } from '../shared/VideoCard';
+import { getRecorderUrl } from '@/lib/subdomain';
 
 interface HeroSectionProps {
   setView: (view: string) => void;
@@ -59,6 +60,13 @@ export const HeroSection = ({ setView }: HeroSectionProps) => {
               >
                 <Play size={20} fill="currentColor" /> Ver cómo funciona
               </button>
+              <a
+                href={getRecorderUrl()}
+                className="px-8 py-4 rounded-full text-white font-bold text-lg hover:scale-105 transition-all flex items-center gap-3 justify-center"
+                style={{ background: `linear-gradient(135deg, ${LANDING_COLORS.maityBlue}, ${LANDING_COLORS.maityGreen})` }}
+              >
+                <Mic size={20} /> Grabar en navegador
+              </a>
             </div>
             <div className="mt-6 flex items-center gap-3 text-sm text-gray-500">
               <span>Sin tarjeta de crédito</span>
