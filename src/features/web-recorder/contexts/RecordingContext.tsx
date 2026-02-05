@@ -222,7 +222,6 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         discarded: false,
         deleted: false,
         starred: false,
-        structured_generated: false,
       })
       .select('id')
       .single();
