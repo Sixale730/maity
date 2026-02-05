@@ -67,7 +67,7 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
     <Card className="col-span-full">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600">
             <Mic className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -99,12 +99,12 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
           <>
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3 mb-8">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0F0F0F] border border-white/10 hover:border-cyan-500/30 transition-colors">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-cyan-500 text-white">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0F0F0F] border border-white/10 hover:border-emerald-500/30 transition-colors">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500 text-white">
                   <MessageSquare className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-cyan-400">
+                  <p className="text-2xl font-bold text-emerald-400">
                     {omiStats.totalConversations}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -162,8 +162,8 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
                         <Radar
                           name="Promedio"
                           dataKey="value"
-                          stroke="#06b6d4"
-                          fill="#06b6d4"
+                          stroke="#00d4aa"
+                          fill="#00d4aa"
                           fillOpacity={0.5}
                           strokeWidth={2}
                         />
@@ -201,7 +201,7 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
                                 <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
                                   <p className="font-semibold text-sm">{payload[0].payload.date}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    Score: <span className="font-bold text-cyan-600">{payload[0].value}/10</span>
+                                    Score: <span className="font-bold text-emerald-600">{payload[0].value}/10</span>
                                   </p>
                                 </div>
                               );
@@ -212,10 +212,10 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
                         <Line
                           type="monotone"
                           dataKey="score"
-                          stroke="#06b6d4"
+                          stroke="#00d4aa"
                           strokeWidth={3}
-                          dot={{ fill: '#06b6d4', strokeWidth: 2, r: 5 }}
-                          activeDot={{ r: 7, fill: '#0891b2' }}
+                          dot={{ fill: '#00d4aa', strokeWidth: 2, r: 5 }}
+                          activeDot={{ r: 7, fill: '#0d9488' }}
                         />
                       </LineChart>
                     </ResponsiveContainer>

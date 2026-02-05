@@ -1,29 +1,33 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MessageSquare, CheckCircle2, Calendar, Sparkles, User, Bot, Lightbulb, MessageCircle, LayoutList, Shield, Target } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
-import { Badge } from '@/ui/components/ui/badge';
+import {
+  ArrowLeft, Clock, MessageSquare, CheckCircle2, Calendar, Sparkles,
+  User, Bot, Lightbulb, MessageCircle, LayoutList, Shield, Target
+} from 'lucide-react';
 import { Button } from '@/ui/components/ui/button';
-import { Skeleton } from '@/ui/components/ui/skeleton';
-import { Progress } from '@/ui/components/ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
+
+const METRIC_COLORS: Record<string, { color: string; bg: string }> = {
+  clarity: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
+  engagement: { color: '#00d4aa', bg: 'rgba(0, 212, 170, 0.1)' },
+  structure: { color: '#ff8c42', bg: 'rgba(255, 140, 66, 0.1)' },
+};
+
+function InsightCard({ icon: Icon, title, content }: { icon: React.ComponentType<{ className?: string }>; title: string; content: string }) {
+  return (
+    <div className="p-4 rounded-xl bg-[#1a1a2e] border border-white/5">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="h-4 w-4 text-emerald-400" />
+        <h5 className="text-sm font-medium text-white">{title}</h5>
+      </div>
+      <p className="text-sm text-gray-400">{content}</p>
+    </div>
+  );
+}
 
 interface OmiConversationDetailProps {
   conversation: OmiConversation;
   onBack: () => void;
-}
-
-// Componente para mostrar una tarjeta de insight
-function InsightCard({ icon: Icon, title, content }: { icon: React.ComponentType<{ className?: string }>; title: string; content: string }) {
-  return (
-    <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <h5 className="text-sm font-medium">{title}</h5>
-      </div>
-      <p className="text-sm text-muted-foreground">{content}</p>
-    </div>
-  );
 }
 
 export function OmiConversationDetail({ conversation, onBack }: OmiConversationDetailProps) {
@@ -43,116 +47,122 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('es-MX', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   };
 
   const feedback = conversation.communication_feedback;
+  const overallColor = feedback?.overall_score !== undefined
+    ? (feedback.overall_score >= 8 ? '#00d4aa' : feedback.overall_score >= 5 ? '#fbbf24' : '#ef4444')
+    : '#a78bfa';
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onBack}
-        className="mb-6 -ml-2"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        {t('common.back')}
-      </Button>
+    <div className="min-h-screen bg-[#050505]">
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        {/* Back */}
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-6 -ml-2 text-gray-400 hover:text-white hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t('common.back')}
+        </Button>
 
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          {conversation.emoji && (
-            <span className="text-3xl">{conversation.emoji}</span>
-          )}
-          <h1 className="text-2xl font-bold">{conversation.title}</h1>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-3">
+            {conversation.emoji && (
+              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 text-3xl">
+                {conversation.emoji}
+              </div>
+            )}
+            <h1 className="text-2xl font-bold text-white">{conversation.title}</h1>
+          </div>
+          <p className="text-gray-400 mb-4">{conversation.overview}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            {[
+              { icon: Calendar, text: formatDate(conversation.created_at) },
+              { icon: Clock, text: formatDuration(conversation.duration_seconds) },
+              { icon: MessageSquare, text: `${conversation.words_count || 0} palabras` },
+            ].map(({ icon: Icon, text }) => (
+              <span key={text} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0F0F0F] border border-white/10 text-xs text-gray-400">
+                <Icon className="h-3.5 w-3.5" /> {text}
+              </span>
+            ))}
+            {conversation.category && (
+              <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-violet-500/15 text-violet-400">
+                {conversation.category}
+              </span>
+            )}
+          </div>
         </div>
-        <p className="text-muted-foreground mb-4">{conversation.overview}</p>
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {formatDate(conversation.created_at)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {formatDuration(conversation.duration_seconds)}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageSquare className="h-4 w-4" />
-            {conversation.words_count || 0} palabras
-          </span>
-          {conversation.category && (
-            <Badge variant="secondary">{conversation.category}</Badge>
-          )}
-        </div>
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Communication Feedback */}
-        {feedback && (
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Sparkles className="h-5 w-5 text-primary" />
-                {t('omi.communication_analysis')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Communication Feedback */}
+          {feedback && (
+            <div className="lg:col-span-2 p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
+              <div className="flex items-center gap-2 mb-6">
+                <Sparkles className="h-5 w-5 text-emerald-400" />
+                <h3 className="text-lg font-bold text-white">{t('omi.communication_analysis')}</h3>
+              </div>
+
               {/* Overall Score */}
               {feedback.overall_score !== undefined && (
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{t('omi.overall_score')}</span>
-                    <span className="font-medium">{feedback.overall_score}/10</span>
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-400">{t('omi.overall_score')}</span>
+                    <span className="text-2xl font-bold" style={{ color: overallColor }}>
+                      {feedback.overall_score}/10
+                    </span>
                   </div>
-                  <Progress value={feedback.overall_score * 10} className="h-2" />
+                  <div className="h-2 rounded-full bg-[#1a1a2e] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${feedback.overall_score * 10}%`,
+                        backgroundColor: overallColor,
+                        boxShadow: `0 0 10px ${overallColor}60`,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Individual Scores */}
-              <div className="grid gap-3 sm:grid-cols-3">
-                {feedback.clarity !== undefined && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xs text-muted-foreground mb-1">{t('omi.clarity')}</div>
-                    <div className="text-xl font-bold">{feedback.clarity}/10</div>
+              <div className="grid gap-3 sm:grid-cols-3 mb-6">
+                {([
+                  { key: 'clarity', value: feedback.clarity, label: t('omi.clarity') },
+                  { key: 'engagement', value: feedback.engagement, label: t('omi.engagement') },
+                  { key: 'structure', value: feedback.structure, label: t('omi.structure') },
+                ] as const).map(({ key, value, label }) => value !== undefined && (
+                  <div
+                    key={key}
+                    className="p-4 rounded-xl"
+                    style={{ backgroundColor: METRIC_COLORS[key].bg, border: `1px solid ${METRIC_COLORS[key].color}20` }}
+                  >
+                    <div className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">{label}</div>
+                    <div className="text-xl font-bold" style={{ color: METRIC_COLORS[key].color }}>{value}/10</div>
+                    <div className="h-1 rounded-full bg-[#1a1a2e] mt-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${value * 10}%`, backgroundColor: METRIC_COLORS[key].color }}
+                      />
+                    </div>
                   </div>
-                )}
-                {feedback.engagement !== undefined && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xs text-muted-foreground mb-1">{t('omi.engagement')}</div>
-                    <div className="text-xl font-bold">{feedback.engagement}/10</div>
-                  </div>
-                )}
-                {feedback.structure !== undefined && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xs text-muted-foreground mb-1">{t('omi.structure')}</div>
-                    <div className="text-xl font-bold">{feedback.structure}/10</div>
-                  </div>
-                )}
+                ))}
               </div>
 
-              {/* Feedback Text (usa summary como fallback) */}
+              {/* Feedback Text */}
               {(feedback.feedback || feedback.summary) && (
-                <p className="text-sm text-muted-foreground">{feedback.feedback || feedback.summary}</p>
+                <p className="text-sm text-gray-400 mb-6">{feedback.feedback || feedback.summary}</p>
               )}
 
-              {/* Strengths & Areas to Improve */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              {/* Strengths & Areas */}
+              <div className="grid gap-4 sm:grid-cols-2 mb-6">
                 {feedback.strengths && feedback.strengths.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-green-600">{t('omi.strengths')}</h4>
-                    <ul className="space-y-1">
+                  <div className="p-4 rounded-xl bg-[#1a1a2e]">
+                    <h4 className="text-sm font-bold mb-3 text-emerald-400">{t('omi.strengths')}</h4>
+                    <ul className="space-y-2">
                       {feedback.strengths.map((s, i) => (
-                        <li key={i} className="text-sm flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="text-sm flex items-start gap-2 text-gray-300">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                           {s}
                         </li>
                       ))}
@@ -160,155 +170,128 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                   </div>
                 )}
                 {feedback.areas_to_improve && feedback.areas_to_improve.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-amber-600">{t('omi.areas_to_improve')}</h4>
-                    <ul className="space-y-1">
+                  <div className="p-4 rounded-xl bg-[#1a1a2e]">
+                    <h4 className="text-sm font-bold mb-3 text-amber-400">{t('omi.areas_to_improve')}</h4>
+                    <ul className="space-y-2">
                       {feedback.areas_to_improve.map((a, i) => (
-                        <li key={i} className="text-sm text-muted-foreground">• {a}</li>
+                        <li key={i} className="text-sm text-gray-400 flex items-start gap-2">
+                          <span className="text-amber-400 mt-0.5">•</span> {a}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
 
-              {/* Insights/Observations */}
+              {/* Insights */}
               {feedback.observations && (
-                <div className="space-y-3 pt-4 border-t">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500" />
-                    {t('omi.insights')}
-                  </h4>
+                <div className="pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb className="h-4 w-4 text-amber-400" />
+                    <h4 className="text-sm font-bold text-white">{t('omi.insights')}</h4>
+                  </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {feedback.observations.clarity && (
-                      <InsightCard
-                        icon={MessageCircle}
-                        title={t('omi.clarity')}
-                        content={feedback.observations.clarity}
-                      />
+                      <InsightCard icon={MessageCircle} title={t('omi.clarity')} content={feedback.observations.clarity} />
                     )}
                     {feedback.observations.structure && (
-                      <InsightCard
-                        icon={LayoutList}
-                        title={t('omi.structure')}
-                        content={feedback.observations.structure}
-                      />
+                      <InsightCard icon={LayoutList} title={t('omi.structure')} content={feedback.observations.structure} />
                     )}
                     {feedback.observations.objections && (
-                      <InsightCard
-                        icon={Shield}
-                        title={t('omi.objections')}
-                        content={feedback.observations.objections}
-                      />
+                      <InsightCard icon={Shield} title={t('omi.objections')} content={feedback.observations.objections} />
                     )}
                     {feedback.observations.calls_to_action && (
-                      <InsightCard
-                        icon={Target}
-                        title={t('omi.calls_to_action')}
-                        content={feedback.observations.calls_to_action}
-                      />
+                      <InsightCard icon={Target} title={t('omi.calls_to_action')} content={feedback.observations.calls_to_action} />
                     )}
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Action Items */}
-        {conversation.action_items && conversation.action_items.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('omi.action_items')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
+          {/* Action Items */}
+          {conversation.action_items && conversation.action_items.length > 0 && (
+            <div className="p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
+              <h3 className="text-lg font-bold text-white mb-4">{t('omi.action_items')}</h3>
+              <ul className="space-y-3">
                 {conversation.action_items.map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${item.completed ? 'text-green-500' : 'text-muted-foreground'}`} />
-                    <span className={item.completed ? 'line-through text-muted-foreground' : ''}>
+                    <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${item.completed ? 'text-emerald-500' : 'text-gray-600'}`} />
+                    <span className={item.completed ? 'line-through text-gray-600' : 'text-gray-300'}>
                       {item.description}
                     </span>
                   </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Events */}
-        {conversation.events && conversation.events.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('omi.events')}</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Events */}
+          {conversation.events && conversation.events.length > 0 && (
+            <div className="p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
+              <h3 className="text-lg font-bold text-white mb-4">{t('omi.events')}</h3>
               <ul className="space-y-3">
                 {conversation.events.map((event, i) => (
-                  <li key={i} className="border-l-2 border-primary/30 pl-3">
-                    <div className="font-medium text-sm">{event.title}</div>
+                  <li key={i} className="border-l-2 border-emerald-500/30 pl-3">
+                    <div className="font-medium text-sm text-white">{event.title}</div>
                     {event.description && (
-                      <div className="text-xs text-muted-foreground">{event.description}</div>
+                      <div className="text-xs text-gray-500">{event.description}</div>
                     )}
                   </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
-      {/* Transcript */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">{t('omi.transcript')}</CardTitle>
-        </CardHeader>
-        <CardContent>
+        {/* Transcript */}
+        <div className="mt-6 p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
+          <h3 className="text-lg font-bold text-white mb-4">{t('omi.transcript')}</h3>
+
           {loadingSegments ? (
             <div className="space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex gap-3">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-20 mb-1" />
-                    <Skeleton className="h-4 w-full" />
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="flex gap-3 animate-pulse">
+                  <div className="h-8 w-8 rounded-full bg-[#1a1a2e]" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-20 bg-[#1a1a2e] rounded" />
+                    <div className="h-4 w-full bg-[#1a1a2e] rounded" />
                   </div>
                 </div>
               ))}
             </div>
           ) : segments && segments.length > 0 ? (
             <div className="space-y-4">
-              {segments.map((segment) => (
+              {segments.map(segment => (
                 <div key={segment.id} className="flex gap-3">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${segment.is_user ? 'bg-primary/10' : 'bg-muted'}`}>
-                    {segment.is_user ? (
-                      <User className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-muted-foreground" />
-                    )}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    segment.is_user ? 'bg-emerald-500/15' : 'bg-[#1a1a2e]'
+                  }`}>
+                    {segment.is_user
+                      ? <User className="h-4 w-4 text-emerald-400" />
+                      : <Bot className="h-4 w-4 text-gray-500" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium">
+                      <span className={`text-xs font-medium ${segment.is_user ? 'text-emerald-400' : 'text-gray-500'}`}>
                         {segment.speaker || (segment.is_user ? 'Tú' : 'Otro')}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-gray-600">
                         {Math.floor(segment.start_time / 60)}:{Math.floor(segment.start_time % 60).toString().padStart(2, '0')}
                       </span>
                     </div>
-                    <p className="text-sm">{segment.text}</p>
+                    <p className="text-sm text-gray-300">{segment.text}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : conversation.transcript_text ? (
-            <p className="text-sm whitespace-pre-wrap">{conversation.transcript_text}</p>
+            <p className="text-sm text-gray-300 whitespace-pre-wrap">{conversation.transcript_text}</p>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              {t('omi.no_transcript')}
-            </p>
+            <p className="text-sm text-gray-500 text-center py-4">{t('omi.no_transcript')}</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
