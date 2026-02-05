@@ -99,13 +99,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
       console.log('[deepgram-token] Generated temporary token for user:', user.id);
 
-      return res.status(200).json({
+      res.status(200).json({
         mode: 'token',
         token: tokenResponse.token,
         expires_at: tokenResponse.expires_at,
         ws_url: wsUrl,
         config: DEFAULT_DEEPGRAM_CONFIG,
       });
+      return;
     } catch (error) {
       console.warn('[deepgram-token] Temporary tokens not available, using direct key mode');
       // Fall through to direct key mode
@@ -119,7 +120,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // 3. Key is only held in memory, not persisted
   console.log('[deepgram-token] Using direct key mode for user:', user.id);
 
-  return res.status(200).json({
+  res.status(200).json({
     mode: 'direct',
     api_key: deepgramApiKey,
     ws_url: wsUrl,

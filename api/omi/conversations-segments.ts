@@ -158,7 +158,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     totalSegments: startIndex + body.segments.length,
   });
 
-  return res.status(200).json({
+  res.status(200).json({
     ok: true,
     segments_added: body.segments.length,
     total_segments: startIndex + body.segments.length,
