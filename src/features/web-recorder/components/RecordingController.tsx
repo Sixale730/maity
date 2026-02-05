@@ -5,8 +5,8 @@
  */
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '@/ui/components/ui/button';
+import { cn } from '@maity/shared';
 import { Mic, Pause, Play, Square, Loader2 } from 'lucide-react';
 
 type RecordingStatus =

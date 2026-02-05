@@ -5,7 +5,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 
 interface AudioVisualizerProps {
   level: number; // 0-1

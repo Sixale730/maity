@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Mic, Smartphone, Wifi, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { isAudioCaptureSupported, isIOSSafari } from '../lib/audioCapture';
 

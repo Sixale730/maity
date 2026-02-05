@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@maity/shared';
 
 interface RecordingTimerProps {
   seconds: number;

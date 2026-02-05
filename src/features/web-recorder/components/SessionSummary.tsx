@@ -5,10 +5,10 @@
  */
 
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@maity/shared';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/components/ui/card';
+import { ScrollArea } from '@/ui/components/ui/scroll-area';
 import { Clock, FileText, Save, Trash2, Loader2 } from 'lucide-react';
 
 interface TranscriptSegment {

@@ -6,8 +6,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/ui/components/ui/button';
+import { Card, CardContent } from '@/ui/components/ui/card';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { RecordingProvider, useRecording } from '../contexts/RecordingContext';
 import { RecordingTimer } from '../components/RecordingTimer';
