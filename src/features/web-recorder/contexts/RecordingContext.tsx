@@ -266,6 +266,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
     if (error) {
       console.error('[Recording] Error appending segments:', error);
+      throw new Error(`Error al guardar segmentos: ${error.message}`);
     }
   }, []);
 
@@ -283,7 +284,9 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to finalize conversation');
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || errorData.message || 'Error desconocido';
+      throw new Error(`Error al finalizar: ${errorMessage}`);
     }
 
     return await response.json();
