@@ -242,7 +242,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const updateData: Record<string, unknown> = {
     transcript_text: transcriptText,
     discarded,
-    structured_generated: true,
     duration_seconds: durationSeconds,
     updated_at: new Date().toISOString(),
   };
