@@ -19,7 +19,7 @@
 @layer base {
   :root {
     /* Maity Dark Mode - Base */
-    --background: 0 0% 0%;
+    --background: 0 0% 2%;  /* #050505 - matching landing page */
     --foreground: 240 4% 91%;
 
     --card: 0 0% 6%;
@@ -56,13 +56,13 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 3%;
+    --sidebar-background: 0 0% 2%;  /* Darker to match #050505 */
     --sidebar-foreground: 240 4% 91%;
     --sidebar-primary: 341 100% 50%;
     --sidebar-primary-foreground: 240 4% 91%;
-    --sidebar-accent: 0 0% 8%;
+    --sidebar-accent: 0 0% 6%;
     --sidebar-accent-foreground: 240 4% 91%;
-    --sidebar-border: 0 0% 12%;
+    --sidebar-border: 0 0% 100% / 0.1;  /* white/10 for glassmorphism */
     --sidebar-ring: 341 100% 50%;
   }
 }
@@ -79,7 +79,7 @@
 
   html {
     color-scheme: dark;
-    background: #000;
+    background: #050505;
   }
 
   h1,
