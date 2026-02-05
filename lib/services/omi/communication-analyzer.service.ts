@@ -2,7 +2,7 @@
  * Communication Analyzer Service
  *
  * Analyzes user communication style from conversation segments.
- * Uses DeepSeek as primary provider with OpenAI as fallback.
+ * Uses LLM provider priority from LLM_PROVIDERS env (default: deepseek,openai).
  * Ported from maity-mobile/api/services/communication_analyzer.py
  */
 
@@ -19,8 +19,20 @@ const MIN_USER_WORDS = 15;
 const MAX_TRANSCRIPT_CHARS = 4000;
 
 // ============================================================================
-// LLM PROVIDER
+// LLM PROVIDER (mirrors registry from openai.service.ts)
 // ============================================================================
+
+interface ProviderConfig {
+  envKey: string;
+  baseURL?: string;
+  defaultModel: string;
+  modelEnvKey: string;
+}
+
+const PROVIDER_REGISTRY: Record<string, ProviderConfig> = {
+  deepseek: { envKey: 'DEEPSEEK_API_KEY', baseURL: 'https://api.deepseek.com', defaultModel: 'deepseek-chat', modelEnvKey: 'DEEPSEEK_MODEL' },
+  openai:   { envKey: 'OPENAI_API_KEY',   baseURL: undefined,                  defaultModel: 'gpt-4o-mini',   modelEnvKey: 'OPENAI_MODEL' },
+};
 
 interface LLMClient {
   client: OpenAI;
@@ -28,23 +40,24 @@ interface LLMClient {
   model: string;
 }
 
-function createDeepSeekClient(): LLMClient | null {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) return null;
+function getProviders(): LLMClient[] {
+  const order = process.env.LLM_PROVIDERS
+    ? process.env.LLM_PROVIDERS.split(',').map((s) => s.trim().toLowerCase())
+    : ['deepseek', 'openai'];
 
-  return {
-    client: new OpenAI({ apiKey, baseURL: 'https://api.deepseek.com' }),
-    provider: 'deepseek',
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
-  };
-}
-
-function createOpenAIClient(): LLMClient {
-  return {
-    client: new OpenAI({ apiKey: process.env.OPENAI_API_KEY }),
-    provider: 'openai',
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-  };
+  const clients: LLMClient[] = [];
+  for (const name of order) {
+    const config = PROVIDER_REGISTRY[name];
+    if (!config) continue;
+    const apiKey = process.env[config.envKey];
+    if (!apiKey) continue;
+    clients.push({
+      client: new OpenAI({ apiKey, ...(config.baseURL ? { baseURL: config.baseURL } : {}) }),
+      provider: name,
+      model: process.env[config.modelEnvKey] || config.defaultModel,
+    });
+  }
+  return clients;
 }
 
 // ============================================================================
@@ -211,11 +224,8 @@ export async function analyzeCommunication(
     temperature: TEMPERATURE,
   };
 
-  // Try DeepSeek first, fallback to OpenAI
-  const providers: LLMClient[] = [];
-  const deepseek = createDeepSeekClient();
-  if (deepseek) providers.push(deepseek);
-  providers.push(createOpenAIClient());
+  // Iterate providers by priority (LLM_PROVIDERS env)
+  const providers = getProviders();
 
   for (const llm of providers) {
     try {

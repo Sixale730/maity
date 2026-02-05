@@ -1,39 +1,76 @@
 import OpenAI from 'openai';
 
 // ============================================================================
-// LLM PROVIDER CONFIGURATION
+// LLM PROVIDER REGISTRY
 // ============================================================================
 
-type LLMProvider = 'deepseek' | 'openai';
+interface LLMProviderConfig {
+  envKey: string;          // env var for API key (e.g. DEEPSEEK_API_KEY)
+  baseURL?: string;        // custom base URL (omit for OpenAI default)
+  defaultModel: string;    // default model if no env override
+  modelEnvKey: string;     // env var to override model (e.g. DEEPSEEK_MODEL)
+  costPer1M: { input: number; output: number };
+}
+
+/** Add new providers here. Order doesn't matter — priority is set by LLM_PROVIDERS env. */
+const PROVIDER_REGISTRY: Record<string, LLMProviderConfig> = {
+  deepseek: {
+    envKey: 'DEEPSEEK_API_KEY',
+    baseURL: 'https://api.deepseek.com',
+    defaultModel: 'deepseek-chat',
+    modelEnvKey: 'DEEPSEEK_MODEL',
+    costPer1M: { input: 0.27, output: 1.10 },
+  },
+  openai: {
+    envKey: 'OPENAI_API_KEY',
+    baseURL: undefined,
+    defaultModel: 'gpt-4o-mini',
+    modelEnvKey: 'OPENAI_MODEL',
+    costPer1M: { input: 0.15, output: 0.60 },
+  },
+};
+
+/** Default priority when LLM_PROVIDERS is not set */
+const DEFAULT_PROVIDER_ORDER = ['deepseek', 'openai'];
 
 interface LLMClient {
   client: OpenAI;
-  provider: LLMProvider;
+  provider: string;
   model: string;
+  costPer1M: { input: number; output: number };
 }
 
-function createDeepSeekClient(): LLMClient | null {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) return null;
+/**
+ * Returns available LLM clients ordered by priority.
+ * Priority is set by env LLM_PROVIDERS (comma-separated), e.g. "deepseek,openai".
+ * Providers without a configured API key are skipped.
+ */
+function getProviders(): LLMClient[] {
+  const order = process.env.LLM_PROVIDERS
+    ? process.env.LLM_PROVIDERS.split(',').map((s) => s.trim().toLowerCase())
+    : DEFAULT_PROVIDER_ORDER;
 
-  return {
-    client: new OpenAI({
-      apiKey,
-      baseURL: 'https://api.deepseek.com',
-    }),
-    provider: 'deepseek',
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
-  };
-}
+  const clients: LLMClient[] = [];
 
-function createOpenAIClient(): LLMClient {
-  return {
-    client: new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    }),
-    provider: 'openai',
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-  };
+  for (const name of order) {
+    const config = PROVIDER_REGISTRY[name];
+    if (!config) continue;
+
+    const apiKey = process.env[config.envKey];
+    if (!apiKey) continue;
+
+    clients.push({
+      client: new OpenAI({
+        apiKey,
+        ...(config.baseURL ? { baseURL: config.baseURL } : {}),
+      }),
+      provider: name,
+      model: process.env[config.modelEnvKey] || config.defaultModel,
+      costPer1M: config.costPer1M,
+    });
+  }
+
+  return clients;
 }
 
 // ============================================================================
@@ -799,19 +836,57 @@ async function sleep(ms: number): Promise<void> {
 }
 
 // ============================================================================
-// RETRY LOGIC WITH EXPONENTIAL BACKOFF
+// LLM CALL — single entry point with retry + automatic fallback
 // ============================================================================
 
-interface LLMCompletionResult {
+export interface LLMCompletionResult {
   completion: OpenAI.Chat.ChatCompletion;
-  provider: LLMProvider;
+  provider: string;
   model: string;
 }
 
+/**
+ * Single function to call any LLM. Iterates providers by priority (LLM_PROVIDERS env),
+ * retries each on rate-limit/timeout, and falls back to the next on hard failure.
+ */
+async function callLLM(
+  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream' | 'model'> & { stream?: false | null },
+  maxRetries = 3
+): Promise<LLMCompletionResult> {
+  const providers = getProviders();
+
+  if (providers.length === 0) {
+    throw new Error('No LLM providers configured. Set at least one API key (DEEPSEEK_API_KEY, OPENAI_API_KEY, etc.)');
+  }
+
+  for (let i = 0; i < providers.length; i++) {
+    const llm = providers[i];
+    const isLast = i === providers.length - 1;
+
+    try {
+      const result = await callWithRetry(llm, params, maxRetries);
+      return result;
+    } catch (error: any) {
+      if (isLast) throw error; // last provider — propagate
+
+      console.warn({
+        event: 'llm_provider_fallback',
+        failed_provider: llm.provider,
+        next_provider: providers[i + 1].provider,
+        error: error?.message || 'Unknown error',
+        error_status: error?.status,
+      });
+    }
+  }
+
+  throw new Error('All LLM providers failed');
+}
+
+/** Internal: retry a single provider on rate-limit / timeout */
 async function callWithRetry(
   llm: LLMClient,
   params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream' | 'model'> & { stream?: false | null },
-  maxRetries = 3
+  maxRetries: number
 ): Promise<LLMCompletionResult> {
   let lastError: Error | null = null;
 
@@ -819,75 +894,32 @@ async function callWithRetry(
     try {
       const response = await llm.client.chat.completions.create(
         { ...params, model: llm.model },
-        {
-          timeout: 25000,
-        }
+        { timeout: 25000 }
       ) as OpenAI.Chat.ChatCompletion;
 
       return { completion: response, provider: llm.provider, model: llm.model };
     } catch (error: any) {
       lastError = error;
 
-      // Rate limit → retry con backoff
       if (error?.status === 429 && attempt < maxRetries - 1) {
         const delay = Math.pow(2, attempt) * 1000;
-        console.warn({
-          event: `${llm.provider}_rate_limited`,
-          attempt: attempt + 1,
-          delay_ms: delay,
-          message: 'Rate limited, retrying...',
-        });
+        console.warn({ event: `${llm.provider}_rate_limited`, attempt: attempt + 1, delay_ms: delay });
         await sleep(delay);
         continue;
       }
 
-      // Timeout → retry
       if ((error?.code === 'ETIMEDOUT' || error?.message?.toLowerCase().includes('timeout'))
           && attempt < maxRetries - 1) {
-        console.warn({
-          event: `${llm.provider}_timeout`,
-          attempt: attempt + 1,
-          message: 'Timeout, retrying...',
-        });
+        console.warn({ event: `${llm.provider}_timeout`, attempt: attempt + 1 });
         await sleep(1000);
         continue;
       }
 
-      // Other errors → throw immediately
       throw error;
     }
   }
 
-  throw lastError || new Error(`Failed after all retries with ${llm.provider}`);
-}
-
-/**
- * Calls DeepSeek as primary provider, falls back to OpenAI on failure.
- * If DEEPSEEK_API_KEY is not set, goes directly to OpenAI.
- */
-async function callLLMWithFallback(
-  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream' | 'model'> & { stream?: false | null },
-  maxRetries = 3
-): Promise<LLMCompletionResult> {
-  const deepseek = createDeepSeekClient();
-
-  // Try DeepSeek first if configured
-  if (deepseek) {
-    try {
-      return await callWithRetry(deepseek, params, maxRetries);
-    } catch (error: any) {
-      console.warn({
-        event: 'deepseek_fallback_to_openai',
-        error: error?.message || 'Unknown error',
-        error_status: error?.status,
-        message: 'DeepSeek failed, falling back to OpenAI...',
-      });
-    }
-  }
-
-  // Fallback to OpenAI
-  const openai = createOpenAIClient();
-  return await callWithRetry(openai, params, maxRetries);
+  throw lastError || new Error(`Failed after ${maxRetries} retries with ${llm.provider}`);
 }
 
 // ============================================================================
@@ -942,17 +974,13 @@ export function parseTranscript(rawText: string): TranscriptMessage[] {
 
 function calculateCost(
   usage?: { prompt_tokens?: number; completion_tokens?: number },
-  provider: LLMProvider = 'openai'
+  provider = 'openai'
 ): number {
   if (!usage) return 0;
 
-  // Pricing per 1M tokens
-  const pricing: Record<LLMProvider, { input: number; output: number }> = {
-    openai: { input: 0.15, output: 0.6 },        // gpt-4o-mini
-    deepseek: { input: 0.27, output: 1.10 },      // deepseek-chat (V3)
-  };
+  const config = PROVIDER_REGISTRY[provider];
+  const { input, output } = config?.costPer1M || { input: 0.15, output: 0.60 };
 
-  const { input, output } = pricing[provider] || pricing.openai;
   const inputCost = (usage.prompt_tokens || 0) * (input / 1_000_000);
   const outputCost = (usage.completion_tokens || 0) * (output / 1_000_000);
 
@@ -1038,7 +1066,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const { completion, provider, model } = await callLLMWithFallback({
+    const { completion, provider, model } = await callLLM({
       messages: [
         { role: 'system', content: ROLEPLAY_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
@@ -1110,7 +1138,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const { completion, provider, model } = await callLLMWithFallback({
+    const { completion, provider, model } = await callLLM({
       messages: [
         { role: 'system', content: COACH_DIAGNOSTIC_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
@@ -1195,7 +1223,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const { completion, provider, model } = await callLLMWithFallback({
+    const { completion, provider, model } = await callLLM({
       messages: [
         { role: 'system', content: INTERVIEW_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
