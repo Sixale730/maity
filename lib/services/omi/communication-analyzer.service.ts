@@ -1,7 +1,8 @@
 /**
  * Communication Analyzer Service
  *
- * Analyzes user communication style from conversation segments using GPT-4o-mini.
+ * Analyzes user communication style from conversation segments.
+ * Uses DeepSeek as primary provider with OpenAI as fallback.
  * Ported from maity-mobile/api/services/communication_analyzer.py
  */
 
@@ -11,12 +12,40 @@ import OpenAI from 'openai';
 // CONSTANTS
 // ============================================================================
 
-const MODEL = 'gpt-4o-mini';
 const MAX_TOKENS = 800;
 const TEMPERATURE = 0.7;
 const TIMEOUT_MS = 20000;
 const MIN_USER_WORDS = 15;
 const MAX_TRANSCRIPT_CHARS = 4000;
+
+// ============================================================================
+// LLM PROVIDER
+// ============================================================================
+
+interface LLMClient {
+  client: OpenAI;
+  provider: string;
+  model: string;
+}
+
+function createDeepSeekClient(): LLMClient | null {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) return null;
+
+  return {
+    client: new OpenAI({ apiKey, baseURL: 'https://api.deepseek.com' }),
+    provider: 'deepseek',
+    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+  };
+}
+
+function createOpenAIClient(): LLMClient {
+  return {
+    client: new OpenAI({ apiKey: process.env.OPENAI_API_KEY }),
+    provider: 'openai',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  };
+}
 
 // ============================================================================
 // TYPES
@@ -171,47 +200,53 @@ export async function analyzeCommunication(
     };
   }
 
-  try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  const truncated = truncateTranscript(transcript);
+  const requestParams = {
+    messages: [
+      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'user' as const, content: truncated },
+    ],
+    response_format: { type: 'json_object' as const },
+    max_tokens: MAX_TOKENS,
+    temperature: TEMPERATURE,
+  };
 
-    const truncated = truncateTranscript(transcript);
+  // Try DeepSeek first, fallback to OpenAI
+  const providers: LLMClient[] = [];
+  const deepseek = createDeepSeekClient();
+  if (deepseek) providers.push(deepseek);
+  providers.push(createOpenAIClient());
 
-    const completion = await openai.chat.completions.create(
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: truncated },
-        ],
-        response_format: { type: 'json_object' },
-        max_tokens: MAX_TOKENS,
-        temperature: TEMPERATURE,
-      },
-      {
-        timeout: TIMEOUT_MS,
+  for (const llm of providers) {
+    try {
+      const completion = await llm.client.chat.completions.create(
+        { ...requestParams, model: llm.model },
+        { timeout: TIMEOUT_MS }
+      );
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        console.error(`[communication-analyzer] Empty response from ${llm.provider}`);
+        continue;
       }
-    );
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      console.error('[communication-analyzer] Empty response from OpenAI');
-      return null;
+      const result = JSON.parse(content) as CommunicationFeedback;
+
+      console.log('[communication-analyzer] Analysis completed', {
+        provider: llm.provider,
+        model: llm.model,
+        userWords: userWordCount,
+        overallScore: result.overall_score,
+      });
+
+      return result;
+    } catch (error) {
+      console.warn(`[communication-analyzer] ${llm.provider} failed, trying next provider...`, error);
     }
-
-    const result = JSON.parse(content) as CommunicationFeedback;
-
-    console.log('[communication-analyzer] Analysis completed', {
-      userWords: userWordCount,
-      overallScore: result.overall_score,
-    });
-
-    return result;
-  } catch (error) {
-    console.error('[communication-analyzer] Error analyzing communication:', error);
-    return null;
   }
+
+  console.error('[communication-analyzer] All providers failed');
+  return null;
 }
 
 /**

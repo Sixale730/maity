@@ -1,6 +1,42 @@
 import OpenAI from 'openai';
 
 // ============================================================================
+// LLM PROVIDER CONFIGURATION
+// ============================================================================
+
+type LLMProvider = 'deepseek' | 'openai';
+
+interface LLMClient {
+  client: OpenAI;
+  provider: LLMProvider;
+  model: string;
+}
+
+function createDeepSeekClient(): LLMClient | null {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) return null;
+
+  return {
+    client: new OpenAI({
+      apiKey,
+      baseURL: 'https://api.deepseek.com',
+    }),
+    provider: 'deepseek',
+    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+  };
+}
+
+function createOpenAIClient(): LLMClient {
+  return {
+    client: new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    }),
+    provider: 'openai',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  };
+}
+
+// ============================================================================
 // SYSTEM PROMPTS
 // ============================================================================
 
@@ -766,32 +802,37 @@ async function sleep(ms: number): Promise<void> {
 // RETRY LOGIC WITH EXPONENTIAL BACKOFF
 // ============================================================================
 
-async function callOpenAIWithRetry(
-  openai: OpenAI,
-  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream'> & { stream?: false | null },
+interface LLMCompletionResult {
+  completion: OpenAI.Chat.ChatCompletion;
+  provider: LLMProvider;
+  model: string;
+}
+
+async function callWithRetry(
+  llm: LLMClient,
+  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream' | 'model'> & { stream?: false | null },
   maxRetries = 3
-): Promise<OpenAI.Chat.ChatCompletion> {
+): Promise<LLMCompletionResult> {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Use SDK's built-in timeout (25s)
-      const response = await openai.chat.completions.create(
-        params,
+      const response = await llm.client.chat.completions.create(
+        { ...params, model: llm.model },
         {
-          timeout: 25000, // 25 seconds
+          timeout: 25000,
         }
       ) as OpenAI.Chat.ChatCompletion;
 
-      return response;
+      return { completion: response, provider: llm.provider, model: llm.model };
     } catch (error: any) {
       lastError = error;
 
       // Rate limit → retry con backoff
       if (error?.status === 429 && attempt < maxRetries - 1) {
-        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        const delay = Math.pow(2, attempt) * 1000;
         console.warn({
-          event: 'openai_rate_limited',
+          event: `${llm.provider}_rate_limited`,
           attempt: attempt + 1,
           delay_ms: delay,
           message: 'Rate limited, retrying...',
@@ -801,11 +842,10 @@ async function callOpenAIWithRetry(
       }
 
       // Timeout → retry
-      // OpenAI SDK timeout errors have code 'ETIMEDOUT' or error contains 'timeout'
       if ((error?.code === 'ETIMEDOUT' || error?.message?.toLowerCase().includes('timeout'))
           && attempt < maxRetries - 1) {
         console.warn({
-          event: 'openai_timeout',
+          event: `${llm.provider}_timeout`,
           attempt: attempt + 1,
           message: 'Timeout, retrying...',
         });
@@ -818,7 +858,36 @@ async function callOpenAIWithRetry(
     }
   }
 
-  throw lastError || new Error('Failed after all retries');
+  throw lastError || new Error(`Failed after all retries with ${llm.provider}`);
+}
+
+/**
+ * Calls DeepSeek as primary provider, falls back to OpenAI on failure.
+ * If DEEPSEEK_API_KEY is not set, goes directly to OpenAI.
+ */
+async function callLLMWithFallback(
+  params: Omit<OpenAI.Chat.ChatCompletionCreateParams, 'stream' | 'model'> & { stream?: false | null },
+  maxRetries = 3
+): Promise<LLMCompletionResult> {
+  const deepseek = createDeepSeekClient();
+
+  // Try DeepSeek first if configured
+  if (deepseek) {
+    try {
+      return await callWithRetry(deepseek, params, maxRetries);
+    } catch (error: any) {
+      console.warn({
+        event: 'deepseek_fallback_to_openai',
+        error: error?.message || 'Unknown error',
+        error_status: error?.status,
+        message: 'DeepSeek failed, falling back to OpenAI...',
+      });
+    }
+  }
+
+  // Fallback to OpenAI
+  const openai = createOpenAIClient();
+  return await callWithRetry(openai, params, maxRetries);
 }
 
 // ============================================================================
@@ -871,18 +940,21 @@ export function parseTranscript(rawText: string): TranscriptMessage[] {
 // COST CALCULATION
 // ============================================================================
 
-function calculateCost(usage?: {
-  prompt_tokens?: number;
-  completion_tokens?: number;
-}): number {
+function calculateCost(
+  usage?: { prompt_tokens?: number; completion_tokens?: number },
+  provider: LLMProvider = 'openai'
+): number {
   if (!usage) return 0;
 
-  // Precios gpt-4o-mini (a enero 2025)
-  const INPUT_COST_PER_1M = 0.15; // $0.15 per 1M input tokens
-  const OUTPUT_COST_PER_1M = 0.6; // $0.60 per 1M output tokens
+  // Pricing per 1M tokens
+  const pricing: Record<LLMProvider, { input: number; output: number }> = {
+    openai: { input: 0.15, output: 0.6 },        // gpt-4o-mini
+    deepseek: { input: 0.27, output: 1.10 },      // deepseek-chat (V3)
+  };
 
-  const inputCost = (usage.prompt_tokens || 0) * (INPUT_COST_PER_1M / 1_000_000);
-  const outputCost = (usage.completion_tokens || 0) * (OUTPUT_COST_PER_1M / 1_000_000);
+  const { input, output } = pricing[provider] || pricing.openai;
+  const inputCost = (usage.prompt_tokens || 0) * (input / 1_000_000);
+  const outputCost = (usage.completion_tokens || 0) * (output / 1_000_000);
 
   return inputCost + outputCost;
 }
@@ -951,10 +1023,6 @@ export async function evaluateRoleplaySession(
   const startTime = Date.now();
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     const userMessage = `
 Escenario: ${params.scenario}
 Perfil del agente: ${params.profile}
@@ -970,8 +1038,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const completion = await callOpenAIWithRetry(openai, {
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const { completion, provider, model } = await callLLMWithFallback({
       messages: [
         { role: 'system', content: ROLEPLAY_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
@@ -990,13 +1057,15 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       event: 'evaluation_completed',
       sessionId: params.sessionId,
       userId: params.userId,
+      provider,
+      model,
       duration_ms: duration,
       tokens: {
         prompt: completion.usage?.prompt_tokens,
         completion: completion.usage?.completion_tokens,
         total: completion.usage?.total_tokens,
       },
-      cost_estimate: calculateCost(completion.usage),
+      cost_estimate: calculateCost(completion.usage, provider),
       timestamp: new Date().toISOString(),
     });
 
@@ -1029,10 +1098,6 @@ export async function evaluateDiagnosticInterview(params: {
   const startTime = Date.now();
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     const userMessage = `
 Conversacion: ${JSON.stringify(params.transcript, null, 2)}
     `.trim();
@@ -1045,14 +1110,13 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const completion = await callOpenAIWithRetry(openai, {
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const { completion, provider, model } = await callLLMWithFallback({
       messages: [
         { role: 'system', content: COACH_DIAGNOSTIC_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.7, // Más creatividad para el comentario asombroso
+      temperature: 0.7,
     });
 
     const result = JSON.parse(
@@ -1065,6 +1129,8 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       event: 'diagnostic_interview_evaluation_completed',
       sessionId: params.sessionId,
       userId: params.userId,
+      provider,
+      model,
       duration_ms: duration,
       is_complete: result.is_complete,
       rubric_scores: {
@@ -1080,7 +1146,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
         completion: completion.usage?.completion_tokens,
         total: completion.usage?.total_tokens,
       },
-      cost_estimate: calculateCost(completion.usage),
+      cost_estimate: calculateCost(completion.usage, provider),
       timestamp: new Date().toISOString(),
     });
 
@@ -1114,10 +1180,6 @@ export async function evaluateInterviewSession(params: {
   const startTime = Date.now();
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     const userMessage = `
 Nombre del Usuario: ${params.userName}
 
@@ -1133,14 +1195,13 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       timestamp: new Date().toISOString(),
     });
 
-    const completion = await callOpenAIWithRetry(openai, {
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const { completion, provider, model } = await callLLMWithFallback({
       messages: [
         { role: 'system', content: INTERVIEW_SYSTEM_MESSAGE },
         { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.7, // Más creatividad para deducciones de personalidad
+      temperature: 0.7,
     });
 
     const result = JSON.parse(
@@ -1154,6 +1215,8 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
       sessionId: params.sessionId,
       userId: params.userId,
       userName: params.userName,
+      provider,
+      model,
       duration_ms: duration,
       is_complete: result.is_complete,
       has_amazing_comment: !!result.amazing_comment,
@@ -1171,7 +1234,7 @@ Conversacion: ${JSON.stringify(params.transcript, null, 2)}
         completion: completion.usage?.completion_tokens,
         total: completion.usage?.total_tokens,
       },
-      cost_estimate: calculateCost(completion.usage),
+      cost_estimate: calculateCost(completion.usage, provider),
       timestamp: new Date().toISOString(),
     });
 
