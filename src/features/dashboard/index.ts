@@ -21,3 +21,4 @@ export { PlatformAdminDashboard } from './components/dashboards/PlatformAdminDas
 export { default as TeamDashboard } from './components/dashboards/TeamDashboard';
 export { UserDashboard } from './components/dashboards/UserDashboard';
 export { GamifiedDashboard } from './components/gamified/GamifiedDashboard';
+export { GamifiedDashboardV2 } from './components/gamified-v2';

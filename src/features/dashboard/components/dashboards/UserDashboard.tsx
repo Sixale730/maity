@@ -298,31 +298,31 @@ export function UserDashboard({ userName }: UserDashboardProps) {
 
       {/* Personal Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className="bg-[#0F0F0F] border border-white/10 hover:border-[#1bea9a]/30 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Autoevaluación</CardTitle>
+            <CardTitle className="text-sm font-medium text-[#1bea9a]">Autoevaluación</CardTitle>
             <span className="text-2xl">🎯</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">
+            <div className="text-2xl font-bold text-[#1bea9a]">
               {diagnosticScore !== null ? `${diagnosticScore}/5` : 'N/A'}
             </div>
-            <p className="text-xs text-green-700">
+            <p className="text-xs text-muted-foreground">
               Promedio de autoevaluación
             </p>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+
+        <Card className="bg-[#0F0F0F] border border-white/10 hover:border-[#485df4]/30 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Mi Nivel</CardTitle>
+            <CardTitle className="text-sm font-medium text-[#485df4]">Mi Nivel</CardTitle>
             <span className="text-3xl">{getLevelInfo(userProfile?.level || 1).icon}</span>
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${getLevelInfo(userProfile?.level || 1).color}`}>
               {getLevelInfo(userProfile?.level || 1).name}
             </div>
-            <p className="text-xs text-blue-700">
+            <p className="text-xs text-muted-foreground">
               Nivel {userProfile?.level || 1} de 5
             </p>
           </CardContent>
@@ -330,9 +330,9 @@ export function UserDashboard({ userName }: UserDashboardProps) {
 
         {/* Avatar Card */}
         <Link to="/avatar" className="block">
-          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer h-full">
+          <Card className="bg-[#0F0F0F] border border-white/10 hover:border-[#9b4dca]/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-indigo-900">Mi Avatar</CardTitle>
+              <CardTitle className="text-sm font-medium text-[#9b4dca]">Mi Avatar</CardTitle>
               <span className="text-xl">🎮</span>
             </CardHeader>
             <CardContent className="flex items-center justify-center">
@@ -410,11 +410,11 @@ export function UserDashboard({ userName }: UserDashboardProps) {
               </ResponsiveContainer>
             </ChartContainer>
             {/* Average Score */}
-            <div className="text-center mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg w-full">
+            <div className="text-center mt-4 p-4 bg-[#0F0F0F] border border-white/10 rounded-lg w-full">
               <p className="text-sm text-muted-foreground mb-1">
                 Puntuación Promedio
               </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-3xl font-bold text-[#485df4]">
                 {diagnosticScore !== null ? `${diagnosticScore}/5` : 'N/A'}
               </p>
             </div>
@@ -456,11 +456,11 @@ export function UserDashboard({ userName }: UserDashboardProps) {
                   </ResponsiveContainer>
                 </ChartContainer>
                 {/* Average Score */}
-                <div className="text-center mt-4 p-4 bg-purple-50 dark:bg-purple-950 rounded-lg w-full">
+                <div className="text-center mt-4 p-4 bg-[#0F0F0F] border border-white/10 rounded-lg w-full">
                   <p className="text-sm text-muted-foreground mb-1">
                     Puntuación Promedio
                   </p>
-                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  <p className="text-3xl font-bold text-[#9b4dca]">
                     {interviewAverage}/5
                   </p>
                 </div>

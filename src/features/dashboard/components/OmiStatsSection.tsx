@@ -99,43 +99,43 @@ export function OmiStatsSection({ userId }: OmiStatsSectionProps) {
           <>
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3 mb-8">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950 dark:to-cyan-900 border border-cyan-200 dark:border-cyan-800">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0F0F0F] border border-white/10 hover:border-cyan-500/30 transition-colors">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-cyan-500 text-white">
                   <MessageSquare className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-cyan-900 dark:text-cyan-100">
+                  <p className="text-2xl font-bold text-cyan-400">
                     {omiStats.totalConversations}
                   </p>
-                  <p className="text-sm text-cyan-700 dark:text-cyan-300">
+                  <p className="text-sm text-muted-foreground">
                     {t('dashboard.user.omi_total_conversations')}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0F0F0F] border border-white/10 hover:border-amber-500/30 transition-colors">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-500 text-white">
                   <Star className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">
+                  <p className="text-2xl font-bold text-amber-400">
                     {omiStats.avgOverallScore > 0 ? `${omiStats.avgOverallScore}/10` : 'N/A'}
                   </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                  <p className="text-sm text-muted-foreground">
                     {t('dashboard.user.omi_avg_score')}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900 border border-violet-200 dark:border-violet-800">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0F0F0F] border border-white/10 hover:border-violet-500/30 transition-colors">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-violet-500 text-white">
                   <Clock className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-violet-900 dark:text-violet-100">
+                  <p className="text-2xl font-bold text-violet-400">
                     {omiStats.totalDurationMinutes} min
                   </p>
-                  <p className="text-sm text-violet-700 dark:text-violet-300">
+                  <p className="text-sm text-muted-foreground">
                     {t('dashboard.user.omi_total_time')}
                   </p>
                 </div>
