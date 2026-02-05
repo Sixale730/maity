@@ -190,44 +190,83 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     return data;
   }, []);
 
-  const createDraftConversation = useCallback(async (accessToken: string) => {
-    const response = await fetch('/api/omi/conversations-draft', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ source: 'web_recorder' }),
-    });
+  const createDraftConversation = useCallback(async () => {
+    // Get current user's maity.users.id
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) throw new Error('No hay sesión activa');
 
-    if (!response.ok) {
-      throw new Error('Failed to create draft conversation');
+    const { data: profile, error: profileError } = await supabase
+      .schema('maity')
+      .from('users')
+      .select('id')
+      .eq('auth_id', authUser.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('[Recording] Error fetching user profile:', profileError);
+      throw new Error('Usuario no encontrado');
     }
 
-    const data = await response.json();
-    return data.conversation_id;
+    // Insert draft directly via Supabase (RLS allows this)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: conversation, error: insertError } = await (supabase as any)
+      .schema('maity')
+      .from('omi_conversations')
+      .insert({
+        user_id: profile.id,
+        transcript_text: '',
+        action_items: [],
+        events: [],
+        source: 'web_recorder',
+        language: 'es',
+        discarded: false,
+        deleted: false,
+        starred: false,
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      console.error('[Recording] Error creating draft:', insertError);
+      throw new Error('Error al crear conversación');
+    }
+
+    return conversation.id;
   }, []);
 
-  const appendSegments = useCallback(async (accessToken: string, conversationId: string, segments: TranscriptSegment[]) => {
-    const response = await fetch('/api/omi/conversations-segments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        conversation_id: conversationId,
-        segments: segments.map(s => ({
-          text: s.text,
-          is_user: true,
-          start_time: s.startTime,
-          end_time: s.endTime,
-        })),
-      }),
-    });
+  const appendSegments = useCallback(async (conversationId: string, segments: TranscriptSegment[]) => {
+    // Get max segment_index for this conversation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: maxResult } = await (supabase as any)
+      .schema('maity')
+      .from('omi_transcript_segments')
+      .select('segment_index')
+      .eq('conversation_id', conversationId)
+      .order('segment_index', { ascending: false })
+      .limit(1)
+      .single();
 
-    if (!response.ok) {
-      console.error('Failed to append segments');
+    const startIndex = (maxResult?.segment_index ?? -1) + 1;
+
+    const segmentsToInsert = segments.map((s, i) => ({
+      conversation_id: conversationId,
+      segment_index: startIndex + i,
+      text: s.text,
+      speaker: 'Usuario',
+      is_user: true,
+      start_time: s.startTime,
+      end_time: s.endTime,
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .schema('maity')
+      .from('omi_transcript_segments')
+      .insert(segmentsToInsert);
+
+    if (error) {
+      console.error('[Recording] Error appending segments:', error);
+      throw new Error(`Error al guardar segmentos: ${error.message}`);
     }
   }, []);
 
@@ -245,7 +284,9 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to finalize conversation');
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || errorData.message || 'Error desconocido';
+      throw new Error(`Error al finalizar: ${errorMessage}`);
     }
 
     return await response.json();
@@ -334,14 +375,8 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_STATUS', status: 'initializing' });
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error('No hay sesión activa');
-      }
-
-      // Create draft conversation
-      const conversationId = await createDraftConversation(session.access_token);
+      // Create draft conversation (uses Supabase directly)
+      const conversationId = await createDraftConversation();
       dispatch({ type: 'SET_CONVERSATION_ID', id: conversationId });
 
       // Get Deepgram config if not already
@@ -450,18 +485,17 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_STATUS', status: 'saving' });
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Append remaining segments (uses Supabase directly)
+      if (state.segments.length > 0) {
+        await appendSegments(state.conversationId, state.segments);
+      }
 
+      // Finalize conversation (requires API for OpenAI processing)
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('No hay sesión activa');
       }
 
-      // Append remaining segments
-      if (state.segments.length > 0) {
-        await appendSegments(session.access_token, state.conversationId, state.segments);
-      }
-
-      // Finalize conversation
       await finalizeConversation(
         session.access_token,
         state.conversationId,
