@@ -82,6 +82,7 @@ export async function getOmiConversations(userId?: string): Promise<OmiConversat
     .select('*')
     .eq('user_id', userId)
     .eq('deleted', false)
+    .eq('discarded', false)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -144,6 +145,7 @@ export async function getOmiStats(userId?: string): Promise<OmiStats | null> {
     .select('created_at, duration_seconds, communication_feedback')
     .eq('user_id', userId)
     .eq('deleted', false)
+    .eq('discarded', false)
     .order('created_at', { ascending: true });
 
   if (error) {
