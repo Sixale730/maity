@@ -197,14 +197,37 @@ Sistema de grabación y análisis de conversaciones del dispositivo Omi.
 - temas?: { temas_tratados[], acciones_usuario: [{descripcion, tiene_fecha}], temas_sin_cerrar: [{tema, razon}] }
 
 **Componentes de detalle (`src/features/omi/components/`):**
-- `OmiConversationDetail` - Vista de detalle con todas las secciones
+- `OmiConversationDetail` - Vista principal con estructura estilo Meeting Analysis
+- `OmiAnalysisSections` - Componentes nuevos estilo Meeting Analysis:
+  - `OmiHeaderSection` - Título centrado + metadata (emoji, categoría, duración, palabras)
+  - `OmiResumenHero` - Gauge semicircular + score + descripción narrativa
+  - `OmiScoreBars` - Métricas clarity/engagement/structure con barras horizontales
+  - `OmiFortalezasSection` - Lista de fortalezas con checks verdes
+  - `OmiAreasSection` - Áreas de mejora estilo insights con bordes de color
+  - `TranscriptSection` - Transcripción con avatares por speaker
 - `ConversationSections` - Componentes reutilizables para radiografía:
+  - `SectionLabel` - Etiqueta de sección con líneas decorativas
   - `RadiografiaKPIGrid` - Grid de 4 KPIs (muletillas, ratio, preguntas, palabras)
   - `MuletillasSection` - Barras horizontales con muletillas detectadas
   - `PreguntasSection` - Dos columnas: tus preguntas vs recibidas
   - `TemasSection` - Tags/chips para temas tratados
   - `AccionesSection` - Lista de compromisos con/sin fecha
   - `TemasSinCerrarSection` - Cards de temas pendientes con razón
+
+**Estructura de secciones en detalle (orden):**
+1. Header centrado (título + emoji + metadata)
+2. Overview (descripción)
+3. Resumen (gauge + score + feedback)
+4. Radiografía Rápida (4 KPIs)
+5. Métricas de Comunicación (barras de score)
+6. Muletillas Detectadas
+7. Análisis de Preguntas
+8. Temas Tratados
+9. Tus Compromisos
+10. Temas Pendientes
+11. Fortalezas a Mantener
+12. Áreas de Mejora
+13. Transcripción
 
 **Rutas:**
 - `/omi` - Lista de conversaciones con detalle expandible

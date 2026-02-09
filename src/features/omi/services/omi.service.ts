@@ -25,6 +25,7 @@ export interface OmiConversation {
   words_count: number | null;
   duration_seconds: number | null;
   communication_feedback: CommunicationFeedback | null;
+  user?: { full_name: string | null } | null;
 }
 
 export interface ActionItem {
@@ -134,7 +135,7 @@ export async function getOmiConversation(conversationId: string): Promise<OmiCon
   const { data, error } = await supabase
     .schema('maity')
     .from('omi_conversations')
-    .select('*')
+    .select('*, user:users!user_id(full_name)')
     .eq('id', conversationId)
     .single();
 
