@@ -134,8 +134,10 @@ export interface CommunicationFeedback {
   counters?: CommunicationCounters;
   overall_score?: number;
   clarity?: number;
-  engagement?: number;
   structure?: number;
+  empatia?: number;
+  vocabulario?: number;
+  objetivo?: number;
   feedback?: string;
   // New fields - Radiografía
   radiografia?: Radiografia;
@@ -172,8 +174,10 @@ Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
   },
   "overall_score": 7,
   "clarity": 8,
-  "engagement": 7,
   "structure": 6,
+  "empatia": 7,
+  "vocabulario": 8,
+  "objetivo": 6,
   "feedback": "Feedback general breve",
 
   "radiografia": {
@@ -227,7 +231,14 @@ PREGUNTAS:
 TEMAS Y ACCIONES:
 - temas_tratados: Lista 3-6 temas principales discutidos en la conversación
 - acciones_usuario: Compromisos o tareas que el USUARIO asumió o se comprometió a hacer. Solo del USUARIO, no de otros. Indica si mencionó fecha/momento concreto.
-- temas_sin_cerrar: Temas que se discutieron pero no llegaron a conclusión o decisión clara. Explica brevemente por qué quedó abierto.`;
+- temas_sin_cerrar: Temas que se discutieron pero no llegaron a conclusión o decisión clara. Explica brevemente por qué quedó abierto.
+
+MÉTRICAS DE COMUNICACIÓN (0-10):
+- clarity: Qué tan claro y comprensible es el mensaje del usuario
+- structure: Organización y estructura del discurso
+- empatia: Capacidad del USUARIO de escuchar, hacer preguntas y conectar con otros (solo evalúa al usuario principal)
+- vocabulario: Riqueza léxica, uso de términos apropiados, evitar muletillas
+- objetivo: Qué tan enfocada estuvo la conversación hacia metas concretas con fechas y responsables`;
 
 // ============================================================================
 // UTILITIES
@@ -299,8 +310,10 @@ export async function analyzeCommunication(
       summary: 'Conversación muy breve para un análisis detallado.',
       overall_score: 5,
       clarity: 5,
-      engagement: 5,
       structure: 5,
+      empatia: 5,
+      vocabulario: 5,
+      objetivo: 5,
       // Radiografía básica para contenido insuficiente
       radiografia: {
         muletillas_detectadas: {},

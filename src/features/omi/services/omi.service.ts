@@ -84,8 +84,10 @@ export interface CommunicationFeedback {
   // Scores numéricos (pueden no existir en todos los análisis)
   overall_score?: number;
   clarity?: number;
-  engagement?: number;
   structure?: number;
+  empatia?: number;
+  vocabulario?: number;
+  objetivo?: number;
   // Textos
   feedback?: string;
   summary?: string;  // Resumen del análisis (alternativo a feedback)

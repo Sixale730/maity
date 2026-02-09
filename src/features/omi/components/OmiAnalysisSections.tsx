@@ -356,8 +356,10 @@ export function OmiKPIGrid({ radiografia, preguntas, temas }: OmiKPIGridProps) {
 // ─── Score Bars (cards in 2-column grid - Meeting Analysis style) ─
 const SCORE_BAR_COLORS: Record<string, { bar: string; text: string }> = {
   clarity: { bar: 'bg-sky-500', text: 'text-sky-400' },
-  engagement: { bar: 'bg-emerald-500', text: 'text-emerald-400' },
   structure: { bar: 'bg-orange-500', text: 'text-orange-400' },
+  empatia: { bar: 'bg-rose-500', text: 'text-rose-400' },
+  vocabulario: { bar: 'bg-violet-500', text: 'text-violet-400' },
+  objetivo: { bar: 'bg-amber-500', text: 'text-amber-400' },
 };
 
 interface OmiScoreBarsProps {
@@ -392,8 +394,10 @@ export function OmiScoreBars({ feedback }: OmiScoreBarsProps) {
 
   const metrics = [
     { key: 'clarity', value: feedback.clarity, label: t('omi.clarity') },
-    { key: 'engagement', value: feedback.engagement, label: t('omi.engagement') },
     { key: 'structure', value: feedback.structure, label: t('omi.structure') },
+    { key: 'empatia', value: feedback.empatia, label: t('omi.empatia') },
+    { key: 'vocabulario', value: feedback.vocabulario, label: t('omi.vocabulario') },
+    { key: 'objetivo', value: feedback.objetivo, label: t('omi.objetivo') },
   ].filter(m => m.value !== undefined);
 
   if (metrics.length === 0) return null;

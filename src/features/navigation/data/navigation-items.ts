@@ -51,9 +51,9 @@ export const userNavigationItems: NavigationItem[] = [
     descriptionKey: 'nav.desc.dashboard',
     url: '/stats',
     icon: ChartArea,
-    roles: ['admin'],
-    group: 'admin',
-    order: 13.5,
+    roles: ['admin', 'manager', 'user'],
+    group: 'progress',
+    order: 4.5,
   },
   {
     id: 'avatar',
