@@ -256,6 +256,17 @@ export async function getOmiStats(userId?: string): Promise<OmiStats | null> {
 }
 
 /**
+ * Delete a conversation (admin only)
+ * Performs soft delete by setting deleted=true
+ */
+export async function deleteConversation(conversationId: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_delete_conversation', {
+    p_conversation_id: conversationId,
+  });
+  if (error) throw error;
+}
+
+/**
  * Get platform-wide Omi insights (admin only)
  * Returns aggregated metrics across all users and conversations
  */

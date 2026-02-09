@@ -351,7 +351,11 @@ const translations = {
     'omi.without_date': 'sin fecha',
     'omi.open_topics': 'Temas Sin Cerrar',
     'omi.reason': 'Razón',
+    'omi.delete_conversation': '¿Eliminar conversación?',
+    'omi.delete_conversation_description': 'Esta acción marcará la conversación como eliminada.',
     'common.back': 'Volver',
+    'common.cancel': 'Cancelar',
+    'common.delete': 'Eliminar',
 
     // Dashboard - Omi Stats Section
     'dashboard.user.omi_section': 'Mis Conversaciones Omi',
@@ -931,7 +935,11 @@ const translations = {
     'omi.without_date': 'without date',
     'omi.open_topics': 'Open Topics',
     'omi.reason': 'Reason',
+    'omi.delete_conversation': 'Delete conversation?',
+    'omi.delete_conversation_description': 'This action will mark the conversation as deleted.',
     'common.back': 'Back',
+    'common.cancel': 'Cancel',
+    'common.delete': 'Delete',
 
     // Dashboard - Omi Stats Section
     'dashboard.user.omi_section': 'My Omi Conversations',

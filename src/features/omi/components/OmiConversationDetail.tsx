@@ -1,10 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft, Clock, MessageSquare, CheckCircle2, Calendar, Sparkles,
-  User, Bot, Lightbulb, MessageCircle, LayoutList, Shield, Target
+  User, Bot, Lightbulb, MessageCircle, LayoutList, Shield, Target, Trash2
 } from 'lucide-react';
 import { Button } from '@/ui/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/ui/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/contexts/UserContext';
+import { useDeleteConversation } from '../hooks/useDeleteConversation';
 import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
 import {
   SectionLabel,
@@ -41,6 +54,8 @@ interface OmiConversationDetailProps {
 
 export function OmiConversationDetail({ conversation, onBack }: OmiConversationDetailProps) {
   const { t } = useLanguage();
+  const { isAdmin } = useUser();
+  const deleteConversation = useDeleteConversation();
 
   const { data: segments, isLoading: loadingSegments } = useQuery({
     queryKey: ['omi-segments', conversation.id],
@@ -87,7 +102,37 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                 {conversation.emoji}
               </div>
             )}
-            <h1 className="text-2xl font-bold text-white">{conversation.title}</h1>
+            <h1 className="text-2xl font-bold text-white flex-1">{conversation.title}</h1>
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('omi.delete_conversation')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('omi.delete_conversation_description')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        deleteConversation.mutate(conversation.id, {
+                          onSuccess: () => onBack(),
+                        });
+                      }}
+                      className="bg-destructive hover:bg-destructive/90"
+                    >
+                      {t('common.delete')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
           <p className="text-gray-400 mb-4">{conversation.overview}</p>
           <div className="flex flex-wrap items-center gap-3">

@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** February 4, 2026
-**Version:** 2.4
+**Last Updated:** February 9, 2026
+**Version:** 2.5
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `public.admin_delete_conversation()` RPC function for admin-only soft delete of Omi conversations (v2.5)
 - Added `public.get_omi_admin_insights()` RPC function for platform-wide Omi analytics (v2.4)
 - Added `maity.svg_assets` table for SVG Converter & Asset Gallery feature (v2.3)
 - Expanded `avatar_character_preset_check` constraint to support all 15 character presets (v2.2)
@@ -1126,6 +1127,52 @@ const { data, error } = await supabase.rpc('get_omi_admin_insights');
 
 **Related Migration:**
 - `create_omi_admin_insights_rpc.sql`
+
+---
+
+#### public.admin_delete_conversation
+
+**Purpose:** Admin-only soft delete of Omi conversations. Sets `deleted=true` on the conversation record.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.admin_delete_conversation(p_conversation_id uuid)
+RETURNS void
+```
+
+**Parameters:**
+- `p_conversation_id` - UUID of the conversation to delete (required)
+
+**Behavior:**
+1. Verifies caller has admin role via `maity.user_roles`
+2. Verifies conversation exists
+3. Updates `deleted = true` and `updated_at = NOW()`
+4. Raises exception if not admin or conversation not found
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- Admin check inside function (double verification: UI + RPC)
+- `SET search_path TO 'maity', 'public'` - Prevents SQL injection
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.admin_delete_conversation(uuid) TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { error } = await supabase.rpc('admin_delete_conversation', {
+  p_conversation_id: 'uuid-of-conversation',
+});
+// Throws error if not admin
+```
+
+**Use Cases:**
+- Admin moderation of inappropriate conversations
+- Cleanup of test or invalid data by platform admins
+
+**Related Migration:**
+- `20260209_add_admin_delete_conversation.sql`
 
 ---
 
