@@ -7,7 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import { cn } from '@maity/shared';
 import { ScrollArea } from '@/ui/components/ui/scroll-area';
-import { User, Users } from 'lucide-react';
+import { User, Users, AlertTriangle } from 'lucide-react';
 
 interface TranscriptSegment {
   id: string;
@@ -25,6 +25,7 @@ interface LiveTranscriptProps {
   showTimestamps?: boolean;
   primarySpeaker?: number | null;
   showSpeakers?: boolean;
+  isStalled?: boolean;
 }
 
 // Speaker colors for visual differentiation
@@ -44,6 +45,7 @@ export function LiveTranscript({
   showTimestamps = false,
   primarySpeaker = null,
   showSpeakers = false,
+  isStalled = false,
 }: LiveTranscriptProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -144,6 +146,15 @@ export function LiveTranscript({
             </div>
           );
         })}
+
+        {isStalled && (
+          <div className="flex items-center gap-2 py-2 px-3 rounded-md bg-amber-500/10 border border-amber-500/30">
+            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="text-amber-500 text-sm">
+              Transcripción pausada - verificando conexión...
+            </span>
+          </div>
+        )}
 
         {interimText && (
           <div className="text-muted-foreground italic animate-pulse flex gap-3">

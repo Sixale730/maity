@@ -28,6 +28,8 @@ const TYPE_COLORS: Record<DebugLogType, string> = {
   STATE: 'text-orange-400',
   ERROR: 'text-red-400',
   SAVE: 'text-green-400',
+  KEEPALIVE: 'text-cyan-400',
+  STALL: 'text-amber-400',
 };
 
 const TYPE_ICONS: Record<DebugLogType, string> = {
@@ -41,6 +43,8 @@ const TYPE_ICONS: Record<DebugLogType, string> = {
   STATE: '\u{1F7E0}',    // Orange circle
   ERROR: '\u{1F534}',    // Red circle
   SAVE: '\u{1F7E2}',     // Green circle
+  KEEPALIVE: '\u{1F7E6}', // Cyan square (teal)
+  STALL: '\u{1F7E7}',     // Orange square (amber warning)
 };
 
 function formatTime(ms: number): string {

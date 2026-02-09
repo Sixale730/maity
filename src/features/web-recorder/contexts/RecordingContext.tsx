@@ -5,7 +5,7 @@
  * Handles audio capture, Deepgram connection, and recording lifecycle.
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef, useState } from 'react';
 import { supabase, saveRecorderLogs, type RecorderLogInput } from '@maity/shared';
 import { AudioCapture, isAudioCaptureSupported } from '../lib/audioCapture';
 import {
@@ -37,7 +37,9 @@ export type DebugLogType =
   | 'AUDIO'
   | 'STATE'
   | 'ERROR'
-  | 'SAVE';
+  | 'SAVE'
+  | 'KEEPALIVE'
+  | 'STALL';
 
 export interface DebugLogEntry {
   id: string;
@@ -103,6 +105,7 @@ type RecordingAction =
 
 interface RecordingContextValue {
   state: RecordingState;
+  isStalled: boolean;
   // Actions
   initialize: () => Promise<void>;
   startRecording: () => Promise<void>;
@@ -133,6 +136,11 @@ const initialState: RecordingState = {
 };
 
 const MAX_DEBUG_LOGS = 500;
+
+// WebSocket resilience constants
+const KEEPALIVE_INTERVAL = 8000; // 8 seconds - send keep-alive to prevent Deepgram timeout
+const STALL_THRESHOLD = 15000;   // 15 seconds without response = stalled
+const STALL_CHECK_INTERVAL = 5000; // Check for stalling every 5 seconds
 
 // ============================================================================
 // REDUCER
@@ -224,6 +232,9 @@ interface RecordingProviderProps {
 export function RecordingProvider({ children }: RecordingProviderProps) {
   const [state, dispatch] = useReducer(recordingReducer, initialState);
 
+  // Stalling detection state
+  const [isStalled, setIsStalled] = useState(false);
+
   // Refs for audio and WebSocket
   const audioCapture = useRef<AudioCapture | null>(null);
   const websocket = useRef<WebSocket | null>(null);
@@ -246,6 +257,11 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
   // Prevent double-click / race condition on startRecording
   const isStartingRecording = useRef(false);
+
+  // WebSocket resilience refs
+  const keepAliveRef = useRef<number | null>(null);
+  const stallCheckRef = useRef<number | null>(null);
+  const lastDeepgramMessageRef = useRef<number>(Date.now());
 
   // ==========================================================================
   // HELPER FUNCTIONS
@@ -431,6 +447,10 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     try {
       const parsed = JSON.parse(data);
 
+      // Update last message timestamp for stall detection
+      lastDeepgramMessageRef.current = Date.now();
+      setIsStalled(false);
+
       if (parsed.type !== 'Results') return;
 
       const channel = parsed.channel;
@@ -606,6 +626,28 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         console.log('[Recording] Deepgram connected');
         addDebugLog('WS_OPEN', 'Deepgram connected');
         addDebugLog('STATE', 'status: initializing → recording');
+
+        // Initialize stall detection timestamp
+        lastDeepgramMessageRef.current = Date.now();
+        setIsStalled(false);
+
+        // Start keep-alive interval to prevent Deepgram from closing the connection
+        keepAliveRef.current = window.setInterval(() => {
+          if (websocket.current?.readyState === WebSocket.OPEN) {
+            websocket.current.send(JSON.stringify({ type: 'KeepAlive' }));
+            addDebugLog('KEEPALIVE', 'Sent keep-alive ping');
+          }
+        }, KEEPALIVE_INTERVAL);
+
+        // Start stall detection interval
+        stallCheckRef.current = window.setInterval(() => {
+          const elapsed = Date.now() - lastDeepgramMessageRef.current;
+          if (elapsed > STALL_THRESHOLD) {
+            setIsStalled(true);
+            addDebugLog('STALL', `No response from Deepgram for ${Math.round(elapsed / 1000)}s`);
+          }
+        }, STALL_CHECK_INTERVAL);
+
         await audioCapture.current?.start();
         startTimer();
         dispatch({ type: 'SET_STATUS', status: 'recording' });
@@ -701,6 +743,17 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     // Stop audio capture
     audioCapture.current?.stop();
     audioCapture.current = null;
+
+    // Clear keep-alive and stall detection intervals
+    if (keepAliveRef.current) {
+      clearInterval(keepAliveRef.current);
+      keepAliveRef.current = null;
+    }
+    if (stallCheckRef.current) {
+      clearInterval(stallCheckRef.current);
+      stallCheckRef.current = null;
+    }
+    setIsStalled(false);
 
     // Close WebSocket
     if (websocket.current) {
@@ -798,6 +851,18 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     segmentCounter.current = 0;
     latestInterimText.current = '';
     isStartingRecording.current = false; // Allow new recordings
+
+    // Clear keep-alive and stall detection intervals
+    if (keepAliveRef.current) {
+      clearInterval(keepAliveRef.current);
+      keepAliveRef.current = null;
+    }
+    if (stallCheckRef.current) {
+      clearInterval(stallCheckRef.current);
+      stallCheckRef.current = null;
+    }
+    setIsStalled(false);
+
     dispatch({ type: 'RESET' });
   }, [stopTimer]);
 
@@ -807,6 +872,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
   const value: RecordingContextValue = {
     state,
+    isStalled,
     initialize,
     startRecording,
     pauseRecording,

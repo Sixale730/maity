@@ -23,6 +23,7 @@ function RecorderContent() {
   const navigate = useNavigate();
   const {
     state,
+    isStalled,
     initialize,
     startRecording,
     pauseRecording,
@@ -217,6 +218,7 @@ function RecorderContent() {
             maxHeight="200px"
             primarySpeaker={state.primarySpeaker}
             showSpeakers
+            isStalled={isStalled}
           />
 
           {/* Debug Logs Panel */}

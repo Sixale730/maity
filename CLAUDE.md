@@ -308,6 +308,23 @@ Panel colapsable en la UI durante la grabación para debugging detallado.
 | `STATE` | orange | Cambio de estado de grabación |
 | `ERROR` | red | Cualquier error |
 | `SAVE` | green | Texto pendiente capturado al detener |
+| `KEEPALIVE` | cyan | Keep-alive ping enviado a Deepgram |
+| `STALL` | amber | Detección de stalling (sin respuesta por >15s) |
+
+**WebSocket Resilience:**
+Sistema de resiliencia para evitar desconexiones silenciosas de Deepgram.
+
+- **Keep-Alive**: Se envía ping cada 8 segundos (`{ type: 'KeepAlive' }`) para mantener la conexión activa
+- **Stall Detection**: Detecta cuando no hay respuesta de Deepgram por >15 segundos
+- **Estado `isStalled`**: Disponible en el contexto para mostrar advertencia en la UI
+- **UI de advertencia**: `LiveTranscript` muestra banner amber cuando `isStalled=true`
+
+**Constantes de resiliencia:**
+| Constante | Valor | Descripción |
+|-----------|-------|-------------|
+| `KEEPALIVE_INTERVAL` | 8000ms | Intervalo de keep-alive |
+| `STALL_THRESHOLD` | 15000ms | Tiempo sin respuesta para marcar stalled |
+| `STALL_CHECK_INTERVAL` | 5000ms | Frecuencia de verificación de stalling |
 
 **Navigation Guard (Protección de grabación):**
 Sistema que protege contra pérdida de grabación cuando el usuario navega.
