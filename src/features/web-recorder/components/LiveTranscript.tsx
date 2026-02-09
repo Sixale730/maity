@@ -48,10 +48,20 @@ export function LiveTranscript({
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new content arrives
+  // Smart auto-scroll: only scroll if user is near the bottom
+  // This prevents interrupting the user when they scroll up to read previous content
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [segments, interimText]);
+    const container = scrollRef.current;
+    if (!container) return;
+
+    // Check if user is near the bottom (within 150px)
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    if (isNearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [segments]); // Only trigger on final segments, not interim updates
 
   const isEmpty = segments.length === 0 && !interimText;
 
