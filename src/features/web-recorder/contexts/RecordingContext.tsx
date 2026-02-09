@@ -192,6 +192,9 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   // Segment tracking
   const segmentCounter = useRef(0);
 
+  // Ref to track the latest interim text (avoids stale closure in stopRecording)
+  const latestInterimText = useRef<string>('');
+
   // ==========================================================================
   // HELPER FUNCTIONS
   // ==========================================================================
@@ -365,7 +368,11 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
       if (!transcript) return;
 
-      const isFinal = parsed.is_final && parsed.speech_final;
+      // Accept any finalized segment from Deepgram
+      // is_final=true means the audio chunk is fully processed (won't change)
+      // speech_final=true means long pause detected (speaker stopped)
+      // Previously we required BOTH, which caused intermediate segments to be lost
+      const isFinal = parsed.is_final;
 
       // Extract speaker from words array (Deepgram diarization)
       // Each word has { word, start, end, speaker }
@@ -402,6 +409,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
           confidence: alternative?.confidence || 0,
         };
         dispatch({ type: 'ADD_SEGMENT', segment });
+        latestInterimText.current = ''; // Clear ref when segment is finalized
 
         // Update speaker stats
         if (typeof speaker === 'number') {
@@ -410,6 +418,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         }
       } else {
         dispatch({ type: 'UPDATE_INTERIM', text: transcript });
+        latestInterimText.current = transcript;
       }
     } catch (error) {
       console.error('[Recording] Error parsing transcript:', error);
@@ -552,6 +561,25 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
     stopTimer();
 
+    // Capture pending interim text BEFORE closing WebSocket
+    // This prevents losing the last segment that was displayed but not finalized
+    // Use ref instead of state to avoid stale closure issues
+    const pendingText = latestInterimText.current.trim();
+    if (pendingText) {
+      const pendingSegment: TranscriptSegment = {
+        id: `seg-${segmentCounter.current++}`,
+        text: pendingText,
+        isFinal: true,
+        startTime: state.durationSeconds,
+        endTime: state.durationSeconds,
+        speaker: undefined, // No speaker info for recovered interim text
+        confidence: 0.8,
+      };
+      dispatch({ type: 'ADD_SEGMENT', segment: pendingSegment });
+      latestInterimText.current = ''; // Clear the ref
+      console.log('[Recording] Captured pending interim text:', pendingText);
+    }
+
     // Stop audio capture
     audioCapture.current?.stop();
     audioCapture.current = null;
@@ -567,7 +595,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_PRIMARY_SPEAKER', speakerId: primary });
 
     dispatch({ type: 'SET_AUDIO_LEVEL', level: 0 });
-  }, [state.status, state.speakerStats, stopTimer, determinePrimarySpeaker]);
+  }, [state.status, state.durationSeconds, state.speakerStats, stopTimer, determinePrimarySpeaker]);
 
   const saveRecording = useCallback(async () => {
     if (!state.conversationId) {
@@ -633,6 +661,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     websocket.current?.close();
     websocket.current = null;
     segmentCounter.current = 0;
+    latestInterimText.current = '';
     dispatch({ type: 'RESET' });
   }, [stopTimer]);
 
