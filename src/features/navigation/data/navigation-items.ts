@@ -29,6 +29,7 @@ import {
   Sparkles,
   Gamepad2,
   BookOpen,
+  Bug,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -391,6 +392,16 @@ export const adminNavigationItems: NavigationItem[] = [
     roles: ['admin'],
     group: 'admin',
     order: 28,
+  },
+  {
+    id: 'recorder-logs',
+    titleKey: 'nav.recorder_logs',
+    descriptionKey: 'nav.desc.recorder_logs',
+    url: '/admin/recorder-logs',
+    icon: Bug,
+    roles: ['admin'],
+    group: 'admin',
+    order: 29,
   },
 ];
 

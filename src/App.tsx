@@ -77,6 +77,7 @@ const MeetingAnalysisPage = lazy(() => import("./features/meeting-analysis/pages
 // Web Recorder
 const RecorderLandingPage = lazy(() => import("./features/web-recorder").then(m => ({ default: m.RecorderLandingPage })));
 const RecorderPage = lazy(() => import("./features/web-recorder").then(m => ({ default: m.RecorderPage })));
+const RecorderLogsPage = lazy(() => import("./features/web-recorder/pages/RecorderLogsPage"));
 
 // Modular Landing Page
 const LandingPage = lazy(() => import("./features/landing/LandingApp"));
@@ -179,6 +180,7 @@ const App = () => (
                         {/* Web Recorder */}
                         <Route path="/recorder" element={<RecorderLandingPage />} />
                         <Route path="/recorder/session" element={<RecorderPage />} />
+                        <Route path="/admin/recorder-logs" element={<AdminRoute><RecorderLogsPage /></AdminRoute>} />
 
                         {/* Meeting Analysis (Admin Only) */}
                         <Route path="/meeting-analysis" element={<AdminRoute><MeetingAnalysisPage /></AdminRoute>} />

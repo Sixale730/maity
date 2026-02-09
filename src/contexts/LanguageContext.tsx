@@ -424,6 +424,10 @@ const translations = {
     // SVG Converter
     'nav.svg_converter': 'Convertidor SVG',
     'nav.desc.svg_converter': 'Convierte imágenes a SVG y gestiona assets',
+
+    // Recorder Logs
+    'nav.recorder_logs': 'Logs de Grabación',
+    'nav.desc.recorder_logs': 'Debug logs de sesiones del web recorder',
     'svg_converter.title': 'Convertidor SVG',
     'svg_converter.description': 'Convierte imágenes a vectores y gestiona tu galería de assets',
     'svg_converter.tab_convert': 'Convertir',
@@ -1056,6 +1060,11 @@ const translations = {
     // SVG Converter
     'nav.svg_converter': 'SVG Converter',
     'nav.desc.svg_converter': 'Convert images to SVG and manage assets',
+
+    // Recorder Logs
+    'nav.recorder_logs': 'Recorder Logs',
+    'nav.desc.recorder_logs': 'Debug logs from web recorder sessions',
+
     'svg_converter.title': 'SVG Converter',
     'svg_converter.description': 'Convert images to vectors and manage your asset gallery',
     'svg_converter.tab_convert': 'Convert',

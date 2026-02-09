@@ -7,6 +7,7 @@
 // Pages
 export { RecorderLandingPage } from './pages/RecorderLandingPage';
 export { RecorderPage } from './pages/RecorderPage';
+export { RecorderLogsPage } from './pages/RecorderLogsPage';
 
 // Components
 export { RecordingTimer } from './components/RecordingTimer';

@@ -1,10 +1,12 @@
 # Database Structure & RLS Policies Reference
 
 **Last Updated:** February 9, 2026
-**Version:** 2.5
+**Version:** 2.6
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.web_recorder_logs` table for persisting debug logs from web recorder sessions (v2.6)
+- Added `public.save_recorder_logs()`, `public.list_recorder_sessions()`, `public.get_recorder_logs()` RPC functions (v2.6)
 - Added `public.admin_delete_conversation()` RPC function for admin-only soft delete of Omi conversations (v2.5)
 - Added `public.get_omi_admin_insights()` RPC function for platform-wide Omi analytics (v2.4)
 - Added `maity.svg_assets` table for SVG Converter & Asset Gallery feature (v2.3)
@@ -2344,6 +2346,73 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON maity.omi_transcript_segments TO authent
 - `is_user` indicates if the speaker is the Omi wearer
 - `start_time` and `end_time` are in seconds (float)
 - Linked to conversations via `conversation_id` FK
+
+---
+
+#### maity.web_recorder_logs
+
+**Purpose:** Debug logs from web recorder sessions for admin debugging.
+
+**Schema:**
+```sql
+CREATE TABLE maity.web_recorder_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  conversation_id uuid REFERENCES maity.omi_conversations(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES maity.users(id) ON DELETE CASCADE,
+  timestamp_ms integer NOT NULL,        -- ms since recording start
+  log_type text NOT NULL CHECK (log_type IN (
+    'WS_OPEN', 'WS_CLOSE', 'WS_ERROR', 'DEEPGRAM',
+    'SEGMENT', 'INTERIM', 'AUDIO', 'STATE', 'ERROR', 'SAVE'
+  )),
+  message text NOT NULL,
+  details jsonb,                        -- is_final, speech_final, speaker, etc.
+  created_at timestamptz DEFAULT now()
+);
+```
+
+**RLS Policies:**
+```sql
+-- Users can insert their own logs
+CREATE POLICY "Users can insert own logs"
+  ON maity.web_recorder_logs FOR INSERT
+  WITH CHECK (user_id IN (
+    SELECT id FROM maity.users WHERE auth_id = auth.uid()
+  ));
+
+-- Admins can view all logs
+CREATE POLICY "Admins can view all logs"
+  ON maity.web_recorder_logs FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM maity.user_roles ur
+      JOIN maity.users u ON u.id = ur.user_id
+      WHERE u.auth_id = auth.uid() AND ur.role = 'admin'
+    )
+  );
+```
+
+**GRANT Permissions:**
+```sql
+GRANT SELECT, INSERT ON maity.web_recorder_logs TO authenticated;
+```
+
+**RPC Functions:**
+```sql
+-- Batch insert logs (user)
+public.save_recorder_logs(p_conversation_id uuid, p_logs jsonb) RETURNS integer
+
+-- List sessions with log counts (admin-only)
+public.list_recorder_sessions(p_limit integer, p_user_id uuid) RETURNS TABLE
+
+-- Get logs for a conversation (admin-only)
+public.get_recorder_logs(p_conversation_id uuid) RETURNS TABLE
+```
+
+**Key Notes:**
+- Linked to `omi_conversations` via FK (CASCADE delete)
+- `timestamp_ms` is milliseconds since recording started
+- `log_type` is constrained to valid types
+- Only admins can view logs, users can only insert their own
 
 ---
 

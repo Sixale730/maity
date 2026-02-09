@@ -15,6 +15,7 @@ import { CircularVisualizer } from '../components/AudioVisualizer';
 import { RecordingController } from '../components/RecordingController';
 import { LiveTranscript, TranscriptStats } from '../components/LiveTranscript';
 import { SessionSummary } from '../components/SessionSummary';
+import { DebugLogsPanel } from '../components/DebugLogsPanel';
 
 function RecorderContent() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ function RecorderContent() {
   } = useRecording();
 
   const [showSummary, setShowSummary] = useState(false);
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
 
   // Initialize on mount
   useEffect(() => {
@@ -180,6 +182,13 @@ function RecorderContent() {
             maxHeight="200px"
             primarySpeaker={state.primarySpeaker}
             showSpeakers
+          />
+
+          {/* Debug Logs Panel */}
+          <DebugLogsPanel
+            logs={state.debugLogs}
+            isExpanded={showDebugLogs}
+            onToggle={() => setShowDebugLogs((prev) => !prev)}
           />
         </div>
       )}

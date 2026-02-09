@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
-import { supabase } from '@maity/shared';
+import { supabase, saveRecorderLogs, type RecorderLogInput } from '@maity/shared';
 import { AudioCapture, isAudioCaptureSupported } from '../lib/audioCapture';
 import {
   buildDeepgramParams,
@@ -25,6 +25,35 @@ export interface TranscriptSegment {
   endTime: number;
   speaker?: number;
   confidence: number;
+}
+
+export type DebugLogType =
+  | 'WS_OPEN'
+  | 'WS_CLOSE'
+  | 'WS_ERROR'
+  | 'DEEPGRAM'
+  | 'SEGMENT'
+  | 'INTERIM'
+  | 'AUDIO'
+  | 'STATE'
+  | 'ERROR'
+  | 'SAVE';
+
+export interface DebugLogEntry {
+  id: string;
+  timestamp: number;      // ms desde inicio de grabación
+  type: DebugLogType;
+  message: string;
+  details?: {
+    is_final?: boolean;
+    speech_final?: boolean;
+    speaker?: number;
+    confidence?: number;
+    wordCount?: number;
+    text?: string;
+    code?: number;
+    reason?: string;
+  };
 }
 
 export interface SpeakerStats {
@@ -54,6 +83,7 @@ export interface RecordingState {
   isSupported: boolean;
   speakerStats: SpeakerStats;
   primarySpeaker: number | null;
+  debugLogs: DebugLogEntry[];
 }
 
 type RecordingAction =
@@ -68,7 +98,8 @@ type RecordingAction =
   | { type: 'CLEAR_ERROR' }
   | { type: 'RESET' }
   | { type: 'UPDATE_SPEAKER_STATS'; speakerId: number; wordCount: number }
-  | { type: 'SET_PRIMARY_SPEAKER'; speakerId: number };
+  | { type: 'SET_PRIMARY_SPEAKER'; speakerId: number }
+  | { type: 'ADD_DEBUG_LOG'; entry: DebugLogEntry };
 
 interface RecordingContextValue {
   state: RecordingState;
@@ -98,7 +129,10 @@ const initialState: RecordingState = {
   isSupported: isAudioCaptureSupported(),
   speakerStats: {},
   primarySpeaker: null,
+  debugLogs: [],
 };
+
+const MAX_DEBUG_LOGS = 500;
 
 // ============================================================================
 // REDUCER
@@ -157,6 +191,17 @@ function recordingReducer(state: RecordingState, action: RecordingAction): Recor
     case 'SET_PRIMARY_SPEAKER':
       return { ...state, primarySpeaker: action.speakerId };
 
+    case 'ADD_DEBUG_LOG': {
+      const newLogs = [...state.debugLogs, action.entry];
+      // Keep only the last MAX_DEBUG_LOGS entries
+      return {
+        ...state,
+        debugLogs: newLogs.length > MAX_DEBUG_LOGS
+          ? newLogs.slice(-MAX_DEBUG_LOGS)
+          : newLogs,
+      };
+    }
+
     default:
       return state;
   }
@@ -194,6 +239,10 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
   // Ref to track the latest interim text (avoids stale closure in stopRecording)
   const latestInterimText = useRef<string>('');
+
+  // Audio buffer tracking for debug logs
+  const audioBufferCount = useRef(0);
+  const recordingStartTime = useRef<number>(0);
 
   // ==========================================================================
   // HELPER FUNCTIONS
@@ -353,6 +402,25 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   }, []);
 
   // ==========================================================================
+  // DEBUG LOGGING
+  // ==========================================================================
+
+  const addDebugLog = useCallback((
+    type: DebugLogType,
+    message: string,
+    details?: DebugLogEntry['details']
+  ) => {
+    const entry: DebugLogEntry = {
+      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      timestamp: recordingStartTime.current ? Date.now() - recordingStartTime.current : 0,
+      type,
+      message,
+      details,
+    };
+    dispatch({ type: 'ADD_DEBUG_LOG', entry });
+  }, []);
+
+  // ==========================================================================
   // WEBSOCKET HANDLERS
   // ==========================================================================
 
@@ -373,6 +441,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       // speech_final=true means long pause detected (speaker stopped)
       // Previously we required BOTH, which caused intermediate segments to be lost
       const isFinal = parsed.is_final;
+      const speechFinal = parsed.speech_final;
 
       // Extract speaker from words array (Deepgram diarization)
       // Each word has { word, start, end, speaker }
@@ -398,7 +467,15 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         }
       }
 
+      // Log Deepgram message
+      const truncatedText = transcript.length > 40 ? transcript.substring(0, 40) + '...' : transcript;
+      addDebugLog('DEEPGRAM',
+        `is_final:${isFinal ? 'T' : 'F'} speech_final:${speechFinal ? 'T' : 'F'} "${truncatedText}"`,
+        { is_final: isFinal, speech_final: speechFinal, wordCount: words.length, text: transcript }
+      );
+
       if (isFinal) {
+        const confidence = alternative?.confidence || 0;
         const segment: TranscriptSegment = {
           id: `seg-${segmentCounter.current++}`,
           text: transcript,
@@ -406,10 +483,16 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
           startTime: parsed.start || 0,
           endTime: (parsed.start || 0) + (parsed.duration || 0),
           speaker,
-          confidence: alternative?.confidence || 0,
+          confidence,
         };
         dispatch({ type: 'ADD_SEGMENT', segment });
         latestInterimText.current = ''; // Clear ref when segment is finalized
+
+        // Log segment added
+        addDebugLog('SEGMENT',
+          `#${segmentCounter.current - 1} speaker:${speaker ?? '?'} conf:${(confidence * 100).toFixed(0)}% "${truncatedText}"`,
+          { speaker, confidence, wordCount: words.length, text: transcript }
+        );
 
         // Update speaker stats
         if (typeof speaker === 'number') {
@@ -419,11 +502,15 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       } else {
         dispatch({ type: 'UPDATE_INTERIM', text: transcript });
         latestInterimText.current = transcript;
+
+        // Log interim text update
+        addDebugLog('INTERIM', `${transcript.length} chars`, { text: transcript });
       }
     } catch (error) {
       console.error('[Recording] Error parsing transcript:', error);
+      addDebugLog('ERROR', `Parse error: ${error instanceof Error ? error.message : 'Unknown'}`);
     }
-  }, []);
+  }, [addDebugLog]);
 
   // ==========================================================================
   // ACTIONS
@@ -467,11 +554,22 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         apiKey.current = dgConfig.api_key;
       }
 
+      // Reset audio buffer count
+      audioBufferCount.current = 0;
+      recordingStartTime.current = Date.now();
+
       // Initialize audio capture
       audioCapture.current = new AudioCapture({
         onAudioData: (data) => {
           if (websocket.current?.readyState === WebSocket.OPEN) {
             websocket.current.send(data);
+            audioBufferCount.current++;
+
+            // Log audio stats every 20 buffers (~5 seconds)
+            if (audioBufferCount.current % 20 === 0) {
+              const approxSeconds = Math.round(audioBufferCount.current * 0.256);
+              addDebugLog('AUDIO', `${audioBufferCount.current} buffers (~${approxSeconds}s) processed`);
+            }
           }
         },
         onAudioLevel: (level) => {
@@ -479,6 +577,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         },
         onError: (error) => {
           console.error('[Recording] Audio error:', error);
+          addDebugLog('ERROR', `Audio error: ${error.message}`);
           dispatch({ type: 'SET_ERROR', error: error.message });
         },
         onStateChange: () => {},
@@ -495,6 +594,8 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
       websocket.current.onopen = async () => {
         console.log('[Recording] Deepgram connected');
+        addDebugLog('WS_OPEN', 'Deepgram connected');
+        addDebugLog('STATE', 'status: initializing → recording');
         await audioCapture.current?.start();
         startTimer();
         dispatch({ type: 'SET_STATUS', status: 'recording' });
@@ -506,17 +607,20 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
       websocket.current.onerror = (error) => {
         console.error('[Recording] WebSocket error:', error);
+        addDebugLog('WS_ERROR', 'WebSocket connection error');
         dispatch({ type: 'SET_ERROR', error: 'Error de conexión con el servicio de transcripción' });
       };
 
-      websocket.current.onclose = () => {
+      websocket.current.onclose = (event) => {
         console.log('[Recording] WebSocket closed');
+        addDebugLog('WS_CLOSE', `Disconnected (code: ${event.code})`, { code: event.code, reason: event.reason });
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al iniciar grabación';
+      addDebugLog('ERROR', message);
       dispatch({ type: 'SET_ERROR', error: message });
     }
-  }, [state.status, createDraftConversation, fetchDeepgramConfig, handleTranscript, startTimer]);
+  }, [state.status, createDraftConversation, fetchDeepgramConfig, handleTranscript, startTimer, addDebugLog]);
 
   const pauseRecording = useCallback(() => {
     if (state.status !== 'recording') return;
@@ -557,6 +661,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   const stopRecording = useCallback(async () => {
     if (state.status !== 'recording' && state.status !== 'paused') return;
 
+    addDebugLog('STATE', `status: ${state.status} → processing`);
     dispatch({ type: 'SET_STATUS', status: 'processing' });
 
     stopTimer();
@@ -578,6 +683,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       dispatch({ type: 'ADD_SEGMENT', segment: pendingSegment });
       latestInterimText.current = ''; // Clear the ref
       console.log('[Recording] Captured pending interim text:', pendingText);
+      addDebugLog('SAVE', `Captured pending: ${pendingText.length} chars`, { text: pendingText });
     }
 
     // Stop audio capture
@@ -595,7 +701,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_PRIMARY_SPEAKER', speakerId: primary });
 
     dispatch({ type: 'SET_AUDIO_LEVEL', level: 0 });
-  }, [state.status, state.durationSeconds, state.speakerStats, stopTimer, determinePrimarySpeaker]);
+  }, [state.status, state.durationSeconds, state.speakerStats, stopTimer, determinePrimarySpeaker, addDebugLog]);
 
   const saveRecording = useCallback(async () => {
     if (!state.conversationId) {
@@ -644,6 +750,23 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         state.durationSeconds - state.pausedDuration
       );
 
+      // Save debug logs to database for admin debugging
+      if (state.debugLogs.length > 0) {
+        try {
+          const logsToSave: RecorderLogInput[] = state.debugLogs.map((log) => ({
+            timestamp_ms: log.timestamp,
+            log_type: log.type,
+            message: log.message,
+            details: log.details,
+          }));
+          await saveRecorderLogs(state.conversationId, logsToSave);
+          console.log(`[Recording] Saved ${logsToSave.length} debug logs to database`);
+        } catch (logsError) {
+          // Don't fail the save if logs fail to save
+          console.error('[Recording] Failed to save debug logs:', logsError);
+        }
+      }
+
       dispatch({ type: 'SET_STATUS', status: 'completed' });
 
       return state.conversationId;
@@ -652,7 +775,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       dispatch({ type: 'SET_ERROR', error: message });
       throw error;
     }
-  }, [state.conversationId, state.segments, state.durationSeconds, state.pausedDuration, state.primarySpeaker, appendSegments, finalizeConversation]);
+  }, [state.conversationId, state.segments, state.durationSeconds, state.pausedDuration, state.primarySpeaker, state.debugLogs, appendSegments, finalizeConversation]);
 
   const reset = useCallback(() => {
     stopTimer();

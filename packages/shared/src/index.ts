@@ -128,6 +128,10 @@ export { SVGAssetsService } from './domain/svg-assets/svg-assets.service';
 export * from './domain/svg-assets/svg-assets.types';
 export * from './domain/svg-assets/hooks/useSVGAssets';
 
+// ===== Domain: Web Recorder =====
+export * from './domain/web-recorder/recorder-logs.service';
+export * from './domain/web-recorder/recorder-logs.types';
+
 // ===== Contexts =====
 export * from './contexts/LanguageContext';
 
