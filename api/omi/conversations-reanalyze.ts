@@ -12,6 +12,8 @@ import { ApiError, withErrorHandler, validateMethod } from '../../lib/types/api/
 import { getEnv } from '../../lib/types/api/common.js';
 import {
   analyzeCommunication,
+  generateSimpleStructured,
+  processLongTranscript,
   type TranscriptSegment,
 } from '../../lib/services/omi/index.js';
 
@@ -142,9 +144,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     throw ApiError.badRequest('No segments found for conversation');
   }
 
+  // Build transcript text from segments
+  const transcriptText = segments.map((s) => s.text).join(' ');
+  const wordsCount = transcriptText.split(/\s+/).filter(Boolean).length;
+
   console.log('[conversations-reanalyze] Processing:', {
     conversationId: body.conversation_id,
     segments: segments.length,
+    wordsCount,
     adminUserId: maityUser.id,
   });
 
@@ -157,20 +164,45 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     end: s.end_time,
   }));
 
-  const communicationFeedback = await analyzeCommunication(transcriptSegments);
+  // Run both analyses in parallel
+  const [communicationFeedback, structuredData] = await Promise.all([
+    analyzeCommunication(transcriptSegments),
+    // Use processLongTranscript for longer texts, generateSimpleStructured for shorter
+    transcriptText.length > 5000
+      ? processLongTranscript(transcriptText)
+      : generateSimpleStructured(transcriptText),
+  ]);
 
   if (!communicationFeedback) {
     throw ApiError.internal('Failed to generate analysis');
   }
 
+  // Build update payload with all regenerated fields
+  const updatePayload: Record<string, unknown> = {
+    communication_feedback: communicationFeedback,
+    words_count: wordsCount,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Add structured data if available
+  if (structuredData) {
+    updatePayload.title = structuredData.title;
+    updatePayload.overview = structuredData.overview;
+    updatePayload.emoji = structuredData.emoji;
+    updatePayload.category = structuredData.category;
+  }
+
+  console.log('[conversations-reanalyze] Updating with:', {
+    hasStructuredData: !!structuredData,
+    title: structuredData?.title,
+    wordsCount,
+  });
+
   // Update conversation with new analysis
   const { error: updateError } = await supabase
     .schema('maity')
     .from('omi_conversations')
-    .update({
-      communication_feedback: communicationFeedback,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('id', body.conversation_id);
 
   if (updateError) {

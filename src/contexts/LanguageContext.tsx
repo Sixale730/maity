@@ -354,6 +354,9 @@ const translations = {
     'omi.delete_conversation': '¿Eliminar conversación?',
     'omi.delete_conversation_description': 'Esta acción marcará la conversación como eliminada.',
     'omi.reanalyze': 'Reanalizar',
+    'omi.conversation_id': 'ID',
+    'omi.copy_id': 'Copiar ID',
+    'omi.id_copied': 'ID copiado',
     // Omi Analysis Sections
     'omi.analysis_title': 'Análisis de Tu Comunicación',
     'omi.minutes': 'minutos',
@@ -992,6 +995,9 @@ const translations = {
     'omi.delete_conversation': 'Delete conversation?',
     'omi.delete_conversation_description': 'This action will mark the conversation as deleted.',
     'omi.reanalyze': 'Reanalyze',
+    'omi.conversation_id': 'ID',
+    'omi.copy_id': 'Copy ID',
+    'omi.id_copied': 'ID copied',
     // Omi Analysis Sections
     'omi.analysis_title': 'Your Communication Analysis',
     'omi.minutes': 'minutes',

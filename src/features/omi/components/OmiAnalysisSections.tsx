@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Card } from '@/ui/components/ui/card';
 import { Badge } from '@/ui/components/ui/badge';
+import { Button } from '@/ui/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   PieChart,
@@ -8,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import {
-  Clock, MessageSquare, CheckCircle2, Target, Lightbulb
+  Clock, MessageSquare, CheckCircle2, Target, Lightbulb, Copy, Check, Calendar
 } from 'lucide-react';
 import type {
   OmiConversation,
@@ -56,12 +58,40 @@ interface OmiHeaderSectionProps {
 }
 
 export function OmiHeaderSection({ conversation }: OmiHeaderSectionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [copied, setCopied] = useState(false);
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '--';
     const mins = Math.floor(seconds / 60);
     return `${mins} ${t('omi.minutes')}`;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(conversation.id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy ID:', err);
+    }
+  };
+
+  const truncateId = (id: string) => {
+    if (id.length <= 12) return id;
+    return `${id.slice(0, 6)}...${id.slice(-6)}`;
   };
 
   return (
@@ -74,6 +104,33 @@ export function OmiHeaderSection({ conversation }: OmiHeaderSectionProps) {
           {conversation.title || t('omi.analysis_title')}
         </h1>
       </div>
+
+      {/* ID + Date row */}
+      <div className="text-gray-500 text-xs flex flex-wrap items-center justify-center gap-2 mb-2">
+        <span className="flex items-center gap-1.5 font-mono">
+          {t('omi.conversation_id')}: {truncateId(conversation.id)}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 text-gray-500 hover:text-white"
+            onClick={handleCopyId}
+            title={t('omi.copy_id')}
+          >
+            {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+          </Button>
+        </span>
+        {conversation.created_at && (
+          <>
+            <span className="text-gray-600">&bull;</span>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {formatDate(conversation.created_at)}
+            </span>
+          </>
+        )}
+      </div>
+
+      {/* Existing metadata row */}
       <div className="text-gray-400 text-sm flex flex-wrap items-center justify-center gap-2">
         {conversation.category && (
           <>
