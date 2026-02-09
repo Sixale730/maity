@@ -16,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { useDeleteConversation } from '../hooks/useDeleteConversation';
 import { useReanalyzeConversation } from '../hooks/useReanalyzeConversation';
-import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
+import { OmiConversation, getOmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
 import {
   SectionLabel,
   MuletillasSection,
@@ -40,15 +40,25 @@ interface OmiConversationDetailProps {
   onBack: () => void;
 }
 
-export function OmiConversationDetail({ conversation, onBack }: OmiConversationDetailProps) {
+export function OmiConversationDetail({ conversation: initialConversation, onBack }: OmiConversationDetailProps) {
   const { t } = useLanguage();
   const { isAdmin } = useUser();
   const deleteConversation = useDeleteConversation();
   const reanalyzeConversation = useReanalyzeConversation();
 
+  // Fetch fresh conversation data (will update after reanalysis)
+  const { data: freshConversation, isLoading: loadingConversation } = useQuery({
+    queryKey: ['omi-conversation', initialConversation.id],
+    queryFn: () => getOmiConversation(initialConversation.id),
+    initialData: initialConversation,
+  });
+
+  // Use fresh data if available, otherwise fall back to initial
+  const conversation = freshConversation || initialConversation;
+
   const { data: segments, isLoading: loadingSegments } = useQuery({
-    queryKey: ['omi-segments', conversation.id],
-    queryFn: () => getOmiTranscriptSegments(conversation.id),
+    queryKey: ['omi-segments', initialConversation.id],
+    queryFn: () => getOmiTranscriptSegments(initialConversation.id),
   });
 
   const feedback = conversation.communication_feedback;
