@@ -290,6 +290,11 @@ const translations = {
     'recorder.participants_detected': 'Participantes Detectados',
     'recorder.participant': 'Participante',
     'recorder.words': 'palabras',
+    'recorder.guard_title': 'Grabación en Curso',
+    'recorder.guard_description': 'Tienes una grabación activa. ¿Qué deseas hacer?',
+    'recorder.guard_cancel': 'Continuar Grabando',
+    'recorder.guard_confirm': 'Guardar y Salir',
+    'recorder.guard_saving': 'Guardando...',
 
     // Navigation - Section headers
     'nav.section.profile': 'Mi Perfil',
@@ -937,6 +942,11 @@ const translations = {
     'recorder.participants_detected': 'Participants Detected',
     'recorder.participant': 'Participant',
     'recorder.words': 'words',
+    'recorder.guard_title': 'Recording in Progress',
+    'recorder.guard_description': 'You have an active recording. What would you like to do?',
+    'recorder.guard_cancel': 'Continue Recording',
+    'recorder.guard_confirm': 'Save and Exit',
+    'recorder.guard_saving': 'Saving...',
 
     // Navigation - Section headers
     'nav.section.profile': 'My Profile',

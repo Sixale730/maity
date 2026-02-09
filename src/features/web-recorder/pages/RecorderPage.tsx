@@ -4,7 +4,7 @@
  * Main recording interface with live transcription.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/ui/components/ui/button';
 import { Card, CardContent } from '@/ui/components/ui/card';
@@ -16,6 +16,8 @@ import { RecordingController } from '../components/RecordingController';
 import { LiveTranscript, TranscriptStats } from '../components/LiveTranscript';
 import { SessionSummary } from '../components/SessionSummary';
 import { DebugLogsPanel } from '../components/DebugLogsPanel';
+import { RecordingGuardModal } from '../components/RecordingGuardModal';
+import { useNavigationGuard } from '../hooks/useNavigationGuard';
 
 function RecorderContent() {
   const navigate = useNavigate();
@@ -35,6 +37,34 @@ function RecorderContent() {
 
   // Track if we've auto-started to prevent multiple calls
   const hasAutoStarted = useRef(false);
+
+  // Check if recording is active (for navigation guard)
+  const isRecordingActive = state.status === 'recording' || state.status === 'paused';
+
+  // Function to stop and save the recording for navigation guard
+  const handleStopAndSave = useCallback(async (): Promise<string | undefined> => {
+    // Stop the recording first
+    await stopRecording();
+    // Save and return the conversation ID
+    try {
+      const conversationId = await saveRecording();
+      return conversationId;
+    } catch (error) {
+      console.error('[RecorderPage] Error saving during navigation guard:', error);
+      return undefined;
+    }
+  }, [stopRecording, saveRecording]);
+
+  // Navigation guard to protect against leaving during recording
+  const {
+    showModal: showGuardModal,
+    isSaving: isGuardSaving,
+    onCancel: onGuardCancel,
+    onConfirm: onGuardConfirm,
+  } = useNavigationGuard({
+    isActive: isRecordingActive,
+    onStopAndSave: handleStopAndSave,
+  });
 
   // Initialize on mount
   useEffect(() => {
@@ -77,15 +107,9 @@ function RecorderContent() {
   };
 
   const handleBack = () => {
-    if (state.status === 'recording' || state.status === 'paused') {
-      // Confirm before leaving during recording
-      if (window.confirm('¿Seguro que quieres salir? Se perderá la grabación actual.')) {
-        reset();
-        navigate('/recorder');
-      }
-    } else {
-      navigate('/recorder');
-    }
+    // If recording is active, React Router's blocker will intercept
+    // and show the guard modal. Just navigate normally.
+    navigate('/conversaciones');
   };
 
   // Convert segments to display format
@@ -203,6 +227,14 @@ function RecorderContent() {
           />
         </div>
       )}
+
+      {/* Navigation Guard Modal */}
+      <RecordingGuardModal
+        isOpen={showGuardModal}
+        onCancel={onGuardCancel}
+        onConfirm={onGuardConfirm}
+        isSaving={isGuardSaving}
+      />
     </div>
   );
 }
