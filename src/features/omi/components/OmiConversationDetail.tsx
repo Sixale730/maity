@@ -237,7 +237,7 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
         <TranscriptSection
           segments={segments || []}
           transcriptText={conversation.transcript_text}
-          userName={conversation.user?.full_name || null}
+          userName={conversation.user?.name || null}
           isLoading={loadingSegments}
         />
       </div>
