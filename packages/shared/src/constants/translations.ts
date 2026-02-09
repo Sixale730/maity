@@ -39,6 +39,7 @@ export const translations = {
     'nav.avatar_showcase': 'Galería de Avatares',
     'nav.omi_conversations': 'Conversaciones Omi',
     'nav.svg_converter': 'Convertidor SVG',
+    'nav.meeting_analysis': 'Análisis de Reunión',
 
     // Sidebar Groups
     'sidebar.groups.profile': 'Perfil',
@@ -199,6 +200,7 @@ export const translations = {
     'nav.avatar_showcase': 'Avatar Gallery',
     'nav.omi_conversations': 'Omi Conversations',
     'nav.svg_converter': 'SVG Converter',
+    'nav.meeting_analysis': 'Meeting Analysis',
 
     // Sidebar Groups
     'sidebar.groups.profile': 'Profile',

@@ -343,6 +343,16 @@ export const adminNavigationItems: NavigationItem[] = [
     order: 24,
   },
   {
+    id: 'meeting-analysis',
+    titleKey: 'nav.meeting_analysis',
+    descriptionKey: 'nav.desc.meeting_analysis',
+    url: '/meeting-analysis',
+    icon: BarChart3,
+    roles: ['admin'],
+    group: 'admin',
+    order: 24.5,
+  },
+  {
     id: 'tech-week',
     titleKey: 'Tech Week',
     descriptionKey: 'nav.desc.tech_week',

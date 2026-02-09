@@ -338,6 +338,10 @@ const translations = {
     'dashboard.user.omi_no_data_desc': 'Graba conversaciones con Omi para ver tu análisis aquí',
     'dashboard.user.omi_overall': 'General',
 
+    // Meeting Analysis
+    'nav.meeting_analysis': 'Análisis de Reunión',
+    'nav.desc.meeting_analysis': 'Dashboard de análisis de comunicación en reuniones',
+
     // SVG Converter
     'nav.svg_converter': 'Convertidor SVG',
     'nav.desc.svg_converter': 'Convierte imágenes a SVG y gestiona assets',
@@ -886,6 +890,10 @@ const translations = {
     'dashboard.user.omi_no_data': 'No conversation data',
     'dashboard.user.omi_no_data_desc': 'Record conversations with Omi to see your analysis here',
     'dashboard.user.omi_overall': 'Overall',
+
+    // Meeting Analysis
+    'nav.meeting_analysis': 'Meeting Analysis',
+    'nav.desc.meeting_analysis': 'Communication analysis dashboard for meetings',
 
     // SVG Converter
     'nav.svg_converter': 'SVG Converter',

@@ -72,6 +72,7 @@ const NavigationHub = lazy(() => import("./features/navigation").then(m => ({ de
 const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationsPage })));
 const SkillsArenaPage = lazy(() => import("./features/skills-arena").then(m => ({ default: m.SkillsArenaPage })));
 const LearningContentPage = lazy(() => import("./features/learning-content").then(m => ({ default: m.LearningContentPage })));
+const MeetingAnalysisPage = lazy(() => import("./features/meeting-analysis/pages/MeetingAnalysisPage"));
 
 // Web Recorder
 const RecorderLandingPage = lazy(() => import("./features/web-recorder").then(m => ({ default: m.RecorderLandingPage })));
@@ -178,6 +179,9 @@ const App = () => (
                         {/* Web Recorder */}
                         <Route path="/recorder" element={<RecorderLandingPage />} />
                         <Route path="/recorder/session" element={<RecorderPage />} />
+
+                        {/* Meeting Analysis (Admin Only) */}
+                        <Route path="/meeting-analysis" element={<AdminRoute><MeetingAnalysisPage /></AdminRoute>} />
 
                         {/* Interview Routes (Admin Only) */}
                         <Route path="/primera-entrevista/historial" element={<AdminRoute><InterviewHistoryPage /></AdminRoute>} />
