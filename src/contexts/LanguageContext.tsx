@@ -353,6 +353,7 @@ const translations = {
     'omi.reason': 'Razón',
     'omi.delete_conversation': '¿Eliminar conversación?',
     'omi.delete_conversation_description': 'Esta acción marcará la conversación como eliminada.',
+    'omi.reanalyze': 'Reanalizar',
     // Omi Analysis Sections
     'omi.analysis_title': 'Análisis de Tu Comunicación',
     'omi.minutes': 'minutos',
@@ -404,6 +405,7 @@ const translations = {
     'common.back': 'Volver',
     'common.cancel': 'Cancelar',
     'common.delete': 'Eliminar',
+    'common.processing': 'Procesando...',
 
     // Dashboard - Omi Stats Section
     'dashboard.user.omi_section': 'Mis Conversaciones Omi',
@@ -989,6 +991,7 @@ const translations = {
     'omi.reason': 'Reason',
     'omi.delete_conversation': 'Delete conversation?',
     'omi.delete_conversation_description': 'This action will mark the conversation as deleted.',
+    'omi.reanalyze': 'Reanalyze',
     // Omi Analysis Sections
     'omi.analysis_title': 'Your Communication Analysis',
     'omi.minutes': 'minutes',
@@ -1040,6 +1043,7 @@ const translations = {
     'common.back': 'Back',
     'common.cancel': 'Cancel',
     'common.delete': 'Delete',
+    'common.processing': 'Processing...',
 
     // Dashboard - Omi Stats Section
     'dashboard.user.omi_section': 'My Omi Conversations',

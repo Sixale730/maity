@@ -268,6 +268,34 @@ export async function deleteConversation(conversationId: string): Promise<void> 
 }
 
 /**
+ * Reanalyze a conversation (admin only)
+ * Re-runs communication analysis with the latest prompt
+ */
+export async function reanalyzeConversation(conversationId: string): Promise<CommunicationFeedback> {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.access_token) {
+    throw new Error('No active session');
+  }
+
+  const response = await fetch('/api/omi/conversations-reanalyze', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.session.access_token}`,
+    },
+    body: JSON.stringify({ conversation_id: conversationId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to reanalyze conversation');
+  }
+
+  const result = await response.json();
+  return result.communication_feedback;
+}
+
+/**
  * Get platform-wide Omi insights (admin only)
  * Returns aggregated metrics across all users and conversations
  */

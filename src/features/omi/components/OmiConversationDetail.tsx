@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/ui/components/ui/button';
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { useDeleteConversation } from '../hooks/useDeleteConversation';
+import { useReanalyzeConversation } from '../hooks/useReanalyzeConversation';
 import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
 import {
   SectionLabel,
@@ -43,6 +44,7 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
   const { t } = useLanguage();
   const { isAdmin } = useUser();
   const deleteConversation = useDeleteConversation();
+  const reanalyzeConversation = useReanalyzeConversation();
 
   const { data: segments, isLoading: loadingSegments } = useQuery({
     queryKey: ['omi-segments', conversation.id],
@@ -73,16 +75,30 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
           </Button>
 
           {isAdmin && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
+            <div className="flex items-center gap-2">
+              {/* Reanalyze Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => reanalyzeConversation.mutate(conversation.id)}
+                disabled={reanalyzeConversation.isPending}
+                className="text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${reanalyzeConversation.isPending ? 'animate-spin' : ''}`} />
+                {reanalyzeConversation.isPending ? t('common.processing') : t('omi.reanalyze')}
+              </Button>
+
+              {/* Delete Button */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>{t('omi.delete_conversation')}</AlertDialogTitle>
@@ -104,7 +120,8 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+              </AlertDialog>
+            </div>
           )}
         </div>
 
