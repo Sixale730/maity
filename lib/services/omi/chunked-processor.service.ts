@@ -61,14 +61,14 @@ const MAX_CONCURRENT_CHUNKS = 3;
 const SIMPLE_TIMEOUT_MS = 20000;
 const SIMPLE_MAX_TOKENS = 300;
 
-// Available categories matching maity-mobile
+// Available categories in Spanish
 const CATEGORIES = [
-  'personal', 'education', 'health', 'finance', 'legal', 'philosophy',
-  'spiritual', 'science', 'entrepreneurship', 'parenting', 'romantic',
-  'travel', 'inspiration', 'technology', 'business', 'social', 'work',
-  'sports', 'politics', 'literature', 'history', 'architecture', 'music',
-  'weather', 'news', 'entertainment', 'psychology', 'design', 'family',
-  'economics', 'environment', 'other'
+  'personal', 'educación', 'salud', 'finanzas', 'legal', 'filosofía',
+  'espiritual', 'ciencia', 'emprendimiento', 'crianza', 'romántico',
+  'viajes', 'inspiración', 'tecnología', 'negocios', 'social', 'trabajo',
+  'deportes', 'política', 'literatura', 'historia', 'arquitectura', 'música',
+  'clima', 'noticias', 'entretenimiento', 'psicología', 'diseño', 'familia',
+  'economía', 'medio ambiente', 'otro'
 ];
 
 // ============================================================================
@@ -124,7 +124,7 @@ Responde ÚNICAMENTE con JSON válido:
 
 {
   "partial_summary": "Resumen del fragmento...",
-  "category": "business",
+  "category": "trabajo",
   "action_items": [{"description": "Tarea 1"}],
   "events": [],
   "discarded": false,
@@ -150,7 +150,7 @@ Responde ÚNICAMENTE con JSON válido:
   "title": "Título corto",
   "emoji": "📝",
   "overview": "Resumen completo...",
-  "category": "business",
+  "category": "trabajo",
   "action_items": [{"description": "Tarea"}],
   "events": [],
   "discarded": false
