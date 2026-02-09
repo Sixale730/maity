@@ -201,25 +201,38 @@ Sistema de grabación y análisis de conversaciones del dispositivo Omi.
 - `OmiAnalysisSections` - Componentes nuevos estilo Meeting Analysis:
   - `OmiHeaderSection` - Título centrado + metadata (emoji, categoría, duración, palabras)
   - `OmiResumenHero` - Gauge semicircular + score + descripción narrativa
-  - `OmiScoreBars` - Métricas clarity/engagement/structure con barras horizontales
+  - `OmiKPIGrid` - Grid de 8 KPIs con emojis (estilo Meeting Analysis): muletillas, ratio, preguntas, palabras usuario, palabras otros, temas, compromisos, temas sin cerrar
+  - `OmiScoreBars` - Cards individuales en grid 2 columnas con emoji + nombre + descripción del nivel + barra + score (clarity/engagement/structure)
   - `OmiFortalezasSection` - Lista de fortalezas con checks verdes
   - `OmiAreasSection` - Áreas de mejora estilo insights con bordes de color
   - `TranscriptSection` - Transcripción con avatares por speaker
 - `ConversationSections` - Componentes reutilizables para radiografía:
   - `SectionLabel` - Etiqueta de sección con líneas decorativas
-  - `RadiografiaKPIGrid` - Grid de 4 KPIs (muletillas, ratio, preguntas, palabras)
   - `MuletillasSection` - Barras horizontales con muletillas detectadas
   - `PreguntasSection` - Dos columnas: tus preguntas vs recibidas
   - `TemasSection` - Tags/chips para temas tratados
   - `AccionesSection` - Lista de compromisos con/sin fecha
   - `TemasSinCerrarSection` - Cards de temas pendientes con razón
 
+**Estilo de KPI Cards (OmiKPIGrid):**
+- Grid 4 columnas (2 en móvil)
+- 8 cards con emojis (🗣️⚖️❓📝💬📋✅🚪)
+- `border-t-[3px]` con color de acento dinámico
+- Número en `text-3xl font-extrabold`
+- Label + detalle descriptivo
+
+**Estilo de Score Cards (OmiScoreBars):**
+- Grid 2 columnas (1 en móvil)
+- Cada métrica en Card individual
+- Emoji de estado (🟢🟡🟠🔴) + nombre + descripción del nivel
+- Barra de progreso + score numérico
+
 **Estructura de secciones en detalle (orden):**
 1. Header centrado (título + emoji + metadata)
 2. Overview (descripción)
 3. Resumen (gauge + score + feedback)
-4. Radiografía Rápida (4 KPIs)
-5. Métricas de Comunicación (barras de score)
+4. Radiografía Rápida (8 KPIs en grid)
+5. Métricas de Comunicación (cards con barras de score)
 6. Muletillas Detectadas
 7. Análisis de Preguntas
 8. Temas Tratados
@@ -274,6 +287,27 @@ Mic → AudioCapture → Deepgram WS (diarize=true)
 - `speaker` - Nombre (usuario o "Participante N")
 - `speaker_id` - ID numérico del speaker de Deepgram
 - `is_user` - true si es el speaker principal
+
+**Debug Logs Panel:**
+Panel colapsable en la UI durante la grabación para debugging detallado.
+
+- `DebugLogsPanel` - Tabla de logs en tiempo real con auto-scroll
+- Tipos de log: `WS_OPEN`, `WS_CLOSE`, `WS_ERROR`, `DEEPGRAM`, `SEGMENT`, `INTERIM`, `AUDIO`, `STATE`, `ERROR`, `SAVE`
+- Muestra: timestamp, tipo con color/emoji, mensaje con detalles
+- Botón "Copy" para exportar logs como JSON
+- Máximo 500 entries para evitar memory issues
+
+| Tipo | Color | Descripción |
+|------|-------|-------------|
+| `WS_OPEN` | green | WebSocket conectado |
+| `WS_CLOSE` | red | WebSocket cerrado (con código) |
+| `DEEPGRAM` | blue | Mensaje de Deepgram con flags is_final/speech_final |
+| `SEGMENT` | purple | Segmento añadido a la lista |
+| `INTERIM` | gray | Texto intermedio actualizado |
+| `AUDIO` | yellow | Estadísticas de audio (cada 20 buffers ~5s) |
+| `STATE` | orange | Cambio de estado de grabación |
+| `ERROR` | red | Cualquier error |
+| `SAVE` | green | Texto pendiente capturado al detener |
 
 ## Voice Evaluation System
 

@@ -10,7 +10,13 @@ import {
 import {
   Clock, MessageSquare, CheckCircle2, Target, Lightbulb
 } from 'lucide-react';
-import type { OmiConversation, CommunicationFeedback } from '../services/omi.service';
+import type {
+  OmiConversation,
+  CommunicationFeedback,
+  Radiografia,
+  PreguntasAnalisis,
+  TemasAnalisis
+} from '../services/omi.service';
 
 // ─── Gauge Chart (semicircle) ─────────────────────────────────────
 function GaugeChart({ score, maxScore = 10 }: { score: number; maxScore?: number }) {
@@ -127,8 +133,171 @@ export function OmiResumenHero({ feedback }: OmiResumenHeroProps) {
   );
 }
 
-// ─── Score Bars (horizontal metrics) ──────────────────────────────
-const SCORE_COLORS: Record<string, { bar: string; text: string }> = {
+// ─── KPI Grid (8 cards with emojis - Meeting Analysis style) ──────
+const KPI_ACCENT_BORDER: Record<string, string> = {
+  red: 'border-t-red-500',
+  yellow: 'border-t-yellow-500',
+  green: 'border-t-green-500',
+  blue: 'border-t-blue-500',
+  purple: 'border-t-purple-500',
+  orange: 'border-t-orange-500',
+  cyan: 'border-t-cyan-500',
+  pink: 'border-t-pink-500',
+};
+
+const KPI_ACCENT_TEXT: Record<string, string> = {
+  red: 'text-red-400',
+  yellow: 'text-yellow-400',
+  green: 'text-green-400',
+  blue: 'text-blue-400',
+  purple: 'text-purple-400',
+  orange: 'text-orange-400',
+  cyan: 'text-cyan-400',
+  pink: 'text-pink-400',
+};
+
+interface OmiKPIGridProps {
+  radiografia?: Radiografia;
+  preguntas?: PreguntasAnalisis;
+  temas?: TemasAnalisis;
+}
+
+export function OmiKPIGrid({ radiografia, preguntas, temas }: OmiKPIGridProps) {
+  const { t } = useLanguage();
+
+  // Helper to get accent color for muletillas
+  const getMuletillasAccent = (total?: number) => {
+    if (!total) return 'green';
+    if (total > 50) return 'red';
+    if (total > 20) return 'yellow';
+    return 'green';
+  };
+
+  // Helper to get accent color for ratio
+  const getRatioAccent = (ratio?: number) => {
+    if (!ratio) return 'blue';
+    if (ratio >= 0.8 && ratio <= 1.5) return 'green';
+    if (ratio > 2) return 'yellow';
+    return 'blue';
+  };
+
+  // Format ratio for display
+  const formatRatio = (ratio?: number) => {
+    if (!ratio) return '-';
+    return ratio >= 1 ? `${ratio.toFixed(1)}x` : `1:${(1 / ratio).toFixed(1)}`;
+  };
+
+  // Get top muletillas for detail text
+  const getTopMuletillas = () => {
+    if (!radiografia?.muletillas_detectadas) return t('omi.no_muletillas');
+    const top = Object.entries(radiografia.muletillas_detectadas)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([word]) => `"${word}"`)
+      .join(', ');
+    return top || t('omi.no_muletillas');
+  };
+
+  // Get ratio description
+  const getRatioDescription = () => {
+    if (!radiografia?.ratio_habla) return '-';
+    if (radiografia.ratio_habla >= 0.8 && radiografia.ratio_habla <= 1.5) {
+      return t('omi.balanced_conversation');
+    }
+    if (radiografia.ratio_habla > 1.5) {
+      return t('omi.you_talk_more');
+    }
+    return t('omi.others_talk_more');
+  };
+
+  const kpis = [
+    // Row 1
+    {
+      icon: '🗣️',
+      number: String(radiografia?.muletillas_total || 0),
+      label: t('omi.muletillas'),
+      detail: getTopMuletillas(),
+      accent: getMuletillasAccent(radiografia?.muletillas_total),
+    },
+    {
+      icon: '⚖️',
+      number: formatRatio(radiografia?.ratio_habla),
+      label: t('omi.talk_ratio'),
+      detail: getRatioDescription(),
+      accent: getRatioAccent(radiografia?.ratio_habla),
+    },
+    {
+      icon: '❓',
+      number: preguntas ? `${preguntas.total_usuario}/${preguntas.total_otros}` : '-/-',
+      label: t('omi.questions'),
+      detail: preguntas
+        ? `${t('omi.you')}: ${preguntas.total_usuario}, ${t('omi.others')}: ${preguntas.total_otros}`
+        : t('omi.no_questions_data'),
+      accent: 'purple' as const,
+    },
+    {
+      icon: '📝',
+      number: String(radiografia?.palabras_usuario || 0),
+      label: t('omi.words_user'),
+      detail: `${t('omi.others')}: ${radiografia?.palabras_otros || 0}`,
+      accent: 'cyan' as const,
+    },
+    // Row 2
+    {
+      icon: '💬',
+      number: String(radiografia?.palabras_otros || 0),
+      label: t('omi.words_others'),
+      detail: `${t('omi.total')}: ${(radiografia?.palabras_usuario || 0) + (radiografia?.palabras_otros || 0)}`,
+      accent: 'blue' as const,
+    },
+    {
+      icon: '📋',
+      number: String(temas?.temas_tratados?.length || 0),
+      label: t('omi.topics'),
+      detail: temas?.temas_tratados?.slice(0, 2).join(', ') || t('omi.no_topics'),
+      accent: 'orange' as const,
+    },
+    {
+      icon: '✅',
+      number: String(temas?.acciones_usuario?.length || 0),
+      label: t('omi.commitments'),
+      detail: temas?.acciones_usuario?.filter(a => a.tiene_fecha).length
+        ? `${temas.acciones_usuario.filter(a => a.tiene_fecha).length} ${t('omi.with_date')}`
+        : t('omi.no_commitments'),
+      accent: 'green' as const,
+    },
+    {
+      icon: '🚪',
+      number: String(temas?.temas_sin_cerrar?.length || 0),
+      label: t('omi.open_topics'),
+      detail: temas?.temas_sin_cerrar?.[0]?.tema || t('omi.all_closed'),
+      accent: temas?.temas_sin_cerrar?.length ? 'pink' as const : 'green' as const,
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {kpis.map((kpi, index) => (
+        <Card
+          key={index}
+          className={`bg-[#0F0F0F] border border-white/10 border-t-[3px] ${KPI_ACCENT_BORDER[kpi.accent]} p-4 text-center hover:-translate-y-0.5 hover:border-white/20 hover:shadow-lg transition-all`}
+        >
+          <div className="text-2xl mb-1.5">{kpi.icon}</div>
+          <div className={`text-3xl font-extrabold leading-tight ${KPI_ACCENT_TEXT[kpi.accent]}`}>
+            {kpi.number}
+          </div>
+          <div className="text-sm font-semibold mt-1 text-white">{kpi.label}</div>
+          <div className="text-xs text-gray-500 mt-1.5 leading-relaxed line-clamp-2">
+            {kpi.detail}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── Score Bars (cards in 2-column grid - Meeting Analysis style) ─
+const SCORE_BAR_COLORS: Record<string, { bar: string; text: string }> = {
   clarity: { bar: 'bg-sky-500', text: 'text-sky-400' },
   engagement: { bar: 'bg-emerald-500', text: 'text-emerald-400' },
   structure: { bar: 'bg-orange-500', text: 'text-orange-400' },
@@ -141,14 +310,16 @@ interface OmiScoreBarsProps {
 export function OmiScoreBars({ feedback }: OmiScoreBarsProps) {
   const { t } = useLanguage();
 
-  const metrics = [
-    { key: 'clarity', value: feedback.clarity, label: t('omi.clarity'), emoji: '🔵' },
-    { key: 'engagement', value: feedback.engagement, label: t('omi.engagement'), emoji: '🟢' },
-    { key: 'structure', value: feedback.structure, label: t('omi.structure'), emoji: '🟠' },
-  ].filter(m => m.value !== undefined);
+  // Get emoji based on score
+  const getScoreEmoji = (score?: number) => {
+    if (!score) return '⚪';
+    if (score >= 8) return '🟢';
+    if (score >= 6) return '🟡';
+    if (score >= 4) return '🟠';
+    return '🔴';
+  };
 
-  if (metrics.length === 0) return null;
-
+  // Get level description based on score
   const getScoreLevel = (score: number) => {
     if (score >= 8) return t('omi.level_excellent');
     if (score >= 6) return t('omi.level_good');
@@ -156,33 +327,45 @@ export function OmiScoreBars({ feedback }: OmiScoreBarsProps) {
     return t('omi.level_needs_work');
   };
 
+  // Get detailed description based on metric and score
+  const getScoreDescription = (metric: string, score: number) => {
+    const key = `omi.${metric}_desc_${score >= 8 ? 'high' : score >= 5 ? 'medium' : 'low'}`;
+    return t(key);
+  };
+
+  const metrics = [
+    { key: 'clarity', value: feedback.clarity, label: t('omi.clarity') },
+    { key: 'engagement', value: feedback.engagement, label: t('omi.engagement') },
+    { key: 'structure', value: feedback.structure, label: t('omi.structure') },
+  ].filter(m => m.value !== undefined);
+
+  if (metrics.length === 0) return null;
+
   return (
-    <Card className="bg-[#0F0F0F] border border-white/10 p-5">
-      <div className="space-y-4">
-        {metrics.map(({ key, value, label, emoji }) => (
-          <div key={key} className="flex items-center gap-3.5">
-            <div className="text-xl shrink-0">{emoji}</div>
-            <div className="flex-1">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-semibold text-sm text-white">{label}</span>
-                <span className={`text-xs ${SCORE_COLORS[key].text}`}>
-                  {getScoreLevel(value!)}
-                </span>
-              </div>
-              <div className="h-2.5 bg-[#1a1a2e] rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${SCORE_COLORS[key].bar} transition-all duration-700`}
-                  style={{ width: `${(value! / 10) * 100}%` }}
-                />
-              </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {metrics.map(({ key, value, label }) => (
+        <Card key={key} className="bg-[#0F0F0F] border border-white/10 p-4 flex items-center gap-3.5">
+          <div className="text-2xl shrink-0">{getScoreEmoji(value)}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="font-semibold text-sm text-white">{label}</span>
             </div>
-            <div className={`text-2xl font-bold shrink-0 w-12 text-right ${SCORE_COLORS[key].text}`}>
-              {value}
+            <div className="text-xs text-muted-foreground mb-1.5 truncate">
+              {getScoreLevel(value!)} — {getScoreDescription(key, value!)}
+            </div>
+            <div className="h-2.5 bg-[#1a1a2e] rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${SCORE_BAR_COLORS[key].bar} transition-all duration-700`}
+                style={{ width: `${(value! / 10) * 100}%` }}
+              />
             </div>
           </div>
-        ))}
-      </div>
-    </Card>
+          <div className={`text-2xl font-bold shrink-0 ${SCORE_BAR_COLORS[key].text}`}>
+            {value}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }
 

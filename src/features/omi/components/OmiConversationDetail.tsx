@@ -18,7 +18,6 @@ import { useDeleteConversation } from '../hooks/useDeleteConversation';
 import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
 import {
   SectionLabel,
-  RadiografiaKPIGrid,
   MuletillasSection,
   PreguntasSection,
   TemasSection,
@@ -28,6 +27,7 @@ import {
 import {
   OmiHeaderSection,
   OmiResumenHero,
+  OmiKPIGrid,
   OmiScoreBars,
   OmiFortalezasSection,
   OmiAreasSection,
@@ -126,13 +126,14 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
           </>
         )}
 
-        {/* Radiografía KPIs */}
-        {hasRadiografia && (
+        {/* Radiografía KPIs - 8 cards grid */}
+        {(hasRadiografia || hasPreguntas || hasTemas) && (
           <>
             <SectionLabel>{t('omi.quick_radiography')}</SectionLabel>
-            <RadiografiaKPIGrid
-              radiografia={feedback.radiografia!}
-              preguntas={feedback.preguntas}
+            <OmiKPIGrid
+              radiografia={feedback?.radiografia}
+              preguntas={feedback?.preguntas}
+              temas={feedback?.temas}
             />
           </>
         )}
