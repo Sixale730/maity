@@ -244,6 +244,9 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   const audioBufferCount = useRef(0);
   const recordingStartTime = useRef<number>(0);
 
+  // Prevent double-click / race condition on startRecording
+  const isStartingRecording = useRef(false);
+
   // ==========================================================================
   // HELPER FUNCTIONS
   // ==========================================================================
@@ -537,10 +540,17 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   }, [state.isSupported, fetchDeepgramConfig]);
 
   const startRecording = useCallback(async () => {
+    // Prevent double-click race condition
+    if (isStartingRecording.current) {
+      console.log('[Recording] startRecording already in progress, ignoring');
+      return;
+    }
+
     if (state.status !== 'ready' && state.status !== 'idle') {
       return;
     }
 
+    isStartingRecording.current = true;
     dispatch({ type: 'SET_STATUS', status: 'initializing' });
 
     try {
@@ -599,6 +609,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         await audioCapture.current?.start();
         startTimer();
         dispatch({ type: 'SET_STATUS', status: 'recording' });
+        isStartingRecording.current = false; // Allow new recordings after this one completes
       };
 
       websocket.current.onmessage = (event) => {
@@ -619,6 +630,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       const message = error instanceof Error ? error.message : 'Error al iniciar grabación';
       addDebugLog('ERROR', message);
       dispatch({ type: 'SET_ERROR', error: message });
+      isStartingRecording.current = false; // Allow retry on error
     }
   }, [state.status, createDraftConversation, fetchDeepgramConfig, handleTranscript, startTimer, addDebugLog]);
 
@@ -785,6 +797,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     websocket.current = null;
     segmentCounter.current = 0;
     latestInterimText.current = '';
+    isStartingRecording.current = false; // Allow new recordings
     dispatch({ type: 'RESET' });
   }, [stopTimer]);
 

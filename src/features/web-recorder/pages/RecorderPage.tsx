@@ -4,7 +4,7 @@
  * Main recording interface with live transcription.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/ui/components/ui/button';
 import { Card, CardContent } from '@/ui/components/ui/card';
@@ -33,10 +33,21 @@ function RecorderContent() {
   const [showSummary, setShowSummary] = useState(false);
   const [showDebugLogs, setShowDebugLogs] = useState(false);
 
+  // Track if we've auto-started to prevent multiple calls
+  const hasAutoStarted = useRef(false);
+
   // Initialize on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Auto-start recording when initialized and ready
+  useEffect(() => {
+    if (state.status === 'ready' && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
+      startRecording();
+    }
+  }, [state.status, startRecording]);
 
   // Show summary after stopping
   useEffect(() => {
