@@ -9,14 +9,57 @@
 import OpenAI from 'openai';
 
 // ============================================================================
+// LLM PROVIDER REGISTRY (DeepSeek first, then OpenAI fallback)
+// ============================================================================
+
+interface ProviderConfig {
+  envKey: string;
+  baseURL?: string;
+  defaultModel: string;
+  modelEnvKey: string;
+}
+
+const PROVIDER_REGISTRY: Record<string, ProviderConfig> = {
+  deepseek: { envKey: 'DEEPSEEK_API_KEY', baseURL: 'https://api.deepseek.com', defaultModel: 'deepseek-chat', modelEnvKey: 'DEEPSEEK_MODEL' },
+  openai:   { envKey: 'OPENAI_API_KEY',   baseURL: undefined,                  defaultModel: 'gpt-4o-mini',   modelEnvKey: 'OPENAI_MODEL' },
+};
+
+interface LLMClient {
+  client: OpenAI;
+  provider: string;
+  model: string;
+}
+
+function getProviders(): LLMClient[] {
+  const order = process.env.LLM_PROVIDERS
+    ? process.env.LLM_PROVIDERS.split(',').map((s) => s.trim().toLowerCase())
+    : ['deepseek', 'openai'];
+
+  const clients: LLMClient[] = [];
+  for (const name of order) {
+    const config = PROVIDER_REGISTRY[name];
+    if (!config) continue;
+    const apiKey = process.env[config.envKey];
+    if (!apiKey) continue;
+    clients.push({
+      client: new OpenAI({ apiKey, ...(config.baseURL ? { baseURL: config.baseURL } : {}) }),
+      provider: name,
+      model: process.env[config.modelEnvKey] || config.defaultModel,
+    });
+  }
+  return clients;
+}
+
+// ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const MODEL = 'gpt-4o-mini';
 const MAX_CHUNK_CHARS = 5000;
 const CHUNK_TIMEOUT_MS = 30000;
 const MERGE_TIMEOUT_MS = 30000;
 const MAX_CONCURRENT_CHUNKS = 3;
+const SIMPLE_TIMEOUT_MS = 20000;
+const SIMPLE_MAX_TOKENS = 300;
 
 // Available categories matching maity-mobile
 const CATEGORIES = [
@@ -113,6 +156,18 @@ Responde ÚNICAMENTE con JSON válido:
   "discarded": false
 }`;
 
+const SIMPLE_SYSTEM_PROMPT = `Eres un asistente que analiza conversaciones.
+
+Genera un resumen estructurado de la siguiente conversación.
+
+Responde ÚNICAMENTE con JSON válido:
+{
+  "title": "Título corto (máximo 50 caracteres)",
+  "overview": "Resumen de 1-2 oraciones",
+  "emoji": "Un emoji representativo",
+  "category": "Una categoría de: ${CATEGORIES.join(', ')}"
+}`;
+
 // ============================================================================
 // UTILITIES
 // ============================================================================
@@ -174,11 +229,73 @@ export function splitAtSentenceBoundaries(text: string, maxChars: number = MAX_C
 }
 
 // ============================================================================
+// SIMPLE STRUCTURED DATA (for short transcripts)
+// ============================================================================
+
+export interface SimpleStructuredData {
+  title: string;
+  overview: string;
+  emoji: string;
+  category: string;
+}
+
+/**
+ * Generate simple structured data (title, overview, emoji, category) for short transcripts.
+ * Uses LLM provider priority from LLM_PROVIDERS env (default: deepseek,openai).
+ */
+export async function generateSimpleStructured(transcriptText: string): Promise<SimpleStructuredData | null> {
+  if (!transcriptText || transcriptText.length < 20) {
+    console.log('[chunked-processor] Transcript too short for simple structured generation');
+    return null;
+  }
+
+  const providers = getProviders();
+
+  if (providers.length === 0) {
+    console.error('[chunked-processor] No LLM providers available');
+    return null;
+  }
+
+  for (const llm of providers) {
+    try {
+      const response = await llm.client.chat.completions.create(
+        {
+          model: llm.model,
+          messages: [
+            { role: 'system', content: SIMPLE_SYSTEM_PROMPT },
+            { role: 'user', content: transcriptText.slice(0, 4000) },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: SIMPLE_MAX_TOKENS,
+        },
+        { timeout: SIMPLE_TIMEOUT_MS }
+      );
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        console.warn(`[chunked-processor] Empty response from ${llm.provider}`);
+        continue;
+      }
+
+      const result = JSON.parse(content) as SimpleStructuredData;
+      console.log(`[chunked-processor] generateSimpleStructured completed with ${llm.provider}`);
+      return result;
+    } catch (error) {
+      console.warn(`[chunked-processor] ${llm.provider} failed for simple structured, trying next...`, error);
+    }
+  }
+
+  console.error('[chunked-processor] All providers failed for generateSimpleStructured');
+  return null;
+}
+
+// ============================================================================
 // CHUNK PROCESSING
 // ============================================================================
 
 async function processChunk(
-  openai: OpenAI,
+  llm: LLMClient,
   chunk: string,
   chunkNumber: number,
   totalChunks: number
@@ -186,9 +303,9 @@ async function processChunk(
   try {
     const userMessage = `Fragmento ${chunkNumber} de ${totalChunks}:\n\n${chunk}`;
 
-    const completion = await openai.chat.completions.create(
+    const completion = await llm.client.chat.completions.create(
       {
-        model: MODEL,
+        model: llm.model,
         messages: [
           { role: 'system', content: CHUNK_SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
@@ -212,7 +329,7 @@ async function processChunk(
 }
 
 async function mergeResults(
-  openai: OpenAI,
+  llm: LLMClient,
   chunkResults: ChunkResult[]
 ): Promise<ProcessedConversation | null> {
   try {
@@ -228,9 +345,9 @@ async function mergeResults(
 
     const userMessage = `Análisis parciales a unificar:\n\n${JSON.stringify(summaries, null, 2)}`;
 
-    const completion = await openai.chat.completions.create(
+    const completion = await llm.client.chat.completions.create(
       {
-        model: MODEL,
+        model: llm.model,
         messages: [
           { role: 'system', content: MERGE_SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
@@ -259,10 +376,10 @@ async function mergeResults(
 
 /**
  * Process a long transcript by chunking, parallel processing, and merging.
+ * Uses LLM provider priority from LLM_PROVIDERS env (default: deepseek,openai).
  */
 export async function processLongTranscript(
-  transcript: string,
-  model: string = MODEL
+  transcript: string
 ): Promise<ProcessedConversation | null> {
   const startTime = Date.now();
 
@@ -274,9 +391,16 @@ export async function processLongTranscript(
     return null;
   }
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const providers = getProviders();
+
+  if (providers.length === 0) {
+    console.error('[chunked-processor] No LLM providers available');
+    return null;
+  }
+
+  // Use first available provider for chunk processing
+  const llm = providers[0];
+  console.log(`[chunked-processor] Using ${llm.provider} for processing`);
 
   // Process chunks with concurrency limit
   const chunkResults: ChunkResult[] = [];
@@ -285,7 +409,7 @@ export async function processLongTranscript(
   for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_CHUNKS) {
     const batch = chunks.slice(i, i + MAX_CONCURRENT_CHUNKS);
     const batchPromises = batch.map((chunk, batchIndex) =>
-      processChunk(openai, chunk, i + batchIndex + 1, chunks.length)
+      processChunk(llm, chunk, i + batchIndex + 1, chunks.length)
     );
 
     const batchResults = await Promise.all(batchPromises);
@@ -305,6 +429,7 @@ export async function processLongTranscript(
   // If only one chunk succeeded, format directly
   if (chunkResults.length === 1) {
     const r = chunkResults[0];
+    console.log(`[chunked-processor] Single chunk completed with ${llm.provider}`);
     return {
       title: r.key_topics[0] || 'Conversación',
       emoji: '💬',
@@ -317,10 +442,10 @@ export async function processLongTranscript(
   }
 
   // Merge multiple chunks
-  const merged = await mergeResults(openai, chunkResults);
+  const merged = await mergeResults(llm, chunkResults);
 
   const duration = Date.now() - startTime;
-  console.log(`[chunked-processor] Completed in ${duration}ms`, {
+  console.log(`[chunked-processor] Completed in ${duration}ms with ${llm.provider}`, {
     chunks: chunks.length,
     successfulChunks: chunkResults.length,
     discarded: merged?.discarded,

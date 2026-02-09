@@ -20,6 +20,7 @@ import {
   analyzeCommunication,
   extractMemoriesFromTranscript,
   processLongTranscript,
+  generateSimpleStructured,
   type TranscriptSegment,
 } from '../../lib/services/omi/index.js';
 
@@ -206,19 +207,34 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Prepare structured data
   let structuredData = body.structured || null;
 
-  // If no structured data and transcript is long, use chunked processing
-  if (!structuredData && transcriptText.length > LONG_TRANSCRIPT_THRESHOLD) {
-    console.log('[conversations-finalize] Using chunked processing for long transcript');
-    const processed = await processLongTranscript(transcriptText);
-    if (processed) {
-      structuredData = {
-        title: processed.title,
-        overview: processed.overview,
-        emoji: processed.emoji,
-        category: processed.category,
-        action_items: processed.action_items,
-        events: processed.events,
-      };
+  // Generate title/overview/category for valid transcripts without structured data
+  if (!structuredData && !discarded && wordsCount >= MIN_WORDS_FOR_ANALYSIS) {
+    if (transcriptText.length > LONG_TRANSCRIPT_THRESHOLD) {
+      // Chunked processing for long transcripts
+      console.log('[conversations-finalize] Using chunked processing for long transcript');
+      const processed = await processLongTranscript(transcriptText);
+      if (processed) {
+        structuredData = {
+          title: processed.title,
+          overview: processed.overview,
+          emoji: processed.emoji,
+          category: processed.category,
+          action_items: processed.action_items,
+          events: processed.events,
+        };
+      }
+    } else {
+      // Simple processing for short transcripts (web recorder)
+      console.log('[conversations-finalize] Using simple structured generation for short transcript');
+      const processed = await generateSimpleStructured(transcriptText);
+      if (processed) {
+        structuredData = {
+          title: processed.title,
+          overview: processed.overview,
+          emoji: processed.emoji,
+          category: processed.category,
+        };
+      }
     }
   }
 
@@ -241,6 +257,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Update conversation
   const updateData: Record<string, unknown> = {
     transcript_text: transcriptText,
+    words_count: wordsCount,
     discarded,
     duration_seconds: durationSeconds,
     updated_at: new Date().toISOString(),

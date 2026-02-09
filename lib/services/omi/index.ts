@@ -33,8 +33,10 @@ export {
 // Chunked Processing
 export {
   processLongTranscript,
+  generateSimpleStructured,
   splitAtSentenceBoundaries,
   type ActionItem,
   type ConversationEvent,
   type ProcessedConversation,
+  type SimpleStructuredData,
 } from './chunked-processor.service.js';
