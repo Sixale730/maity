@@ -731,12 +731,12 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
         const { data: profile } = await supabase
           .schema('maity')
           .from('users')
-          .select('full_name')
+          .select('name')
           .eq('auth_id', authUser.id)
           .single();
 
-        if (profile?.full_name) {
-          userName = profile.full_name;
+        if (profile?.name) {
+          userName = profile.name;
         }
       }
 
