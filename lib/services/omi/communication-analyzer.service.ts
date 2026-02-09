@@ -12,7 +12,7 @@ import OpenAI from 'openai';
 // CONSTANTS
 // ============================================================================
 
-const MAX_TOKENS = 800;
+const MAX_TOKENS = 1200;
 const TEMPERATURE = 0.7;
 const TIMEOUT_MS = 20000;
 const MIN_USER_WORDS = 15;
@@ -88,6 +88,44 @@ export interface CommunicationCounters {
   filler_words: Record<string, number>;
 }
 
+// ============================================================================
+// NEW TYPES - Radiografía de comunicación
+// ============================================================================
+
+export interface Radiografia {
+  muletillas_detectadas: Record<string, number>; // LLM detecta dinámicamente
+  muletillas_total: number;
+  muletillas_frecuencia: string; // "1 cada X palabras"
+  ratio_habla: number; // usuario/otros
+  palabras_usuario: number;
+  palabras_otros: number;
+}
+
+export interface PreguntasAnalisis {
+  preguntas_usuario: string[]; // preguntas hechas por el usuario
+  preguntas_otros: string[]; // preguntas hechas por otros
+  total_usuario: number;
+  total_otros: number;
+}
+
+export interface AccionUsuario {
+  descripcion: string;
+  tiene_fecha: boolean; // si mencionó cuándo
+}
+
+export interface TemaSinCerrar {
+  tema: string;
+  razon: string; // por qué quedó abierto
+}
+
+export interface TemasAnalisis {
+  temas_tratados: string[];
+  acciones_usuario: AccionUsuario[]; // solo acciones del usuario principal
+  temas_sin_cerrar: TemaSinCerrar[];
+}
+
+// ============================================================================
+
 export interface CommunicationFeedback {
   strengths: string[];
   areas_to_improve: string[];
@@ -99,6 +137,10 @@ export interface CommunicationFeedback {
   engagement?: number;
   structure?: number;
   feedback?: string;
+  // New fields - Radiografía
+  radiografia?: Radiografia;
+  preguntas?: PreguntasAnalisis;
+  temas?: TemasAnalisis;
 }
 
 // ============================================================================
@@ -132,7 +174,33 @@ Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
   "clarity": 8,
   "engagement": 7,
   "structure": 6,
-  "feedback": "Feedback general breve"
+  "feedback": "Feedback general breve",
+
+  "radiografia": {
+    "muletillas_detectadas": {"este": 5, "o sea": 3},
+    "muletillas_total": 8,
+    "muletillas_frecuencia": "1 cada 45 palabras",
+    "ratio_habla": 1.3,
+    "palabras_usuario": 450,
+    "palabras_otros": 350
+  },
+
+  "preguntas": {
+    "preguntas_usuario": ["¿Qué opinas de...?"],
+    "preguntas_otros": ["¿Por qué decidiste...?"],
+    "total_usuario": 1,
+    "total_otros": 1
+  },
+
+  "temas": {
+    "temas_tratados": ["presupuesto", "plazos"],
+    "acciones_usuario": [
+      {"descripcion": "Enviar propuesta", "tiene_fecha": true}
+    ],
+    "temas_sin_cerrar": [
+      {"tema": "Recursos", "razon": "Pendiente confirmación"}
+    ]
+  }
 }
 
 Reglas:
@@ -141,32 +209,55 @@ Reglas:
 - Cada observación: 1-2 oraciones
 - summary: máximo 300 caracteres
 - Scores: 0-10
-- Si hay muy poco contenido, devuelve scores bajos y menciona la falta de datos`;
+- Si hay muy poco contenido, devuelve scores bajos y menciona la falta de datos
+
+RADIOGRAFÍA DE LA CONVERSACIÓN:
+- muletillas_detectadas: Identifica palabras o frases repetidas innecesariamente por el USUARIO (ej: "este", "o sea", "básicamente", "digamos", "como que", "bueno", "pues", "verdad", "¿no?"). Solo incluye las que aparezcan 2+ veces.
+- muletillas_total: Suma total de todas las muletillas detectadas
+- muletillas_frecuencia: "1 cada X palabras" calculado como palabras_usuario / muletillas_total
+- ratio_habla: Calcula palabras_usuario / palabras_otros (1.0 = igual participación)
+- palabras_usuario: Cuenta las palabras del USUARIO
+- palabras_otros: Cuenta las palabras de los OTROS participantes
+
+PREGUNTAS:
+- preguntas_usuario: Lista las preguntas que hizo el USUARIO (máx 5, textual o resumidas)
+- preguntas_otros: Lista las preguntas que hicieron los OTROS (máx 5)
+- total_usuario/total_otros: Conteo total de preguntas de cada parte
+
+TEMAS Y ACCIONES:
+- temas_tratados: Lista 3-6 temas principales discutidos en la conversación
+- acciones_usuario: Compromisos o tareas que el USUARIO asumió o se comprometió a hacer. Solo del USUARIO, no de otros. Indica si mencionó fecha/momento concreto.
+- temas_sin_cerrar: Temas que se discutieron pero no llegaron a conclusión o decisión clara. Explica brevemente por qué quedó abierto.`;
 
 // ============================================================================
 // UTILITIES
 // ============================================================================
 
-function buildTranscript(segments: TranscriptSegment[]): { transcript: string; userWordCount: number } {
+function buildTranscript(segments: TranscriptSegment[]): { transcript: string; userWordCount: number; otherWordCount: number } {
   // Filter user segments if marked, otherwise assume all are from user
   const hasUserMarks = segments.some((s) => s.is_user !== undefined);
 
   const lines: string[] = [];
   let userWordCount = 0;
+  let otherWordCount = 0;
 
   for (const segment of segments) {
     const isUser = hasUserMarks ? segment.is_user : true;
     const label = isUser ? 'Usuario' : 'Otro';
     lines.push(`${label}: ${segment.text}`);
 
+    const wordCount = segment.text.split(/\s+/).length;
     if (isUser) {
-      userWordCount += segment.text.split(/\s+/).length;
+      userWordCount += wordCount;
+    } else {
+      otherWordCount += wordCount;
     }
   }
 
   return {
     transcript: lines.join('\n'),
     userWordCount,
+    otherWordCount,
   };
 }
 
@@ -191,7 +282,7 @@ export async function analyzeCommunication(
     return null;
   }
 
-  const { transcript, userWordCount } = buildTranscript(segments);
+  const { transcript, userWordCount, otherWordCount } = buildTranscript(segments);
 
   // Check minimum content
   if (userWordCount < MIN_USER_WORDS) {
@@ -210,14 +301,36 @@ export async function analyzeCommunication(
       clarity: 5,
       engagement: 5,
       structure: 5,
+      // Radiografía básica para contenido insuficiente
+      radiografia: {
+        muletillas_detectadas: {},
+        muletillas_total: 0,
+        muletillas_frecuencia: 'N/A',
+        ratio_habla: otherWordCount > 0 ? userWordCount / otherWordCount : 1,
+        palabras_usuario: userWordCount,
+        palabras_otros: otherWordCount,
+      },
+      preguntas: {
+        preguntas_usuario: [],
+        preguntas_otros: [],
+        total_usuario: 0,
+        total_otros: 0,
+      },
+      temas: {
+        temas_tratados: [],
+        acciones_usuario: [],
+        temas_sin_cerrar: [],
+      },
     };
   }
 
   const truncated = truncateTranscript(transcript);
+  // Prepend word counts to help LLM with radiografía calculations
+  const userMessage = `[Conteo de palabras: Usuario=${userWordCount}, Otros=${otherWordCount}]\n\n${truncated}`;
   const requestParams = {
     messages: [
       { role: 'system' as const, content: SYSTEM_PROMPT },
-      { role: 'user' as const, content: truncated },
+      { role: 'user' as const, content: userMessage },
     ],
     response_format: { type: 'json_object' as const },
     max_tokens: MAX_TOKENS,
@@ -246,7 +359,9 @@ export async function analyzeCommunication(
         provider: llm.provider,
         model: llm.model,
         userWords: userWordCount,
+        otherWords: otherWordCount,
         overallScore: result.overall_score,
+        hasRadiografia: !!result.radiografia,
       });
 
       return result;

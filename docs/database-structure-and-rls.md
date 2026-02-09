@@ -2216,6 +2216,35 @@ interface CommunicationFeedback {
   feedback?: string;           // General feedback text
   strengths?: string[];        // List of strengths
   areas_to_improve?: string[]; // List of improvement areas
+
+  // Radiografía de comunicación (nuevos campos)
+  radiografia?: {
+    muletillas_detectadas: Record<string, number>; // {"este": 5, "o sea": 3}
+    muletillas_total: number;
+    muletillas_frecuencia: string;   // "1 cada X palabras"
+    ratio_habla: number;             // usuario/otros
+    palabras_usuario: number;
+    palabras_otros: number;
+  };
+
+  preguntas?: {
+    preguntas_usuario: string[];     // Preguntas hechas por el usuario
+    preguntas_otros: string[];       // Preguntas hechas por otros
+    total_usuario: number;
+    total_otros: number;
+  };
+
+  temas?: {
+    temas_tratados: string[];        // 3-6 temas principales
+    acciones_usuario: {              // Solo acciones del usuario
+      descripcion: string;
+      tiene_fecha: boolean;
+    }[];
+    temas_sin_cerrar: {              // Temas sin conclusión
+      tema: string;
+      razon: string;
+    }[];
+  };
 }
 ```
 
