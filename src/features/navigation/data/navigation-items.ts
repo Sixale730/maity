@@ -151,8 +151,8 @@ export const userNavigationItems: NavigationItem[] = [
     url: '/recorder',
     icon: Mic,
     roles: ['admin', 'manager', 'user'],
-    group: 'practice',
-    order: 4.5,
+    group: 'profile',
+    order: 2.5,
   },
 ];
 

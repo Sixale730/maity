@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AudioLines, Clock, MessageSquare, ChevronRight, Sparkles, TrendingUp, Mic } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AudioLines, Clock, MessageSquare, ChevronRight, Sparkles, TrendingUp, Mic, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { getOmiConversations, OmiConversation } from '../services/omi.service';
@@ -9,6 +10,7 @@ import { OmiConversationDetail } from '../components/OmiConversationDetail';
 export function OmiConversationsPage() {
   const { t } = useLanguage();
   const { userProfile } = useUser();
+  const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<OmiConversation | null>(null);
 
   const { data: conversations, isLoading, error } = useQuery({
@@ -46,17 +48,26 @@ export function OmiConversationsPage() {
     <div className="min-h-screen bg-[#050505]">
       <div className="max-w-5xl mx-auto px-4 py-6 lg:py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div
-            className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600"
-            style={{ boxShadow: '0 0 20px rgba(0, 212, 170, 0.3)' }}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <div
+              className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600"
+              style={{ boxShadow: '0 0 20px rgba(0, 212, 170, 0.3)' }}
+            >
+              <Mic className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">{t('nav.omi_conversations')}</h1>
+              <p className="text-gray-500 text-sm">{t('omi.page_description')}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/recorder')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium text-sm hover:from-emerald-400 hover:to-teal-500 transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
           >
-            <Mic className="h-7 w-7 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{t('nav.omi_conversations')}</h1>
-            <p className="text-gray-500 text-sm">{t('omi.page_description')}</p>
-          </div>
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('omi.new_recording')}</span>
+          </button>
         </div>
 
         {/* Quick Stats */}
