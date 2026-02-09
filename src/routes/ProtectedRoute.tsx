@@ -58,8 +58,12 @@ const ProtectedRoute = () => {
           target = '/registration';
           console.log("[ProtectedRoute] User needs REGISTRATION - redirecting");
         } else if (phase === 'NO_COMPANY') {
-          target = '/pending';
-          console.log("[ProtectedRoute] User has NO_COMPANY - redirecting to pending");
+          // BYPASS PENDING: Send users directly to registration instead of pending page
+          // Original code (commented for easy revert):
+          // target = '/pending';
+          // console.log("[ProtectedRoute] User has NO_COMPANY - redirecting to pending");
+          target = '/registration';
+          console.log("[ProtectedRoute] User has NO_COMPANY - bypassing pending, redirecting to registration");
         } else {
           console.warn("[ProtectedRoute] Unknown phase:", phase);
         }

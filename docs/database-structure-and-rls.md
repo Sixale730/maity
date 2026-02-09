@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
 **Last Updated:** February 9, 2026
-**Version:** 2.6
+**Version:** 2.7
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Updated `public.my_phase()` to bypass pending invitation flow - users without company now go to REGISTRATION instead of NO_COMPANY (v2.7)
 - Added `maity.web_recorder_logs` table for persisting debug logs from web recorder sessions (v2.6)
 - Added `public.save_recorder_logs()`, `public.list_recorder_sessions()`, `public.get_recorder_logs()` RPC functions (v2.6)
 - Added `public.admin_delete_conversation()` RPC function for admin-only soft delete of Omi conversations (v2.5)
@@ -611,6 +612,60 @@ RETURNS JSON
 
 **Related Migration:**
 - `20251021_create_try_autojoin_by_domain_function.sql`
+
+---
+
+#### public.my_phase
+
+**Purpose:** Returns the current user's phase in the onboarding/access flow.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.my_phase()
+RETURNS TEXT
+```
+
+**Returns:** One of the following phase values:
+- `'ACTIVE'` - User has completed onboarding and has access to the platform
+- `'REGISTRATION'` - User needs to complete the onboarding form
+- `'UNAUTHORIZED'` - No authenticated user
+- ~~`'NO_COMPANY'`~~ - **Deprecated** (now returns `'REGISTRATION'` instead)
+
+**Phase Logic:**
+1. If `auth.uid()` is NULL → `'UNAUTHORIZED'`
+2. If user has `admin` role → `'ACTIVE'` (regardless of company)
+3. If user doesn't exist in `maity.users` OR has no `company_id` → `'REGISTRATION'` (bypasses pending)
+4. If user has `manager` role → `'ACTIVE'`
+5. If `registration_form_completed` is FALSE → `'REGISTRATION'`
+6. Otherwise → `'ACTIVE'`
+
+**Bypass Pending Feature (Feb 2026):**
+Users without a company now go directly to `/registration` instead of `/pending`. This allows new users to complete onboarding even if their email domain is not registered for autojoin. The original `'NO_COMPANY'` behavior is preserved in comments for easy revert.
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- Only returns phase for the authenticated user
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.my_phase() TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+const { data: phase } = await supabase.rpc('my_phase');
+// Returns: 'ACTIVE' | 'REGISTRATION' | 'UNAUTHORIZED'
+
+switch (phase) {
+  case 'ACTIVE': navigate('/dashboard'); break;
+  case 'REGISTRATION': navigate('/registration'); break;
+  default: navigate('/auth'); break;
+}
+```
+
+**Related Migration:**
+- `20250922_create_my_phase_function.sql` (original)
+- `20260209_bypass_pending_invitation.sql` (bypass pending update)
 
 ---
 

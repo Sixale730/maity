@@ -260,8 +260,12 @@ export class AuthService {
         console.log('[AuthService.handlePostLogin] User needs REGISTRATION - redirecting to registration');
         result.destination = '/registration';
       } else if (phase === 'NO_COMPANY' || phase === 'PENDING') {
-        console.log('[AuthService.handlePostLogin] User has NO_COMPANY/PENDING - redirecting to pending');
-        result.destination = '/pending';
+        // BYPASS PENDING: Send users directly to registration instead of pending page
+        // Original code (commented for easy revert):
+        // console.log('[AuthService.handlePostLogin] User has NO_COMPANY/PENDING - redirecting to pending');
+        // result.destination = '/pending';
+        console.log('[AuthService.handlePostLogin] User has NO_COMPANY/PENDING - bypassing pending, redirecting to registration');
+        result.destination = '/registration';
       } else {
         // Unknown phase - error state
         console.warn('[AuthService.handlePostLogin] Unknown phase:', phase);
