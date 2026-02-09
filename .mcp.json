@@ -12,6 +12,18 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_84dbe8f0d51185ac93dd09b928e76359882a2879"
       }
+    },
+    "notion": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@notionhq/notion-mcp-server"
+      ],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ${NOTION_API_KEY}\", \"Notion-Version\": \"2022-06-28\"}"
+      }
     }
   }
 }
