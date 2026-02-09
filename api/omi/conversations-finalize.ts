@@ -30,7 +30,6 @@ import {
 
 const LONG_TRANSCRIPT_THRESHOLD = 6000; // chars
 const MIN_WORDS_FOR_ANALYSIS = 5;
-const MIN_DURATION_FOR_ANALYSIS = 10; // seconds
 const MIN_CONTENT_FOR_MEMORIES = 50; // chars
 
 // ============================================================================
@@ -364,7 +363,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     hasAnalysis: !!communicationFeedback,
   });
 
-  return res.status(200).json({
+  res.status(200).json({
     ok: true,
     conversation_id: body.conversation_id,
     discarded,

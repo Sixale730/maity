@@ -117,6 +117,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     // Increase chunk size warning limit (acceptable with code splitting)
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
   },
 }));
