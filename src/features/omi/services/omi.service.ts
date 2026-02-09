@@ -46,6 +46,39 @@ export interface CommunicationObservations {
   calls_to_action?: string;
 }
 
+// Radiografía de comunicación - análisis extendido
+export interface Radiografia {
+  muletillas_detectadas: Record<string, number>;
+  muletillas_total: number;
+  muletillas_frecuencia: string;
+  ratio_habla: number;
+  palabras_usuario: number;
+  palabras_otros: number;
+}
+
+export interface PreguntasAnalisis {
+  preguntas_usuario: string[];
+  preguntas_otros: string[];
+  total_usuario: number;
+  total_otros: number;
+}
+
+export interface AccionUsuario {
+  descripcion: string;
+  tiene_fecha: boolean;
+}
+
+export interface TemaSinCerrar {
+  tema: string;
+  razon: string;
+}
+
+export interface TemasAnalisis {
+  temas_tratados: string[];
+  acciones_usuario: AccionUsuario[];
+  temas_sin_cerrar: TemaSinCerrar[];
+}
+
 export interface CommunicationFeedback {
   // Scores numéricos (pueden no existir en todos los análisis)
   overall_score?: number;
@@ -59,6 +92,10 @@ export interface CommunicationFeedback {
   areas_to_improve?: string[];
   // Insights detallados por categoría
   observations?: CommunicationObservations;
+  // Radiografía extendida (nuevos campos)
+  radiografia?: Radiografia;
+  preguntas?: PreguntasAnalisis;
+  temas?: TemasAnalisis;
 }
 
 export interface OmiTranscriptSegment {

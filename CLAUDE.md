@@ -192,6 +192,19 @@ Sistema de grabación y análisis de conversaciones del dispositivo Omi.
 **Campos de análisis (`communication_feedback`):**
 - overall_score, clarity, engagement, structure (0-10)
 - feedback (texto), strengths[], areas_to_improve[]
+- radiografia?: { muletillas_detectadas: Record<string,number>, muletillas_total, muletillas_frecuencia, ratio_habla, palabras_usuario, palabras_otros }
+- preguntas?: { preguntas_usuario[], preguntas_otros[], total_usuario, total_otros }
+- temas?: { temas_tratados[], acciones_usuario: [{descripcion, tiene_fecha}], temas_sin_cerrar: [{tema, razon}] }
+
+**Componentes de detalle (`src/features/omi/components/`):**
+- `OmiConversationDetail` - Vista de detalle con todas las secciones
+- `ConversationSections` - Componentes reutilizables para radiografía:
+  - `RadiografiaKPIGrid` - Grid de 4 KPIs (muletillas, ratio, preguntas, palabras)
+  - `MuletillasSection` - Barras horizontales con muletillas detectadas
+  - `PreguntasSection` - Dos columnas: tus preguntas vs recibidas
+  - `TemasSection` - Tags/chips para temas tratados
+  - `AccionesSection` - Lista de compromisos con/sin fecha
+  - `TemasSinCerrarSection` - Cards de temas pendientes con razón
 
 **Rutas:**
 - `/omi` - Lista de conversaciones con detalle expandible

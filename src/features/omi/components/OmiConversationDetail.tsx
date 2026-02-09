@@ -6,6 +6,15 @@ import {
 import { Button } from '@/ui/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { OmiConversation, getOmiTranscriptSegments } from '../services/omi.service';
+import {
+  SectionLabel,
+  RadiografiaKPIGrid,
+  MuletillasSection,
+  PreguntasSection,
+  TemasSection,
+  AccionesSection,
+  TemasSinCerrarSection
+} from './ConversationSections';
 
 const METRIC_COLORS: Record<string, { color: string; bg: string }> = {
   clarity: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
@@ -56,6 +65,11 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
     ? (feedback.overall_score >= 8 ? '#00d4aa' : feedback.overall_score >= 5 ? '#fbbf24' : '#ef4444')
     : '#a78bfa';
 
+  // Check if we have radiografia data
+  const hasRadiografia = feedback?.radiografia;
+  const hasPreguntas = feedback?.preguntas;
+  const hasTemas = feedback?.temas;
+
   return (
     <div className="min-h-screen bg-[#050505]">
       <div className="max-w-4xl mx-auto py-8 px-4">
@@ -94,9 +108,20 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Communication Feedback */}
-          {feedback && (
+        {/* Radiografía KPIs - Show first if available */}
+        {hasRadiografia && (
+          <>
+            <SectionLabel>{t('omi.radiografia')}</SectionLabel>
+            <RadiografiaKPIGrid
+              radiografia={feedback.radiografia!}
+              preguntas={feedback.preguntas}
+            />
+          </>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-2 mt-6">
+          {/* Communication Feedback - Scores */}
+          {feedback && (feedback.overall_score !== undefined || feedback.clarity !== undefined) && (
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
               <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="h-5 w-5 text-emerald-400" />
@@ -155,7 +180,7 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
               )}
 
               {/* Strengths & Areas */}
-              <div className="grid gap-4 sm:grid-cols-2 mb-6">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {feedback.strengths && feedback.strengths.length > 0 && (
                   <div className="p-4 rounded-xl bg-[#1a1a2e]">
                     <h4 className="text-sm font-bold mb-3 text-emerald-400">{t('omi.strengths')}</h4>
@@ -182,30 +207,72 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
                   </div>
                 )}
               </div>
+            </div>
+          )}
 
-              {/* Insights */}
-              {feedback.observations && (
-                <div className="pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb className="h-4 w-4 text-amber-400" />
-                    <h4 className="text-sm font-bold text-white">{t('omi.insights')}</h4>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {feedback.observations.clarity && (
-                      <InsightCard icon={MessageCircle} title={t('omi.clarity')} content={feedback.observations.clarity} />
-                    )}
-                    {feedback.observations.structure && (
-                      <InsightCard icon={LayoutList} title={t('omi.structure')} content={feedback.observations.structure} />
-                    )}
-                    {feedback.observations.objections && (
-                      <InsightCard icon={Shield} title={t('omi.objections')} content={feedback.observations.objections} />
-                    )}
-                    {feedback.observations.calls_to_action && (
-                      <InsightCard icon={Target} title={t('omi.calls_to_action')} content={feedback.observations.calls_to_action} />
-                    )}
-                  </div>
-                </div>
-              )}
+          {/* Muletillas Section */}
+          {hasRadiografia && feedback.radiografia!.muletillas_total > 0 && (
+            <div className="lg:col-span-2">
+              <MuletillasSection
+                muletillas={feedback.radiografia!.muletillas_detectadas}
+                total={feedback.radiografia!.muletillas_total}
+              />
+            </div>
+          )}
+
+          {/* Preguntas Section */}
+          {hasPreguntas && (
+            <div className="lg:col-span-2">
+              <SectionLabel>{t('omi.questions')}</SectionLabel>
+              <PreguntasSection preguntas={feedback.preguntas!} />
+            </div>
+          )}
+
+          {/* Temas Section */}
+          {hasTemas && feedback.temas!.temas_tratados.length > 0 && (
+            <div className="lg:col-span-2">
+              <SectionLabel>{t('omi.topics')}</SectionLabel>
+              <TemasSection temas={feedback.temas!.temas_tratados} />
+            </div>
+          )}
+
+          {/* Acciones Section */}
+          {hasTemas && feedback.temas!.acciones_usuario.length > 0 && (
+            <div className="lg:col-span-2">
+              <SectionLabel>{t('omi.your_commitments')}</SectionLabel>
+              <AccionesSection acciones={feedback.temas!.acciones_usuario} />
+            </div>
+          )}
+
+          {/* Temas Sin Cerrar Section */}
+          {hasTemas && feedback.temas!.temas_sin_cerrar.length > 0 && (
+            <div className="lg:col-span-2">
+              <SectionLabel>{t('omi.open_topics')}</SectionLabel>
+              <TemasSinCerrarSection temasSinCerrar={feedback.temas!.temas_sin_cerrar} />
+            </div>
+          )}
+
+          {/* Insights - Only show if no radiografia (legacy) */}
+          {feedback?.observations && !hasRadiografia && (
+            <div className="lg:col-span-2 pt-4 border-t border-white/5">
+              <div className="flex items-center gap-2 mb-4">
+                <Lightbulb className="h-4 w-4 text-amber-400" />
+                <h4 className="text-sm font-bold text-white">{t('omi.insights')}</h4>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {feedback.observations.clarity && (
+                  <InsightCard icon={MessageCircle} title={t('omi.clarity')} content={feedback.observations.clarity} />
+                )}
+                {feedback.observations.structure && (
+                  <InsightCard icon={LayoutList} title={t('omi.structure')} content={feedback.observations.structure} />
+                )}
+                {feedback.observations.objections && (
+                  <InsightCard icon={Shield} title={t('omi.objections')} content={feedback.observations.objections} />
+                )}
+                {feedback.observations.calls_to_action && (
+                  <InsightCard icon={Target} title={t('omi.calls_to_action')} content={feedback.observations.calls_to_action} />
+                )}
+              </div>
             </div>
           )}
 
@@ -245,9 +312,8 @@ export function OmiConversationDetail({ conversation, onBack }: OmiConversationD
         </div>
 
         {/* Transcript */}
-        <div className="mt-6 p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
-          <h3 className="text-lg font-bold text-white mb-4">{t('omi.transcript')}</h3>
-
+        <SectionLabel>{t('omi.transcript')}</SectionLabel>
+        <div className="p-6 rounded-xl bg-[#0F0F0F] border border-white/10">
           {loadingSegments ? (
             <div className="space-y-3">
               {[1, 2, 3, 4].map(i => (
