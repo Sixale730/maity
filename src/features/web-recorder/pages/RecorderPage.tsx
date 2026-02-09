@@ -95,7 +95,7 @@ function RecorderContent() {
     try {
       const conversationId = await saveRecording();
       // Navigate to the conversation detail
-      navigate(`/omi?conversation=${conversationId}`);
+      navigate(`/conversaciones/${conversationId}`);
     } catch (error) {
       console.error('Error saving:', error);
     }

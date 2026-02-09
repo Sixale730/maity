@@ -1,17 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AudioLines, Clock, MessageSquare, ChevronRight, Sparkles, TrendingUp, Mic, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
-import { getOmiConversations, OmiConversation } from '../services/omi.service';
-import { OmiConversationDetail } from '../components/OmiConversationDetail';
+import { getOmiConversations } from '../services/omi.service';
 
 export function OmiConversationsPage() {
   const { t } = useLanguage();
   const { userProfile } = useUser();
   const navigate = useNavigate();
-  const [selectedConversation, setSelectedConversation] = useState<OmiConversation | null>(null);
 
   const { data: conversations, isLoading, error } = useQuery({
     queryKey: ['omi-conversations', userProfile?.id],
@@ -39,10 +37,6 @@ export function OmiConversationsPage() {
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
-
-  if (selectedConversation) {
-    return <OmiConversationDetail conversation={selectedConversation} onBack={() => setSelectedConversation(null)} />;
-  }
 
   return (
     <div className="min-h-screen bg-[#050505]">
@@ -142,7 +136,7 @@ export function OmiConversationsPage() {
                 <div
                   key={conversation.id}
                   className="group p-5 rounded-xl bg-[#0F0F0F] border border-white/10 cursor-pointer transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_30px_rgba(0,212,170,0.08)]"
-                  onClick={() => setSelectedConversation(conversation)}
+                  onClick={() => navigate(`/conversaciones/${conversation.id}`)}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1 min-w-0">
