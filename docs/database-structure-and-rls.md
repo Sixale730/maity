@@ -669,6 +669,98 @@ switch (phase) {
 
 ---
 
+#### public.calculate_user_streak
+
+**Purpose:** Calculates user streak based on Omi conversations with special rules for weekdays vs weekends.
+
+**Signature:**
+```sql
+CREATE OR REPLACE FUNCTION public.calculate_user_streak(p_user_id uuid)
+RETURNS TABLE(
+  streak_days integer,
+  bonus_days integer,
+  last_conversation_date date,
+  streak_started_at date
+)
+```
+
+**Parameters:**
+- `p_user_id` - The UUID of the user to calculate streak for (required)
+
+**Returns:**
+- `streak_days` - Total consecutive days (including bonus weekend days)
+- `bonus_days` - How many of those days were weekend bonus days
+- `last_conversation_date` - Date of most recent conversation
+- `streak_started_at` - Date when the current streak began
+
+**Business Rules:**
+| Day Type | Behavior |
+|----------|----------|
+| Weekdays (Mon-Fri) | MANDATORY - If no conversation, streak is LOST |
+| Weekends (Sat-Sun) | BONUS - If conversation exists +1, if not does NOT break streak |
+
+**Examples:**
+```
+Example 1: Today is Monday, Friday without conversation
+Fri: X  →  Streak lost
+Sat: ✓  →  (doesn't count, streak already broken)
+Sun: X  →  (doesn't matter)
+Mon: ✓  →  Streak = 1
+
+Example 2: Today is Monday, complete week
+Thu: ✓  →  +1
+Fri: ✓  →  +1
+Sat: ✓  →  +1 bonus
+Sun: X  →  (doesn't break)
+Mon: ✓  →  +1
+Streak = 4 (3 weekdays + 1 bonus)
+```
+
+**Timezone Handling:**
+- Uses company timezone from `maity.companies.timezone`
+- Falls back to `'America/Mexico_City'` if not set
+- All date calculations use `AT TIME ZONE` for correct day boundaries
+
+**Security:**
+- `SECURITY DEFINER` - Runs with elevated privileges
+- `SET search_path = maity, public` - Prevents SQL injection
+
+**Permissions:**
+```sql
+GRANT EXECUTE ON FUNCTION public.calculate_user_streak(uuid) TO authenticated;
+```
+
+**Example Usage (TypeScript):**
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@maity/shared';
+
+const { data } = await supabase.rpc('calculate_user_streak', {
+  p_user_id: userId,
+});
+
+// Returns:
+// {
+//   streak_days: 4,
+//   bonus_days: 1,
+//   last_conversation_date: '2026-02-09',
+//   streak_started_at: '2026-02-06'
+// }
+```
+
+**Related Tables:**
+- `maity.omi_conversations` - Source of conversation data
+- `maity.users` - For user lookup
+- `maity.companies` - For timezone configuration
+
+**Related Hook:**
+- `src/features/dashboard/hooks/useUserStreak.ts` - React Query hook
+
+**Related Migration:**
+- `20250209_create_calculate_user_streak_function.sql`
+
+---
+
 #### public.get_admin_scenario_config
 
 **Purpose:** Gets complete profile + scenario configuration for admin testing. Allows administrators to test any profile and scenario combination without progression restrictions.

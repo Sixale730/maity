@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getOmiConversations, OmiConversation } from '@/features/omi/services/omi.service';
 import { useFormResponses } from '@maity/shared';
+import { useUserStreak } from './useUserStreak';
 
 export interface MountainNode {
   index: number;
@@ -64,6 +65,7 @@ export interface GamifiedDashboardDataV2 {
   nextLevelXP: number;
   streakDays: number;
   streak: number; // alias for streakDays
+  bonusDays: number; // Weekend bonus days included in streak
 
   // Score
   score: { yesterday: number; today: number };
@@ -241,6 +243,7 @@ function formatRecentActivity(conversations: OmiConversation[]): RecentActivity[
 export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
   const { userProfile } = useUser();
   const { radarData, loading: formLoading } = useFormResponses();
+  const { data: streakData, isLoading: streakLoading } = useUserStreak(userProfile?.id);
   const [conversations, setConversations] = useState<OmiConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -290,26 +293,9 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
     });
   }, [radarData]);
 
-  // Calculate streak from conversations
-  const streakDays = useMemo(() => {
-    if (conversations.length === 0) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daySet = new Set(
-      conversations.map(c => {
-        const d = new Date(c.created_at);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime();
-      })
-    );
-    let streak = 0;
-    const checkDay = new Date(today);
-    while (daySet.has(checkDay.getTime())) {
-      streak++;
-      checkDay.setDate(checkDay.getDate() - 1);
-    }
-    return streak;
-  }, [conversations]);
+  // Streak data from RPC (weekdays mandatory, weekends bonus)
+  const streakDays = streakData?.streak_days ?? 0;
+  const bonusDays = streakData?.bonus_days ?? 0;
 
   // Score from last 2 conversations
   const score = useMemo(() => {
@@ -386,6 +372,7 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
     nextLevelXP,
     streakDays,
     streak: streakDays, // alias
+    bonusDays,
     score,
     nodes,
     completedNodes,
@@ -402,6 +389,6 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
     },
     ranking,
     recentActivity,
-    loading: loading || formLoading,
+    loading: loading || formLoading || streakLoading,
   };
 }

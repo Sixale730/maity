@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getOmiConversations, OmiConversation } from '@/features/omi/services/omi.service';
 import { useFormResponses } from '@maity/shared';
+import { useUserStreak } from './useUserStreak';
 
 export interface MountainNode {
   index: number;
@@ -29,6 +30,7 @@ export interface GamifiedDashboardData {
   userName: string;
   totalXP: number;
   streakDays: number;
+  bonusDays: number; // Weekend bonus days included in streak
   // Score
   score: { yesterday: number; today: number };
   // Mountain nodes
@@ -101,6 +103,7 @@ function buildNodes(completedCount: number): MountainNode[] {
 export function useGamifiedDashboardData(): GamifiedDashboardData {
   const { userProfile } = useUser();
   const { radarData, loading: formLoading } = useFormResponses();
+  const { data: streakData, isLoading: streakLoading } = useUserStreak(userProfile?.id);
   const [conversations, setConversations] = useState<OmiConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -146,26 +149,9 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
       }));
   }, [radarData]);
 
-  // Calculate streak from conversations (consecutive days with conversations going back from today)
-  const streakDays = useMemo(() => {
-    if (conversations.length === 0) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daySet = new Set(
-      conversations.map(c => {
-        const d = new Date(c.created_at);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime();
-      })
-    );
-    let streak = 0;
-    const checkDay = new Date(today);
-    while (daySet.has(checkDay.getTime())) {
-      streak++;
-      checkDay.setDate(checkDay.getDate() - 1);
-    }
-    return streak;
-  }, [conversations]);
+  // Streak data from RPC (weekdays mandatory, weekends bonus)
+  const streakDays = streakData?.streak_days ?? 0;
+  const bonusDays = streakData?.bonus_days ?? 0;
 
   // Mock score from last 2 conversations
   const score = useMemo(() => {
@@ -197,6 +183,7 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
     userName: userProfile?.name || 'Usuario',
     totalXP: 170,
     streakDays,
+    bonusDays,
     score,
     nodes,
     completedNodes,
@@ -204,6 +191,6 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
     ranking,
     rewards: MOCK_REWARDS,
     muletillasPercent: 42,
-    loading: loading || formLoading,
+    loading: loading || formLoading || streakLoading,
   };
 }
