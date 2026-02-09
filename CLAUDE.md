@@ -309,6 +309,27 @@ Panel colapsable en la UI durante la grabación para debugging detallado.
 | `ERROR` | red | Cualquier error |
 | `SAVE` | green | Texto pendiente capturado al detener |
 
+**Navigation Guard (Protección de grabación):**
+Sistema que protege contra pérdida de grabación cuando el usuario navega.
+
+- `RecordingGuardModal` - Modal AlertDialog que ofrece guardar antes de salir
+- `useNavigationGuard` - Hook que intercepta navegación con React Router `useBlocker`
+
+**Protecciones implementadas:**
+| Tipo de navegación | Protección |
+|--------------------|------------|
+| Sidebar / Links internos | Modal personalizado (Guardar y Salir / Continuar Grabando) |
+| Browser back/forward | Modal personalizado via `useBlocker` |
+| Cierre de pestaña / Refresh | Alerta nativa del browser (`beforeunload`) |
+
+**Flujo de usuario:**
+1. Usuario está grabando → intenta navegar
+2. Se muestra modal con opciones
+3. "Continuar Grabando" → modal cierra, sigue grabando
+4. "Guardar y Salir" → detiene → guarda → navega a `/conversaciones?conversation=ID`
+
+**Traducciones:** Claves `recorder.guard_*` en `src/contexts/LanguageContext.tsx` (es + en)
+
 ## Voice Evaluation System
 
 **Flow**: Frontend creates session → ElevenLabs conversation → `/api/evaluate-session` → OpenAI (gpt-4o-mini) → Save to DB
