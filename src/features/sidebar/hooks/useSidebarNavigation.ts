@@ -13,12 +13,12 @@ export interface SidebarNavGroup {
 }
 
 const GROUP_TITLES: Record<NavigationGroup, string> = {
-  profile: 'sidebar.groups.profile',
-  practice: 'sidebar.groups.practice',
-  progress: 'sidebar.groups.progress',
-  team: 'sidebar.groups.team',
-  config: 'sidebar.groups.config',
-  admin: 'sidebar.groups.admin',
+  profile: 'nav.section.profile',
+  practice: 'nav.section.practice',
+  progress: 'nav.section.progress',
+  team: 'nav.section.team',
+  config: 'nav.section.config',
+  admin: 'nav.section.admin',
 };
 
 const GROUP_ORDER: NavigationGroup[] = [
