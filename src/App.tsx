@@ -134,7 +134,7 @@ const App = () => (
                         <Route path="/team/learning-progress" element={<TeamProgressPage />} />
                         <Route path="/sessions" element={<SessionsPage />} />
                         <Route path="/sessions/:sessionId" element={<SessionResultsPage />} />
-                        <Route path="/omi" element={<OmiConversationsPage />} />
+                        <Route path="/conversaciones" element={<OmiConversationsPage />} />
                         <Route path="/skills-arena" element={<SkillsArenaPage />} />
                         <Route path="/learning-content" element={<LearningContentPage />} />
                         <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />

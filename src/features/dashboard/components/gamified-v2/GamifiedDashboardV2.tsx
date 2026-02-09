@@ -540,7 +540,7 @@ export function GamifiedDashboardV2() {
             </h3>
             <button
               className="text-xs text-blue-400 hover:text-white transition-colors"
-              onClick={() => navigate('/omi')}
+              onClick={() => navigate('/conversaciones')}
             >
               Ver todo →
             </button>
@@ -551,7 +551,7 @@ export function GamifiedDashboardV2() {
                 <div
                   key={conv.id}
                   className="p-3 rounded-xl bg-[#141418] hover:bg-[#1a1a22] transition-all cursor-pointer border border-transparent hover:border-white/10 group"
-                  onClick={() => navigate('/omi')}
+                  onClick={() => navigate('/conversaciones')}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">

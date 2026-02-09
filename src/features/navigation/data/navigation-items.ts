@@ -139,7 +139,7 @@ export const userNavigationItems: NavigationItem[] = [
     id: 'omi-conversations',
     titleKey: 'nav.omi_conversations',
     descriptionKey: 'nav.desc.omi_conversations',
-    url: '/omi',
+    url: '/conversaciones',
     icon: AudioLines,
     roles: ['admin', 'manager', 'user'],
     group: 'profile',
