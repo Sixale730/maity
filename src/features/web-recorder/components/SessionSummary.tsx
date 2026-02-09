@@ -9,11 +9,12 @@ import { cn } from '@maity/shared';
 import { Button } from '@/ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { ScrollArea } from '@/ui/components/ui/scroll-area';
-import { Clock, FileText, Save, Trash2, Loader2 } from 'lucide-react';
+import { Clock, FileText, Save, Trash2, Loader2, User, Users } from 'lucide-react';
 
 interface TranscriptSegment {
   id: string;
   text: string;
+  speaker?: number;
 }
 
 interface SessionSummaryProps {
@@ -23,6 +24,7 @@ interface SessionSummaryProps {
   onDiscard: () => void;
   isSaving?: boolean;
   className?: string;
+  primarySpeaker?: number | null;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -38,6 +40,7 @@ export function SessionSummary({
   onDiscard,
   isSaving,
   className,
+  primarySpeaker = null,
 }: SessionSummaryProps) {
   const wordCount = segments.reduce((count, seg) => {
     return count + seg.text.split(/\s+/).filter(Boolean).length;
@@ -50,6 +53,20 @@ export function SessionSummary({
 
   const truncatedPreview =
     previewText.length > 300 ? previewText.slice(0, 300) + '...' : previewText;
+
+  // Calculate speaker stats
+  const speakerStats = segments.reduce((acc, seg) => {
+    if (seg.speaker !== undefined) {
+      if (!acc[seg.speaker]) {
+        acc[seg.speaker] = { segmentCount: 0, wordCount: 0 };
+      }
+      acc[seg.speaker].segmentCount++;
+      acc[seg.speaker].wordCount += seg.text.split(/\s+/).filter(Boolean).length;
+    }
+    return acc;
+  }, {} as Record<number, { segmentCount: number; wordCount: number }>);
+
+  const speakerCount = Object.keys(speakerStats).length;
 
   return (
     <Card className={cn('w-full max-w-lg', className)}>
@@ -90,6 +107,47 @@ export function SessionSummary({
             )}
           </ScrollArea>
         </div>
+
+        {/* Participants detected */}
+        {speakerCount > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Participantes Detectados
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(speakerStats).map(([speakerId, stats]) => {
+                const isUser = parseInt(speakerId) === primarySpeaker;
+                return (
+                  <div
+                    key={speakerId}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm',
+                      isUser
+                        ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30'
+                        : 'bg-muted text-muted-foreground border border-border'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'w-5 h-5 rounded-full flex items-center justify-center',
+                        isUser ? 'bg-emerald-500' : 'bg-muted-foreground/30'
+                      )}
+                    >
+                      <User className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="font-medium">
+                      {isUser ? 'Tú' : `Participante ${parseInt(speakerId) + 1}`}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      {stats.wordCount} palabras
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Warning if empty */}
         {segments.length === 0 && (

@@ -81,7 +81,7 @@ const DEFAULT_PARAMS: DeepgramUrlParams = {
   interimResults: true,
   endpointing: 300,
   vadEvents: true,
-  diarize: false,
+  diarize: true,
   smartFormat: false,
 };
 

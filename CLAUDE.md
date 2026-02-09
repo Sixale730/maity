@@ -197,6 +197,48 @@ Sistema de grabación y análisis de conversaciones del dispositivo Omi.
 - `/omi` - Lista de conversaciones con detalle expandible
 - `/stats` - Dashboard con sección de estadísticas Omi (todos los roles)
 
+## Web Recorder (Speaker Diarization)
+
+Grabadora web con diarización de speakers similar al dispositivo Omi.
+
+**Ubicación:** `src/features/web-recorder/`
+
+**Componentes:**
+- `RecordingContext` - Estado global: segments, speakerStats, primarySpeaker
+- `LiveTranscript` - Muestra transcripción en tiempo real con avatares por speaker
+- `SessionSummary` - Resumen con participantes detectados antes de guardar
+- `authenticatedWebSocket` - Conexión a Deepgram con `diarize: true`
+
+**Flujo de diarización:**
+```
+Mic → AudioCapture → Deepgram WS (diarize=true)
+                          ↓
+              words: [{ word, speaker }]
+                          ↓
+              handleTranscript() extrae speaker mayoritario
+                          ↓
+              speakerStats acumula palabras por speaker
+                          ↓
+              stopRecording() → determinePrimarySpeaker()
+                          ↓
+              saveRecording() → is_user = (speaker === primarySpeaker)
+```
+
+**Lógica de speaker primario:**
+- Al detener grabación, el speaker con más palabras = usuario principal
+- El nombre del usuario se obtiene de `maity.users.full_name`
+- Otros speakers se etiquetan como "Participante N"
+
+**UI de speakers:**
+- Avatar circular: emerald para usuario, gris para otros
+- Labels: "Tú" para usuario, "P1", "P2" para otros
+- TranscriptStats muestra conteo de participantes
+
+**Campos guardados en `omi_transcript_segments`:**
+- `speaker` - Nombre (usuario o "Participante N")
+- `speaker_id` - ID numérico del speaker de Deepgram
+- `is_user` - true si es el speaker principal
+
 ## Voice Evaluation System
 
 **Flow**: Frontend creates session → ElevenLabs conversation → `/api/evaluate-session` → OpenAI (gpt-4o-mini) → Save to DB

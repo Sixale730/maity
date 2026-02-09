@@ -80,6 +80,7 @@ function RecorderContent() {
     id: seg.id,
     text: seg.text,
     isFinal: seg.isFinal,
+    speaker: seg.speaker,
   }));
 
   // Calculate word count
@@ -97,6 +98,7 @@ function RecorderContent() {
           onSave={handleSave}
           onDiscard={handleDiscard}
           isSaving={state.status === 'saving'}
+          primarySpeaker={state.primarySpeaker}
         />
       </div>
     );
@@ -112,7 +114,7 @@ function RecorderContent() {
         <h1 className="font-semibold">Grabadora</h1>
         <div className="flex-1" />
         {state.status !== 'idle' && state.status !== 'initializing' && (
-          <TranscriptStats segments={displaySegments} />
+          <TranscriptStats segments={displaySegments} showSpeakerCount />
         )}
       </header>
 
@@ -176,6 +178,8 @@ function RecorderContent() {
             segments={displaySegments}
             interimText={state.interimText}
             maxHeight="200px"
+            primarySpeaker={state.primarySpeaker}
+            showSpeakers
           />
         </div>
       )}

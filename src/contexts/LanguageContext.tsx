@@ -285,6 +285,12 @@ const translations = {
     'nav.web_recorder': 'Grabadora Web',
     'nav.desc.web_recorder': 'Graba conversaciones desde el navegador',
 
+    // Web Recorder
+    'recorder.speaker_you': 'Tú',
+    'recorder.participants_detected': 'Participantes Detectados',
+    'recorder.participant': 'Participante',
+    'recorder.words': 'palabras',
+
     // Navigation - Section headers
     'nav.section.profile': 'Mi Perfil',
     'nav.section.profile_desc': 'Tu información personal',
@@ -843,6 +849,12 @@ const translations = {
     'nav.desc.omi_conversations': 'Omi recordings and analysis',
     'nav.web_recorder': 'Web Recorder',
     'nav.desc.web_recorder': 'Record conversations from your browser',
+
+    // Web Recorder
+    'recorder.speaker_you': 'You',
+    'recorder.participants_detected': 'Participants Detected',
+    'recorder.participant': 'Participant',
+    'recorder.words': 'words',
 
     // Navigation - Section headers
     'nav.section.profile': 'My Profile',

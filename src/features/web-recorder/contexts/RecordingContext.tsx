@@ -27,6 +27,10 @@ export interface TranscriptSegment {
   confidence: number;
 }
 
+export interface SpeakerStats {
+  [speakerId: number]: { wordCount: number; segmentCount: number };
+}
+
 export type RecordingStatus =
   | 'idle'
   | 'initializing'
@@ -48,6 +52,8 @@ export interface RecordingState {
   audioLevel: number;
   error: string | null;
   isSupported: boolean;
+  speakerStats: SpeakerStats;
+  primarySpeaker: number | null;
 }
 
 type RecordingAction =
@@ -60,7 +66,9 @@ type RecordingAction =
   | { type: 'SET_AUDIO_LEVEL'; level: number }
   | { type: 'SET_ERROR'; error: string }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'UPDATE_SPEAKER_STATS'; speakerId: number; wordCount: number }
+  | { type: 'SET_PRIMARY_SPEAKER'; speakerId: number };
 
 interface RecordingContextValue {
   state: RecordingState;
@@ -88,6 +96,8 @@ const initialState: RecordingState = {
   audioLevel: 0,
   error: null,
   isSupported: isAudioCaptureSupported(),
+  speakerStats: {},
+  primarySpeaker: null,
 };
 
 // ============================================================================
@@ -129,6 +139,23 @@ function recordingReducer(state: RecordingState, action: RecordingAction): Recor
 
     case 'RESET':
       return { ...initialState, isSupported: state.isSupported };
+
+    case 'UPDATE_SPEAKER_STATS': {
+      const existing = state.speakerStats[action.speakerId] || { wordCount: 0, segmentCount: 0 };
+      return {
+        ...state,
+        speakerStats: {
+          ...state.speakerStats,
+          [action.speakerId]: {
+            wordCount: existing.wordCount + action.wordCount,
+            segmentCount: existing.segmentCount + 1,
+          },
+        },
+      };
+    }
+
+    case 'SET_PRIMARY_SPEAKER':
+      return { ...state, primarySpeaker: action.speakerId };
 
     default:
       return state;
@@ -234,7 +261,12 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     return conversation.id;
   }, []);
 
-  const appendSegments = useCallback(async (conversationId: string, segments: TranscriptSegment[]) => {
+  const appendSegments = useCallback(async (
+    conversationId: string,
+    segments: TranscriptSegment[],
+    primarySpeaker: number | null,
+    userName: string
+  ) => {
     // Get max segment_index for this conversation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: maxResult } = await (supabase as any)
@@ -248,15 +280,25 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
     const startIndex = (maxResult?.segment_index ?? -1) + 1;
 
-    const segmentsToInsert = segments.map((s, i) => ({
-      conversation_id: conversationId,
-      segment_index: startIndex + i,
-      text: s.text,
-      speaker: 'Usuario',
-      is_user: true,
-      start_time: s.startTime,
-      end_time: s.endTime,
-    }));
+    const segmentsToInsert = segments.map((s, i) => {
+      const isUser = s.speaker === primarySpeaker;
+      const speakerLabel = isUser
+        ? userName
+        : s.speaker !== undefined
+          ? `Participante ${s.speaker + 1}`
+          : 'Desconocido';
+
+      return {
+        conversation_id: conversationId,
+        segment_index: startIndex + i,
+        text: s.text,
+        speaker: speakerLabel,
+        speaker_id: s.speaker,
+        is_user: isUser,
+        start_time: s.startTime,
+        end_time: s.endTime,
+      };
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any)
@@ -325,6 +367,30 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
 
       const isFinal = parsed.is_final && parsed.speech_final;
 
+      // Extract speaker from words array (Deepgram diarization)
+      // Each word has { word, start, end, speaker }
+      const words = alternative?.words || [];
+      let speaker: number | undefined;
+
+      if (words.length > 0) {
+        // Count speakers in this segment to find the majority speaker
+        const speakerCounts: Record<number, number> = {};
+        for (const word of words) {
+          if (typeof word.speaker === 'number') {
+            speakerCounts[word.speaker] = (speakerCounts[word.speaker] || 0) + 1;
+          }
+        }
+
+        // Find the speaker with the most words in this segment
+        let maxCount = 0;
+        for (const [spk, count] of Object.entries(speakerCounts)) {
+          if (count > maxCount) {
+            maxCount = count;
+            speaker = parseInt(spk);
+          }
+        }
+      }
+
       if (isFinal) {
         const segment: TranscriptSegment = {
           id: `seg-${segmentCounter.current++}`,
@@ -332,9 +398,16 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
           isFinal: true,
           startTime: parsed.start || 0,
           endTime: (parsed.start || 0) + (parsed.duration || 0),
+          speaker,
           confidence: alternative?.confidence || 0,
         };
         dispatch({ type: 'ADD_SEGMENT', segment });
+
+        // Update speaker stats
+        if (typeof speaker === 'number') {
+          const wordCount = words.length;
+          dispatch({ type: 'UPDATE_SPEAKER_STATS', speakerId: speaker, wordCount });
+        }
       } else {
         dispatch({ type: 'UPDATE_INTERIM', text: transcript });
       }
@@ -457,6 +530,21 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_STATUS', status: 'recording' });
   }, [state.status, startTimer]);
 
+  // Determine primary speaker based on word count
+  const determinePrimarySpeaker = useCallback((stats: SpeakerStats): number => {
+    let primarySpeaker = 0;
+    let maxWords = 0;
+
+    for (const [speakerId, data] of Object.entries(stats)) {
+      if (data.wordCount > maxWords) {
+        maxWords = data.wordCount;
+        primarySpeaker = parseInt(speakerId);
+      }
+    }
+
+    return primarySpeaker;
+  }, []);
+
   const stopRecording = useCallback(async () => {
     if (state.status !== 'recording' && state.status !== 'paused') return;
 
@@ -474,8 +562,12 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       websocket.current = null;
     }
 
+    // Determine primary speaker (user with most words)
+    const primary = determinePrimarySpeaker(state.speakerStats);
+    dispatch({ type: 'SET_PRIMARY_SPEAKER', speakerId: primary });
+
     dispatch({ type: 'SET_AUDIO_LEVEL', level: 0 });
-  }, [state.status, stopTimer]);
+  }, [state.status, state.speakerStats, stopTimer, determinePrimarySpeaker]);
 
   const saveRecording = useCallback(async () => {
     if (!state.conversationId) {
@@ -485,9 +577,31 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
     dispatch({ type: 'SET_STATUS', status: 'saving' });
 
     try {
-      // Append remaining segments (uses Supabase directly)
+      // Get current user's name
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      let userName = 'Usuario';
+
+      if (authUser) {
+        const { data: profile } = await supabase
+          .schema('maity')
+          .from('users')
+          .select('full_name')
+          .eq('auth_id', authUser.id)
+          .single();
+
+        if (profile?.full_name) {
+          userName = profile.full_name;
+        }
+      }
+
+      // Append remaining segments with speaker info
       if (state.segments.length > 0) {
-        await appendSegments(state.conversationId, state.segments);
+        await appendSegments(
+          state.conversationId,
+          state.segments,
+          state.primarySpeaker,
+          userName
+        );
       }
 
       // Finalize conversation (requires API for OpenAI processing)
@@ -510,7 +624,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
       dispatch({ type: 'SET_ERROR', error: message });
       throw error;
     }
-  }, [state.conversationId, state.segments, state.durationSeconds, state.pausedDuration, appendSegments, finalizeConversation]);
+  }, [state.conversationId, state.segments, state.durationSeconds, state.pausedDuration, state.primarySpeaker, appendSegments, finalizeConversation]);
 
   const reset = useCallback(() => {
     stopTimer();
