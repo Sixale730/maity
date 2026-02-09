@@ -217,7 +217,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     duration_ms: duration,
   });
 
-  return res.status(200).json({
+  res.status(200).json({
     ok: true,
     conversation_id: body.conversation_id,
     processing_time_ms: duration,
