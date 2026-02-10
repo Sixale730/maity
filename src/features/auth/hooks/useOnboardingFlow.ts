@@ -3,7 +3,7 @@
  * Manages the multi-step onboarding flow state (Avatar -> Questionnaire)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { UpdateAvatarInput } from '@maity/shared';
 
 export type OnboardingStep = 0 | 1 | 2; // 0=avatar, 1=instructions, 2=questionnaire
@@ -34,23 +34,24 @@ const DEFAULT_STATE: OnboardingState = {
 };
 
 export function useOnboardingFlow({ userId }: UseOnboardingFlowProps): UseOnboardingFlowReturn {
-  const [state, setState] = useState<OnboardingState>(DEFAULT_STATE);
-
-  // Load saved state on mount
-  useEffect(() => {
-    if (!userId) return;
-
+  // Synchronous lazy initializer — reads localStorage on first render
+  // to avoid the flash/race condition with AnimatePresence mode="wait"
+  const [state, setState] = useState<OnboardingState>(() => {
+    if (!userId) return DEFAULT_STATE;
     try {
       const saved = localStorage.getItem(STORAGE_KEY(userId));
       if (saved) {
         const parsed = JSON.parse(saved) as OnboardingState;
-        console.log('[useOnboardingFlow] Loaded saved state:', parsed);
-        setState(parsed);
+        if ([0, 1, 2].includes(parsed.currentStep)) {
+          console.log('[useOnboardingFlow] Loaded saved state:', parsed);
+          return parsed;
+        }
       }
     } catch (error) {
       console.error('[useOnboardingFlow] Error loading saved state:', error);
     }
-  }, [userId]);
+    return DEFAULT_STATE;
+  });
 
   // Save state changes
   const saveState = useCallback(
