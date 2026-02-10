@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { GitHubRelease, GitHubAsset, OperatingSystem } from '../types/desktop-download.types';
 
-const GITHUB_API_URL = 'https://api.github.com/repos/ponchovillalobos/maity-desktop/releases/latest';
+const GITHUB_API_URL = 'https://api.github.com/repos/Sixale730/maity_desktop/releases/latest';
 
 export function detectOS(): OperatingSystem {
   const userAgent = navigator.userAgent.toLowerCase();
