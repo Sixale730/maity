@@ -4,12 +4,20 @@ import { useGamifiedDashboardDataV2 } from '../../hooks/useGamifiedDashboardData
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
 import { RadarChart } from './RadarChart';
+import { ProgressChartsSection } from './ProgressChartsSection';
+import {
+  AreaChart, Area, ResponsiveContainer, YAxis,
+} from 'recharts';
 import {
   Zap, Flame, Map, ArrowRight, ChevronRight,
   Activity, Trophy, Crown, Lock, Swords,
-  TrendingUp, TrendingDown, Target, Medal,
-  Gamepad2, Clock, Play
+  TrendingUp, TrendingDown, Target, Medal
 } from 'lucide-react';
+
+// Sparkline data for global score evolution (shown subtly in mission card)
+const SCORE_SPARKLINE = [
+  { v: 38 }, { v: 42 }, { v: 47 }, { v: 45 }, { v: 50 }, { v: 55 },
+];
 
 // ============================================================================
 // REUSABLE COMPONENTS
@@ -83,30 +91,30 @@ const ProgressBar = ({ value, max = 100, color = '#485df4', height = 'h-2', glow
   </div>
 );
 
-// Badge Component - Compact inline style
-const Badge = ({ icon, name, unlocked, color, xp }: {
+// Badge Component - Monochrome elegant style
+const Badge = ({ icon, name, unlocked, xp }: {
   icon: string;
   name: string;
   unlocked: boolean;
-  color: string;
+  color?: string;
   xp?: number;
 }) => (
   <div
     className={`group flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
       unlocked
         ? 'bg-[#1a1a2e] hover:bg-[#252536] cursor-pointer border border-white/5'
-        : 'bg-[#0a0a12] opacity-50 border border-white/5'
+        : 'bg-[#0a0a12] opacity-40 border border-white/5'
     }`}
     title={`${name}${xp ? ` • ${xp} XP` : ''}`}
   >
     <span className={`text-lg ${!unlocked && 'grayscale opacity-50'}`}>
       {unlocked ? icon : '🔒'}
     </span>
-    <span className={`text-xs font-medium whitespace-nowrap ${unlocked ? 'text-white' : 'text-gray-600'}`}>
+    <span className={`text-xs font-medium whitespace-nowrap ${unlocked ? 'text-gray-300' : 'text-gray-600'}`}>
       {name}
     </span>
     {unlocked && (
-      <span className="text-[10px] text-green-400">✓</span>
+      <span className="text-[10px] text-gray-500">✓</span>
     )}
   </div>
 );
@@ -217,6 +225,30 @@ export function GamifiedDashboardV2() {
               className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-700"
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80')" }}
             />
+
+            {/* Sparkline overlay — subtle score evolution behind content */}
+            <div className="absolute inset-0 z-[11] flex items-end pointer-events-none opacity-[0.12]">
+              <div className="w-full h-[60%]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={SCORE_SPARKLINE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <YAxis domain={[0, 100]} hide />
+                    <defs>
+                      <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff0050" stopOpacity={0.5} />
+                        <stop offset="100%" stopColor="#ff0050" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="v"
+                      stroke="#ff0050"
+                      strokeWidth={2}
+                      fill="url(#sparklineGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
             {/* Content */}
             <div className="relative z-20 p-6 lg:p-8 flex-1">
@@ -360,18 +392,19 @@ export function GamifiedDashboardV2() {
       </div>
 
       {/* ================================================================== */}
-      {/* BADGES SECTION */}
+      {/* BADGES + TREND ALERTS (merged) */}
       {/* ================================================================== */}
       <Card className="p-5 bg-[#0F0F0F] border border-white/10 mb-6">
-        <div className="flex justify-between items-center mb-4">
+        {/* Badges */}
+        <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-white flex items-center gap-2">
-            <Trophy size={18} className="text-yellow-500" /> Insignias
+            <Trophy size={18} className="text-yellow-500" /> Logros y Tendencias
           </h3>
           <span className="text-xs text-gray-500">
             {data.badges.filter(b => b.unlocked).length} / {data.badges.length} desbloqueadas
           </span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           {data.badges.map((badge) => (
             <Badge
               key={badge.id}
@@ -383,147 +416,20 @@ export function GamifiedDashboardV2() {
             />
           ))}
         </div>
-      </Card>
 
-      {/* ================================================================== */}
-      {/* SKILLS ARENA PREVIEW */}
-      {/* ================================================================== */}
-      <Card className="p-5 bg-[#0F0F0F] border border-white/10 mb-6 overflow-hidden relative group">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -translate-y-32 translate-x-32 group-hover:scale-110 transition-transform duration-500" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-full translate-y-24 -translate-x-24 group-hover:scale-110 transition-transform duration-500" />
-
-        <div className="relative z-10">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
-                <Gamepad2 size={22} className="text-purple-400" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Arena de Habilidades</h3>
-                <p className="text-xs text-gray-500">Tests y juegos para crecer</p>
-              </div>
+        {/* Trend Alerts (compact inline, uniform style) */}
+        <div className="border-t border-white/5 pt-3 space-y-1.5">
+          {[
+            { icon: '🏆', text: 'Claridad cruzó de zona roja a amarilla (+18 pts)' },
+            { icon: '📈', text: 'Mejora notable en Objetivo (+13 pts)' },
+            { icon: '⚠️', text: 'Estructura estancada en zona roja (28→38)' },
+            { icon: '📈', text: 'Muletillas bajando: 3.9 → 2.8/min (−28%)' },
+          ].map((alert, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <span className="text-base flex-shrink-0">{alert.icon}</span>
+              <span className="text-xs text-gray-400">{alert.text}</span>
             </div>
-            <button
-              onClick={() => navigate('/skills-arena')}
-              className="flex items-center gap-2 text-sm text-purple-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-500/10"
-            >
-              Ver todo <ArrowRight size={16} />
-            </button>
-          </div>
-
-          {/* Tests Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Test 1: Marca Personal */}
-            <div
-              onClick={() => navigate('/skills-arena')}
-              className="group/card p-4 rounded-xl bg-[#141418] hover:bg-[#1a1a22] border border-transparent hover:border-purple-500/30 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#9b4dca]/20 flex items-center justify-center text-2xl group-hover/card:scale-110 transition-transform">
-                  🎭
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-white text-sm mb-1">Marca Personal</h4>
-                  <p className="text-xs text-gray-500 line-clamp-1">Descubre tu esencia única</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                    <Clock size={10} /> 5 min
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-500/20 text-green-400">
-                    FÁCIL
-                  </span>
-                </div>
-                <span className="flex items-center gap-1 text-xs text-yellow-400 font-bold">
-                  <Zap size={12} /> +100 XP
-                </span>
-              </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-purple-400 group-hover/card:text-white transition-colors">
-                <Play size={14} className="fill-current" /> Comenzar test
-              </div>
-            </div>
-
-            {/* Test 2: Rueda de la Vida */}
-            <div
-              onClick={() => navigate('/skills-arena')}
-              className="group/card p-4 rounded-xl bg-[#141418] hover:bg-[#1a1a22] border border-transparent hover:border-green-500/30 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/10"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#1bea9a]/20 flex items-center justify-center text-2xl group-hover/card:scale-110 transition-transform">
-                  🎡
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-white text-sm mb-1">Rueda de la Vida</h4>
-                  <p className="text-xs text-gray-500 line-clamp-1">Equilibra todas tus áreas</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                    <Clock size={10} /> 10 min
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/20 text-yellow-400">
-                    MEDIO
-                  </span>
-                </div>
-                <span className="flex items-center gap-1 text-xs text-yellow-400 font-bold">
-                  <Zap size={12} /> +150 XP
-                </span>
-              </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-green-400 group-hover/card:text-white transition-colors">
-                <Play size={14} className="fill-current" /> Comenzar test
-              </div>
-            </div>
-
-            {/* Test 3: Escucha Activa */}
-            <div
-              onClick={() => navigate('/skills-arena')}
-              className="group/card p-4 rounded-xl bg-[#141418] hover:bg-[#1a1a22] border border-transparent hover:border-blue-500/30 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#485df4]/20 flex items-center justify-center text-2xl group-hover/card:scale-110 transition-transform">
-                  👂
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-white text-sm mb-1">Escucha Activa</h4>
-                  <p className="text-xs text-gray-500 line-clamp-1">Mejora tu comunicación</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                    <Clock size={10} /> 8 min
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/20 text-yellow-400">
-                    MEDIO
-                  </span>
-                </div>
-                <span className="flex items-center gap-1 text-xs text-yellow-400 font-bold">
-                  <Zap size={12} /> +120 XP
-                </span>
-              </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-blue-400 group-hover/card:text-white transition-colors">
-                <Play size={14} className="fill-current" /> Comenzar test
-              </div>
-            </div>
-          </div>
-
-          {/* CTA Button */}
-          <div className="mt-5 text-center">
-            <Button
-              onClick={() => navigate('/skills-arena')}
-              variant="outline"
-              className="bg-transparent border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-white hover:border-purple-500/50 px-6"
-            >
-              <Gamepad2 size={16} className="mr-2" />
-              Explorar Arena de Habilidades
-              <ArrowRight size={16} className="ml-2" />
-            </Button>
-          </div>
+          ))}
         </div>
       </Card>
 
@@ -558,13 +464,9 @@ export function GamifiedDashboardV2() {
                       {/* Emoji + Score */}
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-xl">{conv.emoji}</span>
-                        <div className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                          conv.score >= 80 ? 'bg-green-500/20 text-green-400' :
-                          conv.score >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
+                        <span className="text-xs font-bold text-gray-400">
                           {conv.score}
-                        </div>
+                        </span>
                       </div>
 
                       {/* Content */}
@@ -572,7 +474,7 @@ export function GamifiedDashboardV2() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-white font-medium text-sm truncate">{conv.title}</span>
                           {conv.topSkill && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded whitespace-nowrap">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-white/5 text-gray-500 rounded whitespace-nowrap">
                               {conv.topSkill}
                             </span>
                           )}
@@ -611,24 +513,19 @@ export function GamifiedDashboardV2() {
                 key={i}
                 className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
                   entry.isCurrentUser
-                    ? 'bg-gradient-to-r from-pink-500/20 to-blue-500/20 border border-pink-500/30'
+                    ? 'bg-white/[0.06] border border-white/10'
                     : 'bg-[#141418] hover:bg-[#1a1a22]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {/* Position */}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    entry.position === 1 ? 'bg-yellow-500/20 text-yellow-500' :
-                    entry.position === 2 ? 'bg-gray-400/20 text-gray-400' :
-                    entry.position === 3 ? 'bg-orange-600/20 text-orange-500' :
-                    'bg-[#1a1a2e] text-gray-500'
-                  }`}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[#1a1a2e] text-gray-500">
                     {entry.position <= 3 ? (
                       entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : '🥉'
                     ) : entry.position}
                   </div>
-                  <span className={`font-medium text-sm ${entry.isCurrentUser ? 'text-pink-400' : 'text-white'}`}>
-                    {entry.name} {entry.isCurrentUser && '⭐'}
+                  <span className={`font-medium text-sm ${entry.isCurrentUser ? 'text-white' : 'text-gray-300'}`}>
+                    {entry.name}
                   </span>
                 </div>
                 <span className="text-xs text-gray-400 font-mono">
@@ -639,6 +536,11 @@ export function GamifiedDashboardV2() {
           </div>
         </Card>
       </div>
+
+      {/* ================================================================== */}
+      {/* PROGRESS CHARTS (new section from prototype) */}
+      {/* ================================================================== */}
+      <ProgressChartsSection />
     </div>
   );
 }
