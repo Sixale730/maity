@@ -22,3 +22,4 @@ export { default as TeamDashboard } from './components/dashboards/TeamDashboard'
 export { UserDashboard } from './components/dashboards/UserDashboard';
 export { GamifiedDashboard } from './components/gamified/GamifiedDashboard';
 export { GamifiedDashboardV2 } from './components/gamified-v2';
+export { TeamDashboardV2 } from './components/team-dashboard-v2';

@@ -30,6 +30,7 @@ import {
   Gamepad2,
   BookOpen,
   Bug,
+  LayoutDashboard,
 } from 'lucide-react';
 import { NavigationItem } from '../types/navigation.types';
 
@@ -232,6 +233,16 @@ export const adminNavigationItems: NavigationItem[] = [
     roles: ['admin', 'manager', 'user'],
     group: 'profile',
     order: 1,
+  },
+  {
+    id: 'team-dashboard',
+    titleKey: 'nav.team_dashboard',
+    descriptionKey: 'nav.desc.team_dashboard',
+    url: '/team-dashboard',
+    icon: LayoutDashboard,
+    roles: ['admin', 'manager'],
+    group: 'team',
+    order: 2,
   },
   {
     id: 'coach',

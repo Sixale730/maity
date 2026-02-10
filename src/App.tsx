@@ -26,6 +26,7 @@ const LevelsIntroPage = lazy(() => import("./features/levels").then(m => ({ defa
 const DashboardPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.DashboardPage })));
 const GamifiedDashboard = lazy(() => import("./features/dashboard").then(m => ({ default: m.GamifiedDashboard })));
 const GamifiedDashboardV2 = lazy(() => import("./features/dashboard").then(m => ({ default: m.GamifiedDashboardV2 })));
+const TeamDashboardV2 = lazy(() => import("./features/dashboard").then(m => ({ default: m.TeamDashboardV2 })));
 const MyProgressPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.MyProgressPage })));
 const AdminAnalyticsPage = lazy(() => import("./features/analytics").then(m => ({ default: m.AnalyticsPage })));
 const ReportsPage = lazy(() => import("./features/dashboard").then(m => ({ default: m.ReportsPage })));
@@ -178,6 +179,7 @@ const App = () => (
                         {/* Gamified Dashboard (Admin Only) */}
                         <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboard /></AdminRoute>} />
                         <Route path="/gamified-dashboard-v2" element={<AdminRoute><GamifiedDashboardV2 /></AdminRoute>} />
+                        <Route path="/team-dashboard" element={<AdminRoute><TeamDashboardV2 /></AdminRoute>} />
 
                         {/* Web Recorder */}
                         <Route path="/recorder" element={<RecorderLandingPage />} />
