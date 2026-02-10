@@ -27,13 +27,13 @@ const Pending = () => {
               company_name: result.company_name,
               domain: result.domain
             });
-            // Autojoin successful - redirect to dashboard
-            navigate('/dashboard', { replace: true });
+            // Autojoin successful - redirect to gamified dashboard v2
+            navigate('/gamified-dashboard-v2', { replace: true });
             return;
           } else if (AutojoinService.userAlreadyHasCompany(result)) {
             console.log('[Pending] User already has company, redirecting to dashboard...');
-            // User already has company - redirect to dashboard
-            navigate('/dashboard', { replace: true });
+            // User already has company - redirect to gamified dashboard v2
+            navigate('/gamified-dashboard-v2', { replace: true });
             return;
           } else if (AutojoinService.noMatchingDomain(result)) {
             console.log('[Pending] No matching domain for autojoin - showing pending page');

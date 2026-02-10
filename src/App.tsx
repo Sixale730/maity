@@ -182,7 +182,7 @@ const App = () => (
 
                         {/* Gamified Dashboard (Admin Only) */}
                         <Route path="/gamified-dashboard" element={<AdminRoute><GamifiedDashboard /></AdminRoute>} />
-                        <Route path="/gamified-dashboard-v2" element={<AdminRoute><GamifiedDashboardV2 /></AdminRoute>} />
+                        <Route path="/gamified-dashboard-v2" element={<GamifiedDashboardV2 />} />
                         <Route path="/team-dashboard" element={<AdminRoute><TeamDashboardV2 /></AdminRoute>} />
 
                         {/* Web Recorder */}

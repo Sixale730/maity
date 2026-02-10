@@ -13,7 +13,7 @@ export function LevelsIntroPage() {
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    navigate('/dashboard');
+    navigate('/gamified-dashboard-v2');
   };
 
   return (

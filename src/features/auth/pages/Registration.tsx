@@ -66,8 +66,8 @@ const Registration: React.FC = () => {
 
       // Already completed registration? -> Dashboard
       if (userStatus.registration_form_completed) {
-        console.log('[Registration] User already completed registration, redirecting to dashboard');
-        navigate('/dashboard', { replace: true });
+        console.log('[Registration] User already completed registration, redirecting to gamified dashboard v2');
+        navigate('/gamified-dashboard-v2', { replace: true });
         return;
       }
 
@@ -119,12 +119,12 @@ const Registration: React.FC = () => {
       // Set flag so ProtectedRoute grants immediate access (safety net for RPC lag)
       sessionStorage.setItem('registration_just_completed', 'true');
 
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true });
+      // Navigate to gamified dashboard v2
+      navigate('/gamified-dashboard-v2', { replace: true });
     } catch (error) {
       console.error('[Registration] Error invalidating queries:', error);
       // Even on error, navigate to dashboard (user completed form successfully)
-      navigate('/dashboard', { replace: true });
+      navigate('/gamified-dashboard-v2', { replace: true });
     }
   };
 

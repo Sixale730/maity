@@ -185,7 +185,7 @@ export class AuthService {
       console.log('[AuthService.handlePostLogin] User ensured successfully');
 
       const result: PostLoginResult = {
-        destination: '/dashboard', // Default destination
+        destination: '/gamified-dashboard-v2', // Default destination
       };
 
       // Step 3: Attempt domain-based autojoin BEFORE checking invite cookie
@@ -227,8 +227,8 @@ export class AuthService {
         if (roles && Array.isArray(roles)) {
           // If user has admin or manager role, go directly to dashboard
           if (roles.includes('admin') || roles.includes('manager')) {
-            console.log('[AuthService.handlePostLogin] User has admin/manager role - redirecting to dashboard');
-            result.destination = '/dashboard';
+            console.log('[AuthService.handlePostLogin] User has admin/manager role - redirecting to gamified dashboard v2');
+            result.destination = '/gamified-dashboard-v2';
             return result;
           }
           console.log('[AuthService.handlePostLogin] User does not have admin/manager role, continuing to phase check');
@@ -254,8 +254,8 @@ export class AuthService {
 
       // Otherwise, redirect based on phase
       if (phase === 'ACTIVE') {
-        console.log('[AuthService.handlePostLogin] User is ACTIVE - redirecting to dashboard');
-        result.destination = '/dashboard';
+        console.log('[AuthService.handlePostLogin] User is ACTIVE - redirecting to gamified dashboard v2');
+        result.destination = '/gamified-dashboard-v2';
       } else if (phase === 'REGISTRATION') {
         console.log('[AuthService.handlePostLogin] User needs REGISTRATION - redirecting to registration');
         result.destination = '/registration';

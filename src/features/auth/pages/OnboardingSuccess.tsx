@@ -68,9 +68,9 @@ const OnboardingSuccess = () => {
         description: "Tu perfil ha sido configurado exitosamente",
       });
 
-      // Redirect to dashboard after 3 seconds
+      // Redirect to gamified dashboard v2 after 3 seconds
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/gamified-dashboard-v2');
       }, 3000);
 
     } catch (error) {
@@ -109,7 +109,7 @@ const OnboardingSuccess = () => {
             <Button onClick={() => navigate('/onboarding')} className="w-full">
               Volver al Onboarding
             </Button>
-            <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full">
+            <Button variant="outline" onClick={() => navigate('/gamified-dashboard-v2')} className="w-full">
               Ir al Dashboard
             </Button>
           </CardContent>
@@ -129,7 +129,7 @@ const OnboardingSuccess = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={() => navigate('/dashboard')} className="w-full">
+          <Button onClick={() => navigate('/gamified-dashboard-v2')} className="w-full">
             Ir al Dashboard Ahora
           </Button>
           <div className="text-center text-sm text-muted-foreground">

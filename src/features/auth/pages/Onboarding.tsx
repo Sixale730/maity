@@ -49,7 +49,7 @@ const Onboarding = () => {
       const statusData = await AuthService.getMyStatus();
 
       if (statusData?.[0]?.registration_form_completed) {
-        navigate('/dashboard');
+        navigate('/gamified-dashboard-v2');
         return;
       }
 
@@ -135,7 +135,7 @@ const Onboarding = () => {
       });
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/gamified-dashboard-v2');
       }, 2000);
     } catch (error) {
       console.error('Error completing onboarding:', error);

@@ -23,7 +23,7 @@ export default function AuthCallback() {
     if (processing) {
       console.warn("[AuthCb] OAuth already processing in another tab/execution, redirecting to dashboard");
       localStorage.removeItem('oauth_processing');
-      navigate('/dashboard', { replace: true });
+      navigate('/gamified-dashboard-v2', { replace: true });
       return;
     }
 
