@@ -138,6 +138,28 @@ La plataforma usa un sistema de navegación dual: sidebar permanente (shadcn/ui)
 | **Hero Journey** | `src/features/hero-journey/` | `/hero-journey` | Mountain roadmap editor, JourneyMap, JourneyEditor |
 | **SVG Converter** | `src/features/svg-converter/` | `/admin/svg-converter` | ImageUploader, ConversionPreview, SVGGallery |
 | **Gamified Dashboard** | `src/features/dashboard/components/gamified/` | `/gamified-dashboard` | GamifiedDashboard, MountainMap, MetricsPanel, InfoPanel |
+| **Skills Arena** | `src/features/skills-arena/` | `/skills-arena` | SkillsArenaPage, TestCard, tests-catalog |
+| **Wheel of Life** | `src/features/wheel-of-life/` | `/skills-arena/rueda-de-la-vida` | WheelOfLifePage, WheelRadarChart, useWheelOfLife |
+
+## Game Sessions & XP System
+
+Sistema unificado de juegos con tabla `maity.game_sessions` (JSONB flexible por `game_type`) y ledger de XP (`maity.xp_transactions`).
+
+**Tablas:** `maity.game_sessions`, `maity.xp_transactions`, `maity.users.total_xp`
+
+**RPCs:** `complete_game_session`, `get_my_game_sessions`, `get_my_xp_summary`
+
+**Domain Layer:** `packages/shared/src/domain/games/`
+- `GameService` - CRUD sessions, XP queries, wheel calculations, localStorage progress
+- `useWheelOfLife` - Hook wizard: intro → assessment (12 areas) → review → results
+- `useGameSessions` / `useXPSummary` - React Query wrappers
+
+**XP Amounts (Wheel of Life):** Base 150 + Bonus 25 (score>=90) + First attempt 30 = Max 205
+
+**Wheel of Life Flow:**
+1. Skills Arena → click card → `/skills-arena/rueda-de-la-vida`
+2. Intro → 12 areas one-by-one (slider actual/deseado + reason) → Review → Submit
+3. Results: radar chart, strengths, weaknesses, gaps, recommendations, XP earned
 
 ## Gamified Dashboard
 

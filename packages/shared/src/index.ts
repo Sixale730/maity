@@ -123,6 +123,14 @@ export { HeroJourneyService } from './domain/hero-journey/hero-journey.service';
 export * from './domain/hero-journey/hero-journey.types';
 export * from './domain/hero-journey/hooks/useHeroJourney';
 
+// ===== Domain: Games & XP =====
+export { GameService } from './domain/games/games.service';
+export * from './domain/games/games.types';
+export * from './domain/games/wheel-of-life.types';
+export { WHEEL_AREAS } from './domain/games/wheel-areas-data';
+export { useWheelOfLife } from './domain/games/hooks/useWheelOfLife';
+export { useGameSessions, useXPSummary } from './domain/games/hooks/useGameSessions';
+
 // ===== Domain: SVG Assets =====
 export { SVGAssetsService } from './domain/svg-assets/svg-assets.service';
 export * from './domain/svg-assets/svg-assets.types';

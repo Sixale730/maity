@@ -1,0 +1,88 @@
+import type { WheelAreaMeta } from './wheel-of-life.types';
+
+export const WHEEL_AREAS: WheelAreaMeta[] = [
+  {
+    id: 'trabajo',
+    labelKey: 'wheel_of_life.area.trabajo',
+    icon: '💼',
+    color: '#485df4',
+    descriptionKey: 'wheel_of_life.area_desc.trabajo',
+  },
+  {
+    id: 'dinero',
+    labelKey: 'wheel_of_life.area.dinero',
+    icon: '💰',
+    color: '#1bea9a',
+    descriptionKey: 'wheel_of_life.area_desc.dinero',
+  },
+  {
+    id: 'salud',
+    labelKey: 'wheel_of_life.area.salud',
+    icon: '🏥',
+    color: '#ef4444',
+    descriptionKey: 'wheel_of_life.area_desc.salud',
+  },
+  {
+    id: 'amor',
+    labelKey: 'wheel_of_life.area.amor',
+    icon: '❤️',
+    color: '#ec4899',
+    descriptionKey: 'wheel_of_life.area_desc.amor',
+  },
+  {
+    id: 'crecimiento_personal',
+    labelKey: 'wheel_of_life.area.crecimiento_personal',
+    icon: '🌱',
+    color: '#22c55e',
+    descriptionKey: 'wheel_of_life.area_desc.crecimiento_personal',
+  },
+  {
+    id: 'diversion',
+    labelKey: 'wheel_of_life.area.diversion',
+    icon: '🎉',
+    color: '#ffd93d',
+    descriptionKey: 'wheel_of_life.area_desc.diversion',
+  },
+  {
+    id: 'entorno_fisico',
+    labelKey: 'wheel_of_life.area.entorno_fisico',
+    icon: '🏠',
+    color: '#ff8c42',
+    descriptionKey: 'wheel_of_life.area_desc.entorno_fisico',
+  },
+  {
+    id: 'espiritualidad',
+    labelKey: 'wheel_of_life.area.espiritualidad',
+    icon: '🧘',
+    color: '#9b4dca',
+    descriptionKey: 'wheel_of_life.area_desc.espiritualidad',
+  },
+  {
+    id: 'amigos',
+    labelKey: 'wheel_of_life.area.amigos',
+    icon: '👥',
+    color: '#06b6d4',
+    descriptionKey: 'wheel_of_life.area_desc.amigos',
+  },
+  {
+    id: 'familia',
+    labelKey: 'wheel_of_life.area.familia',
+    icon: '👨‍👩‍👧‍👦',
+    color: '#f97316',
+    descriptionKey: 'wheel_of_life.area_desc.familia',
+  },
+  {
+    id: 'alimentacion',
+    labelKey: 'wheel_of_life.area.alimentacion',
+    icon: '🥗',
+    color: '#84cc16',
+    descriptionKey: 'wheel_of_life.area_desc.alimentacion',
+  },
+  {
+    id: 'ejercicio_fisico',
+    labelKey: 'wheel_of_life.area.ejercicio_fisico',
+    icon: '🏃',
+    color: '#00f5d4',
+    descriptionKey: 'wheel_of_life.area_desc.ejercicio_fisico',
+  },
+];

@@ -1,10 +1,13 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** February 10, 2026
-**Version:** 2.8
+**Last Updated:** February 11, 2026
+**Version:** 2.9
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.game_sessions` and `maity.xp_transactions` tables for game/XP tracking (v2.9)
+- Added `maity.users.total_xp` column for accumulated XP (v2.9)
+- Added `complete_game_session`, `get_my_game_sessions`, `get_my_xp_summary` RPC functions (v2.9)
 - Fixed `public.my_phase()` registration priority: `registration_form_completed=TRUE → ACTIVE` now takes priority over `company_id IS NULL`, preventing infinite REGISTRATION loop for users without company (v2.8)
 - Updated `public.my_phase()` to bypass pending invitation flow - users without company now go to REGISTRATION instead of NO_COMPANY (v2.7)
 - Added `maity.web_recorder_logs` table for persisting debug logs from web recorder sessions (v2.6)
@@ -3890,6 +3893,78 @@ export function YourComponent() {
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
+
+---
+
+## Game Sessions & XP System (v2.9)
+
+### Table: `maity.game_sessions`
+
+Unified game session tracking with JSONB for flexible per-game data.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid PK | Session ID |
+| user_id | uuid FK → users(id) | Owner |
+| game_type | text | Discriminator: 'wheel_of_life', 'personal_brand', etc. |
+| status | text | 'in_progress', 'completed', 'abandoned' |
+| game_data | jsonb | Raw game responses (shape varies by game_type) |
+| results | jsonb | Computed analysis (shape varies by game_type) |
+| score | numeric | Normalized score 0-100 |
+| xp_earned | integer | XP awarded for this session |
+| started_at | timestamptz | When session was created |
+| completed_at | timestamptz | When session was completed |
+| created_at | timestamptz | Row creation time |
+| updated_at | timestamptz | Last update time |
+
+**RLS Policies:**
+- `game_sessions_select_own` - Users SELECT own sessions
+- `game_sessions_insert_own` - Users INSERT own sessions
+- `game_sessions_update_own` - Users UPDATE own sessions
+- `game_sessions_admin_select` - Admins SELECT all
+
+### Table: `maity.xp_transactions`
+
+XP transaction ledger for all XP sources.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid PK | Transaction ID |
+| user_id | uuid FK → users(id) | Owner |
+| source_type | text | 'game', 'conversation', 'streak', 'badge', 'bonus' |
+| source_id | uuid | FK to source record (game_sessions.id, etc.) |
+| amount | integer | XP amount (> 0) |
+| description | text | Human-readable description |
+| metadata | jsonb | Extra data (game_type, is_first_attempt, etc.) |
+| created_at | timestamptz | Transaction time |
+
+**RLS Policies:**
+- `xp_transactions_select_own` - Users SELECT own transactions
+- `xp_transactions_admin_select` - Admins SELECT all
+- Inserts only via RPC (SECURITY DEFINER)
+
+### Column: `maity.users.total_xp`
+
+| Column | Type | Default | Description |
+|--------|------|---------|-------------|
+| total_xp | integer | 0 | Accumulated XP from all sources |
+
+### RPC: `public.complete_game_session(p_session_id, p_results, p_score, p_xp_amount, p_description)`
+
+Atomically completes a game session:
+1. Verifies ownership via auth.uid() JOIN maity.users
+2. Updates game_sessions (status='completed', results, score, xp_earned)
+3. Inserts xp_transactions
+4. Increments users.total_xp
+5. Returns `{success, xp_earned, is_first_attempt, total_xp}`
+
+### RPC: `public.get_my_game_sessions(p_game_type, p_limit)`
+
+Returns current user's game sessions, optionally filtered by game_type.
+
+### RPC: `public.get_my_xp_summary()`
+
+Returns current user's XP summary: total_xp, breakdown by source_type, recent transactions.
 
 ---
 
