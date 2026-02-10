@@ -116,8 +116,11 @@ const Registration: React.FC = () => {
         description: 'Tu perfil y autoevaluación han sido guardados exitosamente.',
       });
 
-      // Navigate to levels intro page
-      navigate('/levels-intro', { replace: true });
+      // Set flag so ProtectedRoute grants immediate access (safety net for RPC lag)
+      sessionStorage.setItem('registration_just_completed', 'true');
+
+      // Navigate to dashboard
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('[Registration] Error invalidating queries:', error);
       // Even on error, navigate to dashboard (user completed form successfully)

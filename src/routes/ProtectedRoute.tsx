@@ -43,6 +43,15 @@ const ProtectedRoute = () => {
           return;
         }
 
+        // Check if user just completed registration (safety net for RPC propagation lag)
+        const justCompleted = sessionStorage.getItem('registration_just_completed');
+        if (justCompleted) {
+          sessionStorage.removeItem('registration_just_completed');
+          console.log("[ProtectedRoute] Registration just completed - granting access");
+          if (!cancelled) setState('allow');
+          return;
+        }
+
         // Si no es admin/manager, verificar fase
         const phase: Phase = await AuthService.getMyPhase();
         console.log("[ProtectedRoute] User phase:", phase, "for path:", pathname);
