@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 interface LandingFooterProps {
   setView: (view: string) => void;
 }
@@ -129,18 +131,18 @@ export const LandingFooter = ({ setView }: LandingFooterProps) => {
       <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
         <p>&copy; 2026 Maity SAPI de CV — Ciudad de México, México</p>
         <div className="flex gap-4">
-          <span
-            onClick={() => setView('privacidad')}
+          <Link
+            to="/privacidad"
             className="hover:text-gray-400 cursor-pointer transition-colors"
           >
             Privacidad
-          </span>
-          <span
-            onClick={() => setView('terminos')}
+          </Link>
+          <Link
+            to="/terminos"
             className="hover:text-gray-400 cursor-pointer transition-colors"
           >
             Términos
-          </span>
+          </Link>
         </div>
         <div className="flex gap-4">
           <a

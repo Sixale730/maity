@@ -83,6 +83,8 @@ const RecorderLogsPage = lazy(() => import("./features/web-recorder/pages/Record
 
 // Modular Landing Page
 const LandingPage = lazy(() => import("./features/landing/LandingApp"));
+const PrivacyPolicyPage = lazy(() => import("./features/landing").then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import("./features/landing").then(m => ({ default: m.TermsOfServicePage })));
 
 const OAuthTest = lazy(() => import("./pages/OAuthTest"));
 const InvitationConflict = lazy(() => import("./pages/InvitationConflict"));
@@ -122,6 +124,8 @@ const App = () => (
                     <Route path="/pending" element={<PendingPage />} />
                     <Route path="/invitation-required" element={<InvitationRequired />} />
                     <Route path="/user-status-error" element={<UserStatusError />} />
+                    <Route path="/privacidad" element={<PrivacyPolicyPage />} />
+                    <Route path="/terminos" element={<TermsOfServicePage />} />
 
                     <Route element={<ProtectedRoute />}>
                       <Route element={<AppLayout />}>

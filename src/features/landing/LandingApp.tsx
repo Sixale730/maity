@@ -10,8 +10,6 @@ import { DemoCalendarPage } from './pages/DemoCalendarPage';
 import { ResourcesPage } from './pages/ResourcesPage';
 import { PrimerosPasosPage } from './pages/PrimerosPasosPage';
 import { NosotrosPage } from './pages/NosotrosPage';
-import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
-import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { CareersPage } from './pages/CareersPage';
 import { SoportePage } from './pages/SoportePage';
 import { SuccessStoriesPage } from './pages/SuccessStoriesPage';
@@ -123,14 +121,6 @@ export default function LandingApp() {
 
         {activeView === 'corporate-quiz' && (
           <CorporateQuiz setView={setActiveView} />
-        )}
-
-        {activeView === 'privacidad' && (
-          <PrivacyPolicyPage setView={setActiveView} />
-        )}
-
-        {activeView === 'terminos' && (
-          <TermsOfServicePage setView={setActiveView} />
         )}
 
         {activeView === 'careers' && (
