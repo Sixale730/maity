@@ -21,7 +21,7 @@ export const useStatusValidation = () => {
       }
 
       const { data: statusData } = await supabase.rpc('my_status');
-      if (!statusData?.[0]?.company_id) {
+      if (!statusData?.[0]?.id) {
         redirectToAuth();
         return false;
       }

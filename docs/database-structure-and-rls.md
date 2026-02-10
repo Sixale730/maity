@@ -1,10 +1,11 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** February 9, 2026
-**Version:** 2.7
+**Last Updated:** February 10, 2026
+**Version:** 2.8
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Fixed `public.my_phase()` registration priority: `registration_form_completed=TRUE → ACTIVE` now takes priority over `company_id IS NULL`, preventing infinite REGISTRATION loop for users without company (v2.8)
 - Updated `public.my_phase()` to bypass pending invitation flow - users without company now go to REGISTRATION instead of NO_COMPANY (v2.7)
 - Added `maity.web_recorder_logs` table for persisting debug logs from web recorder sessions (v2.6)
 - Added `public.save_recorder_logs()`, `public.list_recorder_sessions()`, `public.get_recorder_logs()` RPC functions (v2.6)
@@ -634,10 +635,10 @@ RETURNS TEXT
 **Phase Logic:**
 1. If `auth.uid()` is NULL → `'UNAUTHORIZED'`
 2. If user has `admin` role → `'ACTIVE'` (regardless of company)
-3. If user doesn't exist in `maity.users` OR has no `company_id` → `'REGISTRATION'` (bypasses pending)
-4. If user has `manager` role → `'ACTIVE'`
-5. If `registration_form_completed` is FALSE → `'REGISTRATION'`
-6. Otherwise → `'ACTIVE'`
+3. If user doesn't exist in `maity.users` → `'REGISTRATION'`
+4. If user has `manager` role → `'ACTIVE'` (regardless of company)
+5. If `registration_form_completed` is TRUE → `'ACTIVE'` (regardless of company)
+6. Otherwise → `'REGISTRATION'`
 
 **Bypass Pending Feature (Feb 2026):**
 Users without a company now go directly to `/registration` instead of `/pending`. This allows new users to complete onboarding even if their email domain is not registered for autojoin. The original `'NO_COMPANY'` behavior is preserved in comments for easy revert.
@@ -666,6 +667,7 @@ switch (phase) {
 **Related Migration:**
 - `20250922_create_my_phase_function.sql` (original)
 - `20260209_bypass_pending_invitation.sql` (bypass pending update)
+- `20260210_fix_my_phase_registration_priority.sql` (fix registration priority over company check)
 
 ---
 

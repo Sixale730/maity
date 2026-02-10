@@ -14,9 +14,10 @@ import { OnboardingFlow } from '../components/onboarding';
  *
  * Flow:
  * 1. Verify user session
- * 2. Check user phase (must have company_id but not registration_form_completed)
+ * 2. Check user phase (must not have registration_form_completed)
  * 3. Show onboarding flow (Avatar -> Instructions -> Questionnaire)
  * 4. On completion -> Redirect to levels intro
+ * Note: Users without company_id can still complete onboarding
  */
 
 const Registration: React.FC = () => {
@@ -70,11 +71,9 @@ const Registration: React.FC = () => {
         return;
       }
 
-      // No company assigned? -> Pending page
+      // Users without company can still complete onboarding
       if (!userStatus.company_id) {
-        console.log('[Registration] User has no company, redirecting to pending');
-        navigate('/pending', { replace: true });
-        return;
+        console.log('[Registration] User has no company assigned - proceeding with onboarding anyway');
       }
 
       // Ready to show form
