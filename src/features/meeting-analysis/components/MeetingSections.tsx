@@ -206,6 +206,18 @@ export function EmotionProfiles({
           quiero que te subas al barco."
         </p>
         <MiniRadar speakerData={poncho} color="#3b82f6" />
+        <div className="border-t border-white/10 mt-3 pt-3 text-left">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🗣️</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Registro</span>
+            <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full font-medium">
+              Informal-coloquial extremo
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            Groserías frecuentes + jerga startup. Necesita un "modo inversor" para reuniones con fondos.
+          </p>
+        </div>
       </Card>
 
       <Card className="bg-[#0F0F0F] border border-white/10 border-l-[5px] border-l-purple-500 p-6 text-center">
@@ -219,7 +231,20 @@ export function EmotionProfiles({
           puede funcionar si lo hacemos bien."
         </p>
         <MiniRadar speakerData={chris} color="#8b5cf6" />
+        <div className="border-t border-white/10 mt-3 pt-3 text-left">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🗣️</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Registro</span>
+            <span className="text-xs bg-purple-500/15 text-purple-400 px-2 py-0.5 rounded-full font-medium">
+              Informal estructurado
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            Lenguaje de negocio con soltura. Adopta el "güey" de Poncho para generar sintonía — rapport natural.
+          </p>
+        </div>
       </Card>
+
     </div>
   );
 }
@@ -260,13 +285,6 @@ const scoreItems: ScoreBarItem[] = [
     name: "Empatía (Poncho)",
     level: "Mejorable — enfocado en presentar, poco en escuchar feedback",
     score: 45,
-    color: "yellow",
-  },
-  {
-    emoji: "⚠️",
-    name: "Empatía (Chris)",
-    level: "Mejorable — escucha bien pero también entra en monólogos propios",
-    score: 58,
     color: "yellow",
   },
   {
@@ -395,6 +413,16 @@ export function PatronCard({ data }: { data: MeetingAnalysisData }) {
 }
 
 // ─── Hallazgos Detallados ────────────────────────────────────────────
+function FindingSummary({ counts }: { counts: { ok: number; warn: number; bad: number } }) {
+  return (
+    <div className="flex gap-3 mt-2 text-xs font-semibold">
+      {counts.ok > 0 && <span className="text-green-400">{counts.ok} ✅ aciertos</span>}
+      {counts.warn > 0 && <span className="text-yellow-400">{counts.warn} ⚠️ mejorables</span>}
+      {counts.bad > 0 && <span className="text-red-400">{counts.bad} 🔴 críticos</span>}
+    </div>
+  );
+}
+
 function Finding({
   type,
   title,
@@ -408,6 +436,7 @@ function Finding({
   alternativa?: string;
   porQue?: string;
 }) {
+  const [open, setOpen] = useState(false);
   const bgClass =
     type === "ok"
       ? "bg-green-500/10"
@@ -421,15 +450,31 @@ function Finding({
         ? "border-l-yellow-500"
         : "border-l-red-500";
   return (
-    <div className={`${bgClass} border-l-2 ${borderClass} rounded-lg p-3 mt-2.5 text-sm leading-relaxed`}>
-      <div className="font-bold">{title}</div>
-      {cita && (
-        <div className="italic text-muted-foreground mt-1">«{cita}»</div>
+    <div className={`${bgClass} border-l-2 ${borderClass} rounded-lg mt-2.5 text-sm leading-relaxed`}>
+      <button
+        type="button"
+        className="w-full flex items-center gap-2 p-3 text-left cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
+        onClick={() => setOpen(!open)}
+      >
+        <span className="font-bold flex-1">{title}</span>
+        <span className="text-xs text-muted-foreground shrink-0">{open ? "▾" : "▸"}</span>
+      </button>
+      {alternativa && (
+        <div className="px-3 pb-1 -mt-1">
+          <span className="text-xs font-semibold text-blue-400">→ </span>
+          <span className="text-xs text-blue-300/80">{alternativa.replace(/^Alternativa:\s*/, "")}</span>
+        </div>
       )}
-      {alternativa && <div className="mt-1">{alternativa}</div>}
-      {porQue && (
-        <div className="text-xs text-muted-foreground mt-1">
-          ¿Por qué importa? {porQue}
+      {open && (
+        <div className="px-3 pb-3 space-y-1.5">
+          {cita && (
+            <div className="italic text-muted-foreground text-xs">«{cita}»</div>
+          )}
+          {porQue && (
+            <div className="text-xs text-muted-foreground">
+              <span className="font-semibold text-amber-400/80">💡 ¿Por qué importa?</span> {porQue}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -460,172 +505,13 @@ export function HallazgosSection({
 }) {
   return (
     <div className="space-y-4">
-      {/* Claridad */}
-      <Card className="bg-[#0F0F0F] border border-white/10 border-l-4 border-l-red-500 p-6">
-        <h3 className="text-base font-bold">
-          ¿Qué tan fácil es entenderte?
-          <ScoreBadge score="35/100" color="red" />
-        </h3>
-        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-          La reunión tiene contenido valioso pero el formato oral es
-          extremadamente desorganizado. Oraciones que se cortan a la mitad,
-          frases que se repiten, muletillas cada 17 segundos. Es como una
-          conversación de WhatsApp de audio de 39 minutos: mucha información,
-          poca estructura.
-        </p>
-        <Finding
-          type="ok"
-          title="✅ Demo en vivo que muestra el producto funcionando"
-          cita="Lo que estoy diciendo se está transcribiendo... en tiempo real lo que tú dices se está transcribiendo"
-          porQue="Mostrar el producto funcionando es más poderoso que 100 slides. Chris puede ver con sus propios ojos que la tecnología funciona."
-        />
-        <Finding
-          type="ok"
-          title="✅ Vocabulario de negocio accesible"
-          cita='B2C, B2B, y B2Coach", "phantom shares", "early adopters", "family and friends'
-          porQue="Ambos manejan terminología de startups con naturalidad, lo que indica que están en el mismo nivel de conversación empresarial."
-        />
-        <Finding
-          type="bad"
-          title="🔴 Muletillas extremas: 142 en 39 minutos"
-          cita='Este, espérame nomás dejar contesto Kari" y "este, ah, la biblioteca de contenido. Entonces, bueno, a ver, el resumen'
-          alternativa="Alternativa: Sustituir cada muletilla por 1 segundo de silencio. El silencio transmite que estás pensando; la muletilla transmite que estás perdido."
-          porQue="Si esta reunión fuera con un inversionista, 142 muletillas en 39 minutos destruirían la credibilidad. Hay que limpiarlo ANTES de hacer el pitch a inversores."
-        />
-        <Finding
-          type="bad"
-          title="🔴 Oraciones que se cortan, repiten y reinician constantemente"
-          cita="Qué qué es el gran qué es el qué es el qué es el gran reto ahorita que tenemos para levantar el capital?"
-          alternativa='Alternativa: Pausar, pensar la oración completa, y decirla una vez: "El gran reto para levantar capital es que necesitamos comprobar que el modelo funcione."'
-          porQue="Cada reinicio de oración es un momento donde el oyente pierde el hilo. En 39 minutos, se acumulan docenas de estos momentos."
-        />
-      </Card>
-
-      {/* Narrativa Emociones */}
-      <Card className="bg-[#0F0F0F] border border-white/10 p-6">
-        <h3 className="text-base font-bold mb-3">
-          ¿Qué emociones transmite cada participante?
-        </h3>
-        <div className="border-l-2 border-l-blue-500 pl-3 mb-4">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-bold text-blue-500">Poncho</span>
-            <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full font-medium">
-              Entusiasmo desbordante
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Tu tono es de{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              entusiasmo desbordante
-            </span>{" "}
-            por el proyecto. Transmites una urgencia contagiosa{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «avanzamos muchísimo»
-            </span>
-            ,{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «las posibilidades son bastante altas»
-            </span>{" "}
-            y orgullo legítimo por lo construido{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «ya tenemos la aplicación de Android, la web, la de escritorio»
-            </span>
-            . Hay momentos de vulnerabilidad honesta{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «me ha costado un huevo porque ha sido complejo»
-            </span>{" "}
-            que humanizan tu pitch. También transmites un deseo profundo de que
-            Chris se sume: no estás vendiendo, estás invitando.
-          </p>
-        </div>
-        <div className="border-l-2 border-l-purple-500 pl-3">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-bold text-purple-500">Chris</span>
-            <span className="text-xs bg-purple-500/15 text-purple-400 px-2 py-0.5 rounded-full font-medium">
-              Pragmatismo estratégico
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Tu tono transmite{" "}
-            <span className="bg-purple-500/10 px-1 rounded">
-              pragmatismo estratégico
-            </span>{" "}
-            con entusiasmo contenido. Aportas experiencia real:{" "}
-            <span className="bg-purple-500/10 px-1 rounded">
-              «si no tienes huella digital, valió madre»
-            </span>
-            ,{" "}
-            <span className="bg-purple-500/10 px-1 rounded">
-              «yo agarré un contrato muy grande para Bonus en Arisa»
-            </span>
-            . Hay una combinación de confianza en tu capacidad{" "}
-            <span className="bg-purple-500/10 px-1 rounded">
-              «yo puedo aportar muchísimo»
-            </span>{" "}
-            y una evaluación constante del proyecto. No estás diciendo sí a
-            ciegas — estás calculando dónde aportar primero.
-          </p>
-        </div>
-      </Card>
-
-      {/* Narrativa Formalidad */}
-      <Card className="bg-[#0F0F0F] border border-white/10 p-6">
-        <h3 className="text-base font-bold mb-3">
-          ¿Qué nivel de formalidad usa cada participante?
-        </h3>
-        <div className="border-l-2 border-l-blue-500 pl-3 mb-4">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-bold text-blue-500">Poncho</span>
-            <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full font-medium">
-              Informal-coloquial extremo
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Registro extremadamente informal-coloquial mexicano. Groserías
-            frecuentes{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «un putero de cosas», «un chingo de mamadas», «ya valió madre»
-            </span>
-            , tuteo total y jerga de startup. Funciona entre socios que se
-            conocen, pero necesita un "modo inversor" completamente diferente
-            para reuniones con fondos. El contraste entre{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «phantom shares»
-            </span>{" "}
-            y{" "}
-            <span className="bg-blue-500/10 px-1 rounded">
-              «un chingo de mamadas»
-            </span>{" "}
-            en la misma oración es notable.
-          </p>
-        </div>
-        <div className="border-l-2 border-l-purple-500 pl-3">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-bold text-purple-500">Chris</span>
-            <span className="text-xs bg-purple-500/15 text-purple-400 px-2 py-0.5 rounded-full font-medium">
-              Informal estructurado
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Registro informal pero ligeramente más estructurado que Poncho. Usa
-            lenguaje de negocio con más soltura{" "}
-            <span className="bg-purple-500/10 px-1 rounded">
-              «posicionamiento orgánico», «ronda de family and friends»,
-              «dilución»
-            </span>{" "}
-            y groserías moderadas. Su acomodación es evidente: adopta el "güey"
-            de Poncho (10 veces) para generar sintonía. Esto es rapport natural —
-            exactamente lo que Maity mide.
-          </p>
-        </div>
-      </Card>
-
       {/* Empatía Poncho */}
       <Card className="bg-[#0F0F0F] border border-white/10 border-l-4 border-l-yellow-500 p-6">
         <h3 className="text-base font-bold">
           ¿Cómo conecta Poncho emocionalmente con Chris?
           <ScoreBadge score="45/100" color="yellow" />
         </h3>
+        <FindingSummary counts={{ ok: 2, warn: 2, bad: 0 }} />
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
           Poncho está tan enfocado en mostrar sus avances que dedica poco tiempo
           a escuchar lo que Chris piensa o necesita. Es una presentación más que
@@ -660,45 +546,13 @@ export function HallazgosSection({
         />
       </Card>
 
-      {/* Empatía Chris */}
-      <Card className="bg-[#0F0F0F] border border-white/10 border-l-4 border-l-yellow-500 p-6">
-        <h3 className="text-base font-bold">
-          ¿Cómo conecta Chris emocionalmente con Poncho?
-          <ScoreBadge score="58/100" color="yellow" />
-        </h3>
-        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-          Chris escucha con interés real y aporta valor estratégico concreto. Su
-          empatía se manifiesta en ofrecer no solo opiniones sino recursos:
-          contactos, dinero, experiencia. La oportunidad está en hacer más
-          preguntas antes de dar soluciones.
-        </p>
-        <Finding
-          type="ok"
-          title="✅ Valida el trabajo de Poncho antes de sugerir mejoras"
-          cita="Creo que es, o sea, te estás haciéndolo bien, o sea, estás haciéndolo bien pensado. Los dos modelos funcionan."
-          porQue="Primero validar, luego mejorar. Si Chris empezara por las críticas, Poncho se cerraría."
-        />
-        <Finding
-          type="ok"
-          title="✅ Ofrece skin in the game: mente + capital"
-          cita="Yo le entro inicialmente con esta parte de trabajo... y voy aportando algo de capital"
-          porQue="No solo dice 'me interesa' — ofrece compromiso real."
-        />
-        <Finding
-          type="warn"
-          title="⚠️ Entra en monólogos de estrategia sin verificar si Poncho está de acuerdo"
-          cita="Chris habla durante 2:43 sobre marketing, SEO, redes sociales, página web, pauta, posicionamiento sin pausar para preguntar a Poncho si esa es la prioridad."
-          alternativa='Podría pausar después de cada bloque: "¿Esto está alineado con lo que tú priorizas? ¿O hay algo más urgente?"'
-          porQue='Dar soluciones sin confirmar el problema es arriesgado. Poncho puede estar pensando "necesito un developer" mientras Chris habla de Google Ads.'
-        />
-      </Card>
-
       {/* Objetivo */}
       <Card className="bg-[#0F0F0F] border border-white/10 border-l-4 border-l-red-500 p-6">
         <h3 className="text-base font-bold">
           ¿Se entiende qué quiere lograr esta reunión?
           <ScoreBadge score="32/100" color="red" />
         </h3>
+        <FindingSummary counts={{ ok: 2, warn: 0, bad: 2 }} />
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
           La reunión tenía un propósito implícito (mostrar avances + proponer
           sociedad) pero se desbordó completamente. De 20+ temas, solo 6 tienen
@@ -731,53 +585,54 @@ export function HallazgosSection({
           alternativa={'Alternativa: "Chris hace el benchmark de 3 competidores para el martes. Poncho prepara la tabla de costos para el viernes."'}
           porQue='"Hay que" es la tumba de la ejecución. Lo que no tiene dueño y fecha, no se hace.'
         />
+
+        {/* Objetivo sub-scores bars */}
+        {(() => {
+          const sub = data.dimensiones.objetivo.sub_puntajes;
+          const items = [
+            { label: "¿De qué habla?", value: sub.especificidad.puntaje_0_100, tooltip: "Especificidad: ¿Se define con claridad el tema o entregable?" },
+            { label: "¿Qué hacer?", value: sub.accion.puntaje_0_100, tooltip: "Acción: ¿Hay pasos concretos definidos?" },
+            { label: "¿Para cuándo?", value: sub.temporalidad.puntaje_0_100, tooltip: "Temporalidad: ¿Se asignaron fechas límite?" },
+            { label: "¿Quién?", value: sub.responsable.puntaje_0_100, tooltip: "Responsable: ¿Se asignó un dueño a cada acción?" },
+            { label: "¿Cómo verificar?", value: sub.verificabilidad.puntaje_0_100, tooltip: "Verificabilidad: ¿Se puede medir si se logró o no?" },
+          ];
+          return (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                Desglose de claridad
+              </div>
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <div key={item.label} className="group relative flex items-center gap-3">
+                    <span className="text-xs font-medium w-28 shrink-0 text-muted-foreground">{item.label}</span>
+                    <div className="flex-1 h-2.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${item.value >= 60 ? "bg-green-500" : item.value >= 40 ? "bg-yellow-500" : "bg-red-500"}`}
+                        style={{ width: `${item.value}%` }}
+                      />
+                    </div>
+                    <span className={`text-xs font-bold w-8 text-right ${item.value >= 60 ? "text-green-400" : item.value >= 40 ? "text-yellow-400" : "text-red-400"}`}>
+                      {item.value}
+                    </span>
+                    <div className="invisible group-hover:visible absolute left-32 -top-8 bg-slate-800 text-white text-xs rounded-md px-2.5 py-1.5 shadow-lg z-10 whitespace-nowrap">
+                      {item.tooltip}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground mt-3 leading-relaxed bg-white/5 rounded-md p-2.5">
+                <span className="font-semibold text-amber-400/80">📖 Lectura:</span>{" "}
+                {data.dimensiones.objetivo.tu_resultado}
+              </div>
+              <div className="text-xs mt-2 leading-relaxed bg-blue-500/10 rounded-md p-2.5">
+                <span className="font-semibold text-blue-400">🎯 Acción:</span>{" "}
+                Antes de cada reunión, escribe 3 objetivos con formato: Quién + Qué + Para cuándo.
+              </div>
+            </div>
+          );
+        })()}
       </Card>
 
-      {/* Dinámica */}
-      <Card className="bg-[#0F0F0F] border border-white/10 p-6">
-        <h3 className="text-base font-bold mb-3">
-          ¿Cómo es la dinámica entre los participantes?
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="bg-white/5 p-3.5 rounded-lg">
-            <div className="text-xs uppercase font-bold text-muted-foreground tracking-wide">
-              Equilibrio
-            </div>
-            <div className="text-sm mt-1 leading-relaxed">
-              Poncho con <strong>~59%</strong> de las palabras (~3,600) vs Chris
-              ~41% (~2,500). Ratio 1.4x — bastante equilibrado.
-            </div>
-          </div>
-          <div className="bg-white/5 p-3.5 rounded-lg">
-            <div className="text-xs uppercase font-bold text-muted-foreground tracking-wide">
-              Adaptación — 75/100
-            </div>
-            <div className="text-sm mt-1 leading-relaxed">
-              Excelente sintonía cultural. Ambos usan el mismo registro informal.
-              Chris adopta el "güey" de Poncho. Acomodación bidireccional.
-            </div>
-          </div>
-          <div className="bg-white/5 p-3.5 rounded-lg">
-            <div className="text-xs uppercase font-bold text-muted-foreground tracking-wide">
-              Ritmo
-            </div>
-            <div className="text-sm mt-1 leading-relaxed">
-              Poncho avanza rápido mostrando muchas cosas. Chris frena para dar
-              estructura. Los mejores momentos son cuando co-crean ideas.
-            </div>
-          </div>
-          <div className="bg-white/5 p-3.5 rounded-lg">
-            <div className="text-xs uppercase font-bold text-muted-foreground tracking-wide">
-              Diagnóstico
-            </div>
-            <div className="text-sm mt-1 leading-relaxed">
-              Dinámica de{" "}
-              <strong>"emprendedor apasionado – asesor estratégico"</strong>.
-              Excelente complementariedad.
-            </div>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

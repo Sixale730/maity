@@ -487,48 +487,59 @@ export function TimelineChart({
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mt-2.5 text-sm">
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-3 h-3 rounded-sm shrink-0"
-            style={{ background: TIMELINE_COLORS.poncho }}
-          />
-          Poncho habla
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-3 h-3 rounded-sm shrink-0"
-            style={{ background: TIMELINE_COLORS.chris }}
-          />
-          Chris habla
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-3 h-3 rounded-sm shrink-0"
-            style={{ background: TIMELINE_COLORS.dialogo }}
-          />
-          Diálogo real
-        </div>
-      </div>
+      {/* Legend + insight */}
+      {(() => {
+        const pcts = { poncho: 0, chris: 0, dialogo: 0 };
+        data.timeline.segmentos.forEach((s) => { pcts[s.tipo] = (pcts[s.tipo] || 0) + s.pct; });
+        const ponchoP = Math.round(pcts.poncho);
+        const chrisP = Math.round(pcts.chris);
+        const dialogoP = Math.round(pcts.dialogo);
+        return (
+          <>
+            <div className="flex flex-wrap gap-4 mt-2.5 text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: TIMELINE_COLORS.poncho }} />
+                Poncho habla <span className="text-muted-foreground ml-0.5">({ponchoP}%)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: TIMELINE_COLORS.chris }} />
+                Chris habla <span className="text-muted-foreground ml-0.5">({chrisP}%)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: TIMELINE_COLORS.dialogo }} />
+                Diálogo real <span className="text-muted-foreground ml-0.5">({dialogoP}%)</span>
+              </div>
+            </div>
 
-      {/* Key moments */}
+            {/* Benchmark context */}
+            <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              Dominaste el {ponchoP}% de la conversación. En reuniones de negocio, el rango ideal es 40-60% para dejar espacio al otro.
+              {dialogoP < 20 && " Solo el " + dialogoP + "% fue diálogo real — los momentos verdes son donde la reunión genera más valor."}
+            </div>
+          </>
+        );
+      })()}
+
+      {/* Key moments — sorted by minute (chronological on timeline) */}
       <div className="flex flex-wrap gap-2 mt-3">
-        {data.timeline.momentos_clave.map((m) => (
-          <span
-            key={m.nombre}
-            className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-yellow-800 dark:text-yellow-200"
-          >
-            ⭐ {m.nombre} (min {m.minuto})
-          </span>
-        ))}
+        {[...data.timeline.momentos_clave]
+          .sort((a, b) => b.minuto - a.minuto)
+          .map((m) => (
+            <span
+              key={m.nombre}
+              className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-yellow-800 dark:text-yellow-200"
+            >
+              ⭐ {m.nombre} (min {m.minuto})
+            </span>
+          ))}
       </div>
 
       <div className="bg-green-500/10 rounded-lg p-3 text-sm mt-3">
-        <strong>Lectura:</strong> Primera mitad: Poncho presenta (azul
-        dominante). Segunda mitad: Chris toma el liderazgo con estrategia
-        (morado dominante). Los momentos verdes (diálogo) aparecen cuando
-        discuten ideas nuevas juntos — ahí es donde la reunión brilla.
+        <strong>Tip:</strong> Intercala preguntas al otro cada 5 minutos para
+        generar más momentos de diálogo (verde). Los bloques largos de un solo
+        color indican monólogo — ahí es donde pierdes la atención del otro.
+        Los momentos verdes son donde la reunión genera más valor porque ambos
+        construyen ideas juntos.
       </div>
     </Card>
   );
