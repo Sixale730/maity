@@ -1,4 +1,4 @@
-import { Download, Monitor, Apple, ExternalLink, Wifi, Bell, Zap, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
+import { Download, Monitor, Apple, ExternalLink, Bell, Zap, RefreshCw, AlertCircle, Loader2, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
 import { Badge } from '@/ui/components/ui/badge';
@@ -18,7 +18,6 @@ export function DesktopDownloadPage() {
   } = useDesktopRelease();
 
   const features = [
-    { icon: Wifi, key: 'offline' },
     { icon: Bell, key: 'notifications' },
     { icon: Zap, key: 'performance' },
     { icon: RefreshCw, key: 'auto_updates' },
@@ -81,27 +80,49 @@ export function DesktopDownloadPage() {
         )}
       </div>
 
-      {/* Recommended Download */}
-      {recommendedAsset && (
+      {/* Recommended Download - macOS shows "coming soon" */}
+      {isMacos ? (
+        <Card className="mb-6 border-muted">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3 mt-1">
+              <Apple className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <CardTitle>macOS</CardTitle>
+                <CardDescription>{t('download.coming_soon')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          {windowsAsset && (
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">{t('download.windows_available')}</p>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => window.open(windowsAsset.browser_download_url, '_blank')}
+              >
+                <Download className="mr-2 h-5 w-5" />
+                {t('download.download_for')} Windows
+                <span className="ml-2 text-xs opacity-70">
+                  ({formatFileSize(windowsAsset.size)})
+                </span>
+              </Button>
+            </CardContent>
+          )}
+        </Card>
+      ) : recommendedAsset && (
         <Card className="mb-6 border-primary/50">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
               <Badge className="bg-primary">{t('download.recommended')}</Badge>
             </div>
             <div className="flex items-center gap-3 mt-3">
-              {isWindows ? (
-                <Monitor className="h-8 w-8 text-primary" />
-              ) : (
-                <Apple className="h-8 w-8 text-primary" />
-              )}
+              <Monitor className="h-8 w-8 text-primary" />
               <div>
                 <CardTitle>
-                  {t('download.download_for')} {isWindows ? 'Windows' : isMacos ? 'macOS' : detectedOS}
+                  {t('download.download_for')} Windows
                 </CardTitle>
                 <CardDescription>
-                  {isWindows
-                    ? t('download.requirements_windows')
-                    : t('download.requirements_macos')}
+                  {t('download.requirements_windows')}
                 </CardDescription>
               </div>
             </div>
@@ -113,7 +134,7 @@ export function DesktopDownloadPage() {
               onClick={() => window.open(recommendedAsset.browser_download_url, '_blank')}
             >
               <Download className="mr-2 h-5 w-5" />
-              {t('download.download_for')} {isWindows ? 'Windows' : 'macOS'}
+              {t('download.download_for')} Windows
               <span className="ml-2 text-xs opacity-70">
                 ({formatFileSize(recommendedAsset.size)})
               </span>
@@ -138,14 +159,15 @@ export function DesktopDownloadPage() {
               <Download className="ml-2 h-4 w-4" />
             </Button>
           )}
-          {!isMacos && macosAsset && (
+          {!isMacos && (
             <Button
               variant="outline"
-              onClick={() => window.open(macosAsset.browser_download_url, '_blank')}
+              disabled
             >
               <Apple className="mr-2 h-4 w-4" />
               macOS
-              <Download className="ml-2 h-4 w-4" />
+              <Clock className="ml-2 h-4 w-4" />
+              <span className="ml-1 text-xs">{t('download.coming_soon')}</span>
             </Button>
           )}
         </div>
