@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from "@/ui/components/ui/button";
 
@@ -77,6 +77,20 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
   const navigate = useNavigate();
 
   const baseOrigin = resolveBaseOrigin(appUrl);
+
+  // Pre-fill from query params (e.g., from landing signup form)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    const modeParam = params.get('mode');
+
+    if (modeParam === 'signup') {
+      setIsLogin(false);
+    }
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, []);
 
   const buildDashboardUrl = () => new URL('/dashboard', baseOrigin).toString();
 

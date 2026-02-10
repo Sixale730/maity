@@ -3,10 +3,43 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, UserPlus, Download, Rocket, Mail, ArrowRight, CreditCard, Shield, Lock, Monitor, Smartphone as SmartphoneIcon, Clock, Star, TrendingUp } from 'lucide-react';
 import { FadeIn } from '../components/shared/FadeIn';
 import { LANDING_COLORS } from '../constants/colors';
+import { supabase, resolveBaseOrigin, getAppUrl } from '@maity/shared';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export const PrimerosPasosPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleOAuthSignup = async (provider: 'google' | 'azure') => {
+    setLoading(true);
+    const appUrl = getAppUrl();
+    const baseOrigin = resolveBaseOrigin(appUrl);
+    const redirectTarget = new URL('/auth/callback', baseOrigin).toString();
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: redirectTarget },
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e?.message ?? 'No se pudo conectar con el proveedor.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    navigate(`/auth?email=${encodeURIComponent(email.trim())}&mode=signup`);
+  };
 
   const steps = [
     { num: 1, label: 'Crea tu cuenta', icon: <UserPlus size={16} /> },
@@ -66,7 +99,7 @@ export const PrimerosPasosPage = () => {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               <div className="lg:col-span-3 p-8 bg-[#0F0F0F] border border-white/10 rounded-2xl">
-                <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+                <form onSubmit={handleEmailSignup} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Correo Electrónico</label>
                     <div className="relative">
@@ -84,8 +117,8 @@ export const PrimerosPasosPage = () => {
                   <div className="h-px bg-white/10 flex-1"></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <button className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">Google</button>
-                  <button className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium">Microsoft</button>
+                  <button type="button" onClick={() => handleOAuthSignup('google')} disabled={loading} className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed">Google</button>
+                  <button type="button" onClick={() => handleOAuthSignup('azure')} disabled={loading} className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-sm text-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed">Microsoft</button>
                 </div>
                 <p className="mt-5 text-center text-xs text-gray-500">
                   ¿Ya tienes cuenta? <button onClick={() => navigate('/auth')} className="text-pink-500 hover:text-pink-400 font-bold ml-1">Inicia sesión</button>
