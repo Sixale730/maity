@@ -52,7 +52,7 @@ export const userNavigationItems: NavigationItem[] = [
     descriptionKey: 'nav.desc.dashboard',
     url: '/stats',
     icon: ChartArea,
-    roles: ['admin', 'manager', 'user'],
+    roles: ['admin', 'manager'],
     group: 'progress',
     order: 4.5,
   },

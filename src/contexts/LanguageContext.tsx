@@ -685,8 +685,8 @@ const translations = {
     // Gamified Dashboard
     'nav.gamified_dashboard': 'Dashboard Gamificado',
     'nav.desc.gamified_dashboard': 'Tu progreso con montaña, logros y ranking',
-    'nav.gamified_dashboard_v2': 'Dashboard V2',
-    'nav.desc.gamified_dashboard_v2': 'Nueva version con radar, insignias y actividad',
+    'nav.gamified_dashboard_v2': 'Dashboard',
+    'nav.desc.gamified_dashboard_v2': 'Tu progreso, insignias y actividad reciente',
     'nav.team_dashboard': 'Dashboard Equipo',
     'nav.desc.team_dashboard': 'Rendimiento y métricas del equipo para líderes',
     'gamified.mountain_title': 'Montaña de Fuego',
@@ -1426,8 +1426,8 @@ const translations = {
     // Gamified Dashboard
     'nav.gamified_dashboard': 'Gamified Dashboard',
     'nav.desc.gamified_dashboard': 'Your progress with mountain, achievements and ranking',
-    'nav.gamified_dashboard_v2': 'Dashboard V2',
-    'nav.desc.gamified_dashboard_v2': 'New version with radar, badges and activity',
+    'nav.gamified_dashboard_v2': 'Dashboard',
+    'nav.desc.gamified_dashboard_v2': 'Your progress, badges and recent activity',
     'nav.team_dashboard': 'Team Dashboard',
     'nav.desc.team_dashboard': 'Team performance and metrics for leaders',
     'gamified.mountain_title': 'Fire Mountain',
