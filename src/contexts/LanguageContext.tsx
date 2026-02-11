@@ -109,7 +109,7 @@ const translations = {
     'dashboard.charts.weekly_description': 'Sesiones diarias de tu organización',
     
     // Navigation
-    'nav.dashboard': 'Dashboard',
+    'nav.dashboard': 'Dashboard (Legacy)',
     'nav.coach': 'Coach',
     'nav.roleplay': 'Sala de entrenamiento',
     'nav.first_interview': 'Mi Primera Entrevista',
@@ -252,7 +252,7 @@ const translations = {
     'nav.welcome_subtitle': '¿Qué quieres hacer hoy?',
 
     // Navigation - Card descriptions
-    'nav.desc.dashboard': 'Tu página de inicio',
+    'nav.desc.dashboard': 'Dashboard anterior con métricas clásicas',
     'nav.desc.avatar': 'Personaliza tu avatar 3D',
     'nav.desc.stats': 'Métricas y gráficos de tu progreso',
     'nav.desc.first_interview': 'Entrevista inicial estructurada',
@@ -851,7 +851,7 @@ const translations = {
     'dashboard.user.coach_evaluation': 'Coach Assessment',
     
     // Navigation
-    'nav.dashboard': 'Dashboard',
+    'nav.dashboard': 'Dashboard (Legacy)',
     'nav.coach': 'Coach',
     'nav.roleplay': 'Training Room',
     'nav.demo': 'Demo',
@@ -998,7 +998,7 @@ const translations = {
     'nav.welcome_subtitle': 'What would you like to do today?',
 
     // Navigation - Card descriptions
-    'nav.desc.dashboard': 'Your home page',
+    'nav.desc.dashboard': 'Previous dashboard with classic metrics',
     'nav.desc.avatar': 'Customize your 3D avatar',
     'nav.desc.stats': 'Metrics and charts of your progress',
     'nav.desc.first_interview': 'Structured initial interview',
