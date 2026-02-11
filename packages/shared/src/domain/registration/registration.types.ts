@@ -148,7 +148,7 @@ export const OpenQuestions: OpenQuestion[] = [
   },
   {
     id: 'q18',
-    text: 'Imagina que tienes 1 minuto para explicarle a una persona que no sabe en qué consiste tu trabajo. Escríbelo en un párrafo.',
+    text: 'Imagina que tienes 1 minuto para explicarle a una persona que no sabe a que te dedicas. Escríbelo en un párrafo.',
     placeholder: 'Explica tu trabajo en un párrafo conciso...',
     order: 14,
   },
