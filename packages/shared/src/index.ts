@@ -131,6 +131,11 @@ export { WHEEL_AREAS } from './domain/games/wheel-areas-data';
 export { useWheelOfLife } from './domain/games/hooks/useWheelOfLife';
 export { useGameSessions, useXPSummary } from './domain/games/hooks/useGameSessions';
 
+// ===== Domain: Daily Evaluation =====
+export { DailyEvaluationService } from './domain/daily-evaluation/daily-evaluation.service';
+export * from './domain/daily-evaluation/daily-evaluation.types';
+export { useTodayEvaluation, useDailyEvaluations, useLeaderboard } from './domain/daily-evaluation/hooks/useDailyEvaluation';
+
 // ===== Domain: SVG Assets =====
 export { SVGAssetsService } from './domain/svg-assets/svg-assets.service';
 export * from './domain/svg-assets/svg-assets.types';

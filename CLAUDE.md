@@ -140,6 +140,7 @@ La plataforma usa un sistema de navegación dual: sidebar permanente (shadcn/ui)
 | **Gamified Dashboard** | `src/features/dashboard/components/gamified/` | `/gamified-dashboard` | GamifiedDashboard, MountainMap, MetricsPanel, InfoPanel |
 | **Skills Arena** | `src/features/skills-arena/` | `/skills-arena` | SkillsArenaPage, TestCard, tests-catalog |
 | **Wheel of Life** | `src/features/wheel-of-life/` | `/skills-arena/rueda-de-la-vida` | WheelOfLifePage, WheelRadarChart, useWheelOfLife |
+| **Daily Evaluation** | `packages/shared/src/domain/daily-evaluation/` | (aggregation) | DailyEvaluationService, useTodayEvaluation, useLeaderboard |
 
 ## Game Sessions & XP System
 
@@ -160,6 +161,31 @@ Sistema unificado de juegos con tabla `maity.game_sessions` (JSONB flexible por 
 1. Skills Arena → click card → `/skills-arena/rueda-de-la-vida`
 2. Intro → 12 areas one-by-one (slider actual/deseado + reason) → Review → Submit
 3. Results: radar chart, strengths, weaknesses, gaps, recommendations, XP earned
+
+## Daily Evaluation System
+
+Aggregates daily Omi conversation metrics via SQL + optional LLM narrative summary.
+
+**Tabla:** `maity.daily_evaluations` (UNIQUE per user+date)
+
+**RPCs:**
+- `compute_daily_evaluation(p_user_id, p_date)` - SQL aggregation: scores, muletillas, temas, strengths
+- `get_my_daily_evaluations(p_days)` - Last N days for authenticated user
+- `get_my_today_evaluation()` - Today + yesterday evaluations
+- `get_xp_leaderboard(p_limit)` - Company ranking by total_xp
+
+**API:** `POST /api/daily-evaluation` - LLM daily summary (fire-and-forget from conversations-finalize)
+
+**Domain Layer:** `packages/shared/src/domain/daily-evaluation/`
+- `DailyEvaluationService` - RPC wrappers
+- `useTodayEvaluation` - React Query, staleTime 2min
+- `useLeaderboard` - React Query, staleTime 5min
+
+**Dashboard Integration:**
+- V1 (`useGamifiedDashboardData`): XP, muletillas%, score, ranking from real data
+- V2 (`useGamifiedDashboardDataV2`): Same + analytics (muletillasScore, flowScore)
+
+**Trigger:** `conversations-finalize.ts` calls `compute_daily_evaluation` after each conversation analysis, then fires LLM evaluation async.
 
 ## Gamified Dashboard
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getOmiConversations, OmiConversation } from '@/features/omi/services/omi.service';
-import { useFormResponses } from '@maity/shared';
+import { useFormResponses, useXPSummary, useTodayEvaluation, useLeaderboard } from '@maity/shared';
 import { useUserStreak } from './useUserStreak';
 
 export interface MountainNode {
@@ -38,7 +38,7 @@ export interface GamifiedDashboardData {
   completedNodes: number;
   // Competencies (real data from form responses)
   competencies: { name: string; value: number; color: string }[];
-  // Mock data
+  // Data
   ranking: RankingEntry[];
   rewards: Reward[];
   muletillasPercent: number;
@@ -54,14 +54,7 @@ const NODE_POSITIONS: [number, number][] = [
   [50, 30], [45, 22], [55, 15],              // Row 5 (summit)
 ];
 
-const MOCK_RANKING: RankingEntry[] = [
-  { position: 1, name: 'Mary B.', xp: 58000 },
-  { position: 2, name: 'Lupita', xp: 23000 },
-  { position: 3, name: 'Carlos M.', xp: 15000 },
-  { position: 28, name: 'Poncho', xp: 170, isCurrentUser: true },
-];
-
-const MOCK_REWARDS: Reward[] = [
+const BADGE_DEFINITIONS: Reward[] = [
   { name: 'Negociador Valiente', xp: 170, icon: '\u2602\uFE0F', color: '#3b82f6' },
   { name: 'Presi\u00F3n Verbal', xp: 90, icon: '\uD83D\uDCAA', color: '#ef4444' },
   { name: 'Emp\u00E1tico', xp: 50, icon: '\u2764\uFE0F', color: '#10b981' },
@@ -104,6 +97,9 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
   const { userProfile } = useUser();
   const { radarData, loading: formLoading } = useFormResponses();
   const { data: streakData, isLoading: streakLoading } = useUserStreak(userProfile?.id);
+  const { data: xpData, isLoading: xpLoading } = useXPSummary();
+  const { data: todayEval, isLoading: evalLoading } = useTodayEvaluation();
+  const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard(10);
   const [conversations, setConversations] = useState<OmiConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -153,8 +149,14 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
   const streakDays = streakData?.streak_days ?? 0;
   const bonusDays = streakData?.bonus_days ?? 0;
 
-  // Mock score from last 2 conversations
+  // Score from daily evaluation (real data) with conversation fallback
   const score = useMemo(() => {
+    if (todayEval?.today?.avg_overall_score != null) {
+      return {
+        today: todayEval.today.avg_overall_score,
+        yesterday: todayEval.yesterday?.avg_overall_score ?? 0,
+      };
+    }
     const scored = conversations.filter(c => c.communication_feedback?.overall_score);
     if (scored.length >= 2) {
       return {
@@ -165,23 +167,27 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
     if (scored.length === 1) {
       return { today: scored[0].communication_feedback!.overall_score!, yesterday: 0 };
     }
-    return { yesterday: 5.6, today: 7.2 };
-  }, [conversations]);
+    return { yesterday: 0, today: 0 };
+  }, [conversations, todayEval]);
 
-  const ranking = useMemo(() => {
-    const r = [...MOCK_RANKING];
-    if (userProfile?.name) {
-      const currentIdx = r.findIndex(e => e.isCurrentUser);
-      if (currentIdx >= 0) {
-        r[currentIdx] = { ...r[currentIdx], name: userProfile.name.split(' ')[0] };
-      }
+  // Real ranking from leaderboard RPC
+  const ranking = useMemo((): RankingEntry[] => {
+    if (leaderboardData && leaderboardData.length > 0) {
+      return leaderboardData.map(entry => ({
+        position: entry.position,
+        name: entry.user_name,
+        xp: entry.total_xp,
+        isCurrentUser: entry.is_current_user,
+      }));
     }
-    return r;
-  }, [userProfile?.name]);
+    return [];
+  }, [leaderboardData]);
+
+  const totalXP = xpData?.total_xp ?? 0;
 
   return {
     userName: userProfile?.name || 'Usuario',
-    totalXP: 170,
+    totalXP,
     streakDays,
     bonusDays,
     score,
@@ -189,8 +195,8 @@ export function useGamifiedDashboardData(): GamifiedDashboardData {
     completedNodes,
     competencies,
     ranking,
-    rewards: MOCK_REWARDS,
-    muletillasPercent: 42,
-    loading: loading || formLoading || streakLoading,
+    rewards: BADGE_DEFINITIONS.filter(r => totalXP >= r.xp),
+    muletillasPercent: todayEval?.today?.muletillas_rate ?? 0,
+    loading: loading || formLoading || streakLoading || xpLoading || evalLoading || leaderboardLoading,
   };
 }

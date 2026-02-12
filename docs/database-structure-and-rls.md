@@ -1,10 +1,12 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** February 11, 2026
-**Version:** 2.9
+**Last Updated:** February 12, 2026
+**Version:** 3.0
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.daily_evaluations` table for daily aggregation of Omi conversation metrics (v3.0)
+- Added `compute_daily_evaluation`, `get_my_daily_evaluations`, `get_my_today_evaluation`, `get_xp_leaderboard` RPC functions (v3.0)
 - Added `maity.game_sessions` and `maity.xp_transactions` tables for game/XP tracking (v2.9)
 - Added `maity.users.total_xp` column for accumulated XP (v2.9)
 - Added `complete_game_session`, `get_my_game_sessions`, `get_my_xp_summary` RPC functions (v2.9)
@@ -3965,6 +3967,63 @@ Returns current user's game sessions, optionally filtered by game_type.
 ### RPC: `public.get_my_xp_summary()`
 
 Returns current user's XP summary: total_xp, breakdown by source_type, recent transactions.
+
+---
+
+## Daily Evaluations (v3.0)
+
+### Table: `maity.daily_evaluations`
+
+Daily aggregation of communication metrics from Omi conversations with optional LLM narrative summary.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid PK | Auto-generated |
+| user_id | uuid FK | References maity.users(id) |
+| evaluation_date | date | The date being evaluated |
+| conversations_count | integer | Number of analyzed conversations |
+| total_duration_seconds | integer | Total duration of all conversations |
+| total_words_user | integer | Total words spoken by user |
+| total_words_others | integer | Total words spoken by others |
+| avg_overall_score | numeric(4,2) | Average overall score (0-10) |
+| avg_clarity | numeric(4,2) | Average clarity score |
+| avg_structure | numeric(4,2) | Average structure score |
+| avg_empatia | numeric(4,2) | Average empathy score |
+| avg_vocabulario | numeric(4,2) | Average vocabulary score |
+| avg_objetivo | numeric(4,2) | Average objective score |
+| muletillas_total | integer | Total filler words count |
+| muletillas_by_word | jsonb | Filler words breakdown {word: count} |
+| muletillas_rate | numeric(6,2) | Filler words per 100 user words |
+| avg_ratio_habla | numeric(6,2) | Average talk ratio (user/others) |
+| total_preguntas_usuario | integer | Total questions asked by user |
+| total_preguntas_otros | integer | Total questions from others |
+| temas_tratados | jsonb | Deduplicated topics discussed |
+| acciones_count | integer | Number of user commitments |
+| temas_sin_cerrar_count | integer | Open topics count |
+| top_strengths | jsonb | Top 5 strengths by frequency |
+| top_areas_to_improve | jsonb | Top 5 improvement areas |
+| daily_summary | text | LLM-generated narrative summary |
+| daily_insights | jsonb | LLM insights: {patron_principal, recomendacion, tendencia, highlight, riesgo} |
+| conversation_ids | jsonb | Array of conversation UUIDs |
+| status | text | pending/processing/complete/error |
+
+**Constraints:** UNIQUE(user_id, evaluation_date)
+**Index:** idx_daily_evaluations_user_date (user_id, evaluation_date DESC)
+
+**RLS Policies:**
+| Policy | Operation | Who |
+|--------|-----------|-----|
+| daily_evaluations_select_own | SELECT | Own rows |
+| daily_evaluations_admin_select | SELECT | All (admin) |
+| daily_evaluations_manager_select | SELECT | Same company (manager) |
+
+**RPC Functions:**
+| Function | Returns | Description |
+|----------|---------|-------------|
+| compute_daily_evaluation(p_user_id, p_date) | jsonb | Aggregates conversations for user+date via SQL |
+| get_my_daily_evaluations(p_days DEFAULT 30) | SETOF daily_evaluations | User's evaluations for last N days |
+| get_my_today_evaluation() | jsonb | {today, yesterday} evaluations |
+| get_xp_leaderboard(p_limit DEFAULT 10) | jsonb | Company XP ranking, always includes current user |
 
 ---
 

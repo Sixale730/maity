@@ -324,6 +324,32 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     }
   }
 
+  // Trigger daily evaluation aggregation (non-blocking)
+  if (!discarded && communicationFeedback) {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      // SQL aggregation (fast, ~50ms)
+      await supabase.rpc('compute_daily_evaluation', {
+        p_user_id: maityUser.id,
+        p_date: today,
+      });
+      // LLM daily summary (fire-and-forget, non-blocking)
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000';
+      fetch(`${baseUrl}/api/daily-evaluation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({ user_id: maityUser.id, date: today }),
+      }).catch(err => console.error('[conversations-finalize] Daily LLM eval fire-and-forget error:', err));
+    } catch (err) {
+      console.error('[conversations-finalize] Daily eval trigger error:', err);
+    }
+  }
+
   // Extract memories (non-blocking)
   if (!discarded && transcriptText.length >= MIN_CONTENT_FOR_MEMORIES) {
     try {

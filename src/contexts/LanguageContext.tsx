@@ -702,6 +702,12 @@ const translations = {
     'gamified.progress_listen': 'Escucha',
     'gamified.progress_security': 'Seguridad',
     'gamified.progress_speak': 'Speak',
+    'gamified.daily_score': 'Score Diario',
+    'gamified.conversations_today': 'Conversaciones Hoy',
+    'gamified.no_data_today': 'Sin datos de hoy',
+    'gamified.real_ranking': 'Ranking Real',
+    'gamified.your_position': 'Tu Posición',
+    'gamified.daily_summary': 'Resumen del Día',
 
     // Omi Admin Insights
     'omi_insights.title': 'Omi Platform Insights',
@@ -1443,6 +1449,12 @@ const translations = {
     'gamified.progress_listen': 'Listen',
     'gamified.progress_security': 'Security',
     'gamified.progress_speak': 'Speak',
+    'gamified.daily_score': 'Daily Score',
+    'gamified.conversations_today': 'Conversations Today',
+    'gamified.no_data_today': 'No data today',
+    'gamified.real_ranking': 'Real Ranking',
+    'gamified.your_position': 'Your Position',
+    'gamified.daily_summary': 'Daily Summary',
 
     // Omi Admin Insights
     'omi_insights.title': 'Omi Platform Insights',

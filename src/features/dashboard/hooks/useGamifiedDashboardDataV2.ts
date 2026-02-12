@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getOmiConversations, OmiConversation } from '@/features/omi/services/omi.service';
-import { useFormResponses } from '@maity/shared';
+import { useFormResponses, useXPSummary, useTodayEvaluation, useLeaderboard } from '@maity/shared';
 import { useUserStreak } from './useUserStreak';
 
 export interface MountainNode {
@@ -109,30 +109,23 @@ const NODE_POSITIONS: [number, number][] = [
   [50, 30], [45, 22], [55, 15],
 ];
 
-const MOCK_RANKING: RankingEntry[] = [
-  { position: 1, name: 'Mary B.', xp: 58000 },
-  { position: 2, name: 'Lupita', xp: 23000 },
-  { position: 3, name: 'Carlos M.', xp: 15000 },
-  { position: 28, name: 'Tú', xp: 170, isCurrentUser: true },
-];
-
-const MOCK_BADGES: Badge[] = [
-  { id: '1', name: 'Negociador Valiente', xp: 50, icon: '🛡️', color: '#3b82f6', unlocked: true },
-  { id: '2', name: 'Precisión Verbal', xp: 90, icon: '🎯', color: '#ef4444', unlocked: true },
-  { id: '3', name: 'Empático', xp: 50, icon: '❤️', color: '#10b981', unlocked: true },
-  { id: '4', name: 'Astucia Disruptiva', xp: 170, icon: '🧠', color: '#9333ea', unlocked: true },
-  { id: '5', name: 'Orador Maestro', xp: 500, icon: '🎤', color: '#f59e0b', unlocked: false },
-  { id: '6', name: 'Líder Nato', xp: 1000, icon: '👑', color: '#ec4899', unlocked: false },
+const BADGE_DEFINITIONS: Omit<Badge, 'unlocked'>[] = [
+  { id: '1', name: 'Negociador Valiente', xp: 50, icon: '\uD83D\uDEE1\uFE0F', color: '#3b82f6' },
+  { id: '2', name: 'Precisión Verbal', xp: 90, icon: '\uD83C\uDFAF', color: '#ef4444' },
+  { id: '3', name: 'Empático', xp: 50, icon: '\u2764\uFE0F', color: '#10b981' },
+  { id: '4', name: 'Astucia Disruptiva', xp: 170, icon: '\uD83E\uDDE0', color: '#9333ea' },
+  { id: '5', name: 'Orador Maestro', xp: 500, icon: '\uD83C\uDFA4', color: '#f59e0b' },
+  { id: '6', name: 'Líder Nato', xp: 1000, icon: '\uD83D\uDC51', color: '#ec4899' },
 ];
 
 const MOCK_MISSION: Mission = {
   name: 'Montaña de Fuego',
   enemy: 'EL REGATEADOR',
   enemyDesc: 'Escéptico, Ocupado, Orientado a datos',
-  enemyIcon: '👹',
+  enemyIcon: '\uD83D\uDC79',
   items: [
-    { name: 'Pico de Piedra', icon: '⛏️' },
-    { name: 'Casco de Lava', icon: '⛑️' },
+    { name: 'Pico de Piedra', icon: '\u26CF\uFE0F' },
+    { name: 'Casco de Lava', icon: '\u26D1\uFE0F' },
   ],
   progress: 35,
 };
@@ -235,7 +228,7 @@ function formatRecentActivity(conversations: OmiConversation[]): RecentActivity[
       status: score >= 8 ? 'excellent' : score >= 6.5 ? 'good' : 'warning',
       insight,
       topSkill,
-      emoji: conv.emoji || '💬',
+      emoji: conv.emoji || '\uD83D\uDCAC',
     };
   });
 }
@@ -244,6 +237,9 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
   const { userProfile } = useUser();
   const { radarData, loading: formLoading } = useFormResponses();
   const { data: streakData, isLoading: streakLoading } = useUserStreak(userProfile?.id);
+  const { data: xpData, isLoading: xpLoading } = useXPSummary();
+  const { data: todayEval, isLoading: evalLoading } = useTodayEvaluation();
+  const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard(10);
   const [conversations, setConversations] = useState<OmiConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -297,8 +293,14 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
   const streakDays = streakData?.streak_days ?? 0;
   const bonusDays = streakData?.bonus_days ?? 0;
 
-  // Score from last 2 conversations
+  // Score from daily evaluation (real data) with conversation fallback
   const score = useMemo(() => {
+    if (todayEval?.today?.avg_overall_score != null) {
+      return {
+        today: todayEval.today.avg_overall_score,
+        yesterday: todayEval.yesterday?.avg_overall_score ?? 0,
+      };
+    }
     const scored = conversations.filter(c => c.communication_feedback?.overall_score);
     if (scored.length >= 2) {
       return {
@@ -309,36 +311,30 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
     if (scored.length === 1) {
       return { today: scored[0].communication_feedback!.overall_score!, yesterday: 0 };
     }
-    return { yesterday: 5.6, today: 7.2 };
-  }, [conversations]);
+    return { yesterday: 0, today: 0 };
+  }, [conversations, todayEval]);
 
-  // Calculate XP (mock calculation based on conversations and scores)
-  const totalXP = useMemo(() => {
-    const baseXP = conversations.length * 10;
-    const scoreXP = conversations.reduce((acc, c) => {
-      const s = c.communication_feedback?.overall_score || 0;
-      return acc + Math.round(s * 5);
-    }, 0);
-    return baseXP + scoreXP + 50; // +50 base for signing up
-  }, [conversations]);
+  // Real XP from database
+  const totalXP = xpData?.total_xp ?? 0;
 
   const { level, rank, nextLevelXP } = useMemo(() => calculateLevel(totalXP), [totalXP]);
 
-  // Update ranking with user name
-  const ranking = useMemo(() => {
-    const r = [...MOCK_RANKING];
-    if (userProfile?.name) {
-      const currentIdx = r.findIndex(e => e.isCurrentUser);
-      if (currentIdx >= 0) {
-        r[currentIdx] = { ...r[currentIdx], name: userProfile.name.split(' ')[0], xp: totalXP };
-      }
+  // Real ranking from leaderboard RPC
+  const ranking = useMemo((): RankingEntry[] => {
+    if (leaderboardData && leaderboardData.length > 0) {
+      return leaderboardData.map(entry => ({
+        position: entry.position,
+        name: entry.user_name,
+        xp: entry.total_xp,
+        isCurrentUser: entry.is_current_user,
+      }));
     }
-    return r;
-  }, [userProfile?.name, totalXP]);
+    return [];
+  }, [leaderboardData]);
 
-  // Update badges based on XP
-  const badges = useMemo(() => {
-    return MOCK_BADGES.map(badge => ({
+  // Update badges based on real XP
+  const badges = useMemo((): Badge[] => {
+    return BADGE_DEFINITIONS.map(badge => ({
       ...badge,
       unlocked: totalXP >= badge.xp,
     }));
@@ -347,14 +343,19 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
   // Recent activity
   const recentActivity = useMemo(() => formatRecentActivity(conversations), [conversations]);
 
-  // Analytics (mock with some real data hints)
+  // Analytics from daily evaluation (real data)
   const analytics = useMemo(() => {
-    // In a real implementation, these would come from transcript analysis
+    const muletillasRate = todayEval?.today?.muletillas_rate ?? 0;
+    const ratioHabla = todayEval?.today?.avg_ratio_habla ?? 0;
+    const muletillasScore = Math.round(Math.max(0, 100 - muletillasRate));
+    const flowScore = Math.round(Math.min(100, ratioHabla * 20));
     return {
-      muletillasScore: 94, // Higher is better (less filler words)
-      flowScore: 27,
+      muletillasScore,
+      flowScore,
+      muletillas: muletillasScore, // alias
+      flow: flowScore, // alias
     };
-  }, []);
+  }, [todayEval]);
 
   // Mission progress based on completed nodes
   const mission = useMemo((): Mission => ({
@@ -382,13 +383,9 @@ export function useGamifiedDashboardDataV2(): GamifiedDashboardDataV2 {
       map: mission.name, // alias for the new dashboard
     },
     badges,
-    analytics: {
-      ...analytics,
-      muletillas: analytics.muletillasScore, // alias
-      flow: analytics.flowScore, // alias
-    },
+    analytics,
     ranking,
     recentActivity,
-    loading: loading || formLoading || streakLoading,
+    loading: loading || formLoading || streakLoading || xpLoading || evalLoading || leaderboardLoading,
   };
 }
