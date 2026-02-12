@@ -4,7 +4,7 @@ Este es el prompt utilizado para evaluar la primera entrevista diagnóstica del 
 
 **Ubicación en código**: `lib/services/openai.service.ts:413-667`
 **Función**: `evaluateDiagnosticInterview()`
-**Endpoint**: `/api/evaluate-diagnostic-interview`
+**Endpoint**: `/api/evaluate (type: 'diagnostic')`
 **Modelo**: `gpt-4o-mini`
 **Temperatura**: `0.7`
 

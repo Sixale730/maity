@@ -23,7 +23,7 @@ If `endpoint-name` is missing, ask the user before proceeding.
 ## Pre-flight Checks
 
 1. Verify `api/{endpoint-name}.ts` does NOT already exist
-2. Read `api/evaluate-session.ts` as the reference pattern
+2. Read `api/evaluate.ts` as the reference pattern
 3. Read `lib/cors.ts`, `lib/types/api/errors.ts`, `lib/types/api/common.ts` to confirm imports
 
 ## Zod Type Mapping

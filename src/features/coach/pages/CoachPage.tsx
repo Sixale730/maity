@@ -154,19 +154,19 @@ export function CoachPage() {
         throw new Error('No hay sesión de autenticación');
       }
 
-      console.log('📤 [Coach] Llamando a evaluate-diagnostic-interview API...');
-      const response = await fetch(`${env.apiUrl}/api/evaluate-diagnostic-interview`, {
+      console.log('📤 [Coach] Llamando a evaluate API (diagnostic)...');
+      const response = await fetch(`${env.apiUrl}/api/evaluate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authSession.access_token}`
         },
-        body: JSON.stringify({ session_id: sessionId })
+        body: JSON.stringify({ session_id: sessionId, type: 'diagnostic' })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [Coach] Error en evaluate-diagnostic-interview:', {
+        console.error('❌ [Coach] Error en evaluate:', {
           status: response.status,
           statusText: response.statusText,
           errorData

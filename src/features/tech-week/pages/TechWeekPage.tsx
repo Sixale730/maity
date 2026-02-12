@@ -197,8 +197,8 @@ export function TechWeekPage() {
             throw new Error('No authentication session');
           }
 
-          // Call Tech Week evaluation API (OpenAI direct)
-          const response = await fetch(`${env.apiUrl}/api/evaluate-tech-week`, {
+          // Call consolidated evaluation API
+          const response = await fetch(`${env.apiUrl}/api/evaluate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -206,6 +206,7 @@ export function TechWeekPage() {
             },
             body: JSON.stringify({
               session_id: finalSessionId,
+              type: 'tech_week',
             }),
           });
 

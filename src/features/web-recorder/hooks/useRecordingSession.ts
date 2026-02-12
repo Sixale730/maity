@@ -55,7 +55,7 @@ export function useRecordingSession(): UseRecordingSessionReturn {
     try {
       const accessToken = await getAccessToken();
 
-      const response = await fetch('/api/omi/conversations-draft', {
+      const response = await fetch('/api/conversations/conversations-draft', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export function useRecordingSession(): UseRecordingSessionReturn {
       try {
         const accessToken = await getAccessToken();
 
-        const response = await fetch('/api/omi/conversations-segments', {
+        const response = await fetch('/api/conversations/conversations-segments', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export function useRecordingSession(): UseRecordingSessionReturn {
       try {
         const accessToken = await getAccessToken();
 
-        const response = await fetch('/api/omi/conversations-finalize', {
+        const response = await fetch('/api/conversations/conversations-finalize', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

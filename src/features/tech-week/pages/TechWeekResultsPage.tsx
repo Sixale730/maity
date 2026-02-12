@@ -92,8 +92,8 @@ export function TechWeekResultsPage() {
 
       console.log('[TechWeekResults] 🔄 Re-evaluating session:', sessionId);
 
-      // Call Tech Week evaluation API
-      const response = await fetch(`${env.apiUrl}/api/evaluate-tech-week`, {
+      // Call consolidated evaluation API
+      const response = await fetch(`${env.apiUrl}/api/evaluate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,6 +101,7 @@ export function TechWeekResultsPage() {
         },
         body: JSON.stringify({
           session_id: sessionId,
+          type: 'tech_week',
         }),
       });
 

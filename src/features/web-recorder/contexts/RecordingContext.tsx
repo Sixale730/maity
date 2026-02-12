@@ -384,7 +384,7 @@ export function RecordingProvider({ children }: RecordingProviderProps) {
   }, []);
 
   const finalizeConversation = useCallback(async (accessToken: string, conversationId: string, durationSeconds: number) => {
-    const response = await fetch('/api/omi/conversations-finalize', {
+    const response = await fetch('/api/conversations/conversations-finalize', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

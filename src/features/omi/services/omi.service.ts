@@ -279,7 +279,7 @@ export async function reanalyzeConversation(conversationId: string): Promise<Com
     throw new Error('No active session');
   }
 
-  const response = await fetch('/api/omi/conversations-reanalyze', {
+  const response = await fetch('/api/conversations/conversations-reanalyze', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

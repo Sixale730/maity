@@ -1213,7 +1213,7 @@ console.log('Coach session created:', data.id);
 
 **Related Functions:**
 - `public.create_voice_session` - For Roleplay sessions (requires profile + scenario)
-- `/api/evaluate-session` - Evaluates Coach sessions via OpenAI
+- `/api/evaluate` (type: 'coach') - Evaluates Coach sessions via OpenAI
 
 ---
 
@@ -2324,7 +2324,7 @@ const interview = await DiagnosticInterviewService.getDiagnosticInterview(userId
 
 **Workflow:**
 1. User completes Coach voice session
-2. Frontend calls `/api/evaluate-diagnostic-interview` with session_id
+2. Frontend calls `/api/evaluate` with `{ session_id, type: 'diagnostic' }`
 3. Backend:
    - Retrieves transcript from voice_sessions
    - Calls OpenAI with COACH_DIAGNOSTIC_SYSTEM_MESSAGE prompt
@@ -2337,8 +2337,8 @@ const interview = await DiagnosticInterviewService.getDiagnosticInterview(userId
 5. Dashboard integrates scores into Radar Chart (user vs coach comparison)
 
 **API Endpoint:**
-- `/api/evaluate-diagnostic-interview` - Evaluates diagnostic interview with OpenAI
-- Input: `{ session_id: UUID }`
+- `/api/evaluate` (type: 'diagnostic') - Evaluates diagnostic interview with OpenAI
+- Input: `{ session_id: UUID, type: 'diagnostic' }`
 - Output: `{ evaluation: DiagnosticInterviewEvaluation }`
 - Auth: Bearer token required
 - Rate limits: 5 eval/min, 50 eval/day per user

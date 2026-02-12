@@ -397,11 +397,22 @@ Sistema que protege contra pérdida de grabación cuando el usuario navega.
 
 ## Voice Evaluation System
 
-**Flow**: Frontend creates session → ElevenLabs conversation → `/api/evaluate-session` → OpenAI (gpt-4o-mini) → Save to DB
+**Consolidated endpoint**: `POST /api/evaluate` with `type` field routing:
+
+| type | Evaluates | Session table | Evaluation table |
+|------|-----------|--------------|-----------------|
+| `roleplay` | Roleplay sessions | `voice_sessions` | `evaluations` |
+| `coach` | Coach sessions | `voice_sessions` | `evaluations` |
+| `diagnostic` | Diagnostic interviews | `voice_sessions` | `diagnostic_interviews` |
+| `tech_week` | Tech Week sessions | `tech_week_sessions` | `tech_week_evaluations` |
+
+**Flow**: Frontend creates session → ElevenLabs conversation → `POST /api/evaluate { session_id, type }` → OpenAI → Save to DB
 
 **Safeguards**: 5 evals/min, 50/day, 3 retries, 25s timeout
 
 **Re-evaluation**: Yellow button on session pages, admins can re-eval any, users only own sessions
+
+**Note**: `evaluate-interview.ts` is separate (Edge Runtime with `waitUntil()`, incompatible with Node.js)
 
 ## Coach Diagnostic Interview
 
@@ -413,7 +424,7 @@ Evaluates 6 communication competencies from Coach AI conversation:
 5. **Propósito** (Purpose) - #ffd93d
 6. **Empatía** (Empathy) - #ef4444
 
-**API**: `/api/evaluate-diagnostic-interview` → `maity.diagnostic_interviews` table
+**API**: `POST /api/evaluate { type: 'diagnostic' }` → `maity.diagnostic_interviews` table
 
 ## Avatar System (3D Voxel)
 

@@ -216,18 +216,18 @@ export default function DemoTraining() {
 
       console.log('📤 [DemoTraining] Llamando a API de evaluación...');
 
-      const response = await fetch(`${env.apiUrl}/api/evaluate-session`, {
+      const response = await fetch(`${env.apiUrl}/api/evaluate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, type: 'roleplay' })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [DemoTraining] Error en evaluate-session:', {
+        console.error('❌ [DemoTraining] Error en evaluate:', {
           status: response.status,
           statusText: response.statusText,
           errorData
