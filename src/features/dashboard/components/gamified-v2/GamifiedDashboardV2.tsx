@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/contexts/UserContext';
 import { useGamifiedDashboardDataV2 } from '../../hooks/useGamifiedDashboardDataV2';
+import { useAvatarWithDefault } from '@maity/shared';
+import { VoxelAvatar } from '@/features/avatar/components/VoxelAvatar';
 import { Card } from '@/ui/components/ui/card';
 import { Button } from '@/ui/components/ui/button';
 import { RadarChart } from './RadarChart';
@@ -126,7 +129,9 @@ const Badge = ({ icon, name, unlocked, xp }: {
 export function GamifiedDashboardV2() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { userProfile } = useUser();
   const data = useGamifiedDashboardDataV2();
+  const { avatar } = useAvatarWithDefault(userProfile?.id);
 
   const firstName = data.userName?.split(' ')[0] || 'Usuario';
 
@@ -160,8 +165,8 @@ export function GamifiedDashboardV2() {
           {/* Avatar */}
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#ff0050] to-[#485df4] p-1 shadow-lg shadow-pink-500/20">
-              <div className="w-full h-full rounded-full bg-[#0a0a12] flex items-center justify-center text-4xl">
-                🦁
+              <div className="w-full h-full rounded-full bg-[#0a0a12] overflow-hidden flex items-center justify-center">
+                <VoxelAvatar config={avatar} size="md" />
               </div>
             </div>
             {/* Level badge */}
