@@ -1,7 +1,7 @@
 /**
  * RecorderApp
  *
- * Lightweight standalone app for the recorder subdomain (app.maity.com.mx).
+ * Lightweight standalone app for the recorder subdomain (app.maity.cloud).
  * Provides recording functionality with simplified auth flow.
  */
 

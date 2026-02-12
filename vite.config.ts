@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://www.maity.com.mx',
+        target: 'https://www.maity.cloud',
         changeOrigin: true,
         secure: true,
       },

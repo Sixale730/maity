@@ -212,7 +212,7 @@ supabase_realtime  | maity      | evaluations
 ### Test backend endpoint manually
 
 ```bash
-curl -X POST "https://api.maity.com.mx/api/evaluation-complete" \
+curl -X POST "https://api.maity.cloud/api/evaluation-complete" \
   -H "Content-Type: application/json" \
   -H "X-N8N-Secret: your-secret-here" \
   -d '{

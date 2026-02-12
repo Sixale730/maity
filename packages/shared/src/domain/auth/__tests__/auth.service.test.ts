@@ -907,12 +907,12 @@ describe('buildRedirectTo', () => {
   it('should use current origin in production', () => {
     window.location = {
       ...originalLocation,
-      origin: 'https://www.maity.com.mx'
+      origin: 'https://www.maity.cloud'
     };
 
     const url = buildRedirectTo('/dashboard');
 
-    expect(url).toContain('https://www.maity.com.mx/auth/callback');
+    expect(url).toContain('https://www.maity.cloud/auth/callback');
   });
 
   it('should not include trailing slash', () => {

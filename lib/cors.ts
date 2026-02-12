@@ -16,7 +16,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 export function setCors(req: VercelRequest, res: VercelResponse): boolean {
   const allowed = (
     process.env.CORS_ORIGINS ||
-    'https://maity.com.mx,https://www.maity.com.mx,http://localhost:8080'
+    'https://maity.cloud,https://www.maity.cloud,http://localhost:8080'
   )
     .split(',')
     .map((s) => s.trim());

@@ -4,7 +4,7 @@
  * Test script for /api/evaluations/{request_id}/complete endpoint
  */
 
-const API_URL = 'https://api.maity.com.mx';
+const API_URL = 'https://api.maity.cloud';
 const N8N_SECRET = 'secret'; // Tu secreto real aquí
 
 async function testEvaluationComplete() {
@@ -60,7 +60,7 @@ async function testEvaluationComplete() {
     if (response.status === 405) {
       console.error('\n❌ ERROR 405: Method Not Allowed');
       console.log('Posibles causas:');
-      console.log('1. La ruta no existe en api.maity.com.mx');
+      console.log('1. La ruta no existe en api.maity.cloud');
       console.log('2. El método HTTP no es POST');
       console.log('3. CORS está bloqueando la solicitud');
     } else if (response.status === 404) {

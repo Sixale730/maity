@@ -9,13 +9,13 @@ import { env } from './env';
 
 /**
  * Checks if the current hostname indicates the recorder subdomain.
- * Works for both production (app.maity.com.mx) and development (app.localhost).
+ * Works for both production (app.maity.cloud) and development (app.localhost).
  */
 export function isRecorderSubdomain(): boolean {
   const hostname = window.location.hostname;
 
   // Production subdomain
-  if (hostname === 'app.maity.com.mx') {
+  if (hostname === 'app.maity.cloud') {
     return true;
   }
 
@@ -44,7 +44,7 @@ export function getRecorderUrl(): string {
   }
 
   // Production
-  return 'https://app.maity.com.mx';
+  return 'https://app.maity.cloud';
 }
 
 /**
@@ -58,5 +58,5 @@ export function getMainPlatformUrl(): string {
   }
 
   // Production
-  return 'https://maity.com.mx';
+  return 'https://maity.cloud';
 }

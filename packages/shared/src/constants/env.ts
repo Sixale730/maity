@@ -17,7 +17,7 @@ export const env: EnvConfig = {
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5obHJ0ZmxreG9vanZoYnlvY2V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNjY3MTUsImV4cCI6MjA2Nzc0MjcxNX0.u7FqcLjO1sVxy-L3yrHp0JkC0WKv9xCQxFBwsVixqbw',
   elevenLabsApiKey: undefined,
   elevenLabsAgentId: undefined,
-  apiUrl: 'https://api.maity.com.mx',
+  apiUrl: 'https://api.maity.cloud',
   appUrl: 'http://localhost:8080',
   isDevelopment: false,
   isProduction: true,
