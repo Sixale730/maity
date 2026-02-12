@@ -81,6 +81,31 @@ export const TESTS_CATALOG: SkillTest[] = [
   },
 
   // -----------------------------------------------------------------------------
+  // TEST 4: BLACK STORIES
+  // -----------------------------------------------------------------------------
+  {
+    id: 'black-stories',
+    slug: 'black-stories',
+    titleKey: 'skills_arena.tests.black_stories.title',
+    descriptionKey: 'skills_arena.tests.black_stories.description',
+    category: 'communication',
+    difficulty: 'beginner',
+    icon: '🕵️',
+    baseXP: 120,
+    bonusXP: 15,
+    firstAttemptBonus: 30,
+    estimatedMinutes: 8,
+    questionsCount: 10,
+    color: '#d12dff',
+    badge: {
+      id: 'badge-detective',
+      name: 'Detective',
+      icon: '🔍',
+      xp: 100,
+    },
+  },
+
+  // -----------------------------------------------------------------------------
   // FUTURE TESTS (Locked)
   // -----------------------------------------------------------------------------
   {
@@ -180,6 +205,14 @@ export const ARENA_BADGES: ArenaBadge[] = [
     unlocked: false,
     xp: 75,
     color: '#485df4',
+  },
+  {
+    id: 'badge-detective',
+    name: 'Detective',
+    icon: '🔍',
+    unlocked: false,
+    xp: 100,
+    color: '#d12dff',
   },
   // Achievement badges
   {

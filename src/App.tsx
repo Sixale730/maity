@@ -74,6 +74,7 @@ const OmiConversationsPage = lazy(() => import("./features/omi").then(m => ({ de
 const OmiConversationDetailPage = lazy(() => import("./features/omi").then(m => ({ default: m.OmiConversationDetailPage })));
 const SkillsArenaPage = lazy(() => import("./features/skills-arena").then(m => ({ default: m.SkillsArenaPage })));
 const WheelOfLifePage = lazy(() => import("./features/wheel-of-life").then(m => ({ default: m.WheelOfLifePage })));
+const BlackStoriesPage = lazy(() => import("./features/black-stories").then(m => ({ default: m.BlackStoriesPage })));
 const LearningContentPage = lazy(() => import("./features/learning-content").then(m => ({ default: m.LearningContentPage })));
 const MeetingAnalysisPage = lazy(() => import("./features/meeting-analysis/pages/MeetingAnalysisPage"));
 
@@ -145,6 +146,7 @@ const App = () => (
                         <Route path="/conversaciones/:id" element={<OmiConversationDetailPage />} />
                         <Route path="/skills-arena" element={<SkillsArenaPage />} />
                         <Route path="/skills-arena/rueda-de-la-vida" element={<WheelOfLifePage />} />
+                        <Route path="/skills-arena/black-stories" element={<BlackStoriesPage />} />
                         <Route path="/learning-content" element={<LearningContentPage />} />
                         <Route path="/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
                         <Route path="/organizations" element={<OrganizationsPage />} />

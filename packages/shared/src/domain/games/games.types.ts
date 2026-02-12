@@ -2,7 +2,7 @@
 // Game Sessions & XP Types
 // =============================================================================
 
-export type GameType = 'wheel_of_life' | 'personal_brand' | 'active_listening';
+export type GameType = 'wheel_of_life' | 'personal_brand' | 'active_listening' | 'black_stories';
 
 export type GameSessionStatus = 'in_progress' | 'completed' | 'abandoned';
 
