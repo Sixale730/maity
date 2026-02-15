@@ -1,10 +1,12 @@
 # Database Structure & RLS Policies Reference
 
-**Last Updated:** February 12, 2026
-**Version:** 3.0
+**Last Updated:** February 15, 2026
+**Version:** 3.1
 **Purpose:** Comprehensive reference for implementing new features while avoiding common RLS and permissions errors.
 
 **Recent Changes:**
+- Added `maity.learning_content` table for learning resources library (podcasts, videos, PDFs, articles) (v3.1)
+- Added `get_all_learning_content`, `create_learning_content`, `delete_learning_content` RPC functions (v3.1)
 - Added `maity.daily_evaluations` table for daily aggregation of Omi conversation metrics (v3.0)
 - Added `compute_daily_evaluation`, `get_my_daily_evaluations`, `get_my_today_evaluation`, `get_xp_leaderboard` RPC functions (v3.0)
 - Added `maity.game_sessions` and `maity.xp_transactions` tables for game/XP tracking (v2.9)
@@ -43,6 +45,7 @@
    - [Evaluations & Interviews](#evaluations--interviews)
    - [Omi Integration](#omi-integration-external-conversations)
    - [Forms & Documents](#forms--documents)
+   - [Learning Content](#learning-content-biblioteca)
 4. [RLS Patterns](#rls-patterns)
    - [By Table](#rls-policies-by-table)
    - [By Operation Type](#rls-policies-by-operation-type)
@@ -4024,6 +4027,44 @@ Daily aggregation of communication metrics from Omi conversations with optional 
 | get_my_daily_evaluations(p_days DEFAULT 30) | SETOF daily_evaluations | User's evaluations for last N days |
 | get_my_today_evaluation() | jsonb | {today, yesterday} evaluations |
 | get_xp_leaderboard(p_limit DEFAULT 10) | jsonb | Company XP ranking, always includes current user |
+
+### Learning Content (Biblioteca)
+
+**Table:** `maity.learning_content`
+
+Stores learning resources (videos, podcasts, PDFs, articles) for the content library.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid PK | Auto-generated |
+| title | text NOT NULL | Resource title |
+| description | text | Optional description |
+| url | text NOT NULL | External resource URL |
+| content_type | text NOT NULL | video, podcast, pdf, article |
+| thumbnail_url | text | Optional thumbnail image URL |
+| duration | text | Optional duration (e.g., "15 min") |
+| icon | text | Icon name/emoji (default: 'book-open') |
+| color | text | Color for UI (default: 'blue') |
+| is_active | boolean | Soft delete flag (default: true) |
+| created_at | timestamptz | Creation timestamp |
+| updated_at | timestamptz | Last update timestamp |
+| created_by | uuid FK | References maity.users(id) |
+
+**Constraints:** content_type IN ('video', 'podcast', 'pdf', 'article')
+**Indexes:** idx_learning_content_active, idx_learning_content_created_at, idx_learning_content_type
+
+**RLS Policies:**
+| Policy | Operation | Who |
+|--------|-----------|-----|
+| authenticated_can_read_active_learning_content | SELECT | Active rows (authenticated) |
+| admins_can_manage_learning_content | ALL | Admin only |
+
+**RPC Functions:**
+| Function | Returns | Description |
+|----------|---------|-------------|
+| get_all_learning_content() | SETOF learning_content | Active for users, all for admins |
+| create_learning_content(p_title, p_description, p_url, p_content_type, p_thumbnail_url, p_duration, p_icon, p_color) | learning_content | Admin-only creation |
+| delete_learning_content(p_id) | void | Soft delete (sets is_active=false), admin only |
 
 ---
 
