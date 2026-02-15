@@ -83,11 +83,19 @@ const ProtectedRoute = () => {
         if (!cancelled) setState('deny');
       } catch (err) {
         console.error('[ProtectedRoute] general error:', err);
-        if (pathname !== '/auth') {
-          const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
-          navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+        // Only redirect if there's no valid session (true auth failure)
+        // Network/DB errors with a valid session should not kick the user out
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!currentSession) {
+          if (pathname !== '/auth') {
+            const returnTo = `${pathname}${window.location.search}${window.location.hash}`;
+            navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+          }
+          if (!cancelled) setState('deny');
+        } else {
+          console.warn('[ProtectedRoute] RPC failed but session exists, allowing access');
+          if (!cancelled) setState('allow');
         }
-        if (!cancelled) setState('deny');
       }
     };
 
