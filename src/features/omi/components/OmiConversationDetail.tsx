@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/ui/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { useDeleteConversation } from '../hooks/useDeleteConversation';
@@ -147,117 +148,126 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
           </p>
         )}
 
-        {/* Resumen Hero - gauge + score + description */}
-        {feedback?.overall_score !== undefined && (
-          <>
-            <SectionLabel>{t('omi.summary_section')}</SectionLabel>
-            <OmiResumenHero feedback={feedback} />
-          </>
-        )}
+        <Tabs defaultValue="analysis" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+            <TabsTrigger value="analysis">{t('omi.tab_analysis')}</TabsTrigger>
+            <TabsTrigger value="transcript">{t('omi.tab_transcript')}</TabsTrigger>
+          </TabsList>
 
-        {/* Radiografía KPIs - 8 cards grid */}
-        {(hasRadiografia || hasPreguntas || hasTemas) && (
-          <>
-            <SectionLabel>{t('omi.quick_radiography')}</SectionLabel>
-            <OmiKPIGrid
-              radiografia={feedback?.radiografia}
-              preguntas={feedback?.preguntas}
-              temas={feedback?.temas}
+          <TabsContent value="analysis">
+            {/* Resumen Hero - gauge + score + description */}
+            {feedback?.overall_score !== undefined && (
+              <>
+                <SectionLabel>{t('omi.summary_section')}</SectionLabel>
+                <OmiResumenHero feedback={feedback} />
+              </>
+            )}
+
+            {/* Radiografía KPIs - 8 cards grid */}
+            {(hasRadiografia || hasPreguntas || hasTemas) && (
+              <>
+                <SectionLabel>{t('omi.quick_radiography')}</SectionLabel>
+                <OmiKPIGrid
+                  radiografia={feedback?.radiografia}
+                  preguntas={feedback?.preguntas}
+                  temas={feedback?.temas}
+                />
+              </>
+            )}
+
+            {/* Communication Metrics - Score Bars */}
+            {hasScores && (feedback.clarity !== undefined || feedback.structure !== undefined || feedback.empatia !== undefined || feedback.vocabulario !== undefined || feedback.objetivo !== undefined) && (
+              <>
+                <SectionLabel>{t('omi.communication_metrics')}</SectionLabel>
+                <OmiScoreBars feedback={feedback} />
+              </>
+            )}
+
+            {/* Muletillas Section */}
+            {hasRadiografia && feedback.radiografia!.muletillas_total > 0 && (
+              <>
+                <SectionLabel>{t('omi.muletillas_section')}</SectionLabel>
+                <MuletillasSection
+                  muletillas={feedback.radiografia!.muletillas_detectadas}
+                  total={feedback.radiografia!.muletillas_total}
+                />
+              </>
+            )}
+
+            {/* Preguntas Section */}
+            {hasPreguntas && (
+              <>
+                <SectionLabel>{t('omi.questions_section')}</SectionLabel>
+                <PreguntasSection preguntas={feedback.preguntas!} />
+              </>
+            )}
+
+            {/* Temas Section */}
+            {hasTemas && feedback.temas!.temas_tratados.length > 0 && (
+              <>
+                <SectionLabel>{t('omi.topics_section')}</SectionLabel>
+                <TemasSection temas={feedback.temas!.temas_tratados} />
+              </>
+            )}
+
+            {/* Acciones Section */}
+            {hasTemas && feedback.temas!.acciones_usuario?.length > 0 && (
+              <>
+                <SectionLabel>{t('omi.commitments_section')}</SectionLabel>
+                <AccionesSection acciones={feedback.temas!.acciones_usuario} />
+              </>
+            )}
+
+            {/* Temas Sin Cerrar Section */}
+            {hasTemas && feedback.temas!.temas_sin_cerrar?.length > 0 && (
+              <>
+                <SectionLabel>{t('omi.pending_section')}</SectionLabel>
+                <TemasSinCerrarSection temasSinCerrar={feedback.temas!.temas_sin_cerrar} />
+              </>
+            )}
+
+            {/* Patrones de Comunicación Section */}
+            {feedback?.patron && (
+              <>
+                <SectionLabel>{t('omi.pattern_section')}</SectionLabel>
+                <OmiPatronesSection patron={feedback.patron} />
+              </>
+            )}
+
+            {/* Insights Section */}
+            {feedback?.insights && feedback.insights.length > 0 && (
+              <>
+                <SectionLabel>{t('omi.insights_section')}</SectionLabel>
+                <OmiInsightsSection insights={feedback.insights} />
+              </>
+            )}
+
+            {/* Fortalezas Section */}
+            {hasStrengths && (
+              <>
+                <SectionLabel>{t('omi.strengths_section')}</SectionLabel>
+                <OmiFortalezasSection strengths={feedback.strengths!} />
+              </>
+            )}
+
+            {/* Areas de Mejora Section */}
+            {hasAreas && (
+              <>
+                <SectionLabel>{t('omi.areas_section')}</SectionLabel>
+                <OmiAreasSection areas={feedback.areas_to_improve!} />
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="transcript">
+            <TranscriptSection
+              segments={segments || []}
+              transcriptText={conversation.transcript_text}
+              userName={conversation.user?.name || null}
+              isLoading={loadingSegments}
             />
-          </>
-        )}
-
-        {/* Communication Metrics - Score Bars */}
-        {hasScores && (feedback.clarity !== undefined || feedback.structure !== undefined || feedback.empatia !== undefined || feedback.vocabulario !== undefined || feedback.objetivo !== undefined) && (
-          <>
-            <SectionLabel>{t('omi.communication_metrics')}</SectionLabel>
-            <OmiScoreBars feedback={feedback} />
-          </>
-        )}
-
-        {/* Muletillas Section */}
-        {hasRadiografia && feedback.radiografia!.muletillas_total > 0 && (
-          <>
-            <SectionLabel>{t('omi.muletillas_section')}</SectionLabel>
-            <MuletillasSection
-              muletillas={feedback.radiografia!.muletillas_detectadas}
-              total={feedback.radiografia!.muletillas_total}
-            />
-          </>
-        )}
-
-        {/* Preguntas Section */}
-        {hasPreguntas && (
-          <>
-            <SectionLabel>{t('omi.questions_section')}</SectionLabel>
-            <PreguntasSection preguntas={feedback.preguntas!} />
-          </>
-        )}
-
-        {/* Temas Section */}
-        {hasTemas && feedback.temas!.temas_tratados.length > 0 && (
-          <>
-            <SectionLabel>{t('omi.topics_section')}</SectionLabel>
-            <TemasSection temas={feedback.temas!.temas_tratados} />
-          </>
-        )}
-
-        {/* Acciones Section */}
-        {hasTemas && feedback.temas!.acciones_usuario?.length > 0 && (
-          <>
-            <SectionLabel>{t('omi.commitments_section')}</SectionLabel>
-            <AccionesSection acciones={feedback.temas!.acciones_usuario} />
-          </>
-        )}
-
-        {/* Temas Sin Cerrar Section */}
-        {hasTemas && feedback.temas!.temas_sin_cerrar?.length > 0 && (
-          <>
-            <SectionLabel>{t('omi.pending_section')}</SectionLabel>
-            <TemasSinCerrarSection temasSinCerrar={feedback.temas!.temas_sin_cerrar} />
-          </>
-        )}
-
-        {/* Patrones de Comunicación Section */}
-        {feedback?.patron && (
-          <>
-            <SectionLabel>{t('omi.pattern_section')}</SectionLabel>
-            <OmiPatronesSection patron={feedback.patron} />
-          </>
-        )}
-
-        {/* Insights Section */}
-        {feedback?.insights && feedback.insights.length > 0 && (
-          <>
-            <SectionLabel>{t('omi.insights_section')}</SectionLabel>
-            <OmiInsightsSection insights={feedback.insights} />
-          </>
-        )}
-
-        {/* Fortalezas Section */}
-        {hasStrengths && (
-          <>
-            <SectionLabel>{t('omi.strengths_section')}</SectionLabel>
-            <OmiFortalezasSection strengths={feedback.strengths!} />
-          </>
-        )}
-
-        {/* Areas de Mejora Section */}
-        {hasAreas && (
-          <>
-            <SectionLabel>{t('omi.areas_section')}</SectionLabel>
-            <OmiAreasSection areas={feedback.areas_to_improve!} />
-          </>
-        )}
-
-        {/* Transcript Section */}
-        <SectionLabel>{t('omi.transcript_section')}</SectionLabel>
-        <TranscriptSection
-          segments={segments || []}
-          transcriptText={conversation.transcript_text}
-          userName={conversation.user?.name || null}
-          isLoading={loadingSegments}
-        />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

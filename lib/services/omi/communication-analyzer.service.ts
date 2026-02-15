@@ -12,7 +12,7 @@ import OpenAI from 'openai';
 // CONSTANTS
 // ============================================================================
 
-const MAX_TOKENS = 1200;
+const MAX_TOKENS = 2000;
 const TEMPERATURE = 0.7;
 const TIMEOUT_MS = 20000;
 const MIN_USER_WORDS = 15;
@@ -143,6 +143,18 @@ export interface CommunicationFeedback {
   radiografia?: Radiografia;
   preguntas?: PreguntasAnalisis;
   temas?: TemasAnalisis;
+  // Patrón de comunicación e insights
+  patron?: {
+    actual: string;
+    evolucion: string;
+    senales: string[];
+    que_cambiaria: string;
+  };
+  insights?: Array<{
+    dato: string;
+    por_que: string;
+    sugerencia: string;
+  }>;
 }
 
 // ============================================================================
@@ -204,7 +216,21 @@ Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
     "temas_sin_cerrar": [
       {"tema": "Recursos", "razon": "Pendiente confirmación"}
     ]
-  }
+  },
+
+  "patron": {
+    "actual": "Facilitador Reactivo",
+    "evolucion": "Facilitador Estratégico",
+    "senales": ["Señal 1 observada", "Señal 2 observada", "Señal 3 observada"],
+    "que_cambiaria": "Descripción de qué cambiaría si evoluciona"
+  },
+  "insights": [
+    {
+      "dato": "Dato curioso o no obvio sobre la conversación",
+      "por_que": "Por qué esto es relevante",
+      "sugerencia": "Qué podría hacer diferente"
+    }
+  ]
 }
 
 Reglas:
@@ -238,7 +264,19 @@ MÉTRICAS DE COMUNICACIÓN (0-10):
 - structure: Organización y estructura del discurso
 - empatia: Capacidad del USUARIO de escuchar, hacer preguntas y conectar con otros (solo evalúa al usuario principal)
 - vocabulario: Riqueza léxica, uso de términos apropiados, evitar muletillas
-- objetivo: Qué tan enfocada estuvo la conversación hacia metas concretas con fechas y responsables`;
+- objetivo: Qué tan enfocada estuvo la conversación hacia metas concretas con fechas y responsables
+
+PATRÓN DE COMUNICACIÓN:
+- actual: Identifica el patrón dominante del USUARIO (ej: "Facilitador Reactivo", "Negociador Directo", "Comunicador Empático"). Nombre creativo de 2-3 palabras.
+- evolucion: Hacia qué patrón más avanzado podría evolucionar naturalmente.
+- senales: 3 señales concretas observadas en la conversación que evidencian este patrón.
+- que_cambiaria: Qué mejoraría en su comunicación si logra evolucionar al siguiente nivel.
+
+INSIGHTS (Lo que quizás no notaste):
+- 2-4 observaciones no obvias sobre la conversación del USUARIO.
+- dato: Un hecho concreto y específico (no genérico).
+- por_que: Por qué esto importa para su comunicación.
+- sugerencia: Acción concreta y práctica que podría implementar.`;
 
 // ============================================================================
 // UTILITIES
