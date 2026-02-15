@@ -334,7 +334,12 @@ const Auth = ({ mode: _mode = 'default' }: AuthProps) => {
 
         provider,
 
-        options: { redirectTo: redirectTarget }
+        options: {
+          redirectTo: redirectTarget,
+          ...(provider === 'azure' && {
+            scopes: 'email profile openid User.Read',
+          }),
+        }
 
       });
 
