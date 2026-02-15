@@ -99,6 +99,19 @@ export interface CommunicationFeedback {
   radiografia?: Radiografia;
   preguntas?: PreguntasAnalisis;
   temas?: TemasAnalisis;
+  // Patrón de comunicación detectado
+  patron?: {
+    actual: string;
+    evolucion: string;
+    senales: string[];
+    que_cambiaria: string;
+  };
+  // Insights: cosas que quizás no notaste
+  insights?: Array<{
+    dato: string;
+    por_que: string;
+    sugerencia: string;
+  }>;
 }
 
 export interface OmiTranscriptSegment {

@@ -506,6 +506,83 @@ export function OmiAreasSection({ areas }: OmiAreasSectionProps) {
   );
 }
 
+// ─── Patrones Section (communication pattern card) ────────────────
+interface OmiPatronesSectionProps {
+  patron: NonNullable<CommunicationFeedback['patron']>;
+}
+
+export function OmiPatronesSection({ patron }: OmiPatronesSectionProps) {
+  const senalIcons = ['📊', '🔀', '💡'];
+
+  return (
+    <div className="bg-gradient-to-br from-indigo-950 to-indigo-900 rounded-xl p-8 text-white shadow-lg">
+      <h3 className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1.5">
+        Tu patrón de comunicación
+      </h3>
+      <div className="text-xl font-extrabold leading-snug">
+        {patron.actual}
+      </div>
+      <div className="text-base opacity-70 my-2.5">Podría evolucionar a:</div>
+      <div className="text-lg font-semibold text-cyan-300">
+        {patron.evolucion}
+      </div>
+
+      <div className="mt-4.5 space-y-0">
+        {patron.senales.map((s, i) => (
+          <div
+            key={i}
+            className="flex gap-2.5 items-start py-2.5 border-b border-white/10 last:border-b-0 text-sm leading-relaxed"
+          >
+            <span className="text-base shrink-0 mt-0.5">{senalIcons[i]}</span>
+            <span className="opacity-90">
+              <strong>Señal {i + 1}:</strong> {s}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4.5 p-4 bg-white/[0.08] rounded-lg text-sm leading-relaxed opacity-90">
+        <strong className="text-cyan-300">Qué cambiaría si evoluciona:</strong>{' '}
+        {patron.que_cambiaria}
+      </div>
+    </div>
+  );
+}
+
+// ─── Insights Section (things you might not have noticed) ─────────
+const INSIGHTS_BORDERS = [
+  'border-l-orange-500',
+  'border-l-purple-500',
+  'border-l-red-500',
+  'border-l-yellow-500',
+  'border-l-blue-500',
+];
+
+interface OmiInsightsSectionProps {
+  insights: NonNullable<CommunicationFeedback['insights']>;
+}
+
+export function OmiInsightsSection({ insights }: OmiInsightsSectionProps) {
+  return (
+    <div className="space-y-3">
+      {insights.map((ins, i) => (
+        <Card
+          key={i}
+          className={`bg-[#0F0F0F] border border-white/10 border-l-[5px] ${INSIGHTS_BORDERS[i % INSIGHTS_BORDERS.length]} p-5 hover:translate-x-1 hover:border-white/20 transition-all`}
+        >
+          <div className="font-bold leading-snug">{ins.dato}</div>
+          <div className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+            {ins.por_que}
+          </div>
+          <div className="text-sm text-blue-500 font-semibold mt-2">
+            {ins.sugerencia}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 // ─── Transcript Section ───────────────────────────────────────────
 interface TranscriptSectionProps {
   segments: Array<{

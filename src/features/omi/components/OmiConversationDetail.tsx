@@ -32,6 +32,8 @@ import {
   OmiScoreBars,
   OmiFortalezasSection,
   OmiAreasSection,
+  OmiPatronesSection,
+  OmiInsightsSection,
   TranscriptSection,
 } from './OmiAnalysisSections';
 
@@ -213,6 +215,22 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
           <>
             <SectionLabel>{t('omi.pending_section')}</SectionLabel>
             <TemasSinCerrarSection temasSinCerrar={feedback.temas!.temas_sin_cerrar} />
+          </>
+        )}
+
+        {/* Patrones de Comunicación Section */}
+        {feedback?.patron && (
+          <>
+            <SectionLabel>{t('omi.pattern_section')}</SectionLabel>
+            <OmiPatronesSection patron={feedback.patron} />
+          </>
+        )}
+
+        {/* Insights Section */}
+        {feedback?.insights && feedback.insights.length > 0 && (
+          <>
+            <SectionLabel>{t('omi.insights_section')}</SectionLabel>
+            <OmiInsightsSection insights={feedback.insights} />
           </>
         )}
 
