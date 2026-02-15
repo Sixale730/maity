@@ -166,7 +166,7 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
         )}
 
         {/* Communication Metrics - Score Bars */}
-        {hasScores && (feedback.clarity !== undefined || feedback.engagement !== undefined || feedback.structure !== undefined) && (
+        {hasScores && (feedback.clarity !== undefined || feedback.structure !== undefined || feedback.empatia !== undefined || feedback.vocabulario !== undefined || feedback.objetivo !== undefined) && (
           <>
             <SectionLabel>{t('omi.communication_metrics')}</SectionLabel>
             <OmiScoreBars feedback={feedback} />
@@ -201,7 +201,7 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
         )}
 
         {/* Acciones Section */}
-        {hasTemas && feedback.temas!.acciones_usuario.length > 0 && (
+        {hasTemas && feedback.temas!.acciones_usuario?.length > 0 && (
           <>
             <SectionLabel>{t('omi.commitments_section')}</SectionLabel>
             <AccionesSection acciones={feedback.temas!.acciones_usuario} />
@@ -209,7 +209,7 @@ export function OmiConversationDetail({ conversation: initialConversation, onBac
         )}
 
         {/* Temas Sin Cerrar Section */}
-        {hasTemas && feedback.temas!.temas_sin_cerrar.length > 0 && (
+        {hasTemas && feedback.temas!.temas_sin_cerrar?.length > 0 && (
           <>
             <SectionLabel>{t('omi.pending_section')}</SectionLabel>
             <TemasSinCerrarSection temasSinCerrar={feedback.temas!.temas_sin_cerrar} />

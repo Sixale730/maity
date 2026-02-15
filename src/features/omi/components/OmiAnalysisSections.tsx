@@ -318,16 +318,23 @@ export function OmiKPIGrid({ radiografia, preguntas, temas }: OmiKPIGridProps) {
       icon: '✅',
       number: String(temas?.acciones_usuario?.length || 0),
       label: t('omi.commitments'),
-      detail: temas?.acciones_usuario?.filter(a => a.tiene_fecha).length
-        ? `${temas.acciones_usuario.filter(a => a.tiene_fecha).length} ${t('omi.with_date')}`
-        : t('omi.no_commitments'),
+      detail: (() => {
+        const acciones = temas?.acciones_usuario;
+        if (!acciones?.length) return t('omi.no_commitments');
+        const withDate = acciones.filter(a => typeof a !== 'string' && a.tiene_fecha).length;
+        return withDate ? `${withDate} ${t('omi.with_date')}` : t('omi.no_commitments');
+      })(),
       accent: 'green' as const,
     },
     {
       icon: '🚪',
       number: String(temas?.temas_sin_cerrar?.length || 0),
       label: t('omi.open_topics'),
-      detail: temas?.temas_sin_cerrar?.[0]?.tema || t('omi.all_closed'),
+      detail: (() => {
+        const first = temas?.temas_sin_cerrar?.[0];
+        if (!first) return t('omi.all_closed');
+        return typeof first === 'string' ? first : first.tema || t('omi.all_closed');
+      })(),
       accent: temas?.temas_sin_cerrar?.length ? 'pink' as const : 'green' as const,
     },
   ];

@@ -277,6 +277,46 @@ function truncateTranscript(transcript: string, maxChars: number = MAX_TRANSCRIP
   return transcript.slice(0, maxChars) + '\n[Transcripción truncada...]';
 }
 
+function toNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null) return undefined;
+  const n = Number(value);
+  return isNaN(n) ? undefined : n;
+}
+
+function normalizeFeedback(raw: CommunicationFeedback): CommunicationFeedback {
+  // Ensure preguntas arrays exist
+  if (raw.preguntas) {
+    raw.preguntas.preguntas_usuario = Array.isArray(raw.preguntas.preguntas_usuario) ? raw.preguntas.preguntas_usuario : [];
+    raw.preguntas.preguntas_otros = Array.isArray(raw.preguntas.preguntas_otros) ? raw.preguntas.preguntas_otros : [];
+    raw.preguntas.total_usuario = toNumber(raw.preguntas.total_usuario) ?? raw.preguntas.preguntas_usuario.length;
+    raw.preguntas.total_otros = toNumber(raw.preguntas.total_otros) ?? raw.preguntas.preguntas_otros.length;
+  }
+
+  // Normalize acciones_usuario: string → {descripcion, tiene_fecha}
+  if (raw.temas?.acciones_usuario) {
+    raw.temas.acciones_usuario = raw.temas.acciones_usuario.map((a: AccionUsuario | string) =>
+      typeof a === 'string' ? { descripcion: a, tiene_fecha: false } : a
+    );
+  }
+
+  // Normalize temas_sin_cerrar: string → {tema, razon}
+  if (raw.temas?.temas_sin_cerrar) {
+    raw.temas.temas_sin_cerrar = raw.temas.temas_sin_cerrar.map((t: TemaSinCerrar | string) =>
+      typeof t === 'string' ? { tema: t, razon: '' } : t
+    );
+  }
+
+  // Ensure numeric scores
+  raw.overall_score = toNumber(raw.overall_score);
+  raw.clarity = toNumber(raw.clarity);
+  raw.structure = toNumber(raw.structure);
+  raw.empatia = toNumber(raw.empatia);
+  raw.vocabulario = toNumber(raw.vocabulario);
+  raw.objetivo = toNumber(raw.objetivo);
+
+  return raw;
+}
+
 // ============================================================================
 // MAIN FUNCTION
 // ============================================================================
@@ -366,7 +406,7 @@ export async function analyzeCommunication(
         continue;
       }
 
-      const result = JSON.parse(content) as CommunicationFeedback;
+      const result = normalizeFeedback(JSON.parse(content) as CommunicationFeedback);
 
       console.log('[communication-analyzer] Analysis completed', {
         provider: llm.provider,

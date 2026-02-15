@@ -204,7 +204,10 @@ interface PreguntasSectionProps {
 export function PreguntasSection({ preguntas }: PreguntasSectionProps) {
   const { t } = useLanguage();
 
-  if (preguntas.preguntas_usuario.length === 0 && preguntas.preguntas_otros.length === 0) {
+  const userQuestions = Array.isArray(preguntas.preguntas_usuario) ? preguntas.preguntas_usuario : [];
+  const otherQuestions = Array.isArray(preguntas.preguntas_otros) ? preguntas.preguntas_otros : [];
+
+  if (userQuestions.length === 0 && otherQuestions.length === 0) {
     return null;
   }
 
@@ -218,9 +221,9 @@ export function PreguntasSection({ preguntas }: PreguntasSectionProps) {
             {preguntas.total_usuario}
           </Badge>
         </h4>
-        {preguntas.preguntas_usuario.length > 0 ? (
+        {userQuestions.length > 0 ? (
           <ul className="space-y-2">
-            {preguntas.preguntas_usuario.slice(0, 5).map((pregunta, i) => (
+            {userQuestions.slice(0, 5).map((pregunta, i) => (
               <li key={i} className="text-sm text-gray-400 flex items-start gap-2">
                 <HelpCircle className="h-3.5 w-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
                 {pregunta}
@@ -240,9 +243,9 @@ export function PreguntasSection({ preguntas }: PreguntasSectionProps) {
             {preguntas.total_otros}
           </Badge>
         </h4>
-        {preguntas.preguntas_otros.length > 0 ? (
+        {otherQuestions.length > 0 ? (
           <ul className="space-y-2">
-            {preguntas.preguntas_otros.slice(0, 5).map((pregunta, i) => (
+            {otherQuestions.slice(0, 5).map((pregunta, i) => (
               <li key={i} className="text-sm text-gray-400 flex items-start gap-2">
                 <HelpCircle className="h-3.5 w-3.5 text-purple-500 mt-0.5 flex-shrink-0" />
                 {pregunta}
@@ -293,13 +296,17 @@ interface AccionesSectionProps {
 export function AccionesSection({ acciones }: AccionesSectionProps) {
   const { t } = useLanguage();
 
-  if (acciones.length === 0) return null;
+  if (!acciones || acciones.length === 0) return null;
+
+  const normalized = acciones.map(a =>
+    typeof a === 'string' ? { descripcion: a, tiene_fecha: false } : a
+  );
 
   return (
     <Card className="bg-[#0F0F0F] border border-white/10 p-5">
       <h4 className="text-sm font-bold text-white mb-4">{t('omi.your_commitments')}</h4>
       <ul className="space-y-2.5">
-        {acciones.map((accion, i) => (
+        {normalized.map((accion, i) => (
           <li key={i} className="flex items-start gap-2.5">
             {accion.tiene_fecha ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
@@ -331,7 +338,11 @@ interface TemasSinCerrarSectionProps {
 export function TemasSinCerrarSection({ temasSinCerrar }: TemasSinCerrarSectionProps) {
   const { t } = useLanguage();
 
-  if (temasSinCerrar.length === 0) return null;
+  if (!temasSinCerrar || temasSinCerrar.length === 0) return null;
+
+  const normalized = temasSinCerrar.map(item =>
+    typeof item === 'string' ? { tema: item, razon: '' } : item
+  );
 
   return (
     <Card className="bg-[#0F0F0F] border border-white/10 p-5">
@@ -339,19 +350,21 @@ export function TemasSinCerrarSection({ temasSinCerrar }: TemasSinCerrarSectionP
         <DoorOpen className="h-4 w-4 text-orange-400" />
         {t('omi.open_topics')}
         <Badge variant="secondary" className="ml-auto bg-orange-500/20 text-orange-400">
-          {temasSinCerrar.length}
+          {normalized.length}
         </Badge>
       </h4>
       <div className="space-y-3">
-        {temasSinCerrar.map((item, i) => (
+        {normalized.map((item, i) => (
           <div
             key={i}
             className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/20"
           >
             <div className="font-medium text-sm text-orange-300">{item.tema}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              <span className="text-gray-600">{t('omi.reason')}:</span> {item.razon}
-            </div>
+            {item.razon ? (
+              <div className="text-xs text-gray-500 mt-1">
+                <span className="text-gray-600">{t('omi.reason')}:</span> {item.razon}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
